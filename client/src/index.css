@@ -256,6 +256,98 @@
     50% { transform: scale(0.95); background-color: hsl(43, 74%, 62%); }
     100% { transform: scale(1); }
   }
+
+  /* Typing Animation for Menu View */
+  .typing-animation {
+    opacity: 0;
+    animation: typeIn 2s ease-out 0.5s forwards;
+  }
+
+  .typing-animation-delay {
+    opacity: 0;
+    animation: typeIn 2s ease-out 1.5s forwards;
+  }
+
+  @keyframes typeIn {
+    0% { 
+      opacity: 0; 
+      transform: translateX(20px); 
+    }
+    50% { 
+      opacity: 0.5; 
+      transform: translateX(10px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  /* Cinematic entrance animation */
+  .animate-in {
+    animation-fill-mode: both;
+  }
+
+  .fade-in-0 {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-bottom-10 {
+    animation-name: slideInFromBottom;
+  }
+
+  .slide-in-from-top-10 {
+    animation-name: slideInFromTop;
+  }
+
+  .slide-in-from-right-10 {
+    animation-name: slideInFromRight;
+  }
+
+  .duration-1000 {
+    animation-duration: 1s;
+  }
+
+  .delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .delay-700 {
+    animation-delay: 0.7s;
+  }
+
+  @keyframes slideInFromBottom {
+    from { 
+      opacity: 0; 
+      transform: translateY(40px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes slideInFromTop {
+    from { 
+      opacity: 0; 
+      transform: translateY(-40px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from { 
+      opacity: 0; 
+      transform: translateX(40px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
 }
 
 @layer utilities {
