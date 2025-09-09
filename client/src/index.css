@@ -16,13 +16,13 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Luxury Coffee Shop Theme - Elegant Gold on Dark */
-  --background: hsl(0, 0%, 3%); /* Deep black like reference image */
-  --foreground: hsl(45, 80%, 85%); /* Rich golden cream */
-  --border: hsl(45, 60%, 25%); /* Golden brown border */
-  --card: hsl(0, 0%, 6%); /* Slightly lighter black */
-  --card-foreground: hsl(45, 80%, 85%); /* Rich golden cream */
-  --card-border: hsl(45, 60%, 20%); /* Dark golden border */
+  /* Ultra Dark Luxury Coffee Shop Theme - Elegant Gold on Pure Dark */
+  --background: hsl(0, 0%, 0%); /* Pure black background */
+  --foreground: hsl(45, 80%, 90%); /* Bright golden cream */
+  --border: hsl(45, 60%, 30%); /* Bright golden brown border */
+  --card: hsl(0, 0%, 2%); /* Almost black cards */
+  --card-foreground: hsl(45, 80%, 90%); /* Bright golden cream */
+  --card-border: hsl(45, 60%, 25%); /* Golden border */
   
   --sidebar: hsl(0, 0%, 4%); /* Very dark sidebar */
   --sidebar-foreground: hsl(45, 75%, 80%); /* Golden cream */
@@ -43,8 +43,8 @@
   --secondary: hsl(45, 70%, 75%); /* Light golden */
   --secondary-foreground: hsl(0, 0%, 15%); /* Dark text */
   
-  --muted: hsl(45, 30%, 25%); /* Muted golden brown */
-  --muted-foreground: hsl(45, 50%, 60%); /* Medium golden text */
+  --muted: hsl(45, 30%, 10%); /* Ultra dark muted */
+  --muted-foreground: hsl(45, 50%, 70%); /* Brighter golden text */
   
   --accent: hsl(45, 90%, 65%); /* Bright luxury gold */
   --accent-foreground: hsl(0, 0%, 8%); /* Deep black text */
@@ -52,7 +52,7 @@
   --destructive: hsl(0, 62%, 30%); /* Dark red */
   --destructive-foreground: hsl(45, 25%, 95%); /* Light text */
   
-  --input: hsl(25, 20%, 15%); /* Dark input background */
+  --input: hsl(25, 20%, 5%); /* Ultra dark input background */
   --ring: hsl(43, 74%, 52%); /* Gold focus ring */
   
   --chart-1: hsl(43, 74%, 52%); /* Gold */
@@ -137,8 +137,8 @@
   --secondary: hsl(45, 70%, 75%); /* Light golden */
   --secondary-foreground: hsl(0, 0%, 15%); /* Dark text */
   
-  --muted: hsl(45, 30%, 25%); /* Muted golden brown */
-  --muted-foreground: hsl(45, 50%, 60%); /* Medium golden text */
+  --muted: hsl(45, 30%, 10%); /* Ultra dark muted */
+  --muted-foreground: hsl(45, 50%, 70%); /* Brighter golden text */
   
   --accent: hsl(45, 90%, 65%); /* Bright luxury gold */
   --accent-foreground: hsl(0, 0%, 8%); /* Deep black text */
