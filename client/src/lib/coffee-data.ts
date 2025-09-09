@@ -1,17 +1,21 @@
 import type { CoffeeItem, CoffeeCategory } from "@shared/schema";
 
-// Import coffee images
-import americanoImg from "@/assets/coffee-images/americano.png";
-import cappuccinoImg from "@/assets/coffee-images/cappuccino.png";
-import coldBrewImg from "@/assets/coffee-images/cold-brew.png";
-import creamCoffeeImg from "@/assets/coffee-images/cream-coffee.png";
-import espressoImg from "@/assets/coffee-images/espresso.png";
-import icedCoffeeImg from "@/assets/coffee-images/iced-coffee.png";
-import icedLatteImg from "@/assets/coffee-images/iced-latte.png";
-import latteImg from "@/assets/coffee-images/latte.png";
-import mochaImg from "@/assets/coffee-images/mocha.png";
-import signatureImg from "@/assets/coffee-images/signature.png";
-import specialtyImg from "@/assets/coffee-images/specialty.png";
+// Import all QahwaCup coffee images
+import latteArtImg from "@/assets/coffee-images/latte-art.png";
+import cappuccinoFoamImg from "@/assets/coffee-images/cappuccino-foam.png";
+import mochaSwirlImg from "@/assets/coffee-images/mocha-swirl.png";
+import espressoShotImg from "@/assets/coffee-images/espresso-shot.png";
+import vanillaCreamImg from "@/assets/coffee-images/vanilla-cream.png";
+import icedCreamCoffeeImg from "@/assets/coffee-images/iced-cream-coffee.png";
+import icedMochaImg from "@/assets/coffee-images/iced-mocha.png";
+import whippedSpecialtyImg from "@/assets/coffee-images/whipped-specialty.png";
+import coldBrewIceImg from "@/assets/coffee-images/cold-brew-ice.png";
+import icedChocolateImg from "@/assets/coffee-images/iced-chocolate.png";
+import americanoBlackImg from "@/assets/coffee-images/americano-black.png";
+import signatureQahwaImg from "@/assets/coffee-images/signature-qahwa.png";
+import premiumLatteImg from "@/assets/coffee-images/premium-latte.png";
+import classicEspressoImg from "@/assets/coffee-images/classic-espresso.png";
+import goldenLatteImg from "@/assets/coffee-images/golden-latte.png";
 
 // Coffee categories configuration
 export const coffeeCategories = [
@@ -38,7 +42,7 @@ export const coffeeCategories = [
   }
 ];
 
-// Default coffee menu data - this would typically come from an API
+// Perfectly matched coffee menu data with QahwaCup images
 export const defaultCoffeeMenu: CoffeeItem[] = [
   // Basic Coffee
   {
@@ -49,7 +53,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.00",
     oldPrice: "5.00",
     category: "basic",
-    imageUrl: espressoImg,
+    imageUrl: espressoShotImg,
     isAvailable: 1
   },
   {
@@ -60,7 +64,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: espressoImg,
+    imageUrl: classicEspressoImg,
     isAvailable: 1
   },
   {
@@ -71,7 +75,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: americanoImg,
+    imageUrl: americanoBlackImg,
     isAvailable: 1
   },
   {
@@ -82,7 +86,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: specialtyImg,
+    imageUrl: signatureQahwaImg,
     isAvailable: 1
   },
   
@@ -95,7 +99,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: latteImg,
+    imageUrl: latteArtImg,
     isAvailable: 1
   },
   {
@@ -106,7 +110,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: cappuccinoImg,
+    imageUrl: cappuccinoFoamImg,
     isAvailable: 1
   },
   {
@@ -117,7 +121,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "hot",
-    imageUrl: creamCoffeeImg,
+    imageUrl: vanillaCreamImg,
     isAvailable: 1
   },
   {
@@ -128,7 +132,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "hot",
-    imageUrl: mochaImg,
+    imageUrl: mochaSwirlImg,
     isAvailable: 1
   },
   {
@@ -139,7 +143,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: specialtyImg,
+    imageUrl: whippedSpecialtyImg,
     isAvailable: 1
   },
   {
@@ -150,7 +154,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "hot",
-    imageUrl: signatureImg,
+    imageUrl: goldenLatteImg,
     isAvailable: 1
   },
   
@@ -163,7 +167,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: icedLatteImg,
+    imageUrl: premiumLatteImg,
     isAvailable: 1
   },
   {
@@ -174,7 +178,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "cold",
-    imageUrl: mochaImg,
+    imageUrl: icedMochaImg,
     isAvailable: 1
   },
   {
@@ -185,7 +189,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: icedCoffeeImg,
+    imageUrl: icedCreamCoffeeImg,
     isAvailable: 1
   },
   {
@@ -196,7 +200,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "cold",
-    imageUrl: icedCoffeeImg,
+    imageUrl: icedChocolateImg,
     isAvailable: 1
   },
   {
@@ -207,7 +211,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: coldBrewImg,
+    imageUrl: coldBrewIceImg,
     isAvailable: 1
   },
   {
@@ -218,7 +222,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "cold",
-    imageUrl: signatureImg,
+    imageUrl: signatureQahwaImg,
     isAvailable: 1
   }
 ];
