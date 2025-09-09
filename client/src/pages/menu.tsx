@@ -43,11 +43,13 @@ export default function MenuPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Subtle Background */}
+    <div className="min-h-screen bg-black">
+      {/* Creative Dark Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-16 left-16 w-48 h-48 bg-yellow-500/8 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-24 w-36 h-36 bg-yellow-400/6 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-24 left-32 w-56 h-56 bg-yellow-600/7 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-40 right-16 w-40 h-40 bg-yellow-300/5 rounded-full blur-2xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
       </div>
 
       {/* Header */}

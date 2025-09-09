@@ -25,10 +25,13 @@ export default function SplashScreen() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-black to-gray-900 flex flex-col items-center justify-center z-50" data-testid="splash-screen">
-      {/* Subtle Background Glow */}
+    <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50" data-testid="splash-screen">
+      {/* Creative Dark Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-600/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-20 w-40 h-40 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-16 w-32 h-32 bg-yellow-400/8 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/2 left-10 w-24 h-24 bg-yellow-600/6 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-yellow-300/7 rounded-full blur-2xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
       </div>
 
       <div className="text-center relative z-10">
