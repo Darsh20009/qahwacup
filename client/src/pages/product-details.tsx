@@ -7,6 +7,7 @@ import { useCartStore } from "@/lib/cart-store";
 import { ArrowRight, Plus, Minus } from "lucide-react";
 import { useState } from "react";
 import type { CoffeeItem } from "@shared/schema";
+import qahwaCupProduct from "@/assets/qahwa-cup-product.png";
 
 export default function ProductDetails() {
   const [, params] = useRoute("/product/:id");
@@ -77,7 +78,7 @@ export default function ProductDetails() {
           {/* Product Image */}
           <div className="relative" data-testid="section-product-image">
             <img 
-              src={`${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600`}
+              src={qahwaCupProduct}
               alt={item.nameAr}
               className="w-full h-96 object-cover rounded-2xl shadow-lg"
               data-testid="img-product"
