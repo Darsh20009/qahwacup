@@ -16,38 +16,38 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Coffee Shop Theme Colors - Light Mode */
-  --background: hsl(25, 25%, 8%); /* Dark coffee brown */
-  --foreground: hsl(45, 25%, 95%); /* Cream white */
-  --border: hsl(35, 15%, 25%); /* Medium brown */
-  --card: hsl(25, 20%, 12%); /* Slightly lighter than background */
-  --card-foreground: hsl(45, 25%, 95%); /* Cream white */
-  --card-border: hsl(35, 15%, 20%); /* Darker brown for card borders */
+  /* Luxury Coffee Shop Theme - Elegant Gold on Dark */
+  --background: hsl(0, 0%, 3%); /* Deep black like reference image */
+  --foreground: hsl(45, 80%, 85%); /* Rich golden cream */
+  --border: hsl(45, 60%, 25%); /* Golden brown border */
+  --card: hsl(0, 0%, 6%); /* Slightly lighter black */
+  --card-foreground: hsl(45, 80%, 85%); /* Rich golden cream */
+  --card-border: hsl(45, 60%, 20%); /* Dark golden border */
   
-  --sidebar: hsl(25, 20%, 10%); /* Darker sidebar */
-  --sidebar-foreground: hsl(45, 25%, 90%); /* Light cream */
-  --sidebar-border: hsl(35, 15%, 15%); /* Dark border */
-  --sidebar-primary: hsl(43, 74%, 52%); /* Gold accent */
-  --sidebar-primary-foreground: hsl(25, 25%, 8%); /* Dark text on gold */
-  --sidebar-accent: hsl(35, 35%, 85%); /* Light cream accent */
-  --sidebar-accent-foreground: hsl(25, 25%, 15%); /* Dark text */
-  --sidebar-ring: hsl(43, 74%, 52%); /* Gold ring */
+  --sidebar: hsl(0, 0%, 4%); /* Very dark sidebar */
+  --sidebar-foreground: hsl(45, 75%, 80%); /* Golden cream */
+  --sidebar-border: hsl(45, 50%, 15%); /* Dark golden border */
+  --sidebar-primary: hsl(45, 90%, 65%); /* Bright luxury gold */
+  --sidebar-primary-foreground: hsl(0, 0%, 8%); /* Dark text on gold */
+  --sidebar-accent: hsl(45, 70%, 75%); /* Light golden accent */
+  --sidebar-accent-foreground: hsl(0, 0%, 15%); /* Dark text */
+  --sidebar-ring: hsl(45, 90%, 65%); /* Bright gold ring */
   
-  --popover: hsl(25, 20%, 12%); /* Same as card */
-  --popover-foreground: hsl(45, 25%, 95%); /* Cream white */
-  --popover-border: hsl(35, 15%, 25%); /* Medium brown */
+  --popover: hsl(0, 0%, 6%); /* Same as card */
+  --popover-foreground: hsl(45, 80%, 85%); /* Rich golden cream */
+  --popover-border: hsl(45, 60%, 25%); /* Golden brown border */
   
-  --primary: hsl(43, 74%, 52%); /* Gold */
-  --primary-foreground: hsl(25, 25%, 8%); /* Dark text on gold */
+  --primary: hsl(45, 90%, 65%); /* Bright luxury gold */
+  --primary-foreground: hsl(0, 0%, 8%); /* Deep black text on gold */
   
-  --secondary: hsl(35, 35%, 85%); /* Light cream */
-  --secondary-foreground: hsl(25, 25%, 15%); /* Dark text */
+  --secondary: hsl(45, 70%, 75%); /* Light golden */
+  --secondary-foreground: hsl(0, 0%, 15%); /* Dark text */
   
-  --muted: hsl(35, 15%, 35%); /* Muted brown */
-  --muted-foreground: hsl(45, 15%, 70%); /* Light muted text */
+  --muted: hsl(45, 30%, 25%); /* Muted golden brown */
+  --muted-foreground: hsl(45, 50%, 60%); /* Medium golden text */
   
-  --accent: hsl(43, 74%, 52%); /* Gold accent */
-  --accent-foreground: hsl(25, 25%, 8%); /* Dark text */
+  --accent: hsl(45, 90%, 65%); /* Bright luxury gold */
+  --accent-foreground: hsl(0, 0%, 8%); /* Deep black text */
   
   --destructive: hsl(0, 62%, 30%); /* Dark red */
   --destructive-foreground: hsl(45, 25%, 95%); /* Light text */
@@ -110,38 +110,38 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Same colors for dark mode since we're using a dark theme */
-  --background: hsl(25, 25%, 8%);
-  --foreground: hsl(45, 25%, 95%);
-  --border: hsl(35, 15%, 25%);
-  --card: hsl(25, 20%, 12%);
-  --card-foreground: hsl(45, 25%, 95%);
-  --card-border: hsl(35, 15%, 20%);
+  /* Dark mode matches the luxury theme */
+  --background: hsl(0, 0%, 3%); /* Deep black like reference image */
+  --foreground: hsl(45, 80%, 85%); /* Rich golden cream */
+  --border: hsl(45, 60%, 25%); /* Golden brown border */
+  --card: hsl(0, 0%, 6%); /* Slightly lighter black */
+  --card-foreground: hsl(45, 80%, 85%); /* Rich golden cream */
+  --card-border: hsl(45, 60%, 20%); /* Dark golden border */
   
-  --sidebar: hsl(25, 20%, 10%);
-  --sidebar-foreground: hsl(45, 25%, 90%);
-  --sidebar-border: hsl(35, 15%, 15%);
-  --sidebar-primary: hsl(43, 74%, 52%);
-  --sidebar-primary-foreground: hsl(25, 25%, 8%);
-  --sidebar-accent: hsl(35, 35%, 85%);
-  --sidebar-accent-foreground: hsl(25, 25%, 15%);
-  --sidebar-ring: hsl(43, 74%, 52%);
+  --sidebar: hsl(0, 0%, 4%); /* Very dark sidebar */
+  --sidebar-foreground: hsl(45, 75%, 80%); /* Golden cream */
+  --sidebar-border: hsl(45, 50%, 15%); /* Dark golden border */
+  --sidebar-primary: hsl(45, 90%, 65%); /* Bright luxury gold */
+  --sidebar-primary-foreground: hsl(0, 0%, 8%); /* Dark text on gold */
+  --sidebar-accent: hsl(45, 70%, 75%); /* Light golden accent */
+  --sidebar-accent-foreground: hsl(0, 0%, 15%); /* Dark text */
+  --sidebar-ring: hsl(45, 90%, 65%); /* Bright gold ring */
   
-  --popover: hsl(25, 20%, 12%);
-  --popover-foreground: hsl(45, 25%, 95%);
-  --popover-border: hsl(35, 15%, 25%);
+  --popover: hsl(0, 0%, 6%); /* Same as card */
+  --popover-foreground: hsl(45, 80%, 85%); /* Rich golden cream */
+  --popover-border: hsl(45, 60%, 25%); /* Golden brown border */
   
-  --primary: hsl(43, 74%, 52%);
-  --primary-foreground: hsl(25, 25%, 8%);
+  --primary: hsl(45, 90%, 65%); /* Bright luxury gold */
+  --primary-foreground: hsl(0, 0%, 8%); /* Deep black text on gold */
   
-  --secondary: hsl(35, 35%, 85%);
-  --secondary-foreground: hsl(25, 25%, 15%);
+  --secondary: hsl(45, 70%, 75%); /* Light golden */
+  --secondary-foreground: hsl(0, 0%, 15%); /* Dark text */
   
-  --muted: hsl(35, 15%, 35%);
-  --muted-foreground: hsl(45, 15%, 70%);
+  --muted: hsl(45, 30%, 25%); /* Muted golden brown */
+  --muted-foreground: hsl(45, 50%, 60%); /* Medium golden text */
   
-  --accent: hsl(43, 74%, 52%);
-  --accent-foreground: hsl(25, 25%, 8%);
+  --accent: hsl(45, 90%, 65%); /* Bright luxury gold */
+  --accent-foreground: hsl(0, 0%, 8%); /* Deep black text */
   
   --destructive: hsl(0, 62%, 30%);
   --destructive-foreground: hsl(45, 25%, 95%);
