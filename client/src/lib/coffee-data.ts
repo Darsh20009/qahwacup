@@ -1,5 +1,18 @@
 import type { CoffeeItem, CoffeeCategory } from "@shared/schema";
 
+// Import coffee images
+import americanoImg from "@/assets/coffee-images/americano.png";
+import cappuccinoImg from "@/assets/coffee-images/cappuccino.png";
+import coldBrewImg from "@/assets/coffee-images/cold-brew.png";
+import creamCoffeeImg from "@/assets/coffee-images/cream-coffee.png";
+import espressoImg from "@/assets/coffee-images/espresso.png";
+import icedCoffeeImg from "@/assets/coffee-images/iced-coffee.png";
+import icedLatteImg from "@/assets/coffee-images/iced-latte.png";
+import latteImg from "@/assets/coffee-images/latte.png";
+import mochaImg from "@/assets/coffee-images/mocha.png";
+import signatureImg from "@/assets/coffee-images/signature.png";
+import specialtyImg from "@/assets/coffee-images/specialty.png";
+
 // Coffee categories configuration
 export const coffeeCategories = [
   {
@@ -36,7 +49,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.00",
     oldPrice: "5.00",
     category: "basic",
-    imageUrl: "/client/src/assets/coffee-images/espresso.png",
+    imageUrl: espressoImg,
     isAvailable: 1
   },
   {
@@ -47,7 +60,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: "/client/src/assets/coffee-images/espresso.png",
+    imageUrl: espressoImg,
     isAvailable: 1
   },
   {
@@ -58,7 +71,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: "/client/src/assets/coffee-images/americano.png",
+    imageUrl: americanoImg,
     isAvailable: 1
   },
   {
@@ -69,7 +82,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: "/client/src/assets/coffee-images/specialty.png",
+    imageUrl: specialtyImg,
     isAvailable: 1
   },
   
@@ -82,7 +95,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: "/client/src/assets/coffee-images/latte.png",
+    imageUrl: latteImg,
     isAvailable: 1
   },
   {
@@ -93,7 +106,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: "/client/src/assets/coffee-images/cappuccino.png",
+    imageUrl: cappuccinoImg,
     isAvailable: 1
   },
   {
@@ -104,7 +117,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "hot",
-    imageUrl: "/client/src/assets/coffee-images/cream-coffee.png",
+    imageUrl: creamCoffeeImg,
     isAvailable: 1
   },
   {
@@ -115,7 +128,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "hot",
-    imageUrl: "/client/src/assets/coffee-images/mocha.png",
+    imageUrl: mochaImg,
     isAvailable: 1
   },
   {
@@ -126,7 +139,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: "/client/src/assets/coffee-images/specialty.png",
+    imageUrl: specialtyImg,
     isAvailable: 1
   },
   {
@@ -137,7 +150,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "hot",
-    imageUrl: "/client/src/assets/coffee-images/signature.png",
+    imageUrl: signatureImg,
     isAvailable: 1
   },
   
@@ -150,7 +163,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: "/client/src/assets/coffee-images/iced-latte.png",
+    imageUrl: icedLatteImg,
     isAvailable: 1
   },
   {
@@ -161,7 +174,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "cold",
-    imageUrl: "/client/src/assets/coffee-images/mocha.png",
+    imageUrl: mochaImg,
     isAvailable: 1
   },
   {
@@ -172,7 +185,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: "/client/src/assets/coffee-images/iced-coffee.png",
+    imageUrl: icedCoffeeImg,
     isAvailable: 1
   },
   {
@@ -183,7 +196,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "cold",
-    imageUrl: "/client/src/assets/coffee-images/iced-coffee.png",
+    imageUrl: icedCoffeeImg,
     isAvailable: 1
   },
   {
@@ -194,7 +207,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: "/client/src/assets/coffee-images/cold-brew.png",
+    imageUrl: coldBrewImg,
     isAvailable: 1
   },
   {
@@ -205,7 +218,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "cold",
-    imageUrl: "/client/src/assets/coffee-images/signature.png",
+    imageUrl: signatureImg,
     isAvailable: 1
   }
 ];
