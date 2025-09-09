@@ -46,7 +46,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
           <img 
-            src={item.imageUrl.startsWith('http') ? `${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300` : item.imageUrl}
+            src={item.imageUrl?.startsWith('http') ? `${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300` : (item.imageUrl || '/placeholder-coffee.jpg')}
             alt={item.nameAr}
             className="w-full h-52 object-cover transition-all duration-700 group-hover:scale-110 brightness-95 group-hover:brightness-105"
             data-testid={`img-coffee-${item.id}`}
