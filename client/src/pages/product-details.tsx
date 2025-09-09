@@ -78,7 +78,7 @@ export default function ProductDetails() {
           {/* Product Image */}
           <div className="relative" data-testid="section-product-image">
             <img 
-              src={qahwaCupProduct}
+              src="/images/default-coffee.png"
               alt={item.nameAr}
               className="w-full h-96 object-cover rounded-2xl shadow-lg"
               data-testid="img-product"
