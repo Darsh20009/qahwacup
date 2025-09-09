@@ -35,10 +35,31 @@ export default function MenuPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Coffee className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">جاري تحميل المنيو...</p>
+      <div className="min-h-screen bg-black flex items-center justify-center overflow-hidden">
+        {/* Premium Loading Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-yellow-400/8 rounded-full blur-2xl animate-pulse" style={{animationDelay: '0.8s'}}></div>
+        </div>
+        
+        <div className="text-center relative z-10">
+          {/* Luxury Loading Animation */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-2xl animate-pulse"></div>
+            <Coffee className="w-20 h-20 text-yellow-400 mx-auto relative z-10 animate-spin" style={{animationDuration: '3s'}} />
+          </div>
+          
+          <h3 className="font-amiri text-3xl font-bold bg-gradient-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent mb-4">
+            جاري تحضير المنيو
+          </h3>
+          <p className="text-yellow-200 text-xl animate-pulse">انتظر قليلاً...</p>
+          
+          {/* Loading Dots */}
+          <div className="flex justify-center mt-6 space-x-2">
+            <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
+            <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            <div className="w-3 h-3 bg-yellow-600 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+          </div>
         </div>
       </div>
     );
