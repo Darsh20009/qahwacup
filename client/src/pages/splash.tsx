@@ -26,7 +26,7 @@ export default function SplashScreen() {
           قهوة كوب
         </h1>
         <p className="text-muted-foreground text-xl mb-12" data-testid="text-tagline">
-          تجربة قهوة استثنائية
+          لكل لحظة قهوة ، لحظة نجاح
         </p>
         
         {/* Enter Button */}

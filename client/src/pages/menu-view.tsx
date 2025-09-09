@@ -233,7 +233,7 @@ export default function MenuView() {
                   قهوة كوب
                 </h1>
                 <p className="text-xl text-muted-foreground font-medium typing-animation-delay">
-                  لحظة قهوة، لحظة نجاح
+                  لكل لحظة قهوة ، لحظة نجاح
                 </p>
               </div>
 

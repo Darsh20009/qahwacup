@@ -25,16 +25,18 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <CartProvider>
-          <Router />
-          <CartModal />
-          <CheckoutModal />
-          <Toaster />
-        </CartProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <div className="dark">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <CartProvider>
+            <Router />
+            <CartModal />
+            <CheckoutModal />
+            <Toaster />
+          </CartProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 
