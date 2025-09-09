@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff, Play, Pause, SkipForward, SkipBack, Settings } from "lucide-react";
+import { Eye, EyeOff, Play, Pause, SkipForward, SkipBack, Settings, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 interface CoffeeItem {
@@ -207,19 +207,53 @@ export default function MenuView() {
             key={currentItem.id}
             className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center animate-in fade-in-0 slide-in-from-bottom-10 duration-1000"
           >
-            {/* Image Section */}
+            {/* Enhanced Image Section */}
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl blur-xl"></div>
-              <div className="relative bg-card/90 backdrop-blur-md rounded-3xl p-8 border-2 border-primary/30 shadow-2xl">
-                <img 
-                  src={currentItem.imageUrl || "/api/placeholder/400/400"}
-                  alt={currentItem.nameAr}
-                  className="w-full h-80 object-cover rounded-2xl shadow-xl transition-transform duration-500 group-hover:scale-105"
-                  data-testid="img-current-drink"
-                />
-                <div className="absolute -bottom-4 -right-4 bg-primary/90 backdrop-blur-md rounded-full px-6 py-3 border border-primary/50">
-                  <span className="text-primary-foreground font-bold text-lg">
-                    {currentItem.price} ريال
+              {/* Multiple animated background layers */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/20 rounded-3xl blur-2xl animate-pulse"></div>
+              <div className="absolute inset-4 bg-gradient-to-tr from-primary/10 to-transparent rounded-3xl blur-xl animate-pulse delay-1000"></div>
+              
+              <div className="relative bg-gradient-to-br from-card/95 via-card/90 to-card/95 backdrop-blur-md rounded-3xl p-8 border-2 border-primary/40 shadow-2xl group-hover:shadow-primary/25 transition-all duration-700">
+                {/* Image with enhanced effects */}
+                <div className="relative overflow-hidden rounded-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent z-10"></div>
+                  <img 
+                    src={currentItem.imageUrl || "/api/placeholder/400/400"}
+                    alt={currentItem.nameAr}
+                    className="w-full h-80 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                    data-testid="img-current-drink"
+                  />
+                  
+                  {/* Floating elements */}
+                  <div className="absolute top-4 right-4 z-20">
+                    <div className="w-3 h-3 bg-primary rounded-full animate-bounce"></div>
+                  </div>
+                  <div className="absolute top-8 right-8 z-20">
+                    <div className="w-2 h-2 bg-accent rounded-full animate-bounce delay-200"></div>
+                  </div>
+                  <div className="absolute top-6 right-12 z-20">
+                    <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-400"></div>
+                  </div>
+                </div>
+
+                {/* Enhanced price tag */}
+                <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-primary via-primary to-primary/80 backdrop-blur-md rounded-2xl px-8 py-4 border-2 border-primary/30 shadow-xl group-hover:scale-110 transition-all duration-500">
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <span className="text-primary-foreground font-bold text-xl">
+                      {currentItem.price}
+                    </span>
+                    <span className="text-primary-foreground/80 text-sm">ريال</span>
+                  </div>
+                  <div className="absolute -top-1 -left-1 w-4 h-4 bg-accent rounded-full animate-ping"></div>
+                </div>
+
+                {/* Category badge */}
+                <div className="absolute top-4 left-4 bg-gradient-to-r from-primary/90 to-accent/90 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/40">
+                  <span className="text-primary-foreground text-sm font-semibold">
+                    {currentItem.category === "basic" ? "قهوة أساسية" :
+                     currentItem.category === "hot" ? "مشروبات ساخنة" :
+                     currentItem.category === "cold" ? "مشروبات باردة" : 
+                     currentItem.category}
                   </span>
                 </div>
               </div>
@@ -227,53 +261,94 @@ export default function MenuView() {
 
             {/* Content Section */}
             <div className="space-y-8">
-              {/* Brand Message Animation */}
+              {/* Enhanced Brand Message Animation */}
               <div className="text-center mb-8 animate-in fade-in-0 slide-in-from-top-10 duration-1000 delay-500">
-                <h1 className="text-5xl font-bold text-primary font-amiri mb-4 typing-animation">
-                  قهوة كوب
-                </h1>
-                <p className="text-xl text-muted-foreground font-medium typing-animation-delay">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
+                  <h1 className="relative text-6xl font-bold text-primary font-amiri mb-2 typing-animation bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                    قهوة كوب
+                  </h1>
+                  <div className="w-24 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto rounded-full"></div>
+                </div>
+                <p className="text-2xl text-muted-foreground font-medium typing-animation-delay mb-4 leading-relaxed">
                   لكل لحظة قهوة ، لحظة نجاح
                 </p>
+                <div className="flex justify-center items-center space-x-2 space-x-reverse text-sm text-muted-foreground/80">
+                  <div className="w-3 h-3 bg-primary/30 rounded-full animate-bounce"></div>
+                  <span>qahwacup.ma3k.online</span>
+                  <div className="w-3 h-3 bg-primary/30 rounded-full animate-bounce delay-100"></div>
+                </div>
               </div>
 
-              {/* Drink Information */}
-              <div className="space-y-6 animate-in fade-in-0 slide-in-from-right-10 duration-1000 delay-700">
-                <div>
-                  <h2 className="text-4xl font-bold text-foreground font-amiri mb-2">
-                    {currentItem.nameAr}
-                  </h2>
-                  {currentItem.nameEn && (
-                    <h3 className="text-2xl text-muted-foreground mb-4">
-                      {currentItem.nameEn}
-                    </h3>
-                  )}
+              {/* Enhanced Drink Information */}
+              <div className="space-y-8 animate-in fade-in-0 slide-in-from-right-10 duration-1000 delay-700">
+                {/* Title Section */}
+                <div className="relative">
+                  <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 rounded-lg blur-sm"></div>
+                  <div className="relative bg-gradient-to-br from-card/50 to-transparent p-6 rounded-xl border border-primary/20">
+                    <h2 className="text-5xl font-bold text-foreground font-amiri mb-3 leading-tight">
+                      {currentItem.nameAr}
+                    </h2>
+                    {currentItem.nameEn && (
+                      <h3 className="text-2xl text-primary/80 mb-4 font-medium italic">
+                        {currentItem.nameEn}
+                      </h3>
+                    )}
+                    <div className="w-16 h-1 bg-gradient-to-r from-primary to-transparent rounded-full"></div>
+                  </div>
                 </div>
 
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  {currentItem.description}
-                </p>
-
-                <div className="flex items-center space-x-4">
-                  <span className="text-3xl font-bold text-primary">
-                    {currentItem.price} ريال
-                  </span>
-                  {currentItem.oldPrice && (
-                    <span className="text-xl text-muted-foreground line-through">
-                      {currentItem.oldPrice} ريال
-                    </span>
-                  )}
-                </div>
-
-                <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-semibold">الفئة:</span> {
-                      currentItem.category === "basic" ? "قهوة أساسية" :
-                      currentItem.category === "hot" ? "مشروبات ساخنة" :
-                      currentItem.category === "cold" ? "مشروبات باردة" : 
-                      currentItem.category
-                    }
+                {/* Description Section */}
+                <div className="bg-gradient-to-br from-card/30 to-card/10 p-6 rounded-xl border border-primary/10 backdrop-blur-sm">
+                  <p className="text-lg text-muted-foreground leading-loose font-medium">
+                    {currentItem.description}
                   </p>
+                </div>
+
+                {/* Pricing Section */}
+                <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-6 rounded-xl border-2 border-primary/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4 space-x-reverse">
+                      <span className="text-4xl font-bold text-primary">
+                        {currentItem.price}
+                      </span>
+                      <span className="text-xl text-primary/80">ريال</span>
+                      {currentItem.oldPrice && (
+                        <>
+                          <span className="text-2xl text-muted-foreground line-through opacity-60">
+                            {currentItem.oldPrice}
+                          </span>
+                          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            خصم {Math.round(((parseFloat(currentItem.oldPrice) - parseFloat(currentItem.price)) / parseFloat(currentItem.oldPrice)) * 100)}%
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1 space-x-reverse">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 text-primary fill-primary" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enhanced Category Info */}
+                <div className="bg-gradient-to-r from-muted/20 to-muted/10 border border-primary/20 rounded-xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 space-x-reverse">
+                      <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                      <span className="font-semibold text-foreground">التصنيف:</span>
+                      <span className="text-primary font-semibold">
+                        {currentItem.category === "basic" ? "قهوة أساسية" :
+                         currentItem.category === "hot" ? "مشروبات ساخنة" :
+                         currentItem.category === "cold" ? "مشروبات باردة" : 
+                         currentItem.category}
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      متوفر الآن ✨
+                    </div>
+                  </div>
                 </div>
               </div>
 
