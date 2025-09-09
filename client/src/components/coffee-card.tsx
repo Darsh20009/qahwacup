@@ -83,7 +83,11 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
           
           {/* Floating Coffee Steam Effect */}
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-60 transition-opacity duration-500">
-            <div className="w-1 h-8 bg-gradient-to-t from-transparent via-primary/30 to-transparent rounded-full coffee-steam"></div>
+            <img 
+              src="/attached_assets/Screenshot 2025-09-09 192120_1757434923571.png"
+              alt="Coffee Steam Effect"
+              className="w-8 h-8 object-contain"
+            />
           </div>
         </div>
 
