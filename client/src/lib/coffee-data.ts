@@ -1,21 +1,21 @@
 import type { CoffeeItem, CoffeeCategory } from "@shared/schema";
 
-// Import all QahwaCup coffee images
-import latteArtImg from "@/assets/coffee-images/latte-art.png";
-import cappuccinoFoamImg from "@/assets/coffee-images/cappuccino-foam.png";
-import mochaSwirlImg from "@/assets/coffee-images/mocha-swirl.png";
-import espressoShotImg from "@/assets/coffee-images/espresso-shot.png";
-import vanillaCreamImg from "@/assets/coffee-images/vanilla-cream.png";
-import icedCreamCoffeeImg from "@/assets/coffee-images/iced-cream-coffee.png";
-import icedMochaImg from "@/assets/coffee-images/iced-mocha.png";
-import whippedSpecialtyImg from "@/assets/coffee-images/whipped-specialty.png";
-import coldBrewIceImg from "@/assets/coffee-images/cold-brew-ice.png";
-import icedChocolateImg from "@/assets/coffee-images/iced-chocolate.png";
-import americanoBlackImg from "@/assets/coffee-images/americano-black.png";
-import signatureQahwaImg from "@/assets/coffee-images/signature-qahwa.png";
-import premiumLatteImg from "@/assets/coffee-images/premium-latte.png";
-import classicEspressoImg from "@/assets/coffee-images/classic-espresso.png";
-import goldenLatteImg from "@/assets/coffee-images/golden-latte.png";
+// QahwaCup coffee images paths - using public directory for reliable access
+const latteArtImg = "/images/latte-art.png";
+const cappuccinoFoamImg = "/images/cappuccino-foam.png";
+const mochaSwirlImg = "/images/mocha-swirl.png";
+const espressoShotImg = "/images/espresso-shot.png";
+const vanillaCreamImg = "/images/vanilla-cream.png";
+const icedCreamCoffeeImg = "/images/iced-cream-coffee.png";
+const icedMochaImg = "/images/iced-mocha.png";
+const whippedSpecialtyImg = "/images/whipped-specialty.png";
+const coldBrewIceImg = "/images/cold-brew-ice.png";
+const icedChocolateImg = "/images/iced-chocolate.png";
+const americanoBlackImg = "/images/americano-black.png";
+const signatureQahwaImg = "/images/signature-qahwa.png";
+const premiumLatteImg = "/images/premium-latte.png";
+const classicEspressoImg = "/images/classic-espresso.png";
+const goldenLatteImg = "/images/golden-latte.png";
 
 // Coffee categories configuration
 export const coffeeCategories = [
