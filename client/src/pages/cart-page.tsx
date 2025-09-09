@@ -81,18 +81,18 @@ export default function CartPage() {
               <h2 className="font-amiri text-2xl font-bold text-yellow-400 mb-6">العناصر المضافة</h2>
               
               {cartItems.map((item) => (
-                <Card key={item.id} className="bg-gray-900/50 border-yellow-500/30 backdrop-blur-sm">
+                <Card key={item.coffeeItemId} className="bg-gray-900/50 border-yellow-500/30 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <img 
-                          src={`${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100`}
-                          alt={item.nameAr}
+                          src={`${item.coffeeItem?.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100`}
+                          alt={item.coffeeItem?.nameAr}
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                         <div>
-                          <h3 className="font-semibold text-yellow-200 text-lg">{item.nameAr}</h3>
-                          <p className="text-yellow-300 font-bold">{item.price} ريال</p>
+                          <h3 className="font-semibold text-yellow-200 text-lg">{item.coffeeItem?.nameAr}</h3>
+                          <p className="text-yellow-300 font-bold">{item.coffeeItem?.price} ريال</p>
                         </div>
                       </div>
 
@@ -102,7 +102,7 @@ export default function CartPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                            onClick={() => updateQuantity(item.coffeeItemId, Math.max(0, item.quantity - 1))}
                             className="h-8 w-8 p-0 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
                           >
                             <Minus className="w-4 h-4" />
@@ -115,7 +115,7 @@ export default function CartPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.coffeeItemId, item.quantity + 1)}
                             className="h-8 w-8 p-0 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
                           >
                             <Plus className="w-4 h-4" />
@@ -126,7 +126,7 @@ export default function CartPage() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => removeFromCart(item.coffeeItemId)}
                           className="h-8 w-8 p-0"
                         >
                           <Trash2 className="w-4 h-4" />

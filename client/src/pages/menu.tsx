@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CoffeeCard from "@/components/coffee-card";
 import { useCartStore } from "@/lib/cart-store";
+import { useLocation } from "wouter";
 import { Coffee, ShoppingCart, Flame, Snowflake } from "lucide-react";
 import type { CoffeeItem } from "@shared/schema";
 
 export default function MenuPage() {
-  const { cartItems, showCart } = useCartStore();
+  const { cartItems } = useCartStore();
+  const [, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
@@ -64,7 +66,7 @@ export default function MenuPage() {
             </div>
             
             <Button 
-              onClick={showCart}
+              onClick={() => setLocation("/cart")}
               variant="default"
               className="relative bg-yellow-500 text-black hover:bg-yellow-400 transition-colors duration-300"
               data-testid="button-cart"
