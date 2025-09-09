@@ -134,104 +134,138 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8" data-testid="page-checkout">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-2xl font-bold text-foreground" data-testid="text-checkout-title">
-              <CreditCard className="w-6 h-6 ml-2" />
-              الدفع
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Order Summary */}
-            <div className="bg-background rounded-xl p-4 border" data-testid="section-order-summary">
-              <h3 className="text-lg font-semibold text-foreground mb-3">ملخص الطلب</h3>
-              <div className="space-y-2 mb-3">
-                {cartItems.map((item) => (
-                  <div key={item.coffeeItemId} className="flex justify-between text-sm">
-                    <span data-testid={`text-summary-item-${item.coffeeItemId}`}>
-                      {item.coffeeItem?.nameAr} × {item.quantity}
-                    </span>
-                    <span data-testid={`text-summary-price-${item.coffeeItemId}`}>
-                      {(parseFloat(item.coffeeItem?.price || "0") * item.quantity).toFixed(2)} ريال
-                    </span>
+    <div className="min-h-screen bg-background" data-testid="page-checkout">
+      {/* Elegant Background Pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-16 w-40 h-40 bg-secondary/15 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-60 right-32 w-24 h-24 bg-accent/8 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      <div className="relative z-10 py-8">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="font-amiri text-4xl font-bold text-foreground mb-2">إتمام الطلب</h1>
+            <p className="text-muted-foreground text-lg">اختر طريقة الدفع المناسبة لك</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Order Summary Card */}
+            <div className="lg:col-span-1">
+              <Card className="card-hover bg-card border border-card-border shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-lg">
+                  <CardTitle className="font-amiri text-xl font-bold text-foreground">ملخص الطلب</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6" data-testid="section-order-summary">
+                  <div className="space-y-4 mb-6">
+                    {cartItems.map((item) => (
+                      <div key={item.coffeeItemId} className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
+                        <div className="flex-1">
+                          <p className="font-medium text-foreground text-sm" data-testid={`text-summary-item-${item.coffeeItemId}`}>
+                            {item.coffeeItem?.nameAr}
+                          </p>
+                          <p className="text-xs text-muted-foreground">الكمية: {item.quantity}</p>
+                        </div>
+                        <span className="font-semibold text-primary" data-testid={`text-summary-price-${item.coffeeItemId}`}>
+                          {(parseFloat(item.coffeeItem?.price || "0") * item.quantity).toFixed(2)} ريال
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="border-t border-border pt-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">المجموع:</span>
-                  <span className="text-xl font-bold text-primary" data-testid="text-summary-total">
-                    {getTotalPrice().toFixed(2)} ريال
-                  </span>
-                </div>
-              </div>
+                  
+                  <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                    <div className="flex justify-between items-center">
+                      <span className="font-amiri text-lg font-bold text-foreground">المجموع الكلي:</span>
+                      <span className="text-2xl font-bold text-primary" data-testid="text-summary-total">
+                        {getTotalPrice().toFixed(2)} ريال
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Payment Methods */}
-            <PaymentMethods
-              paymentMethods={paymentMethods}
-              selectedMethod={selectedPaymentMethod}
-              onSelectMethod={setSelectedPaymentMethod}
-            />
+            {/* Payment Section */}
+            <div className="lg:col-span-2">
+              <Card className="card-hover bg-card border border-card-border shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-lg">
+                  <CardTitle className="flex items-center font-amiri text-xl font-bold text-foreground" data-testid="text-checkout-title">
+                    <CreditCard className="w-6 h-6 ml-3" />
+                    طرق الدفع
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
 
-            {/* Payment Confirmation */}
-            {showConfirmation && (
-              <div className="bg-primary/10 rounded-xl p-4 border border-primary/30" data-testid="section-payment-confirmation">
-                <h4 className="font-semibold text-foreground mb-2">تأكيد الدفع</h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  هل قمت بإرسال المبلغ باستخدام الطريقة المحددة؟
-                </p>
-                <div className="flex space-x-3">
-                  <Button 
-                    onClick={() => handlePaymentConfirmed(orderDetails)}
-                    className="bg-primary text-accent-foreground flex-1"
-                    data-testid="button-confirm-payment"
-                  >
-                    <FileText className="w-4 h-4 ml-2" />
-                    نعم، تم الدفع
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowConfirmation(false)}
-                    className="flex-1"
-                    data-testid="button-cancel-payment"
-                  >
-                    لا، لم أدفع بعد
-                  </Button>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={handleShareWhatsApp}
-                  className="w-full mt-3"
-                  data-testid="button-share-whatsapp"
-                >
-                  <MessageCircle className="w-4 h-4 ml-2" />
-                  مشاركة عبر واتساب
-                </Button>
-              </div>
-            )}
+                  {/* Payment Methods */}
+                  <PaymentMethods
+                    paymentMethods={paymentMethods}
+                    selectedMethod={selectedPaymentMethod}
+                    onSelectMethod={setSelectedPaymentMethod}
+                  />
 
-            {/* Proceed Button */}
-            <Button
-              onClick={handleProceedPayment}
-              disabled={!selectedPaymentMethod || createOrderMutation.isPending}
-              size="lg"
-              className="w-full btn-primary text-accent-foreground py-3 text-lg font-semibold"
-              data-testid="button-proceed-payment"
-            >
-              {createOrderMutation.isPending ? (
-                "جاري المعالجة"
-              ) : (
-                <>
-                  <CreditCard className="w-5 h-5 ml-2" />
-                  متابعة الدفع
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+                  {/* Payment Confirmation */}
+                  {showConfirmation && (
+                    <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/30 shadow-lg" data-testid="section-payment-confirmation">
+                      <h4 className="font-amiri text-lg font-bold text-foreground mb-3">تأكيد الدفع</h4>
+                      <p className="text-muted-foreground mb-6">
+                        هل قمت بإرسال المبلغ <span className="font-bold text-primary">{getTotalPrice().toFixed(2)} ريال</span> باستخدام الطريقة المحددة؟
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        <Button 
+                          onClick={() => handlePaymentConfirmed(orderDetails)}
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3"
+                          data-testid="button-confirm-payment"
+                        >
+                          <FileText className="w-4 h-4 ml-2" />
+                          نعم، تم الدفع
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setShowConfirmation(false)}
+                          className="border-border hover:bg-muted font-semibold py-3"
+                          data-testid="button-cancel-payment"
+                        >
+                          لا، لم أدفع بعد
+                        </Button>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={handleShareWhatsApp}
+                        className="w-full border-primary/50 text-primary hover:bg-primary/10 font-semibold py-3"
+                        data-testid="button-share-whatsapp"
+                      >
+                        <MessageCircle className="w-4 h-4 ml-2" />
+                        مشاركة تفاصيل الطلب عبر واتساب
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Proceed Button */}
+                  <Button
+                    onClick={handleProceedPayment}
+                    disabled={!selectedPaymentMethod || createOrderMutation.isPending}
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+                    data-testid="button-proceed-payment"
+                  >
+                    {createOrderMutation.isPending ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground ml-2"></div>
+                        جاري المعالجة...
+                      </div>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5 ml-2" />
+                        متابعة الدفع ({getTotalPrice().toFixed(2)} ريال)
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
