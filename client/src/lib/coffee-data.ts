@@ -36,7 +36,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.00",
     oldPrice: "5.00",
     category: "basic",
-    imageUrl: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a",
+    imageUrl: "/client/src/assets/coffee-images/espresso.png",
     isAvailable: 1
   },
   {
@@ -47,7 +47,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: "https://images.unsplash.com/photo-1485808191679-5f86510681a2",
+    imageUrl: "/client/src/assets/coffee-images/espresso.png",
     isAvailable: 1
   },
   {
@@ -58,7 +58,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: "https://images.unsplash.com/photo-1497515114629-f71d768fd07c",
+    imageUrl: "/client/src/assets/coffee-images/americano.png",
     isAvailable: 1
   },
   {
@@ -69,7 +69,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "basic",
-    imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e",
+    imageUrl: "/client/src/assets/coffee-images/specialty.png",
     isAvailable: 1
   },
   
@@ -82,7 +82,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: "https://images.unsplash.com/photo-1561047029-3000c68339ca",
+    imageUrl: "/client/src/assets/coffee-images/latte.png",
     isAvailable: 1
   },
   {
@@ -93,7 +93,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: "https://images.unsplash.com/photo-1572442388796-11668a67e53d",
+    imageUrl: "/client/src/assets/coffee-images/cappuccino.png",
     isAvailable: 1
   },
   {
@@ -104,7 +104,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "hot",
-    imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
+    imageUrl: "/client/src/assets/coffee-images/cream-coffee.png",
     isAvailable: 1
   },
   {
@@ -115,7 +115,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "hot",
-    imageUrl: "https://images.unsplash.com/photo-1517701604599-bb29b565090c",
+    imageUrl: "/client/src/assets/coffee-images/mocha.png",
     isAvailable: 1
   },
   {
@@ -126,7 +126,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: "https://images.unsplash.com/photo-1517701604599-bb29b565090c",
+    imageUrl: "/client/src/assets/coffee-images/specialty.png",
     isAvailable: 1
   },
   {
@@ -137,7 +137,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "hot",
-    imageUrl: "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+    imageUrl: "/client/src/assets/coffee-images/signature.png",
     isAvailable: 1
   },
   
@@ -150,7 +150,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
+    imageUrl: "/client/src/assets/coffee-images/iced-latte.png",
     isAvailable: 1
   },
   {
@@ -161,7 +161,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "cold",
-    imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
+    imageUrl: "/client/src/assets/coffee-images/mocha.png",
     isAvailable: 1
   },
   {
@@ -172,7 +172,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: "https://images.unsplash.com/photo-1517959105821-eaf2591984ca",
+    imageUrl: "/client/src/assets/coffee-images/iced-coffee.png",
     isAvailable: 1
   },
   {
@@ -183,7 +183,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "cold",
-    imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574",
+    imageUrl: "/client/src/assets/coffee-images/iced-coffee.png",
     isAvailable: 1
   },
   {
@@ -194,7 +194,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574",
+    imageUrl: "/client/src/assets/coffee-images/cold-brew.png",
     isAvailable: 1
   },
   {
@@ -205,7 +205,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "cold",
-    imageUrl: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
+    imageUrl: "/client/src/assets/coffee-images/signature.png",
     isAvailable: 1
   }
 ];
