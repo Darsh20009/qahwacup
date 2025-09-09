@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { ArrowRight, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useCartStore();
+  const [, setLocation] = useLocation();
 
   const totalPrice = getTotalPrice();
 

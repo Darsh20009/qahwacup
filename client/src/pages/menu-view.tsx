@@ -205,7 +205,7 @@ export default function MenuView() {
         {currentItem && (
           <div 
             key={currentItem.id}
-            className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center animate-in fade-in-0 slide-in-from-bottom-10 duration-1000"
+            className="maxm-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center animate-in fade-in-0 slide-in-from-bottom-10 duration-1000"
           >
             {/* Enhanced Image Section */}
             <div className="relative group">

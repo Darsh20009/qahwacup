@@ -52,7 +52,7 @@ export default function MenuPage() {
           <h3 className="font-amiri text-3xl font-bold bg-gradient-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent mb-4">
             جاري تحضير المنيو
           </h3>
-          <p className="text-yellow-200 text-xl animate-pulse">انتظر قليلاً...</p>
+          <p className="text-yellow-200 text-xl animate-pulse">انتظر قليلاً</p>
           
           {/* Loading Dots */}
           <div className="flex justify-center mt-6 space-x-2">

@@ -88,7 +88,7 @@ export default function CheckoutPage() {
       
       toast({
         title: "تم إنشاء الطلب بنجاح!",
-        description: "تم تحميل الفاتورة. سيتم التواصل معك قريباً.",
+        description: "تم تحميل الفاتورة. تقدر تستلم طلبك الآن.",
       });
 
       setShowConfirmation(false);
@@ -222,7 +222,7 @@ export default function CheckoutPage() {
               data-testid="button-proceed-payment"
             >
               {createOrderMutation.isPending ? (
-                "جاري المعالجة..."
+                "جاري المعالجة"
               ) : (
                 <>
                   <CreditCard className="w-5 h-5 ml-2" />
