@@ -50,9 +50,9 @@ export default function MenuPage() {
           </div>
           
           <h3 className="font-amiri text-3xl font-bold text-primary mb-4 golden-gradient">
-            جاري تحضير المنيو الخاص
+            جاري تحضير المنيو
           </h3>
-          <p className="text-muted-foreground text-xl">أفضل ما لدينا من القهوة الفاخرة</p>
+          <p className="text-muted-foreground text-xl">أفضل ما لدينا من القهوة الطازجة</p>
           
           {/* Elegant Loading Dots */}
           <div className="flex justify-center mt-8 space-x-3">
@@ -124,7 +124,7 @@ export default function MenuPage() {
           <div className="text-center mb-16 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000">
             <div className="relative inline-block mb-6">
               <h2 className="font-amiri text-5xl md:text-6xl font-bold text-primary mb-4 text-reveal" data-testid="text-menu-title">
-                منيو قهوة كوب الفاخر
+                منيو قهوة كوب
               </h2>
               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 rounded-full"></div>
             </div>
