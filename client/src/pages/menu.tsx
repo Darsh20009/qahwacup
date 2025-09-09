@@ -66,40 +66,31 @@ export default function MenuPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Elegant Beige Background Pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-30">
-        <div className="absolute top-16 left-16 w-48 h-48 bg-primary/10 rounded-full blur-3xl float-animation"></div>
-        <div className="absolute top-40 right-24 w-36 h-36 bg-secondary/8 rounded-full blur-2xl float-animation" style={{animationDelay: '1s'}}></div>
-        <div className="absolute bottom-24 left-32 w-56 h-56 bg-accent/12 rounded-full blur-3xl float-animation" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-40 right-16 w-40 h-40 bg-primary/8 rounded-full blur-2xl float-animation" style={{animationDelay: '0.5s'}}></div>
-        
-        {/* Subtle Coffee Bean Pattern */}
-        <div className="absolute top-32 right-1/3 w-8 h-8 bg-primary/5 rounded-full"></div>
-        <div className="absolute bottom-1/3 left-1/4 w-6 h-6 bg-secondary/6 rounded-full"></div>
-        <div className="absolute top-1/2 right-1/5 w-4 h-4 bg-accent/7 rounded-full"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Soft Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-16 w-24 h-24 bg-indigo-200/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
-      {/* Elegant Header */}
-      <header className="sticky top-0 bg-card/95 backdrop-blur-md border-b border-card-border z-40 shadow-xl" data-testid="header-menu">
+      {/* Clean Header */}
+      <header className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 shadow-sm" data-testid="header-menu">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <div className="relative">
-                <Coffee className="w-10 h-10 text-primary coffee-steam" data-testid="icon-header-coffee" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full animate-ping"></div>
-              </div>
+              <Coffee className="w-8 h-8 text-slate-600" data-testid="icon-header-coffee" />
               <div>
-                <h1 className="font-amiri text-3xl font-bold text-primary golden-gradient" data-testid="text-header-title">
+                <h1 className="font-amiri text-2xl font-bold text-slate-700" data-testid="text-header-title">
                   قهوة كوب
                 </h1>
-                <p className="text-sm text-muted-foreground">تجربة قهوة استثنائية</p>
+                <p className="text-sm text-slate-500">تجربة قهوة استثنائية</p>
               </div>
             </div>
             
             <Button 
               onClick={() => setLocation("/cart")}
               variant="default"
-              className="relative bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 px-6 py-3 text-lg font-semibold shadow-lg hover:shadow-xl btn-primary"
+              className="relative bg-slate-600 hover:bg-slate-700 text-white transition-all duration-300 px-6 py-3 text-lg font-semibold shadow-md hover:shadow-lg rounded-lg"
               data-testid="button-cart"
             >
               <ShoppingCart className="w-5 h-5 ml-2" />
@@ -107,7 +98,7 @@ export default function MenuPage() {
               {totalItems > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-2 -left-2 h-7 w-7 flex items-center justify-center p-0 text-sm font-bold animate-pulse"
+                  className="absolute -top-2 -left-2 h-6 w-6 flex items-center justify-center p-0 text-sm font-bold bg-blue-500"
                   data-testid="badge-cart-count"
                 >
                   {totalItems}
@@ -123,22 +114,22 @@ export default function MenuPage() {
         <section className="mb-20" data-testid="section-menu">
           <div className="text-center mb-16 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000">
             <div className="relative inline-block mb-6">
-              <h2 className="font-amiri text-5xl md:text-6xl font-bold text-primary mb-4 text-reveal" data-testid="text-menu-title">
+              <h2 className="font-amiri text-4xl md:text-5xl font-bold text-slate-700 mb-4" data-testid="text-menu-title">
                 منيو قهوة كوب
               </h2>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 rounded-full"></div>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-slate-300 rounded-full"></div>
             </div>
             
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-in fade-in-0 slide-in-from-bottom-10 duration-1000 delay-500" data-testid="text-menu-description">
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed animate-in fade-in-0 slide-in-from-bottom-10 duration-1000 delay-500" data-testid="text-menu-description">
               انطلق في رحلة قهوة استثنائية مع تشكيلتنا المختارة بعناية من أجود حبوب القهوة العربية الأصيلة، 
               محضرة بحرفية عالية لتقدم لك تجربة لا تُنسى مع كل رشفة
             </p>
             
-            {/* Decorative Coffee Beans */}
-            <div className="flex justify-center space-x-8 mt-8">
-              <div className="w-4 h-4 bg-primary/40 rounded-full animate-pulse"></div>
-              <div className="w-6 h-6 bg-primary/60 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
-              <div className="w-4 h-4 bg-primary/40 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+            {/* Simple Coffee Elements */}
+            <div className="flex justify-center space-x-4 mt-6">
+              <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
             </div>
           </div>
 

@@ -248,50 +248,67 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-checkout">
-      {/* Elegant Background Pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-pulse"></div>
-        <div className="absolute bottom-32 right-16 w-40 h-40 bg-secondary/15 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-60 right-32 w-24 h-24 bg-accent/8 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50" data-testid="page-checkout">
+      {/* Soft Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-16 w-24 h-24 bg-indigo-200/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
 
-      <div className="relative z-10 py-8">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="font-amiri text-4xl font-bold text-foreground mb-2">إتمام الطلب</h1>
-            <p className="text-muted-foreground text-lg">اختر طريقة الدفع المناسبة لك</p>
+      <div className="relative z-10 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Clean Header */}
+          <div className="text-center mb-12">
+            <h1 className="font-amiri text-4xl font-bold text-slate-700 mb-4">
+              إتمام عملية الدفع
+            </h1>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
+              اختر طريقة الدفع المفضلة لديك واستمتع بتجربة قهوة لا تُنسى
+            </p>
+            <div className="mt-6 w-24 h-1 bg-slate-300 mx-auto rounded-full"></div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Order Summary Card */}
+            {/* Modern Order Summary Card */}
             <div className="lg:col-span-1">
-              <Card className="card-hover bg-card border border-card-border shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-lg">
-                  <CardTitle className="font-amiri text-xl font-bold text-foreground">ملخص الطلب</CardTitle>
+              <Card className="bg-white border-slate-200 shadow-lg">
+                <CardHeader className="bg-slate-100 rounded-t-lg">
+                  <CardTitle className="font-amiri text-xl font-bold flex items-center text-slate-700">
+                    <Coffee className="w-5 h-5 ml-2" />
+                    ملخص طلبك
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6" data-testid="section-order-summary">
                   <div className="space-y-4 mb-6">
-                    {cartItems.map((item) => (
-                      <div key={item.coffeeItemId} className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground text-sm" data-testid={`text-summary-item-${item.coffeeItemId}`}>
-                            {item.coffeeItem?.nameAr}
-                          </p>
-                          <p className="text-xs text-muted-foreground">الكمية: {item.quantity}</p>
+                    {cartItems.map((item, index) => (
+                      <div 
+                        key={item.coffeeItemId} 
+                        className="flex justify-between items-center py-3 px-4 bg-violet-50 rounded-xl border border-violet-100 animate-in fade-in-0 slide-in-from-left-5 duration-500"
+                        style={{animationDelay: `${index * 0.1}s`}}
+                      >
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center">
+                            <Coffee className="w-6 h-6 text-violet-600" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-violet-800" data-testid={`text-summary-item-${item.coffeeItemId}`}>
+                              {item.coffeeItem?.nameAr}
+                            </p>
+                            <p className="text-sm text-violet-600">الكمية: {item.quantity}</p>
+                          </div>
                         </div>
-                        <span className="font-semibold text-primary" data-testid={`text-summary-price-${item.coffeeItemId}`}>
+                        <span className="font-bold text-violet-700 text-lg" data-testid={`text-summary-price-${item.coffeeItemId}`}>
                           {(parseFloat(item.coffeeItem?.price || "0") * item.quantity).toFixed(2)} ريال
                         </span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                  <div className="bg-slate-600 text-white rounded-lg p-4">
                     <div className="flex justify-between items-center">
-                      <span className="font-amiri text-lg font-bold text-foreground">المجموع الكلي:</span>
-                      <span className="text-2xl font-bold text-primary" data-testid="text-summary-total">
+                      <span className="font-amiri text-lg font-bold">المجموع الكلي:</span>
+                      <span className="text-2xl font-bold" data-testid="text-summary-total">
                         {getTotalPrice().toFixed(2)} ريال
                       </span>
                     </div>
@@ -300,16 +317,16 @@ export default function CheckoutPage() {
               </Card>
             </div>
 
-            {/* Payment Section */}
+            {/* Modern Payment Section */}
             <div className="lg:col-span-2">
-              <Card className="card-hover bg-card border border-card-border shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-lg">
-                  <CardTitle className="flex items-center font-amiri text-xl font-bold text-foreground" data-testid="text-checkout-title">
-                    <CreditCard className="w-6 h-6 ml-3" />
-                    طرق الدفع
+              <Card className="bg-white border-slate-200 shadow-lg">
+                <CardHeader className="bg-slate-100 rounded-t-lg">
+                  <CardTitle className="flex items-center font-amiri text-xl font-bold text-slate-700" data-testid="text-checkout-title">
+                    <CreditCard className="w-5 h-5 ml-2" />
+                    اختر طريقة الدفع
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-8 space-y-8">
 
                   {/* Payment Methods */}
                   <PaymentMethods
@@ -355,18 +372,18 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
-                  {/* Proceed Button */}
+                  {/* Modern Proceed Button */}
                   <Button
                     onClick={handleProceedPayment}
                     disabled={!selectedPaymentMethod || createOrderMutation.isPending}
                     size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="w-full bg-slate-600 hover:bg-slate-700 text-white py-4 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg"
                     data-testid="button-proceed-payment"
                   >
                     {createOrderMutation.isPending ? (
                       <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground ml-2"></div>
-                        جاري المعالجة...
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                        جاري معالجة طلبك...
                       </div>
                     ) : (
                       <>

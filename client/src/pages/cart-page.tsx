@@ -13,42 +13,38 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50">
-        {/* Modern Floating Elements */}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        {/* Soft Background Elements */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-20 w-40 h-40 bg-gradient-to-r from-emerald-200/30 to-teal-200/30 rounded-full blur-2xl animate-pulse"></div>
-          <div className="absolute bottom-32 right-20 w-32 h-32 bg-gradient-to-r from-cyan-200/25 to-blue-200/25 rounded-full blur-xl animate-bounce"></div>
-          <div className="absolute top-1/2 right-1/3 w-6 h-6 bg-emerald-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-1/3 left-1/4 w-4 h-4 bg-cyan-400 rounded-full animate-pulse"></div>
+          <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute bottom-32 right-16 w-24 h-24 bg-indigo-200/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
         </div>
 
         <div className="relative z-10">
-          {/* Fresh Header */}
-          <header className="bg-white/80 backdrop-blur-xl border-b border-emerald-200/50 shadow-lg">
+          {/* Clean Header */}
+          <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-20">
-                <Link href="/menu" className="flex items-center space-x-4 space-x-reverse text-emerald-600 hover:text-emerald-700 transition-colors group">
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                  <span className="text-lg font-bold">العودة للمنيو</span>
+              <div className="flex justify-between items-center h-16">
+                <Link href="/menu" className="flex items-center space-x-4 space-x-reverse text-slate-600 hover:text-slate-800 transition-colors group">
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <span className="text-lg font-semibold">العودة للمنيو</span>
                 </Link>
-                <h1 className="font-amiri text-3xl font-black bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">سلة التسوق 🛒</h1>
+                <h1 className="font-amiri text-2xl font-bold text-slate-700">سلة التسوق</h1>
               </div>
             </div>
           </header>
 
-          {/* Creative Empty Cart */}
+          {/* Simple Empty Cart */}
           <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 rounded-full blur-2xl animate-pulse"></div>
-              <ShoppingCart className="w-32 h-32 text-emerald-500 relative z-10 animate-bounce" />
-            </div>
-            <h2 className="font-amiri text-4xl font-black text-emerald-700 mb-4">السلة فارغة حالياً</h2>
-            <p className="text-emerald-600 text-xl mb-12 text-center max-w-md leading-relaxed">
+            <ShoppingCart className="w-24 h-24 text-slate-400 mb-6" />
+            <h2 className="font-amiri text-3xl font-bold text-slate-700 mb-4">السلة فارغة حالياً</h2>
+            <p className="text-slate-600 text-lg mb-8 text-center max-w-md leading-relaxed">
               ابدأ رحلة القهوة الخاصة بك واختر من تشكيلتنا الرائعة من القهوة الطازجة
             </p>
             <Link href="/menu">
-              <Button className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-12 py-6 text-xl font-bold hover:from-emerald-600 hover:to-cyan-600 transition-all duration-300 rounded-full shadow-xl hover:shadow-emerald-500/25 transform hover:scale-105">
-                🚀 استكشف المنيو
+              <Button className="bg-slate-600 hover:bg-slate-700 text-white px-8 py-4 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg">
+                تصفح المنيو
               </Button>
             </Link>
           </div>
@@ -58,25 +54,24 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50">
-      {/* Modern Animated Background */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Soft Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-20 w-48 h-48 bg-gradient-to-r from-emerald-200/20 to-teal-200/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-24 w-36 h-36 bg-gradient-to-r from-cyan-200/15 to-blue-200/15 rounded-full blur-2xl animate-bounce"></div>
-        <div className="absolute bottom-24 left-32 w-56 h-56 bg-gradient-to-r from-teal-200/18 to-emerald-200/18 rounded-full blur-3xl float-animation"></div>
-        <div className="absolute bottom-40 right-16 w-40 h-40 bg-gradient-to-r from-blue-200/12 to-cyan-200/12 rounded-full blur-2xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-16 w-24 h-24 bg-indigo-200/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
 
       <div className="relative z-10">
-        {/* Modern Fresh Header */}
-        <header className="bg-white/80 backdrop-blur-xl border-b border-emerald-200/50 shadow-lg">
+        {/* Clean Header */}
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-20">
-              <Link href="/menu" className="flex items-center space-x-4 space-x-reverse text-emerald-600 hover:text-emerald-700 transition-colors group">
-                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                <span className="text-lg font-bold">العودة للمنيو</span>
+            <div className="flex justify-between items-center h-16">
+              <Link href="/menu" className="flex items-center space-x-4 space-x-reverse text-slate-600 hover:text-slate-800 transition-colors group">
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span className="text-lg font-semibold">العودة للمنيو</span>
               </Link>
-              <h1 className="font-amiri text-3xl font-black bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">سلة التسوق 🛒</h1>
+              <h1 className="font-amiri text-2xl font-bold text-slate-700">سلة التسوق</h1>
             </div>
           </div>
         </header>
