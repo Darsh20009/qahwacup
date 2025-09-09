@@ -55,8 +55,8 @@ export default function MenuPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Coffee className="w-8 h-8 text-primary" data-testid="icon-header-coffee" />
-              <h1 className="font-amiri text-2xl font-bold text-primary" data-testid="text-header-title">
+              <Coffee className="w-8 h-8 text-yellow-400" data-testid="icon-header-coffee" />
+              <h1 className="font-amiri text-2xl font-bold text-yellow-400" data-testid="text-header-title">
                 قهوة كوب
               </h1>
             </div>
@@ -64,7 +64,7 @@ export default function MenuPage() {
             <Button 
               onClick={showCart}
               variant="default"
-              className="relative bg-primary text-accent-foreground hover:bg-primary/90 transition-colors duration-300"
+              className="relative bg-yellow-500 text-black hover:bg-yellow-400 transition-colors duration-300"
               data-testid="button-cart"
             >
               <ShoppingCart className="w-5 h-5 ml-2" />
@@ -88,10 +88,10 @@ export default function MenuPage() {
         {/* Menu Section */}
         <section className="mb-16" data-testid="section-menu">
           <div className="text-center mb-12">
-            <h2 className="font-amiri text-4xl md:text-5xl font-bold text-primary mb-4" data-testid="text-menu-title">
+            <h2 className="font-amiri text-4xl md:text-5xl font-bold text-yellow-400 mb-4" data-testid="text-menu-title">
               منيو قهوة كوب
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" data-testid="text-menu-description">
+            <p className="text-xl text-yellow-200 max-w-2xl mx-auto" data-testid="text-menu-description">
               تشكيلة متنوعة من أجود أنواع القهوة بأسعار مميزة
             </p>
           </div>

@@ -35,17 +35,17 @@ export default function SplashScreen() {
         {/* Elegant Coffee Cup */}
         <div className="relative mb-12">
           <div className="relative">
-            <Coffee className="w-24 h-24 text-primary mx-auto mb-4" data-testid="logo-coffee-icon" />
+            <Coffee className="w-24 h-24 text-yellow-400 mx-auto mb-4" data-testid="logo-coffee-icon" />
           </div>
           <CoffeeSteam />
         </div>
         
         {/* Elegant Arabic Logo Text */}
         <div className={`transition-all duration-1000 ${showText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h1 className="font-amiri text-6xl font-bold text-primary mb-4" data-testid="text-logo-arabic">
+          <h1 className="font-amiri text-6xl font-bold text-yellow-400 mb-4" data-testid="text-logo-arabic">
             قهوة كوب
           </h1>
-          <p className="text-muted-foreground text-xl mb-12 font-cairo" data-testid="text-tagline">
+          <p className="text-yellow-200 text-xl mb-12 font-cairo" data-testid="text-tagline">
             لكل لحظة قهوة، لحظة مميزة
           </p>
         </div>
@@ -55,7 +55,7 @@ export default function SplashScreen() {
           <Button 
             onClick={handleEnterMenu}
             size="lg"
-            className="bg-primary text-accent-foreground px-12 py-6 text-xl font-semibold hover:bg-primary/90 transition-all duration-300 shadow-lg"
+            className="bg-yellow-500 text-black px-12 py-6 text-xl font-semibold hover:bg-yellow-400 transition-all duration-300 shadow-lg"
             data-testid="button-enter-menu"
           >
             <ArrowLeft className="w-6 h-6 ml-3" />
