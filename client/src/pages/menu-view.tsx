@@ -156,7 +156,8 @@ export default function MenuView() {
       <div className="absolute top-10 left-10 w-8 h-8 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full opacity-20 animate-bounce"></div>
       <div className="absolute top-32 right-16 w-6 h-6 bg-gradient-to-br from-yellow-600 to-amber-700 rounded-full opacity-15 animate-bounce delay-1000"></div>
       <div className="absolute bottom-20 left-20 w-10 h-10 bg-gradient-to-br from-orange-600 to-red-600 rounded-full opacity-10 animate-bounce delay-2000"></div>
-      <div className="absolute bottom-40 right-32 w-4 h-4 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-full opacity-25 animate-bounce delay-500"></div></div>
+      <div className="absolute bottom-40 right-32 w-4 h-4 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-full opacity-25 animate-bounce delay-500"></div>
+    </div>
       
       {/* Controls Bar */}
       {showControls && (
