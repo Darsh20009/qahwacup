@@ -159,11 +159,13 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <Link href="/checkout" className="block w-full">
-                    <Button className="w-full bg-yellow-500 text-black py-3 text-lg font-semibold hover:bg-yellow-400 transition-all duration-300">
-                      إتمام الطلب
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={() => setLocation("/checkout")}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black py-4 text-xl font-bold hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 shadow-2xl hover:shadow-yellow-500/50 transform hover:scale-105 border-2 border-yellow-400/50"
+                    data-testid="button-checkout"
+                  >
+                    🛒 إتمام الطلب
+                  </Button>
                 </CardContent>
               </Card>
             </div>

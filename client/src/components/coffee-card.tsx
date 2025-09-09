@@ -37,7 +37,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
 
   return (
     <Card 
-      className="bg-background rounded-xl card-hover cursor-pointer overflow-hidden group"
+      className="bg-background rounded-xl card-hover cursor-pointer overflow-hidden group transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/30 glow-effect shimmer"
       onClick={handleViewDetails}
       data-testid={`card-coffee-${item.id}`}
     >
@@ -47,7 +47,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
           <img 
             src={`${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300`}
             alt={item.nameAr}
-            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 brightness-90 group-hover:brightness-100"
             data-testid={`img-coffee-${item.id}`}
           />
           
@@ -103,13 +103,13 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
             <Button
               onClick={handleAddToCart}
               size="sm"
-              className={`bg-primary text-accent-foreground hover:bg-primary/90 transition-all duration-300 ${
-                isAnimating ? 'add-to-cart-animation' : ''
+              className={`bg-gradient-to-r from-yellow-500 to-yellow-600 text-black hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-yellow-500/50 ${
+                isAnimating ? 'add-to-cart-animation animate-pulse' : ''
               }`}
               data-testid={`button-add-${item.id}`}
             >
               <Plus className="w-4 h-4 ml-1" />
-              {isAnimating ? 'تم الإضافة' : 'أضف'}
+              {isAnimating ? '✨ تم الإضافة' : '🛒 أضف'}
             </Button>
           </div>
         </div>
