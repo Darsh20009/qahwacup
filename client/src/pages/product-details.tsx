@@ -78,7 +78,7 @@ export default function ProductDetails() {
           {/* Product Image */}
           <div className="relative" data-testid="section-product-image">
             <img 
-              src="/attached_assets/Elegant Coffee Culture Design_1757441959827.png"
+              src="/attached_assets/Screenshot 2025-09-09 192120_1757442773986.png"
               alt={item.nameAr}
               className="w-full h-96 object-cover rounded-2xl shadow-lg"
               onError={(e) => {
