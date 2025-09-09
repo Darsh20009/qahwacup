@@ -85,7 +85,7 @@ export default function MenuPage() {
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 text-[#4f3c03]">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 text-[#9ea0a7]">
 
         {/* Menu Section */}
         <section className="mb-16" data-testid="section-menu">
