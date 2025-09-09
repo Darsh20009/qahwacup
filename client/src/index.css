@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LIGHT MODE */
+:root {
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+
+  /* Automatic computation of border around primary / danger buttons */
+  --opaque-button-border-intensity: -8; /* In terms of percentages */
+
+  /* Backgrounds applied on top of other backgrounds when hovered/active */
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
+
+  /* Coffee Shop Theme Colors - Light Mode */
+  --background: hsl(25, 25%, 8%); /* Dark coffee brown */
+  --foreground: hsl(45, 25%, 95%); /* Cream white */
+  --border: hsl(35, 15%, 25%); /* Medium brown */
+  --card: hsl(25, 20%, 12%); /* Slightly lighter than background */
+  --card-foreground: hsl(45, 25%, 95%); /* Cream white */
+  --card-border: hsl(35, 15%, 20%); /* Darker brown for card borders */
+  
+  --sidebar: hsl(25, 20%, 10%); /* Darker sidebar */
+  --sidebar-foreground: hsl(45, 25%, 90%); /* Light cream */
+  --sidebar-border: hsl(35, 15%, 15%); /* Dark border */
+  --sidebar-primary: hsl(43, 74%, 52%); /* Gold accent */
+  --sidebar-primary-foreground: hsl(25, 25%, 8%); /* Dark text on gold */
+  --sidebar-accent: hsl(35, 35%, 85%); /* Light cream accent */
+  --sidebar-accent-foreground: hsl(25, 25%, 15%); /* Dark text */
+  --sidebar-ring: hsl(43, 74%, 52%); /* Gold ring */
+  
+  --popover: hsl(25, 20%, 12%); /* Same as card */
+  --popover-foreground: hsl(45, 25%, 95%); /* Cream white */
+  --popover-border: hsl(35, 15%, 25%); /* Medium brown */
+  
+  --primary: hsl(43, 74%, 52%); /* Gold */
+  --primary-foreground: hsl(25, 25%, 8%); /* Dark text on gold */
+  
+  --secondary: hsl(35, 35%, 85%); /* Light cream */
+  --secondary-foreground: hsl(25, 25%, 15%); /* Dark text */
+  
+  --muted: hsl(35, 15%, 35%); /* Muted brown */
+  --muted-foreground: hsl(45, 15%, 70%); /* Light muted text */
+  
+  --accent: hsl(43, 74%, 52%); /* Gold accent */
+  --accent-foreground: hsl(25, 25%, 8%); /* Dark text */
+  
+  --destructive: hsl(0, 62%, 30%); /* Dark red */
+  --destructive-foreground: hsl(45, 25%, 95%); /* Light text */
+  
+  --input: hsl(25, 20%, 15%); /* Dark input background */
+  --ring: hsl(43, 74%, 52%); /* Gold focus ring */
+  
+  --chart-1: hsl(43, 74%, 52%); /* Gold */
+  --chart-2: hsl(35, 35%, 85%); /* Cream */
+  --chart-3: hsl(35, 15%, 35%); /* Brown */
+  --chart-4: hsl(25, 20%, 12%); /* Dark brown */
+  --chart-5: hsl(0, 62%, 30%); /* Red accent */
+
+  --font-sans: 'Cairo', sans-serif;
+  --font-serif: 'Amiri', serif;
+  --font-mono: Menlo, monospace;
+  --radius: .75rem; /* 12px for luxury feel */
+  
+  --shadow-2xs: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.05);
+  --shadow-xs: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1);
+  --shadow-sm: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1), 0px 1px 2px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1), 0px 1px 2px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-md: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.15), 0px 2px 4px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-lg: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.2), 0px 4px 6px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-xl: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.25), 0px 8px 10px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-2xl: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.3);
+  
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* Automatically computed borders */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+
+  --opaque-button-border-intensity: 9;  /* In terms of percentages */
+
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+
+  /* Same colors for dark mode since we're using a dark theme */
+  --background: hsl(25, 25%, 8%);
+  --foreground: hsl(45, 25%, 95%);
+  --border: hsl(35, 15%, 25%);
+  --card: hsl(25, 20%, 12%);
+  --card-foreground: hsl(45, 25%, 95%);
+  --card-border: hsl(35, 15%, 20%);
+  
+  --sidebar: hsl(25, 20%, 10%);
+  --sidebar-foreground: hsl(45, 25%, 90%);
+  --sidebar-border: hsl(35, 15%, 15%);
+  --sidebar-primary: hsl(43, 74%, 52%);
+  --sidebar-primary-foreground: hsl(25, 25%, 8%);
+  --sidebar-accent: hsl(35, 35%, 85%);
+  --sidebar-accent-foreground: hsl(25, 25%, 15%);
+  --sidebar-ring: hsl(43, 74%, 52%);
+  
+  --popover: hsl(25, 20%, 12%);
+  --popover-foreground: hsl(45, 25%, 95%);
+  --popover-border: hsl(35, 15%, 25%);
+  
+  --primary: hsl(43, 74%, 52%);
+  --primary-foreground: hsl(25, 25%, 8%);
+  
+  --secondary: hsl(35, 35%, 85%);
+  --secondary-foreground: hsl(25, 25%, 15%);
+  
+  --muted: hsl(35, 15%, 35%);
+  --muted-foreground: hsl(45, 15%, 70%);
+  
+  --accent: hsl(43, 74%, 52%);
+  --accent-foreground: hsl(25, 25%, 8%);
+  
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(45, 25%, 95%);
+  
+  --input: hsl(25, 20%, 15%);
+  --ring: hsl(43, 74%, 52%);
+  
+  --chart-1: hsl(43, 74%, 52%);
+  --chart-2: hsl(35, 35%, 85%);
+  --chart-3: hsl(35, 15%, 35%);
+  --chart-4: hsl(25, 20%, 12%);
+  --chart-5: hsl(0, 62%, 30%);
+
+  --shadow-2xs: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.05);
+  --shadow-xs: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1);
+  --shadow-sm: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1), 0px 1px 2px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1), 0px 1px 2px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-md: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.15), 0px 2px 4px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-lg: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.2), 0px 4px 6px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-xl: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.25), 0px 8px 10px -1px hsl(43, 74%, 52%, 0.1);
+  --shadow-2xl: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.3);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    direction: rtl;
+  }
+  
+  /* Arabic Typography */
+  .font-amiri {
+    font-family: 'Amiri', serif;
+  }
+  
+  .font-cairo {
+    font-family: 'Cairo', sans-serif;
+  }
+}
+
+@layer components {
+  /* Coffee Steam Animation */
+  .coffee-steam {
+    animation: steam 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes steam {
+    0% { transform: translateY(0px) rotate(-2deg); opacity: 0.7; }
+    100% { transform: translateY(-10px) rotate(2deg); opacity: 1; }
+  }
+  
+  /* Card Hover Effects */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3);
+  }
+  
+  /* Price Styling */
+  .price-old {
+    text-decoration: line-through;
+    color: var(--muted-foreground);
+  }
+  
+  /* Button Animations */
+  .btn-primary {
+    background: linear-gradient(135deg, hsl(43, 74%, 52%) 0%, hsl(43, 74%, 45%) 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, hsl(43, 74%, 58%) 0%, hsl(43, 74%, 50%) 100%);
+    transform: translateY(-2px);
+  }
+
+  /* Animations */
+  .fade-in {
+    animation: fadeIn 0.8s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* RTL specific styles */
+  [dir="rtl"] .text-left { text-align: right; }
+  [dir="rtl"] .text-right { text-align: left; }
+  
+  /* Add to cart button animation */
+  .add-to-cart-animation {
+    animation: addToCart 0.5s ease-in-out;
+  }
+  
+  @keyframes addToCart {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); background-color: hsl(43, 74%, 62%); }
+    100% { transform: scale(1); }
+  }
+}
+
+@layer utilities {
+  /* Hide ugly search cancel button in Chrome until we can style it properly */
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  /* Placeholder styling for contentEditable div */
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  .no-default-hover-elevate {}
+  .no-default-active-elevate {}
+
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: 999;
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+    inset: -1px;
+  }
+}
