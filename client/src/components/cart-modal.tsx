@@ -21,7 +21,7 @@ export default function CartModal() {
 
   return (
     <Dialog open={isCartOpen} onOpenChange={hideCart} data-testid="modal-cart">
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-md border-2 border-primary/30" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center text-2xl font-bold text-foreground" data-testid="text-cart-modal-title">
             <ShoppingCart className="w-6 h-6 ml-2" />
@@ -44,7 +44,7 @@ export default function CartModal() {
                 {cartItems.map((item) => (
                   <div 
                     key={item.coffeeItemId} 
-                    className="flex justify-between items-center bg-background rounded-xl p-4 border"
+                    className="flex justify-between items-center bg-card/80 hover:bg-card/90 rounded-xl p-4 border border-primary/20 shadow-md backdrop-blur-sm transition-all duration-300"
                     data-testid={`cart-modal-item-${item.coffeeItemId}`}
                   >
                     <div className="flex-1">
