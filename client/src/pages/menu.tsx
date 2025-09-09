@@ -78,26 +78,6 @@ export default function MenuPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <section className="text-center mb-16 slide-up" data-testid="section-hero">
-          <div 
-            className="relative rounded-3xl overflow-hidden mb-12 min-h-[400px] flex items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.85) 100%), url('https://images.unsplash.com/photo-1447933601403-0c6688de566e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&h=800')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            <div className="py-24 px-8 text-center">
-              <h2 className="font-amiri text-5xl md:text-7xl font-bold text-primary mb-6" data-testid="text-hero-title">
-                لكل لحظة قهوة ، لحظة نجاح
-              </h2>
-              <p className="text-xl md:text-2xl text-secondary mb-8 max-w-3xl mx-auto" data-testid="text-hero-description">
-                استمتع بتجربة قهوة لا تُنسى مع تشكيلة متنوعة من أجود أنواع القهوة المحضرة بعناية فائقة
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* Menu Section */}
         <section className="mb-16" data-testid="section-menu">

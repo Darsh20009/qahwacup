@@ -110,11 +110,11 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Dark mode matches the luxury theme */
-  --background: hsl(0, 0%, 3%); /* Deep black like reference image */
+  /* Dark mode matches the ultra luxury theme */
+  --background: hsl(0, 0%, 0%); /* Pure black background */
   --foreground: hsl(45, 80%, 85%); /* Rich golden cream */
   --border: hsl(45, 60%, 25%); /* Golden brown border */
-  --card: hsl(0, 0%, 6%); /* Slightly lighter black */
+  --card: hsl(0, 0%, 2%); /* Almost black cards */
   --card-foreground: hsl(45, 80%, 85%); /* Rich golden cream */
   --card-border: hsl(45, 60%, 20%); /* Dark golden border */
   
