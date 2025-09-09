@@ -37,36 +37,37 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
 
   return (
     <Card 
-      className="bg-background rounded-xl card-hover cursor-pointer overflow-hidden group transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/30 glow-effect shimmer"
+      className="bg-gradient-to-br from-card/95 to-card/85 backdrop-blur-sm rounded-2xl card-hover cursor-pointer overflow-hidden group transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 border border-card-border/50 hover:border-primary/30"
       onClick={handleViewDetails}
       data-testid={`card-coffee-${item.id}`}
     >
       <CardContent className="p-0">
-        {/* Image */}
-        <div className="relative">
+        {/* Premium Image Container */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
           <img 
-            src={`${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300`}
+            src={item.imageUrl.startsWith('http') ? `${item.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300` : item.imageUrl}
             alt={item.nameAr}
-            className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 brightness-90 group-hover:brightness-100"
+            className="w-full h-52 object-cover transition-all duration-700 group-hover:scale-110 brightness-95 group-hover:brightness-105"
             data-testid={`img-coffee-${item.id}`}
           />
           
-          {/* Discount Badge */}
+          {/* Elegant Discount Badge */}
           {discount > 0 && (
             <Badge 
               variant="default" 
-              className="absolute top-2 left-2 bg-primary text-accent-foreground text-sm font-semibold"
+              className="absolute top-3 left-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-bold px-3 py-1 rounded-full shadow-lg glow-effect"
               data-testid={`badge-discount-${item.id}`}
             >
               خصم {discount}%
             </Badge>
           )}
           
-          {/* Quick View Button */}
+          {/* Elegant Quick View Button */}
           <Button
             variant="secondary"
             size="icon"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-card/90 backdrop-blur-sm border border-card-border hover:bg-primary hover:text-primary-foreground shadow-lg"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -76,40 +77,47 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
           >
             <Eye className="w-4 h-4" />
           </Button>
+          
+          {/* Floating Coffee Steam Effect */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-60 transition-opacity duration-500">
+            <div className="w-1 h-8 bg-gradient-to-t from-transparent via-primary/30 to-transparent rounded-full coffee-steam"></div>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <h4 className="text-xl font-bold text-foreground mb-2" data-testid={`text-name-${item.id}`}>
-            {item.nameAr}
-          </h4>
-          <p className="text-muted-foreground mb-4 text-sm line-clamp-2" data-testid={`text-description-${item.id}`}>
-            {item.description}
-          </p>
+        {/* Elegant Content */}
+        <div className="p-6 space-y-4">
+          <div className="text-center border-b border-border/30 pb-3">
+            <h4 className="font-amiri text-xl font-bold text-primary mb-1 golden-gradient" data-testid={`text-name-${item.id}`}>
+              {item.nameAr}
+            </h4>
+            <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2" data-testid={`text-description-${item.id}`}>
+              {item.description}
+            </p>
+          </div>
           
-          {/* Price and Add Button */}
-          <div className="flex justify-between items-center">
-            <div className="space-x-2">
+          {/* Premium Price Section */}
+          <div className="flex justify-between items-center pt-2">
+            <div className="text-right">
               {item.oldPrice && (
-                <span className="price-old text-sm" data-testid={`text-old-price-${item.id}`}>
+                <div className="price-old text-sm text-muted-foreground" data-testid={`text-old-price-${item.id}`}>
                   {item.oldPrice} ريال
-                </span>
+                </div>
               )}
-              <span className="text-primary font-bold text-lg" data-testid={`text-price-${item.id}`}>
+              <div className="text-primary font-bold text-xl font-amiri" data-testid={`text-price-${item.id}`}>
                 {item.price} ريال
-              </span>
+              </div>
             </div>
             
             <Button
               onClick={handleAddToCart}
               size="sm"
-              className={`bg-gradient-to-r from-yellow-500 to-yellow-600 text-black hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-yellow-500/50 ${
-                isAnimating ? 'add-to-cart-animation animate-pulse' : ''
+              className={`bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-primary/30 rounded-full px-6 py-3 font-semibold btn-primary ${
+                isAnimating ? 'add-to-cart-animation glow-effect' : ''
               }`}
               data-testid={`button-add-${item.id}`}
             >
               <Plus className="w-4 h-4 ml-1" />
-              {isAnimating ? '✨ تم الإضافة' : '🛒 أضف'}
+              {isAnimating ? '✨ تم الإضافة' : 'أضف للسلة'}
             </Button>
           </div>
         </div>
