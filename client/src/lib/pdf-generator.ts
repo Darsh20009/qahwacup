@@ -1,5 +1,6 @@
 import type { Order } from "@shared/schema";
 import type { PaymentMethod } from "@shared/schema";
+import QRCode from "qrcode";
 
 interface CartItem {
   coffeeItemId: string;
@@ -17,6 +18,16 @@ export const generatePDF = async (
   cartItems: CartItem[],
   paymentMethod: PaymentMethod
 ): Promise<Blob> => {
+  // Generate QR code for order number
+  const qrCodeDataURL = await QRCode.toDataURL(order.orderNumber, {
+    width: 120,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#FFFFFF'
+    }
+  });
+
   // Create a temporary div for PDF content
   const content = document.createElement('div');
   content.style.cssText = `
@@ -50,11 +61,22 @@ export const generatePDF = async (
   };
 
   content.innerHTML = `
-    <div style="text-align: center; margin-bottom: 40px; border-bottom: 3px solid #D4AF37; padding-bottom: 20px;">
-      <h1 style="font-family: 'Amiri', serif; font-size: 36px; color: #D4AF37; margin: 0; font-weight: bold;">
-        قهوة كوب
-      </h1>
-      <p style="color: #8B6F47; font-size: 16px; margin: 10px 0 0 0;">تجربة قهوة استثنائية</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 3px solid #D4AF37; padding-bottom: 20px;">
+      <div style="flex: 1; text-align: center;">
+        <h1 style="font-family: 'Amiri', serif; font-size: 36px; color: #D4AF37; margin: 0; font-weight: bold;">
+          قهوة كوب
+        </h1>
+        <p style="color: #8B6F47; font-size: 16px; margin: 10px 0 5px 0;">تجربة قهوة استثنائية</p>
+        <p style="color: #666; font-size: 14px; margin: 5px 0 0 0; font-style: italic;">
+          "لحظة قهوة، لحظة نجاح"
+        </p>
+      </div>
+      <div style="text-align: center; padding: 0 20px;">
+        <img src="${qrCodeDataURL}" alt="QR Code" style="width: 100px; height: 100px; border: 2px solid #D4AF37; border-radius: 8px;" />
+        <p style="margin: 8px 0 0 0; color: #666; font-size: 10px; font-weight: bold;">
+          مسح الرمز للتحقق
+        </p>
+      </div>
     </div>
 
     <div style="margin-bottom: 30px;">
@@ -116,9 +138,40 @@ export const generatePDF = async (
       </div>
     </div>
 
-    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #D4AF37; color: #8B6F47;">
-      <p style="margin: 0; font-size: 16px; font-weight: bold;">شكراً لاختياركم قهوة كوب</p>
-      <p style="margin: 5px 0 0 0; font-size: 14px;">نتطلع لخدمتكم مرة أخرى</p>
+    <!-- Company Information -->
+    <div style="margin-bottom: 20px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #D4AF37;">
+      <h3 style="color: #D4AF37; font-size: 18px; margin-bottom: 15px; font-weight: bold;">معلومات الشركة</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 12px;">
+        <div>
+          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الاسم:</span> شركة قهوة كوب المحدودة</p>
+          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">رقم السجل التجاري:</span> 1010234567</p>
+          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الرقم الضريبي:</span> 300234567890003</p>
+        </div>
+        <div>
+          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الهاتف:</span> 0532441566</p>
+          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">البريد الإلكتروني:</span> info@qahwacup.com</p>
+          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الموقع:</span> www.qahwacup.com</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code Information -->
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #fff8dc; border-radius: 8px; border: 1px solid #D4AF37;">
+      <p style="margin: 0; font-size: 12px; text-align: center; color: #666;">
+        <span style="font-weight: bold;">رمز الاستجابة السريع:</span> يحتوي على رقم الطلبية ${order.orderNumber}
+      </p>
+      <p style="margin: 5px 0 0 0; font-size: 11px; text-align: center; color: #666;">
+        يمكن استخدام هذا الرمز للتحقق من صحة الفاتورة والاستعلام عن حالة الطلب
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 3px solid #D4AF37; color: #8B6F47;">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #D4AF37;">شكراً لاختياركم قهوة كوب</p>
+      <p style="margin: 5px 0; font-size: 14px;">"لحظة قهوة، لحظة نجاح"</p>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+        تم إنشاء هذه الفاتورة إلكترونياً في ${new Date().toLocaleDateString('ar-SA')} الساعة ${new Date().toLocaleTimeString('ar-SA')}
+      </p>
     </div>
   `;
 
