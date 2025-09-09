@@ -53,7 +53,6 @@ export default function MenuPage() {
         <div className="absolute bottom-24 left-32 w-56 h-56 bg-yellow-600/7 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-40 right-16 w-40 h-40 bg-yellow-300/5 rounded-full blur-2xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
       </div>
-
       {/* Header */}
       <header className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-40 shadow-lg" data-testid="header-menu">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,8 +85,7 @@ export default function MenuPage() {
           </div>
         </div>
       </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 text-[#4f3c03]">
 
         {/* Menu Section */}
         <section className="mb-16" data-testid="section-menu">
@@ -122,7 +120,7 @@ export default function MenuPage() {
           {/* Coffee Grid */}
           {selectedCategory === "all" ? (
             // Show all categories separately
-            <div className="space-y-12">
+            (<div className="space-y-12">
               {categories.filter(cat => cat.id !== "all").map((category) => {
                 const categoryItems = getCategoryItems(category.id);
                 if (categoryItems.length === 0) return null;
@@ -142,10 +140,10 @@ export default function MenuPage() {
                   </div>
                 );
               })}
-            </div>
+            </div>)
           ) : (
             // Show filtered items
-            <div className="bg-card rounded-2xl p-8 shadow-lg">
+            (<div className="bg-card rounded-2xl p-8 shadow-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredItems.map((item) => (
                   <CoffeeCard key={item.id} item={item} />
@@ -159,7 +157,7 @@ export default function MenuPage() {
                   </p>
                 </div>
               )}
-            </div>
+            </div>)
           )}
         </section>
       </main>
