@@ -53,11 +53,11 @@ export const generatePDF = async (
 
   const paymentDetails: Record<PaymentMethod, string> = {
     cash: 'الدفع عند الاستلام',
-    stc: '0532441566',
-    alinma: '0532441566',
-    ur: '0532441566',
-    barq: '0532441566',
-    rajhi: 'SA78 8000 0539 6080 1942 4738'
+    stc: '+966532441566',
+    alinma: '+966532441566',
+    ur: '+966532441566',
+    barq: '+966532441566',
+    rajhi: '+966532441566'
   };
 
   content.innerHTML = `
@@ -68,7 +68,7 @@ export const generatePDF = async (
         </h1>
         <p style="color: #8B6F47; font-size: 16px; margin: 10px 0 5px 0;">تجربة قهوة استثنائية</p>
         <p style="color: #666; font-size: 14px; margin: 5px 0 0 0; font-style: italic;">
-          "لحظة قهوة، لحظة نجاح"
+          "لكل لحظة قهوة ، لحظة نجاح"
         </p>
       </div>
       <div style="text-align: center; padding: 0 20px;">
@@ -140,18 +140,10 @@ export const generatePDF = async (
 
     <!-- Company Information -->
     <div style="margin-bottom: 20px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #D4AF37;">
-      <h3 style="color: #D4AF37; font-size: 18px; margin-bottom: 15px; font-weight: bold;">معلومات الشركة</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 12px;">
-        <div>
-          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الاسم:</span> شركة قهوة كوب المحدودة</p>
-          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">رقم السجل التجاري:</span> 1010234567</p>
-          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الرقم الضريبي:</span> 300234567890003</p>
-        </div>
-        <div>
-          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الهاتف:</span> 0532441566</p>
-          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">البريد الإلكتروني:</span> info@qahwacup.com</p>
-          <p style="margin: 0 0 5px 0;"><span style="font-weight: bold;">الموقع:</span> www.qahwacup.com</p>
-        </div>
+      <h3 style="color: #D4AF37; font-size: 18px; margin-bottom: 15px; font-weight: bold;">معلومات التواصل</h3>
+      <div style="text-align: center; font-size: 14px;">
+        <p style="margin: 0 0 10px 0;"><span style="font-weight: bold;">الهاتف:</span> +966532441566</p>
+        <p style="margin: 0 0 10px 0;"><span style="font-weight: bold;">الموقع الإلكتروني:</span> qahwacup.ma3k.online</p>
       </div>
     </div>
 
@@ -168,7 +160,7 @@ export const generatePDF = async (
     <!-- Footer -->
     <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 3px solid #D4AF37; color: #8B6F47;">
       <p style="margin: 0; font-size: 18px; font-weight: bold; color: #D4AF37;">شكراً لاختياركم قهوة كوب</p>
-      <p style="margin: 5px 0; font-size: 14px;">"لحظة قهوة، لحظة نجاح"</p>
+      <p style="margin: 5px 0; font-size: 14px;">"لكل لحظة قهوة ، لحظة نجاح"</p>
       <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
         تم إنشاء هذه الفاتورة إلكترونياً في ${new Date().toLocaleDateString('ar-SA')} الساعة ${new Date().toLocaleTimeString('ar-SA')}
       </p>
