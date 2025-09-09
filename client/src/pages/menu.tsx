@@ -44,6 +44,12 @@ export default function MenuPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Subtle Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+      </div>
+
       {/* Header */}
       <header className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-40 shadow-lg" data-testid="header-menu">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,7 +64,7 @@ export default function MenuPage() {
             <Button 
               onClick={showCart}
               variant="default"
-              className="relative bg-primary text-accent-foreground hover:bg-primary/90"
+              className="relative bg-primary text-accent-foreground hover:bg-primary/90 transition-colors duration-300"
               data-testid="button-cart"
             >
               <ShoppingCart className="w-5 h-5 ml-2" />
@@ -77,7 +83,7 @@ export default function MenuPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
 
         {/* Menu Section */}
         <section className="mb-16" data-testid="section-menu">
@@ -99,7 +105,7 @@ export default function MenuPage() {
                   key={category.id}
                   variant={selectedCategory === category.id ? "default" : "outline"}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={selectedCategory === category.id ? "bg-primary text-accent-foreground" : ""}
+                  className={`transition-colors duration-300 ${selectedCategory === category.id ? "bg-primary text-accent-foreground" : ""}`}
                   data-testid={`button-category-${category.id}`}
                 >
                   <Icon className="w-4 h-4 ml-2" />
