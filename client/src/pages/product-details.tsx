@@ -78,9 +78,12 @@ export default function ProductDetails() {
           {/* Product Image */}
           <div className="relative" data-testid="section-product-image">
             <img 
-              src="/images/default-coffee.png"
+              src={`/images/${item.id}.png`}
               alt={item.nameAr}
               className="w-full h-96 object-cover rounded-2xl shadow-lg"
+              onError={(e) => {
+                e.currentTarget.src = "/images/default-coffee.png";
+              }}
               data-testid="img-product"
             />
             {discount > 0 && (
