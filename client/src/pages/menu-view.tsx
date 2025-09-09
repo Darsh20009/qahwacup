@@ -147,9 +147,16 @@ export default function MenuView() {
   const currentItem = coffeeItems[currentIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 relative overflow-hidden">
+      {/* Enhanced Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-100/30 via-transparent to-orange-100/40"></div>
+      <div className="absolute inset-0 bg-gradient-radial from-transparent via-amber-200/10 to-transparent"></div>
+      
+      {/* Floating coffee beans decoration */}
+      <div className="absolute top-10 left-10 w-8 h-8 bg-gradient-to-br from-amber-600 to-orange-700 rounded-full opacity-20 animate-bounce"></div>
+      <div className="absolute top-32 right-16 w-6 h-6 bg-gradient-to-br from-yellow-600 to-amber-700 rounded-full opacity-15 animate-bounce delay-1000"></div>
+      <div className="absolute bottom-20 left-20 w-10 h-10 bg-gradient-to-br from-orange-600 to-red-600 rounded-full opacity-10 animate-bounce delay-2000"></div>
+      <div className="absolute bottom-40 right-32 w-4 h-4 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-full opacity-25 animate-bounce delay-500"></div></div>
       
       {/* Controls Bar */}
       {showControls && (
@@ -209,47 +216,62 @@ export default function MenuView() {
           >
             {/* Enhanced Image Section */}
             <div className="relative group">
-              {/* Multiple animated background layers */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/20 rounded-3xl blur-2xl animate-pulse"></div>
-              <div className="absolute inset-4 bg-gradient-to-tr from-primary/10 to-transparent rounded-3xl blur-xl animate-pulse delay-1000"></div>
+              {/* Multiple animated background layers with enhanced colors */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-400/40 via-orange-300/30 to-amber-600/35 rounded-3xl blur-3xl animate-pulse"></div>
+              <div className="absolute inset-2 bg-gradient-to-tr from-yellow-400/20 via-amber-300/15 to-orange-400/25 rounded-3xl blur-2xl animate-pulse delay-1000"></div>
+              <div className="absolute inset-4 bg-gradient-to-bl from-amber-200/10 to-transparent rounded-3xl blur-xl animate-pulse delay-2000"></div>
               
-              <div className="relative bg-gradient-to-br from-card/95 via-card/90 to-card/95 backdrop-blur-md rounded-3xl p-8 border-2 border-primary/40 shadow-2xl group-hover:shadow-primary/25 transition-all duration-700">
+              <div className="relative bg-gradient-to-br from-white/95 via-amber-50/90 to-orange-50/95 backdrop-blur-md rounded-3xl p-8 border-2 border-amber-300/50 shadow-2xl group-hover:shadow-amber-400/40 transition-all duration-700">
                 {/* Image with enhanced effects */}
-                <div className="relative overflow-hidden rounded-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent z-10"></div>
+                <div className="relative overflow-hidden rounded-2xl shadow-xl">
+                  <div className="absolute inset-0 bg-gradient-to-t from-amber-900/30 via-transparent to-amber-100/20 z-10"></div>
+                  <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-amber-200/20 z-10"></div>
                   <img 
-                    src={currentItem.imageUrl || "/api/placeholder/400/400"}
+                    src={`/images/${currentItem.id}.png`}
                     alt={currentItem.nameAr}
-                    className="w-full h-80 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                    className="w-full h-80 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110 filter saturate-110"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/default-coffee.png";
+                    }}
                     data-testid="img-current-drink"
                   />
                   
-                  {/* Floating elements */}
+                  {/* Enhanced floating coffee steam elements */}
                   <div className="absolute top-4 right-4 z-20">
-                    <div className="w-3 h-3 bg-primary rounded-full animate-bounce"></div>
+                    <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full animate-bounce shadow-lg"></div>
                   </div>
                   <div className="absolute top-8 right-8 z-20">
-                    <div className="w-2 h-2 bg-accent rounded-full animate-bounce delay-200"></div>
+                    <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full animate-bounce delay-200 shadow-md"></div>
                   </div>
                   <div className="absolute top-6 right-12 z-20">
-                    <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-400"></div>
+                    <div className="w-2 h-2 bg-gradient-to-br from-amber-300 to-orange-400 rounded-full animate-bounce delay-400 shadow-sm"></div>
+                  </div>
+                  
+                  {/* Coffee steam animation */}
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 opacity-60 group-hover:opacity-80 transition-opacity duration-500">
+                    <div className="flex space-x-1">
+                      <div className="w-1 h-8 bg-gradient-to-t from-transparent via-white/60 to-transparent rounded-full animate-pulse"></div>
+                      <div className="w-1 h-6 bg-gradient-to-t from-transparent via-white/50 to-transparent rounded-full animate-pulse delay-300"></div>
+                      <div className="w-1 h-7 bg-gradient-to-t from-transparent via-white/40 to-transparent rounded-full animate-pulse delay-500"></div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Enhanced price tag */}
-                <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-primary via-primary to-primary/80 backdrop-blur-md rounded-2xl px-8 py-4 border-2 border-primary/30 shadow-xl group-hover:scale-110 transition-all duration-500">
+                {/* Enhanced price tag with premium design */}
+                <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 backdrop-blur-md rounded-2xl px-8 py-4 border-2 border-amber-300/50 shadow-2xl group-hover:scale-110 transition-all duration-500 rotate-2 group-hover:rotate-0">
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <span className="text-primary-foreground font-bold text-xl">
+                    <span className="text-white font-bold text-xl drop-shadow-lg">
                       {currentItem.price}
                     </span>
-                    <span className="text-primary-foreground/80 text-sm">ريال</span>
+                    <span className="text-white/90 text-sm font-medium drop-shadow">ريال</span>
                   </div>
-                  <div className="absolute -top-1 -left-1 w-4 h-4 bg-accent rounded-full animate-ping"></div>
+                  <div className="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-yellow-400 to-amber-400 rounded-full animate-ping shadow-lg"></div>
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-br from-orange-400 to-red-400 rounded-full animate-pulse delay-500"></div>
                 </div>
 
-                {/* Category badge */}
-                <div className="absolute top-4 left-4 bg-gradient-to-r from-primary/90 to-accent/90 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/40">
-                  <span className="text-primary-foreground text-sm font-semibold">
+                {/* Enhanced category badge */}
+                <div className="absolute top-4 left-4 bg-gradient-to-r from-emerald-500/95 via-teal-500/90 to-cyan-500/95 backdrop-blur-sm rounded-full px-4 py-2 border border-emerald-300/50 shadow-lg">
+                  <span className="text-white text-sm font-semibold drop-shadow">
                     {currentItem.category === "basic" ? "قهوة أساسية" :
                      currentItem.category === "hot" ? "مشروبات ساخنة" :
                      currentItem.category === "cold" ? "مشروبات باردة" : 
@@ -264,19 +286,19 @@ export default function MenuView() {
               {/* Enhanced Brand Message Animation */}
               <div className="text-center mb-8 animate-in fade-in-0 slide-in-from-top-10 duration-1000 delay-500">
                 <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
-                  <h1 className="relative text-6xl font-bold text-primary font-amiri mb-2 typing-animation bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 via-orange-400/20 to-yellow-400/25 blur-3xl rounded-full animate-pulse"></div>
+                  <h1 className="relative text-6xl font-bold font-amiri mb-2 typing-animation bg-gradient-to-r from-amber-600 via-orange-500 to-amber-700 bg-clip-text text-transparent drop-shadow-lg">
                     قهوة كوب
                   </h1>
-                  <div className="w-24 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto rounded-full"></div>
+                  <div className="w-32 h-1.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto rounded-full shadow-sm"></div>
                 </div>
-                <p className="text-2xl text-muted-foreground font-medium typing-animation-delay mb-4 leading-relaxed">
+                <p className="text-2xl text-amber-800/90 font-medium typing-animation-delay mb-4 leading-relaxed drop-shadow-sm">
                   لكل لحظة قهوة ، لحظة نجاح
                 </p>
-                <div className="flex justify-center items-center space-x-2 space-x-reverse text-sm text-muted-foreground/80">
-                  <div className="w-3 h-3 bg-primary/30 rounded-full animate-bounce"></div>
-                  <span>qahwacup.ma3k.online</span>
-                  <div className="w-3 h-3 bg-primary/30 rounded-full animate-bounce delay-100"></div>
+                <div className="flex justify-center items-center space-x-2 space-x-reverse text-sm text-amber-700/70">
+                  <div className="w-3 h-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full animate-bounce shadow-sm"></div>
+                  <span className="font-medium">qahwacup.ma3k.online</span>
+                  <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full animate-bounce delay-100 shadow-sm"></div>
                 </div>
               </div>
 
@@ -284,41 +306,41 @@ export default function MenuView() {
               <div className="space-y-8 animate-in fade-in-0 slide-in-from-right-10 duration-1000 delay-700">
                 {/* Title Section */}
                 <div className="relative">
-                  <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 rounded-lg blur-sm"></div>
-                  <div className="relative bg-gradient-to-br from-card/50 to-transparent p-6 rounded-xl border border-primary/20">
-                    <h2 className="text-5xl font-bold text-foreground font-amiri mb-3 leading-tight">
+                  <div className="absolute -inset-3 bg-gradient-to-r from-amber-300/25 via-orange-200/20 to-yellow-300/25 rounded-2xl blur-lg"></div>
+                  <div className="relative bg-gradient-to-br from-white/80 via-amber-50/70 to-orange-50/60 backdrop-blur-sm p-8 rounded-2xl border border-amber-200/40 shadow-lg">
+                    <h2 className="text-5xl font-bold text-amber-900 font-amiri mb-3 leading-tight drop-shadow-sm">
                       {currentItem.nameAr}
                     </h2>
                     {currentItem.nameEn && (
-                      <h3 className="text-2xl text-primary/80 mb-4 font-medium italic">
+                      <h3 className="text-2xl text-amber-700/90 mb-4 font-medium italic">
                         {currentItem.nameEn}
                       </h3>
                     )}
-                    <div className="w-16 h-1 bg-gradient-to-r from-primary to-transparent rounded-full"></div>
+                    <div className="w-20 h-1.5 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500 rounded-full shadow-sm"></div>
                   </div>
                 </div>
 
                 {/* Description Section */}
-                <div className="bg-gradient-to-br from-card/30 to-card/10 p-6 rounded-xl border border-primary/10 backdrop-blur-sm">
-                  <p className="text-lg text-muted-foreground leading-loose font-medium">
+                <div className="bg-gradient-to-br from-slate-50/90 via-gray-50/80 to-stone-50/90 backdrop-blur-sm p-8 rounded-2xl border border-slate-200/50 shadow-md">
+                  <p className="text-lg text-slate-700 leading-loose font-medium">
                     {currentItem.description}
                   </p>
                 </div>
 
                 {/* Pricing Section */}
-                <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-6 rounded-xl border-2 border-primary/30">
+                <div className="bg-gradient-to-br from-amber-100/90 via-orange-50/80 to-yellow-100/90 backdrop-blur-sm p-8 rounded-2xl border-2 border-amber-300/40 shadow-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 space-x-reverse">
-                      <span className="text-4xl font-bold text-primary">
+                      <span className="text-4xl font-bold text-amber-700 drop-shadow-sm">
                         {currentItem.price}
                       </span>
-                      <span className="text-xl text-primary/80">ريال</span>
+                      <span className="text-xl text-amber-600/90 font-medium">ريال</span>
                       {currentItem.oldPrice && (
                         <>
-                          <span className="text-2xl text-muted-foreground line-through opacity-60">
+                          <span className="text-2xl text-slate-500 line-through opacity-70">
                             {currentItem.oldPrice}
                           </span>
-                          <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
                             خصم {Math.round(((parseFloat(currentItem.oldPrice) - parseFloat(currentItem.price)) / parseFloat(currentItem.oldPrice)) * 100)}%
                           </div>
                         </>
@@ -326,26 +348,26 @@ export default function MenuView() {
                     </div>
                     <div className="flex items-center space-x-1 space-x-reverse">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-primary fill-primary" />
+                        <Star key={i} className="w-6 h-6 text-amber-400 fill-amber-400 drop-shadow-sm" />
                       ))}
                     </div>
                   </div>
                 </div>
 
                 {/* Enhanced Category Info */}
-                <div className="bg-gradient-to-r from-muted/20 to-muted/10 border border-primary/20 rounded-xl p-6">
+                <div className="bg-gradient-to-r from-emerald-50/90 via-teal-50/80 to-cyan-50/90 border border-emerald-200/50 rounded-2xl p-8 shadow-md backdrop-blur-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3 space-x-reverse">
-                      <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
-                      <span className="font-semibold text-foreground">التصنيف:</span>
-                      <span className="text-primary font-semibold">
+                      <div className="w-4 h-4 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full animate-pulse shadow-sm"></div>
+                      <span className="font-semibold text-slate-700">التصنيف:</span>
+                      <span className="text-emerald-600 font-bold">
                         {currentItem.category === "basic" ? "قهوة أساسية" :
                          currentItem.category === "hot" ? "مشروبات ساخنة" :
                          currentItem.category === "cold" ? "مشروبات باردة" : 
                          currentItem.category}
                       </span>
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-slate-600 font-medium">
                       متوفر الآن ✨
                     </div>
                   </div>
