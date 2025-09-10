@@ -627,20 +627,54 @@ export default function MenuView() {
         )}
       </div>
 
-      {/* Navigation Dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {coffeeItems.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentIndex 
-                ? "bg-primary scale-125" 
-                : "bg-muted hover:bg-primary/50"
-            }`}
-            data-testid={`dot-${index}`}
-          />
-        ))}
+      {/* Enhanced Navigation */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Progress bar for artistic mode */}
+          {viewMode === 'artistic' && (
+            <div className="w-64 bg-muted/30 rounded-full h-2 mb-4">
+              <div 
+                className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-500"
+                style={{ width: `${((currentIndex + 1) / coffeeItems.length) * 100}%` }}
+              ></div>
+            </div>
+          )}
+          
+          {/* Navigation Dots */}
+          <div className="flex space-x-2">
+            {coffeeItems.map((_, index) => {
+              const categoryInfo = getCategoryStyle(coffeeItems[index]?.category || 'basic');
+              return (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`rounded-full transition-all duration-300 group relative ${
+                    index === currentIndex 
+                      ? `w-4 h-4 ${categoryInfo.color.replace('text-', 'bg-')} scale-125 shadow-lg` 
+                      : "w-3 h-3 bg-muted hover:bg-primary/50"
+                  }`}
+                  data-testid={`dot-${index}`}
+                >
+                  {index === currentIndex && (
+                    <div className={`absolute inset-0 rounded-full ${categoryInfo.color.replace('text-', 'bg-')} animate-ping opacity-75`}></div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Category indicator */}
+          {currentItem && (
+            <div className={`text-sm font-medium px-4 py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
+              getCategoryStyle(currentItem.category).bg
+            } ${getCategoryStyle(currentItem.category).color} border-current/30`}>
+              {currentItem.category === "basic" ? "قهوة أساسية" :
+               currentItem.category === "hot" ? "مشروبات ساخنة" :
+               currentItem.category === "cold" ? "مشروبات باردة" : 
+               currentItem.category}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
