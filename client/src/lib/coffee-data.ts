@@ -150,7 +150,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "hot",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("con-panna"),
     isAvailable: 1
   },
   {
@@ -161,7 +161,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "hot",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("coffee-day-hot"),
     isAvailable: 1
   },
   
@@ -174,7 +174,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("iced-latte"),
     isAvailable: 1
   },
   {
@@ -185,7 +185,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "7.00",
     oldPrice: "8.00",
     category: "cold",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("iced-mocha"),
     isAvailable: 1
   },
   {
@@ -196,7 +196,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("iced-cappuccino"),
     isAvailable: 1
   },
   {
@@ -207,7 +207,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "5.00",
     oldPrice: "6.00",
     category: "cold",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("iced-condensed"),
     isAvailable: 1
   },
   {
@@ -218,7 +218,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "6.00",
     oldPrice: "7.00",
     category: "cold",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("vanilla-cold-brew"),
     isAvailable: 1
   },
   {
@@ -229,7 +229,7 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     price: "4.95",
     oldPrice: "5.50",
     category: "cold",
-    imageUrl: getCoffeeImage(item.id),
+    imageUrl: getCoffeeImage("coffee-day-cold"),
     isAvailable: 1
   }
 ];
