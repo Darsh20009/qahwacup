@@ -85,6 +85,8 @@ export default function MenuView() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [showControls, setShowControls] = useState(true);
+  const [viewMode, setViewMode] = useState<'slideshow' | 'split' | 'artistic'>('slideshow');
+  const [showAnimatedBg, setShowAnimatedBg] = useState(true);
 
   // Fetch coffee items
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
@@ -205,9 +207,43 @@ export default function MenuView() {
   const currentItem = coffeeItems[currentIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
+    <div className={`min-h-screen relative overflow-hidden transition-all duration-1000 ${
+      showAnimatedBg 
+        ? getCategoryStyle(currentItem?.category || 'basic').gradient.includes('amber') 
+          ? 'bg-gradient-to-br from-amber-900/20 via-yellow-800/10 to-orange-900/20 dark:from-amber-900/40 dark:via-yellow-800/30 dark:to-orange-900/40'
+          : getCategoryStyle(currentItem?.category || 'basic').gradient.includes('red')
+          ? 'bg-gradient-to-br from-red-900/20 via-orange-800/10 to-pink-900/20 dark:from-red-900/40 dark:via-orange-800/30 dark:to-pink-900/40'
+          : 'bg-gradient-to-br from-blue-900/20 via-cyan-800/10 to-indigo-900/20 dark:from-blue-900/40 dark:via-cyan-800/30 dark:to-indigo-900/40'
+        : 'bg-gradient-to-br from-background via-card to-background'
+    }`}>
+      {/* Enhanced Dynamic Background Effects */}
+      <div className={`absolute inset-0 transition-all duration-2000 ${
+        showAnimatedBg ? getCategoryStyle(currentItem?.category || 'basic').gradient.replace('30', '15').replace('20', '10').replace('30', '15') : 'bg-gradient-to-br from-primary/5 via-transparent to-primary/10'
+      }`}></div>
+      
+      {/* Floating animated particles based on category */}
+      {showAnimatedBg && currentItem && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 6 }).map((_, i) => {
+            const categoryInfo = getCategoryStyle(currentItem.category);
+            const Icon = categoryInfo.icon;
+            return (
+              <div
+                key={i}
+                className={`absolute opacity-20 ${categoryInfo.color} animate-bounce`}
+                style={{
+                  left: `${20 + i * 15}%`,
+                  top: `${10 + (i % 2) * 30}%`,
+                  animationDelay: `${i * 0.5}s`,
+                  animationDuration: `${3 + i * 0.5}s`
+                }}
+              >
+                <Icon className="w-8 h-8" />
+              </div>
+            );
+          })}
+        </div>
+      )}
       
       {/* Controls Bar */}
       {showControls && (
@@ -240,6 +276,43 @@ export default function MenuView() {
           </div>
 
           <div className="flex items-center space-x-4 bg-card/80 backdrop-blur-md rounded-xl px-4 py-2 border border-primary/30">
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <Button
+                variant={viewMode === 'slideshow' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('slideshow')}
+                data-testid="button-slideshow"
+                className="text-xs"
+              >
+                عرض شرائح
+              </Button>
+              <Button
+                variant={viewMode === 'split' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('split')}
+                data-testid="button-split"
+                className="text-xs"
+              >
+                عرض مقسم
+              </Button>
+              <Button
+                variant={viewMode === 'artistic' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('artistic')}
+                data-testid="button-artistic"
+                className="text-xs"
+              >
+                عرض فني
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAnimatedBg(!showAnimatedBg)}
+              data-testid="button-effects"
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -262,23 +335,42 @@ export default function MenuView() {
       <div className="flex items-center justify-center min-h-screen p-8">
         {currentItem && (
           <div 
-            key={currentItem.id}
-            className="maxm-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center animate-in fade-in-0 slide-in-from-bottom-10 duration-1000"
+            key={`${currentItem.id}-${viewMode}`}
+            className={`w-full transition-all duration-1000 animate-in fade-in-0 slide-in-from-bottom-10 ${
+              viewMode === 'slideshow' ? 'max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center' :
+              viewMode === 'split' ? 'max-w-7xl grid grid-cols-1 xl:grid-cols-3 gap-8 items-start' :
+              'max-w-4xl flex flex-col items-center space-y-8'
+            }`}
           >
             {/* Enhanced Image Section */}
-            <div className="relative group">
+            <div className={`relative group ${
+              viewMode === 'slideshow' ? '' :
+              viewMode === 'split' ? 'xl:col-span-2' :
+              'order-2'
+            }`}>
               {/* Multiple animated background layers */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/20 rounded-3xl blur-2xl animate-pulse"></div>
               <div className="absolute inset-4 bg-gradient-to-tr from-primary/10 to-transparent rounded-3xl blur-xl animate-pulse delay-1000"></div>
               
               <div className="relative bg-gradient-to-br from-card/95 via-card/90 to-card/95 backdrop-blur-md rounded-3xl p-8 border-2 border-primary/40 shadow-2xl group-hover:shadow-primary/25 transition-all duration-700">
                 {/* Image with enhanced effects */}
-                <div className="relative overflow-hidden rounded-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent z-10"></div>
+                <div className={`relative overflow-hidden ${
+                  viewMode === 'artistic' ? 'rounded-full w-80 h-80 mx-auto' : 
+                  viewMode === 'split' ? 'rounded-xl' :
+                  'rounded-2xl'
+                }`}>
+                  <div className={`absolute inset-0 z-10 ${
+                    viewMode === 'artistic' ? 'bg-gradient-radial from-transparent via-primary/10 to-primary/30' :
+                    'bg-gradient-to-t from-primary/20 via-transparent to-transparent'
+                  }`}></div>
                   <img 
                     src={getCoffeeImage(currentItem.id)}
                     alt={currentItem.nameAr}
-                    className="w-full h-80 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110 filter drop-shadow-2xl"
+                    className={`object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110 filter drop-shadow-2xl ${
+                      viewMode === 'artistic' ? 'w-80 h-80 rounded-full group-hover:rotate-6' :
+                      viewMode === 'split' ? 'w-full h-64' :
+                      'w-full h-80'
+                    }`}
                     data-testid="img-current-drink"
                     onError={(e) => {
                       e.currentTarget.src = "/images/default-coffee.png";
@@ -321,20 +413,44 @@ export default function MenuView() {
             </div>
 
             {/* Content Section */}
-            <div className="space-y-8">
+            <div className={`space-y-8 ${
+              viewMode === 'slideshow' ? '' :
+              viewMode === 'split' ? 'xl:col-span-1' :
+              'order-1 text-center max-w-2xl'
+            }`}>
               {/* Enhanced Brand Message Animation */}
-              <div className="text-center mb-8 animate-in fade-in-0 slide-in-from-top-10 duration-1000 delay-500">
+              <div className={`mb-8 animate-in fade-in-0 slide-in-from-top-10 duration-1000 delay-500 ${
+                viewMode === 'artistic' ? 'text-center' : 
+                viewMode === 'split' ? 'text-right' :
+                'text-center'
+              }`}>
                 <div className="relative mb-6">
                   <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
-                  <h1 className="relative text-6xl font-bold text-primary font-amiri mb-2 typing-animation bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                  <h1 className={`relative font-bold text-primary font-amiri mb-2 typing-animation bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent ${
+                    viewMode === 'artistic' ? 'text-8xl' :
+                    viewMode === 'split' ? 'text-4xl' :
+                    'text-6xl'
+                  }`}>
                     قهوة كوب
                   </h1>
-                  <div className="w-24 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto rounded-full"></div>
+                  <div className={`h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full ${
+                    viewMode === 'artistic' ? 'w-32 mx-auto' :
+                    viewMode === 'split' ? 'w-16 mr-auto' :
+                    'w-24 mx-auto'
+                  }`}></div>
                 </div>
-                <p className="text-2xl text-muted-foreground font-medium typing-animation-delay mb-4 leading-relaxed">
+                <p className={`text-muted-foreground font-medium typing-animation-delay mb-4 leading-relaxed ${
+                  viewMode === 'artistic' ? 'text-3xl' :
+                  viewMode === 'split' ? 'text-lg' :
+                  'text-2xl'
+                }`}>
                   لكل لحظة قهوة ، لحظة نجاح
                 </p>
-                <div className="flex justify-center items-center space-x-2 space-x-reverse text-sm text-muted-foreground/80">
+                <div className={`flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground/80 ${
+                  viewMode === 'artistic' ? 'justify-center' :
+                  viewMode === 'split' ? 'justify-start' :
+                  'justify-center'
+                }`}>
                   <div className="w-3 h-3 bg-primary/30 rounded-full animate-bounce"></div>
                   <span>qahwacup.ma3k.online</span>
                   <div className="w-3 h-3 bg-primary/30 rounded-full animate-bounce delay-100"></div>
@@ -426,6 +542,86 @@ export default function MenuView() {
                   ></div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Split View Additional Items */}
+        {viewMode === 'split' && coffeeItems.length > 1 && (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000 delay-300">
+            {coffeeItems.slice(0, 6).filter(item => item.id !== currentItem?.id).map((item, index) => (
+              <div 
+                key={item.id}
+                className="group cursor-pointer transform transition-all duration-500 hover:scale-105"
+                onClick={() => setCurrentIndex(coffeeItems.findIndex(i => i.id === item.id))}
+              >
+                <div className="bg-gradient-to-br from-card/95 to-card/85 backdrop-blur-sm rounded-xl p-4 border border-primary/20 hover:border-primary/40 transition-all duration-300">
+                  <div className="relative overflow-hidden rounded-lg mb-3">
+                    <img 
+                      src={getCoffeeImage(item.id)}
+                      alt={item.nameAr}
+                      className="w-full h-32 object-cover transition-all duration-300 group-hover:scale-110"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/default-coffee.png";
+                      }}
+                    />
+                    <div className="absolute top-2 right-2">
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${
+                        getCategoryStyle(item.category).color.replace('text-', 'bg-')
+                      }`}></div>
+                    </div>
+                  </div>
+                  <h4 className="font-amiri text-lg font-bold text-primary mb-1 line-clamp-1">
+                    {item.nameAr}
+                  </h4>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                    {item.description}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-primary font-bold font-amiri">
+                      {item.price} ريال
+                    </span>
+                    <Button size="sm" variant="ghost" className="text-xs">
+                      عرض
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Artistic View Floating Elements */}
+        {viewMode === 'artistic' && currentItem && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* Floating coffee beans */}
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute opacity-10 dark:opacity-20"
+                style={{
+                  left: `${Math.random() * 90}%`,
+                  top: `${Math.random() * 90}%`,
+                  animation: `bounce ${3 + Math.random() * 4}s ease-in-out infinite`,
+                  animationDelay: `${Math.random() * 2}s`
+                }}
+              >
+                <Coffee className={`w-6 h-6 ${getCategoryStyle(currentItem.category).color} transform rotate-${Math.floor(Math.random() * 4) * 45}`} />
+              </div>
+            ))}
+            
+            {/* Floating steam effect */}
+            <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 opacity-30">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1 h-8 bg-gradient-to-t from-gray-400 to-transparent rounded-full animate-pulse"
+                  style={{
+                    left: `${i * 4 - 8}px`,
+                    animationDelay: `${i * 0.2}s`
+                  }}
+                />
+              ))}
             </div>
           </div>
         )}
