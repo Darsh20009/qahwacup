@@ -24,6 +24,7 @@ export default function MenuView() {
   const [viewMode, setViewMode] = useState<'elegant' | 'showcase' | 'grid' | 'mosaic' | 'waterfall' | 'tv-display' | 'window-display'>('elegant');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [showNavigation, setShowNavigation] = useState(true);
 
   // Fetch coffee items
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
@@ -172,15 +173,28 @@ export default function MenuView() {
             </Button>
           </div>
 
-          <Button 
-            onClick={() => setLocation("/menu")} 
-            variant="outline"
-            className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
-            data-testid="button-back"
-          >
-            <ArrowLeft className="w-5 h-5 ml-2" />
-            العودة
-          </Button>
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNavigation(!showNavigation)}
+              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
+              data-testid="button-toggle-nav"
+            >
+              <RotateCcw className="w-4 h-4 ml-1" />
+              {showNavigation ? 'إخفاء التنقل' : 'إظهار التنقل'}
+            </Button>
+            
+            <Button 
+              onClick={() => setLocation("/menu")} 
+              variant="outline"
+              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-5 h-5 ml-2" />
+              العودة
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -598,8 +612,8 @@ export default function MenuView() {
       </div>
 
       {/* Navigation for All Modes */}
-      {coffeeItems.length > 1 && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+      {coffeeItems.length > 1 && showNavigation && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300">
           <div className="flex items-center space-x-4 space-x-reverse bg-card/95 backdrop-blur-xl rounded-2xl px-8 py-4 border border-primary/30 shadow-2xl">
             <div className="flex space-x-3 space-x-reverse">
               {coffeeItems.map((_, index) => (
