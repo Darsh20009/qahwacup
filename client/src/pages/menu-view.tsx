@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCoffeeImage } from "@/lib/coffee-images";
 import QRCodeComponent from "@/components/qr-code";
-import { ArrowLeft, Coffee, Star, Sparkles, Grid3X3, Layers, Tv, QrCode, Zap, RotateCcw, Palette } from "lucide-react";
+import { ArrowLeft, Coffee, Star, Sparkles, Grid3X3, Layers, Tv, QrCode, Zap, Palette } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 interface CoffeeItem {
@@ -24,7 +24,6 @@ export default function MenuView() {
   const [viewMode, setViewMode] = useState<'elegant' | 'showcase' | 'grid' | 'mosaic' | 'waterfall' | 'tv-display' | 'window-display'>('elegant');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
-  const [showNavigation, setShowNavigation] = useState(true);
 
   // Fetch coffee items
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
@@ -90,109 +89,98 @@ export default function MenuView() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-200/5 via-transparent to-transparent rounded-full blur-3xl"></div>
       </div>
 
-      {/* Header Controls */}
-      <div className="relative z-50 flex justify-between items-center p-6">
-        <div className="flex items-center space-x-4 space-x-reverse">
-          <div className="bg-card/90 backdrop-blur-xl rounded-2xl px-6 py-3 border border-primary/20 shadow-xl">
-            <h1 className="font-amiri text-2xl font-bold text-primary">قائمة القهوة الفخمة</h1>
+      {/* Header Controls - Mobile Responsive */}
+      <div className="relative z-50 p-3 md:p-6 space-y-4">
+        {/* Title Section */}
+        <div className="flex justify-between items-center">
+          <div className="bg-card/90 backdrop-blur-xl rounded-2xl px-4 md:px-6 py-2 md:py-3 border border-primary/20 shadow-xl">
+            <h1 className="font-amiri text-lg md:text-2xl font-bold text-primary">قائمة القهوة الفخمة</h1>
           </div>
+          
+          <Button 
+            onClick={() => setLocation("/menu")} 
+            variant="outline"
+            size="sm"
+            className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 ml-2" />
+            <span className="hidden sm:inline">العودة</span>
+          </Button>
         </div>
 
-        <div className="flex items-center space-x-4 space-x-reverse">
-          {/* View Mode Selector */}
-          <div className="flex items-center bg-card/90 backdrop-blur-xl rounded-2xl p-2 border border-primary/20 shadow-xl space-x-2 space-x-reverse">
+        {/* View Mode Selector - Mobile Responsive */}
+        <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-2 border border-primary/20 shadow-xl">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1 sm:gap-2">
             <Button
               variant={viewMode === 'elegant' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => {setViewMode('elegant'); setCurrentIndex(0);}}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-elegant"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>عرض أنيق</span>
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">عرض أنيق</span>
             </Button>
             <Button
               variant={viewMode === 'showcase' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('showcase')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-showcase"
             >
-              <Layers className="w-4 h-4" />
-              <span>عرض شامل</span>
+              <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">عرض شامل</span>
             </Button>
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('grid')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-grid"
             >
-              <Grid3X3 className="w-4 h-4" />
-              <span>شبكة</span>
+              <Grid3X3 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">شبكة</span>
             </Button>
             <Button
               variant={viewMode === 'mosaic' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('mosaic')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-mosaic"
             >
-              <Palette className="w-4 h-4" />
-              <span>فسيفساء</span>
+              <Palette className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">فسيفساء</span>
             </Button>
             <Button
               variant={viewMode === 'waterfall' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('waterfall')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-waterfall"
             >
-              <Zap className="w-4 h-4" />
-              <span>شلال</span>
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">شلال</span>
             </Button>
             <Button
               variant={viewMode === 'tv-display' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('tv-display')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-tv"
             >
-              <Tv className="w-4 h-4" />
-              <span>تلفزيوني</span>
+              <Tv className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">تلفزيوني</span>
             </Button>
             <Button
               variant={viewMode === 'window-display' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('window-display')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center justify-center space-x-1 space-x-reverse text-xs sm:text-sm"
               data-testid="button-window"
             >
-              <QrCode className="w-4 h-4" />
-              <span>النافذة</span>
-            </Button>
-          </div>
-
-          <div className="flex items-center space-x-2 space-x-reverse">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNavigation(!showNavigation)}
-              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
-              data-testid="button-toggle-nav"
-            >
-              <RotateCcw className="w-4 h-4 ml-1" />
-              {showNavigation ? 'إخفاء التنقل' : 'إظهار التنقل'}
-            </Button>
-            
-            <Button 
-              onClick={() => setLocation("/menu")} 
-              variant="outline"
-              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="w-5 h-5 ml-2" />
-              العودة
+              <QrCode className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">النافذة</span>
             </Button>
           </div>
         </div>
@@ -611,43 +599,6 @@ export default function MenuView() {
         )}
       </div>
 
-      {/* Navigation for All Modes */}
-      {coffeeItems.length > 1 && showNavigation && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300">
-          <div className="flex items-center space-x-4 space-x-reverse bg-card/95 backdrop-blur-xl rounded-2xl px-8 py-4 border border-primary/30 shadow-2xl">
-            <div className="flex space-x-3 space-x-reverse">
-              {coffeeItems.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`rounded-full transition-all duration-300 ${
-                    index === currentIndex 
-                      ? "w-4 h-4 bg-primary scale-125 shadow-lg" 
-                      : "w-3 h-3 bg-muted hover:bg-primary/50"
-                  }`}
-                  data-testid={`dot-${index}`}
-                />
-              ))}
-            </div>
-            
-            <div className="h-6 w-px bg-primary/30"></div>
-            
-            <div className="text-sm text-muted-foreground">
-              {currentIndex + 1} / {coffeeItems.length}
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsAutoPlay(!isAutoPlay)}
-              className={`${isAutoPlay ? 'text-primary' : 'text-muted-foreground'}`}
-              data-testid="button-autoplay"
-            >
-              {isAutoPlay ? 'إيقاف التلقائي' : 'تشغيل تلقائي'}
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
