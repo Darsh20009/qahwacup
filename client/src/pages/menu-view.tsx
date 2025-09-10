@@ -527,71 +527,97 @@ export default function MenuView() {
           </div>
         )}
 
-        {/* Window Display View */}
+        {/* Window Display View - QR Camera Style */}
         {viewMode === 'window-display' && (
-          <div className="px-6">
-            <div className="max-w-6xl mx-auto h-screen flex flex-col justify-center">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="px-3 md:px-6">
+            <div className="max-w-7xl mx-auto h-screen flex flex-col justify-center">
+              {/* Camera View Container */}
+              <div className="bg-black/90 backdrop-blur-xl rounded-3xl p-4 md:p-8 border-4 border-primary/50 shadow-2xl">
                 
-                {/* Central QR Code and Branding */}
-                <div className="text-center space-y-8">
-                  <div className="space-y-6">
-                    <h1 className="font-amiri text-7xl font-bold text-primary">
-                      قهوة كوب
-                    </h1>
-                    <p className="text-3xl text-muted-foreground">
-                      أجود أنواع القهوة العربية الأصيلة
-                    </p>
+                {/* Camera Header */}
+                <div className="flex items-center justify-between mb-6 px-2">
+                  <div className="flex items-center space-x-2 space-x-reverse text-white">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium">وجّه الكاميرا نحو الرمز للطلب</span>
+                    <span className="text-lg">📱</span>
                   </div>
-                  
-                  <QRCodeComponent 
-                    url="https://qahwa.ma3k.online"
-                    size="xl"
-                    title="امسح الرمز للطلب والدفع"
-                    showURL={false}
-                    className="mx-auto max-w-md"
-                  />
-                  
-                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-6">
-                    <p className="text-2xl font-bold">
-لكل لحظة قهوة ، لحظة نجاح
-                    </p>
-                  </div>
+                  <div className="text-primary text-sm font-bold">قهوة كوب</div>
                 </div>
 
-                {/* Featured Current Item */}
-                <div className="flex justify-center">
-                  {currentItem && (
-                    <Card className="bg-card/95 backdrop-blur-xl border-2 border-primary/20 rounded-3xl overflow-hidden shadow-2xl w-full max-w-lg">
-                      <div className="relative">
-                        <img 
-                          src={getCoffeeImage(currentItem.id)}
-                          alt={currentItem.nameAr}
-                          className="w-full h-64 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "/images/default-coffee.png";
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent"></div>
-                      </div>
-                      <div className="p-6 space-y-4">
-                        <h3 className="font-amiri text-2xl font-bold text-primary text-center">
-                          {currentItem.nameAr}
-                        </h3>
-                        <p className="text-muted-foreground text-center">
-                          {currentItem.description}
+                {/* Main Camera View - Always Side by Side */}
+                <div className="grid grid-cols-2 gap-3 md:gap-8 items-center min-h-[400px] md:min-h-[500px]">
+                  
+                  {/* QR Code Section */}
+                  <div className="text-center space-y-3 md:space-y-6 p-2 md:p-4">
+                    <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-xl">
+                      <QRCodeComponent 
+                        url="https://qahwa.ma3k.online"
+                        size="lg"
+                        title="امسح للطلب"
+                        showURL={false}
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2 md:space-y-4">
+                      <h1 className="font-amiri text-lg md:text-4xl font-bold text-white">
+                        قهوة كوب
+                      </h1>
+                      <p className="text-xs md:text-xl text-gray-300">
+                        أجود أنواع القهوة العربية الأصيلة
+                      </p>
+                      <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl md:rounded-2xl p-2 md:p-4">
+                        <p className="text-xs md:text-lg font-bold">
+                          لكل لحظة قهوة ، لحظة نجاح
                         </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-primary">{currentItem.price} ريال</span>
-                          <div className="flex items-center space-x-1 space-x-reverse">
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Drink Display */}
+                  <div className="flex justify-center p-2 md:p-4">
+                    {currentItem && (
+                      <div className="bg-card/95 backdrop-blur-xl border-2 border-primary/30 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl w-full">
+                        <div className="relative">
+                          <img 
+                            src={getCoffeeImage(currentItem.id)}
+                            alt={currentItem.nameAr}
+                            className="w-full h-32 md:h-64 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/default-coffee.png";
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent"></div>
+                          {/* Price Tag Overlay */}
+                          <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 md:px-4 md:py-2 rounded-full">
+                            <span className="text-xs md:text-lg font-bold">{currentItem.price} ريال</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 md:p-6 space-y-2 md:space-y-4">
+                          <h3 className="font-amiri text-sm md:text-2xl font-bold text-primary text-center">
+                            {currentItem.nameAr}
+                          </h3>
+                          <p className="text-xs md:text-base text-muted-foreground text-center line-clamp-2">
+                            {currentItem.description}
+                          </p>
+                          <div className="flex items-center justify-center space-x-1 space-x-reverse">
                             {Array.from({length: 5}).map((_, i) => (
-                              <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                              <Star key={i} className="w-3 h-3 md:w-5 md:h-5 text-amber-400 fill-amber-400" />
                             ))}
                           </div>
                         </div>
                       </div>
-                    </Card>
-                  )}
+                    )}
+                  </div>
+                </div>
+
+                {/* Camera Footer */}
+                <div className="flex items-center justify-center mt-4 md:mt-6 px-2">
+                  <div className="flex items-center space-x-4 space-x-reverse text-white/70">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-xs md:text-sm">جاهز للمسح</span>
+                  </div>
                 </div>
               </div>
             </div>
