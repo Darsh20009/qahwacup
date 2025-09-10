@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/lib/cart-store";
+import { getCoffeeImage } from "@/lib/coffee-images";
 import { Plus, Eye } from "lucide-react";
 import type { CoffeeItem } from "@shared/schema";
 
@@ -46,7 +47,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
           <img 
-            src={item.imageUrl || `/images/${item.id}.png`}
+            src={getCoffeeImage(item.id)}
             alt={item.nameAr}
             className="w-full h-52 object-cover transition-all duration-700 group-hover:scale-110 brightness-95 group-hover:brightness-105"
             loading="lazy"
