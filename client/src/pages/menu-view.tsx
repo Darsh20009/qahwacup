@@ -41,6 +41,15 @@ export default function MenuView() {
     return () => clearInterval(interval);
   }, [isAutoPlay, coffeeItems.length]);
 
+  // Clamp currentIndex when coffeeItems changes
+  useEffect(() => {
+    if (coffeeItems.length > 0) {
+      setCurrentIndex(prev => Math.min(prev, coffeeItems.length - 1));
+    } else {
+      setCurrentIndex(0);
+    }
+  }, [coffeeItems.length]);
+
 
   // Group coffee items by category for organized display
   const groupedItems = coffeeItems.reduce((acc, item) => {
@@ -492,29 +501,23 @@ export default function MenuView() {
                     className="w-full"
                   />
                   
-                  {/* Quick Menu Preview */}
+                  {/* Current Item Info */}
                   <div className="space-y-4">
                     <h3 className="font-amiri text-2xl font-bold text-primary text-center">
-                      قائمة سريعة
+                      المشروب الحالي
                     </h3>
-                    <div className="grid grid-cols-1 gap-3">
-                      {coffeeItems.slice(0, 4).map((item) => (
-                        <div key={item.id} className="flex items-center space-x-3 space-x-reverse bg-card/80 backdrop-blur-xl rounded-lg p-3 border border-primary/20">
-                          <img 
-                            src={getCoffeeImage(item.id)}
-                            alt={item.nameAr}
-                            className="w-12 h-12 object-cover rounded-lg"
-                            onError={(e) => {
-                              e.currentTarget.src = "/images/default-coffee.png";
-                            }}
-                          />
-                          <div className="flex-1">
-                            <h4 className="font-bold text-primary text-sm">{item.nameAr}</h4>
-                            <p className="text-muted-foreground text-xs">{item.price} ريال</p>
-                          </div>
+                    {currentItem && (
+                      <div className="bg-card/80 backdrop-blur-xl rounded-xl p-4 border border-primary/20 text-center space-y-3">
+                        <h4 className="font-amiri font-bold text-primary text-lg">{currentItem.nameAr}</h4>
+                        <p className="text-muted-foreground text-sm">{currentItem.description}</p>
+                        <div className="text-primary font-bold text-xl">{currentItem.price} ريال</div>
+                        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg p-3">
+                          <p className="text-sm font-bold">
+                            لكل لحظة قهوة ، لحظة نجاح
+                          </p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
