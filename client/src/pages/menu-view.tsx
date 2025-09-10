@@ -30,16 +30,16 @@ export default function MenuView() {
     queryKey: ["/api/coffee-items"],
   });
 
-  // Auto-play functionality for elegant view
+  // Auto-play functionality for all views
   useEffect(() => {
-    if (!isAutoPlay || coffeeItems.length === 0 || viewMode !== 'elegant') return;
+    if (!isAutoPlay || coffeeItems.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % coffeeItems.length);
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlay, coffeeItems.length, viewMode]);
+  }, [isAutoPlay, coffeeItems.length]);
 
 
   // Group coffee items by category for organized display
@@ -271,54 +271,41 @@ export default function MenuView() {
           </div>
         )}
 
-        {viewMode === 'grid' && (
+        {viewMode === 'grid' && currentItem && (
           <div className="px-6">
-            <div className="max-w-8xl mx-auto">
-              {Object.entries(groupedItems).map(([category, items]) => (
-                <div key={category} className="mb-16">
-                  <h2 className="font-amiri text-4xl font-bold text-primary mb-8 text-center">
-                    {categoryTitles[category] || category}
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {items.map((item, index) => (
-                      <Card key={item.id} className="group cursor-pointer transform transition-all duration-500 hover:scale-105 bg-card/95 backdrop-blur-xl border-2 border-primary/20 hover:border-primary/40 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl">
-                        <div className="relative overflow-hidden">
-                          <img 
-                            src={getCoffeeImage(item.id)}
-                            alt={item.nameAr}
-                            className="w-full h-64 object-cover transition-all duration-500 group-hover:scale-110"
-                            onError={(e) => {
-                              e.currentTarget.src = "/images/default-coffee.png";
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
-                        </div>
-                        <div className="p-6 space-y-4">
-                          <h3 className="font-amiri text-2xl font-bold text-primary line-clamp-1">
-                            {item.nameAr}
-                          </h3>
-                          <p className="text-muted-foreground line-clamp-2 leading-relaxed">
-                            {item.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-2 space-x-reverse">
-                                <span className="text-2xl font-bold text-primary">{item.price}</span>
-                                <span className="text-lg text-muted-foreground">ريال</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-1 space-x-reverse">
-                              {Array.from({length: 5}).map((_, i) => (
-                                <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
+            <div className="max-w-4xl mx-auto h-screen flex items-center justify-center">
+              <Card className="group cursor-pointer transform transition-all duration-500 hover:scale-105 bg-card/95 backdrop-blur-xl border-2 border-primary/20 hover:border-primary/40 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl w-full max-w-2xl">
+                <div className="relative overflow-hidden">
+                  <img 
+                    src={getCoffeeImage(currentItem.id)}
+                    alt={currentItem.nameAr}
+                    className="w-full h-96 object-cover transition-all duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/default-coffee.png";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent"></div>
+                </div>
+                <div className="p-8 space-y-6">
+                  <h3 className="font-amiri text-4xl font-bold text-primary text-center">
+                    {currentItem.nameAr}
+                  </h3>
+                  <p className="text-xl text-muted-foreground leading-relaxed text-center">
+                    {currentItem.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 space-x-reverse">
+                      <span className="text-4xl font-bold text-primary">{currentItem.price}</span>
+                      <span className="text-2xl text-muted-foreground">ريال</span>
+                    </div>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      {Array.from({length: 5}).map((_, i) => (
+                        <Star key={i} className="w-6 h-6 text-amber-400 fill-amber-400" />
+                      ))}
+                    </div>
                   </div>
                 </div>
-              ))}
+              </Card>
             </div>
           </div>
         )}
@@ -326,86 +313,117 @@ export default function MenuView() {
         {/* New Creative Display Modes */}
         
         {/* Mosaic View */}
-        {viewMode === 'mosaic' && (
+        {viewMode === 'mosaic' && currentItem && (
           <div className="px-6">
-            <div className="max-w-8xl mx-auto">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
-                {coffeeItems.map((item, index) => {
-                  const sizes = ['col-span-1 row-span-1', 'col-span-2 row-span-1', 'col-span-1 row-span-2', 'col-span-2 row-span-2'];
-                  const randomSize = sizes[index % sizes.length];
-                  
-                  return (
-                    <div
-                      key={item.id}
-                      className={`${randomSize} group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer`}
-                      style={{
-                        minHeight: randomSize.includes('row-span-2') ? '320px' : '160px'
-                      }}
-                    >
-                      <img 
-                        src={getCoffeeImage(item.id)}
-                        alt={item.nameAr}
-                        className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.src = "/images/default-coffee.png";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                        <h3 className="font-amiri text-lg font-bold mb-1">{item.nameAr}</h3>
-                        <p className="text-sm opacity-90">{item.price} ريال</p>
+            <div className="max-w-6xl mx-auto h-screen flex items-center justify-center">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+                {/* Large Featured Item */}
+                <div className="col-span-2 lg:col-span-2 group relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 cursor-pointer" style={{ minHeight: '500px' }}>
+                  <img 
+                    src={getCoffeeImage(currentItem.id)}
+                    alt={currentItem.nameAr}
+                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/default-coffee.png";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                    <h3 className="font-amiri text-4xl font-bold mb-4">{currentItem.nameAr}</h3>
+                    <p className="text-xl opacity-90 mb-4">{currentItem.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-3xl font-bold">{currentItem.price} ريال</span>
+                      <div className="flex items-center space-x-1 space-x-reverse">
+                        {Array.from({length: 5}).map((_, i) => (
+                          <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
+                        ))}
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
+                
+                {/* QR Code Section */}
+                <div className="flex flex-col justify-center space-y-6">
+                  <QRCodeComponent 
+                    url="https://qahwa.ma3k.online"
+                    size="lg"
+                    title="امسح للطلب"
+                    className="w-full"
+                  />
+                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-4 text-center">
+                    <p className="text-lg font-bold">
+                      لكل لحظة قهوة ، لحظة نجاح
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Waterfall View */}
-        {viewMode === 'waterfall' && (
+        {viewMode === 'waterfall' && currentItem && (
           <div className="px-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-                {coffeeItems.map((item, index) => (
-                  <Card 
-                    key={item.id} 
-                    className="break-inside-avoid group cursor-pointer bg-card/95 backdrop-blur-xl border-2 border-primary/20 hover:border-primary/40 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 mb-6"
-                  >
-                    <div className="relative overflow-hidden">
-                      <img 
-                        src={getCoffeeImage(item.id)}
-                        alt={item.nameAr}
-                        className="w-full h-auto object-cover transition-all duration-500 group-hover:scale-105"
-                        style={{ height: `${200 + (index % 3) * 50}px` }}
-                        onError={(e) => {
-                          e.currentTarget.src = "/images/default-coffee.png";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
-                    </div>
-                    <div className="p-6 space-y-3">
-                      <h3 className="font-amiri text-xl font-bold text-primary">
-                        {item.nameAr}
-                      </h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {item.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 space-x-reverse">
-                          <span className="text-xl font-bold text-primary">{item.price}</span>
-                          <span className="text-lg text-muted-foreground">ريال</span>
-                        </div>
-                        <div className="flex items-center space-x-1 space-x-reverse">
-                          {Array.from({length: 5}).map((_, i) => (
-                            <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
-                          ))}
-                        </div>
+            <div className="max-w-4xl mx-auto h-screen flex items-center justify-center">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full">
+                {/* Flowing Card Design */}
+                <Card className="group cursor-pointer bg-card/95 backdrop-blur-xl border-2 border-primary/20 hover:border-primary/40 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src={getCoffeeImage(currentItem.id)}
+                      alt={currentItem.nameAr}
+                      className="w-full h-80 object-cover transition-all duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/default-coffee.png";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent"></div>
+                  </div>
+                  <div className="p-8 space-y-6">
+                    <h3 className="font-amiri text-3xl font-bold text-primary">
+                      {currentItem.nameAr}
+                    </h3>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      {currentItem.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 space-x-reverse">
+                        <span className="text-3xl font-bold text-primary">{currentItem.price}</span>
+                        <span className="text-xl text-muted-foreground">ريال</span>
+                      </div>
+                      <div className="flex items-center space-x-1 space-x-reverse">
+                        {Array.from({length: 5}).map((_, i) => (
+                          <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
+                        ))}
                       </div>
                     </div>
-                  </Card>
-                ))}
+                  </div>
+                </Card>
+                
+                {/* Info and QR Section */}
+                <div className="flex flex-col justify-center space-y-8">
+                  <div className="text-center space-y-4">
+                    <h1 className="font-amiri text-5xl font-bold text-primary">
+                      قهوة كوب
+                    </h1>
+                    <p className="text-xl text-muted-foreground">
+                      أجود أنواع القهوة العربية الأصيلة
+                    </p>
+                  </div>
+                  
+                  <QRCodeComponent 
+                    url="https://qahwa.ma3k.online"
+                    size="lg"
+                    title="امسح للطلب"
+                    className="w-full"
+                  />
+                  
+                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-6 text-center">
+                    <p className="text-xl font-bold">
+                      لكل لحظة قهوة ، لحظة نجاح
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -531,41 +549,44 @@ export default function MenuView() {
                   
                   <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-6">
                     <p className="text-2xl font-bold">
-☕ أفضل قهوة في المدينة
+لكل لحظة قهوة ، لحظة نجاح
                     </p>
                   </div>
                 </div>
 
-                {/* Featured Items Grid */}
-                <div className="grid grid-cols-2 gap-6">
-                  {coffeeItems.slice(0, 4).map((item) => (
-                    <Card key={item.id} className="bg-card/95 backdrop-blur-xl border-2 border-primary/20 rounded-2xl overflow-hidden shadow-xl">
+                {/* Featured Current Item */}
+                <div className="flex justify-center">
+                  {currentItem && (
+                    <Card className="bg-card/95 backdrop-blur-xl border-2 border-primary/20 rounded-3xl overflow-hidden shadow-2xl w-full max-w-lg">
                       <div className="relative">
                         <img 
-                          src={getCoffeeImage(item.id)}
-                          alt={item.nameAr}
-                          className="w-full h-40 object-cover"
+                          src={getCoffeeImage(currentItem.id)}
+                          alt={currentItem.nameAr}
+                          className="w-full h-64 object-cover"
                           onError={(e) => {
                             e.currentTarget.src = "/images/default-coffee.png";
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent"></div>
                       </div>
-                      <div className="p-4 space-y-2">
-                        <h3 className="font-amiri text-xl font-bold text-primary">
-                          {item.nameAr}
+                      <div className="p-6 space-y-4">
+                        <h3 className="font-amiri text-2xl font-bold text-primary text-center">
+                          {currentItem.nameAr}
                         </h3>
+                        <p className="text-muted-foreground text-center">
+                          {currentItem.description}
+                        </p>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-primary">{item.price} ريال</span>
+                          <span className="text-2xl font-bold text-primary">{currentItem.price} ريال</span>
                           <div className="flex items-center space-x-1 space-x-reverse">
                             {Array.from({length: 5}).map((_, i) => (
-                              <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
+                              <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                             ))}
                           </div>
                         </div>
                       </div>
                     </Card>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -573,8 +594,8 @@ export default function MenuView() {
         )}
       </div>
 
-      {/* Navigation for Elegant Mode */}
-      {viewMode === 'elegant' && coffeeItems.length > 1 && (
+      {/* Navigation for All Modes */}
+      {coffeeItems.length > 1 && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <div className="flex items-center space-x-4 space-x-reverse bg-card/95 backdrop-blur-xl rounded-2xl px-8 py-4 border border-primary/30 shadow-2xl">
             <div className="flex space-x-3 space-x-reverse">
