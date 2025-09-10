@@ -2,6 +2,16 @@
 
 This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) built as a full-stack web application. The system provides an Arabic-first interface for browsing coffee items, managing a shopping cart, and placing orders with multiple payment methods. It features a modern React frontend with a Node.js/Express backend, using PostgreSQL for data persistence and Drizzle ORM for database management.
 
+# Recent Changes
+
+**2025-09-10**: Enhanced auto-rotation and promotional messaging
+- Implemented automatic drink rotation every 6 seconds across ALL display modes (elegant, showcase, grid, mosaic, waterfall, tv-display, window-display)
+- All display modes now show single current item instead of multiple items for cleaner presentation
+- Updated promotional slogan from "أفضل قهوة في المدينة" to "لكل لحظة قهوة ، لحظة نجاح"
+- Added index bounds protection for safer auto-rotation
+- Unified navigation controls available in all view modes with autoplay toggle
+- Enhanced QR code component with luxury design, gradients, and animations
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
