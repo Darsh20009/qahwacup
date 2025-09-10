@@ -3,8 +3,66 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff, Play, Pause, SkipForward, SkipBack, Settings, Star } from "lucide-react";
+import { Eye, EyeOff, Play, Pause, SkipForward, SkipBack, Settings, Star, Coffee, Sparkles, Zap, Flame, Snowflake } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+
+// Coffee image mapping function - each drink gets its unique image
+const getCoffeeImage = (coffeeId: string): string => {
+  const imageMap: Record<string, string> = {
+    "espresso-single": "/images/espresso-single.png",
+    "espresso-double": "/images/espresso-double.png", 
+    "americano": "/images/americano.png",
+    "ristretto": "/images/ristretto.png",
+    "cafe-latte": "/images/cafe-latte.png",
+    "cappuccino": "/images/cappuccino.png",
+    "vanilla-latte": "/images/vanilla-latte.png",
+    "mocha": "/images/mocha.png",
+    "con-panna": "/images/con-panna.png",
+    "coffee-day-hot": "/images/golden-latte.png",
+    "iced-latte": "/images/iced-latte.png",
+    "iced-mocha": "/images/iced-mocha-drink.png",
+    "iced-cappuccino": "/images/iced-cappuccino.png",
+    "iced-condensed": "/images/iced-chocolate.png",
+    "vanilla-cold-brew": "/images/vanilla-cold-brew.png",
+    "coffee-day-cold": "/images/signature-qahwa.png"
+  };
+  
+  return imageMap[coffeeId] || "/images/default-coffee.png";
+};
+
+// Get category info with colors and effects
+const getCategoryStyle = (category: string) => {
+  switch (category) {
+    case "basic":
+      return {
+        gradient: "from-amber-600/30 via-yellow-500/20 to-orange-600/30",
+        icon: Coffee,
+        color: "text-amber-600",
+        bg: "bg-amber-100/20 dark:bg-amber-900/20"
+      };
+    case "hot":
+      return {
+        gradient: "from-red-600/30 via-orange-500/20 to-pink-600/30",
+        icon: Flame,
+        color: "text-red-600",
+        bg: "bg-red-100/20 dark:bg-red-900/20"
+      };
+    case "cold":
+      return {
+        gradient: "from-blue-600/30 via-cyan-500/20 to-indigo-600/30",
+        icon: Snowflake,
+        color: "text-blue-600",
+        bg: "bg-blue-100/20 dark:bg-blue-900/20"
+      };
+    default:
+      return {
+        gradient: "from-primary/30 via-accent/20 to-primary/30",
+        icon: Sparkles,
+        color: "text-primary",
+        bg: "bg-primary/10"
+      };
+  }
+};
 
 interface CoffeeItem {
   id: string;
@@ -218,10 +276,13 @@ export default function MenuView() {
                 <div className="relative overflow-hidden rounded-2xl">
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent z-10"></div>
                   <img 
-                    src={currentItem.imageUrl || "/api/placeholder/400/400"}
+                    src={getCoffeeImage(currentItem.id)}
                     alt={currentItem.nameAr}
-                    className="w-full h-80 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                    className="w-full h-80 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110 filter drop-shadow-2xl"
                     data-testid="img-current-drink"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/default-coffee.png";
+                    }}
                   />
                   
                   {/* Floating elements */}
