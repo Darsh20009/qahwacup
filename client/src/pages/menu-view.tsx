@@ -91,21 +91,21 @@ export default function MenuView() {
       </div>
 
       {/* Header Controls */}
-      <div className="relative z-50 flex justify-between items-center p-6">
-        <div className="flex items-center space-x-4 space-x-reverse">
-          <div className="bg-card/90 backdrop-blur-xl rounded-2xl px-6 py-3 border border-primary/20 shadow-xl">
-            <h1 className="font-amiri text-2xl font-bold text-primary">قائمة القهوة الفخمة</h1>
+      <div className="relative z-50 flex flex-col lg:flex-row justify-between items-start lg:items-center p-4 lg:p-6 space-y-4 lg:space-y-0">
+        <div className="flex items-center space-x-4 space-x-reverse w-full lg:w-auto">
+          <div className="bg-card/90 backdrop-blur-xl rounded-2xl px-4 lg:px-6 py-2 lg:py-3 border border-primary/20 shadow-xl flex-1 lg:flex-none">
+            <h1 className="font-amiri text-xl lg:text-2xl font-bold text-primary text-center lg:text-right">قائمة القهوة الفخمة</h1>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4 space-x-reverse">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center space-y-2 lg:space-y-0 space-x-0 lg:space-x-4 space-x-reverse w-full lg:w-auto">
           {/* View Mode Selector */}
-          <div className="flex items-center bg-card/90 backdrop-blur-xl rounded-2xl p-2 border border-primary/20 shadow-xl space-x-2 space-x-reverse">
+          <div className="flex flex-wrap justify-center lg:flex-nowrap items-center bg-card/90 backdrop-blur-xl rounded-2xl p-2 border border-primary/20 shadow-xl space-x-2 space-x-reverse">
             <Button
               variant={viewMode === 'elegant' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => {setViewMode('elegant'); setCurrentIndex(0);}}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-elegant"
             >
               <Sparkles className="w-4 h-4" />
@@ -115,7 +115,7 @@ export default function MenuView() {
               variant={viewMode === 'showcase' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('showcase')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-showcase"
             >
               <Layers className="w-4 h-4" />
@@ -125,7 +125,7 @@ export default function MenuView() {
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('grid')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-grid"
             >
               <Grid3X3 className="w-4 h-4" />
@@ -135,7 +135,7 @@ export default function MenuView() {
               variant={viewMode === 'mosaic' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('mosaic')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-mosaic"
             >
               <Palette className="w-4 h-4" />
@@ -145,7 +145,7 @@ export default function MenuView() {
               variant={viewMode === 'waterfall' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('waterfall')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-waterfall"
             >
               <Zap className="w-4 h-4" />
@@ -155,7 +155,7 @@ export default function MenuView() {
               variant={viewMode === 'tv-display' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('tv-display')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-tv"
             >
               <Tv className="w-4 h-4" />
@@ -165,7 +165,7 @@ export default function MenuView() {
               variant={viewMode === 'window-display' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('window-display')}
-              className="flex items-center space-x-1 space-x-reverse"
+              className="flex items-center space-x-1 space-x-reverse mb-2 lg:mb-0"
               data-testid="button-window"
             >
               <QrCode className="w-4 h-4" />
@@ -173,22 +173,22 @@ export default function MenuView() {
             </Button>
           </div>
 
-          <div className="flex items-center space-x-2 space-x-reverse">
+          <div className="flex items-center space-x-2 space-x-reverse w-full lg:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowNavigation(!showNavigation)}
-              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
+              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10 w-full lg:w-auto"
               data-testid="button-toggle-nav"
             >
               <RotateCcw className="w-4 h-4 ml-1" />
               {showNavigation ? 'إخفاء التنقل' : 'إظهار التنقل'}
             </Button>
-            
+
             <Button 
               onClick={() => setLocation("/menu")} 
               variant="outline"
-              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
+              className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10 w-full lg:w-auto"
               data-testid="button-back"
             >
               <ArrowLeft className="w-5 h-5 ml-2" />
@@ -334,7 +334,7 @@ export default function MenuView() {
         )}
 
         {/* New Creative Display Modes */}
-        
+
         {/* Mosaic View */}
         {viewMode === 'mosaic' && currentItem && (
           <div className="px-6">
@@ -364,7 +364,7 @@ export default function MenuView() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* QR Code Section */}
                 <div className="flex flex-col justify-center space-y-6">
                   <QRCodeComponent 
@@ -422,7 +422,7 @@ export default function MenuView() {
                     </div>
                   </div>
                 </Card>
-                
+
                 {/* Info and QR Section */}
                 <div className="flex flex-col justify-center space-y-8">
                   <div className="text-center space-y-4">
@@ -433,14 +433,14 @@ export default function MenuView() {
                       أجود أنواع القهوة العربية الأصيلة
                     </p>
                   </div>
-                  
+
                   <QRCodeComponent 
                     url="https://qahwa.ma3k.online"
                     size="lg"
                     title="امسح للطلب"
                     className="w-full"
                   />
-                  
+
                   <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-6 text-center">
                     <p className="text-xl font-bold">
                       لكل لحظة قهوة ، لحظة نجاح
@@ -457,7 +457,7 @@ export default function MenuView() {
           <div className="px-6">
             <div className="max-w-8xl mx-auto">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-screen">
-                
+
                 {/* Main Featured Section */}
                 <div className="lg:col-span-3">
                   {currentItem && (
@@ -514,7 +514,7 @@ export default function MenuView() {
                     title="امسح للطلب الآن"
                     className="w-full"
                   />
-                  
+
                   {/* Current Item Info */}
                   <div className="space-y-4">
                     <h3 className="font-amiri text-2xl font-bold text-primary text-center">
@@ -544,7 +544,7 @@ export default function MenuView() {
           <div className="px-6">
             <div className="max-w-6xl mx-auto h-screen flex flex-col justify-center">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                
+
                 {/* Central QR Code and Branding */}
                 <div className="text-center space-y-8">
                   <div className="space-y-6">
@@ -555,7 +555,7 @@ export default function MenuView() {
                       أجود أنواع القهوة العربية الأصيلة
                     </p>
                   </div>
-                  
+
                   <QRCodeComponent 
                     url="https://qahwa.ma3k.online"
                     size="xl"
@@ -563,7 +563,7 @@ export default function MenuView() {
                     showURL={false}
                     className="mx-auto max-w-md"
                   />
-                  
+
                   <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-6">
                     <p className="text-2xl font-bold">
 لكل لحظة قهوة ، لحظة نجاح
@@ -629,9 +629,9 @@ export default function MenuView() {
                 />
               ))}
             </div>
-            
+
             <div className="h-6 w-px bg-primary/30"></div>
-            
+
             <div className="text-sm text-muted-foreground">
               {currentIndex + 1} / {coffeeItems.length}
             </div>
