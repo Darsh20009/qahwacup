@@ -21,7 +21,7 @@ export default function CartModal() {
 
   return (
     <Dialog open={isCartOpen} onOpenChange={hideCart} data-testid="modal-cart">
-      <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-md max-h-[90vh] overflow-y-auto backdrop-blur-md border-2 border-primary/30 bg-[#23252f] text-[#a6a8af]" dir="rtl">
+      <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-md max-h-[90vh] overflow-y-auto backdrop-blur-md border-2 border-primary/30 bg-card text-card-foreground" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center text-2xl font-bold text-foreground" data-testid="text-cart-modal-title">
             <ShoppingCart className="w-6 h-6 ml-2" />
