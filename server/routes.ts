@@ -42,22 +42,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get cart items for session
+  // Get cart items for session - OPTIMIZED
   app.get("/api/cart/:sessionId", async (req, res) => {
     try {
       const { sessionId } = req.params;
       const cartItems = await storage.getCartItems(sessionId);
       
-      // Enrich cart items with coffee details
-      const enrichedItems = await Promise.all(
-        cartItems.map(async (cartItem) => {
-          const coffeeItem = await storage.getCoffeeItem(cartItem.coffeeItemId);
-          return {
-            ...cartItem,
-            coffeeItem
-          };
-        })
-      );
+      if (cartItems.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get all coffee items once instead of multiple queries
+      const allCoffeeItems = await storage.getCoffeeItems();
+      const coffeeItemsMap = new Map(allCoffeeItems.map(item => [item.id, item]));
+      
+      // Enrich cart items with coffee details efficiently
+      const enrichedItems = cartItems.map((cartItem) => ({
+        ...cartItem,
+        coffeeItem: coffeeItemsMap.get(cartItem.coffeeItemId)
+      })).filter(item => item.coffeeItem); // Filter out items where coffee doesn't exist
       
       res.json(enrichedItems);
     } catch (error) {

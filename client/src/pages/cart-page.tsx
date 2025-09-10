@@ -97,9 +97,13 @@ export default function CartPage() {
                       <div className="flex items-center space-x-4 space-x-reverse">
                         <div className="relative">
                           <img 
-                            src={item.coffeeItem?.imageUrl?.startsWith('http') ? `${item.coffeeItem.imageUrl}?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100` : (item.coffeeItem?.imageUrl || '/placeholder-coffee.jpg')}
+                            src={item.coffeeItem?.imageUrl || `/images/${item.coffeeItem?.id}.png` || '/images/default-coffee.png'}
                             alt={item.coffeeItem?.nameAr}
                             className="w-20 h-20 object-cover rounded-xl shadow-lg"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/default-coffee.png";
+                            }}
                           />
                           <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">{item.quantity}</span>
