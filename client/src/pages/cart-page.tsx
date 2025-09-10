@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/lib/cart-store";
+import { getCoffeeImage } from "@/lib/coffee-images";
 import { ArrowRight, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 
 export default function CartPage() {
@@ -97,7 +98,7 @@ export default function CartPage() {
                       <div className="flex items-center space-x-4 space-x-reverse">
                         <div className="relative">
                           <img 
-                            src={item.coffeeItem?.imageUrl || `/images/${item.coffeeItem?.id}.png` || '/images/default-coffee.png'}
+                            src={getCoffeeImage(item.coffeeItem?.id || '')}
                             alt={item.coffeeItem?.nameAr}
                             className="w-20 h-20 object-cover rounded-xl shadow-lg"
                             loading="lazy"
