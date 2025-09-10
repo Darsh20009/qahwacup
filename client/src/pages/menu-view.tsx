@@ -156,116 +156,75 @@ export default function MenuView() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-amber-900/95 via-orange-900/90 to-yellow-900/95 flex items-center justify-center">
-        {/* Creative Animated Background */}
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-amber-50/30 to-stone-100 flex items-center justify-center">
+        {/* Elegant Minimal Background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Floating Coffee Beans with Complex Animation */}
-          {Array.from({ length: 20 }).map((_, i) => (
+          {/* Soft Floating Elements */}
+          {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="absolute opacity-20 animate-float"
+              className="absolute opacity-10 animate-pulse"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${6 + Math.random() * 4}s`
+                left: `${20 + i * 15}%`,
+                top: `${15 + (i % 3) * 25}%`,
+                animationDelay: `${i * 2}s`,
+                animationDuration: `8s`
               }}
             >
-              <Coffee className={`w-${4 + Math.floor(Math.random() * 8)} h-${4 + Math.floor(Math.random() * 8)} text-amber-300 transform rotate-${Math.floor(Math.random() * 360)}`} />
+              <Coffee className="w-6 h-6 text-amber-700/20 transform rotate-12" />
             </div>
           ))}
           
-          {/* Dynamic Light Orbs */}
-          <div className="absolute top-10 left-10 w-40 h-40 bg-gradient-radial from-amber-400/30 via-orange-400/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-60 h-60 bg-gradient-radial from-yellow-400/25 via-amber-400/15 to-transparent rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/3 left-1/4 w-32 h-32 bg-gradient-radial from-orange-500/20 via-transparent to-transparent rounded-full blur-xl animate-pulse" style={{animationDelay: '4s'}}></div>
+          {/* Subtle Light Gradients */}
+          <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-radial from-amber-200/20 via-transparent to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-radial from-stone-200/15 via-transparent to-transparent rounded-full blur-3xl"></div>
           
-          {/* Steam Effects */}
-          <div className="absolute top-1/4 right-1/3 opacity-30">
-            {Array.from({ length: 8 }).map((_, i) => (
+          {/* Gentle Steam Effect */}
+          <div className="absolute top-1/3 right-1/4 opacity-15">
+            {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="absolute w-1 h-12 bg-gradient-to-t from-gray-300/60 to-transparent rounded-full animate-pulse"
+                className="absolute w-0.5 h-8 bg-gradient-to-t from-stone-300/40 to-transparent rounded-full animate-pulse"
                 style={{
-                  left: `${i * 6 - 20}px`,
-                  animationDelay: `${i * 0.3}s`,
-                  animationDuration: `${2 + i * 0.2}s`
+                  left: `${i * 8 - 12}px`,
+                  animationDelay: `${i * 0.5}s`,
+                  animationDuration: `4s`
                 }}
               />
             ))}
           </div>
         </div>
 
-        {/* Main Login Card with Creative Design */}
-        <Card className="relative w-full max-w-lg p-10 bg-gradient-to-br from-card/98 via-card/95 to-card/92 backdrop-blur-xl border-2 border-primary/50 shadow-[0_0_50px_rgba(212,175,55,0.3)] animate-in fade-in-0 slide-in-from-bottom-10 duration-1000">
+        {/* Sophisticated Login Card */}
+        <Card className="relative w-full max-w-md mx-4 bg-white/90 backdrop-blur-sm border border-stone-200/50 shadow-xl shadow-stone-200/20 rounded-2xl overflow-hidden">
           
-          {/* Floating Coffee Cup with Steam Animation */}
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-            <div className="relative group">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary via-accent to-primary rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-500 animate-bounce">
-                <Coffee className="w-8 h-8 text-primary-foreground animate-pulse" />
-              </div>
-              {/* Steam Animation */}
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute w-0.5 h-6 bg-gradient-to-t from-gray-400/60 to-transparent rounded-full animate-pulse"
-                    style={{
-                      left: `${i * 4 - 4}px`,
-                      animationDelay: `${i * 0.4}s`
-                    }}
-                  />
-                ))}
-              </div>
-              {/* Glow Effect */}
-              <div className="absolute inset-0 w-16 h-16 bg-primary/30 rounded-full blur-xl animate-ping"></div>
+          {/* Elegant Header Icon */}
+          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-600 to-amber-700 rounded-full flex items-center justify-center shadow-lg">
+              <Coffee className="w-6 h-6 text-white" />
             </div>
           </div>
 
-          {/* Header with Creative Typography */}
-          <div className="text-center mb-10 pt-6">
-            <div className="relative mb-6">
-              <h1 className="text-4xl font-bold font-amiri mb-3 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-in slide-in-from-top-5 duration-1000">
+          <div className="p-8 pt-12">
+            {/* Refined Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold font-amiri text-stone-800 mb-2">
                 عرض القائمة
               </h1>
-              {/* Decorative Line Animation */}
-              <div className="relative">
-                <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent animate-pulse"></div>
-                <div className="h-px bg-gradient-to-r from-transparent via-accent to-transparent animate-pulse delay-500"></div>
-              </div>
+              <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-300 to-transparent mx-auto mb-3"></div>
+              <p className="text-stone-600 font-medium text-sm">
+                قسم خاص بالموظفين
+              </p>
             </div>
-            
-            <p className="text-lg text-muted-foreground font-medium mb-4 animate-in fade-in-0 duration-1000 delay-300">
-              قسم خاص بالموظفين
-            </p>
-            
-            {/* Creative Animated Dots */}
-            <div className="flex justify-center space-x-2 mb-4">
-              <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce delay-100"></div>
-              <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200"></div>
-            </div>
-          </div>
 
-          {/* Enhanced Form Section */}
-          <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-5 duration-1000 delay-500">
-            <div className="space-y-4">
-              {/* Creative Label */}
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-foreground flex items-center space-x-3 space-x-reverse">
+            {/* Clean Form Section */}
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-stone-700 flex items-center justify-between">
                   <span>كلمة المرور</span>
-                  <div className="flex space-x-1">
-                    <div className="w-1 h-1 bg-primary rounded-full animate-ping"></div>
-                    <div className="w-1 h-1 bg-accent rounded-full animate-ping delay-100"></div>
-                  </div>
+                  <span className="text-xs text-stone-500">مطلوب</span>
                 </label>
-                <div className="text-xs text-muted-foreground">مطلوب</div>
-              </div>
-              
-              {/* Enhanced Input Field */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/10 to-primary/20 rounded-lg blur-sm group-hover:blur-none transition-all duration-300"></div>
+                
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -273,101 +232,68 @@ export default function MenuView() {
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleLogin()}
                     placeholder="● ● ● ● ● ●"
-                    className="pr-12 pl-4 py-3 bg-background/80 border-2 border-primary/30 focus:border-primary/60 rounded-lg text-lg font-medium transition-all duration-300 hover:shadow-lg focus:shadow-xl"
+                    className="pl-12 pr-4 py-3 bg-stone-50/50 border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 rounded-xl text-base transition-all duration-200"
                     data-testid="input-password"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full transition-all duration-300"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-amber-600 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
                 
-                {/* Animated Border Effect */}
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-hover:opacity-20 transition-all duration-300 blur-sm"></div>
-              </div>
-              
-              {/* Enhanced Error Message */}
-              {error && (
-                <div className="relative p-3 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-lg animate-in slide-in-from-right-5 duration-500" data-testid="text-error">
-                  <p className="text-sm text-red-700 font-medium flex items-center space-x-2 space-x-reverse">
-                    <Zap className="w-4 h-4 animate-pulse" />
-                    <span>{error}</span>
-                  </p>
-                  <div className="absolute top-2 right-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce"></div>
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg" data-testid="text-error">
+                    <p className="text-sm text-red-700 font-medium flex items-center space-x-2 space-x-reverse">
+                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                      <span>{error}</span>
+                    </p>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Refined Button Section */}
+              <div className="flex space-x-3 space-x-reverse pt-2">
+                <Button 
+                  onClick={handleLogin} 
+                  className="flex-1 py-3 text-base font-semibold bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-md hover:shadow-lg"
+                  data-testid="button-login"
+                >
+                  دخول
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => setLocation("/")}
+                  className="px-6 py-3 border border-stone-300 text-stone-700 hover:bg-stone-50 hover:border-stone-400 rounded-xl font-medium transition-all duration-200"
+                  data-testid="button-back"
+                >
+                  رجوع
+                </Button>
+              </div>
             </div>
 
-            {/* Creative Button Section */}
-            <div className="flex space-x-4 space-x-reverse">
-              <Button 
-                onClick={handleLogin} 
-                className="flex-1 py-3 text-lg font-bold bg-gradient-to-r from-primary via-accent to-primary hover:from-primary/90 hover:via-accent/90 hover:to-primary/90 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl rounded-xl relative overflow-hidden group"
-                data-testid="button-login"
-              >
-                <span className="relative z-10">دخول</span>
-                {/* Button Shine Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation("/")}
-                className="px-6 py-3 border-2 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary/70 transition-all duration-300 rounded-xl font-semibold"
-                data-testid="button-back"
-              >
-                رجوع
-              </Button>
+            {/* Subtle Footer */}
+            <div className="mt-8 pt-6 border-t border-stone-100 text-center">
+              <div className="flex justify-center space-x-1">
+                <div className="w-1 h-1 bg-amber-400 rounded-full"></div>
+                <div className="w-1 h-1 bg-amber-300 rounded-full"></div>
+                <div className="w-1 h-1 bg-amber-400 rounded-full"></div>
+              </div>
             </div>
-          </div>
-          
-          {/* Enhanced Decorative Elements */}
-          <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-gradient-to-r from-primary to-accent rounded-full animate-bounce shadow-lg"></div>
-              <div className="w-3 h-3 bg-gradient-to-r from-accent to-primary rounded-full animate-bounce delay-100 shadow-lg"></div>
-              <div className="w-3 h-3 bg-gradient-to-r from-primary to-accent rounded-full animate-bounce delay-200 shadow-lg"></div>
-            </div>
-          </div>
-
-          {/* Corner Decorations */}
-          <div className="absolute top-4 right-4 opacity-30">
-            <Star className="w-4 h-4 text-primary animate-pulse" />
-          </div>
-          <div className="absolute bottom-4 left-4 opacity-20">
-            <Sparkles className="w-5 h-5 text-accent animate-pulse delay-300" />
-          </div>
-
-          {/* Floating Particles */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-primary/40 rounded-full animate-float"
-                style={{
-                  left: `${20 + i * 15}%`,
-                  top: `${10 + (i % 3) * 25}%`,
-                  animationDelay: `${i * 0.8}s`,
-                  animationDuration: `${4 + i * 0.5}s`
-                }}
-              />
-            ))}
           </div>
         </Card>
 
-        {/* Additional Creative Background Elements */}
-        <div className="absolute bottom-10 left-10 opacity-20">
-          <div className="w-20 h-20 border-2 border-primary/30 rounded-full animate-spin" style={{animationDuration: '20s'}}></div>
+        {/* Minimal Decorative Elements */}
+        <div className="absolute bottom-8 left-8 opacity-20">
+          <div className="w-12 h-12 border border-stone-300/50 rounded-full"></div>
         </div>
-        <div className="absolute top-20 right-20 opacity-15">
-          <div className="w-16 h-16 border border-accent/40 rounded-full animate-ping" style={{animationDuration: '3s'}}></div>
+        <div className="absolute top-8 right-8 opacity-15">
+          <div className="w-8 h-8 border border-amber-300/30 rounded-full"></div>
         </div>
       </div>
     );
