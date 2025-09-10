@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff, ArrowLeft, Coffee, Star, Sparkles, Grid3X3, Layers } from "lucide-react";
+import { ArrowLeft, Coffee, Star, Sparkles, Grid3X3, Layers } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 // Coffee image mapping function
@@ -44,10 +43,6 @@ interface CoffeeItem {
 
 export default function MenuView() {
   const [, setLocation] = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [viewMode, setViewMode] = useState<'elegant' | 'showcase' | 'grid'>('elegant');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
@@ -55,7 +50,6 @@ export default function MenuView() {
   // Fetch coffee items
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
     queryKey: ["/api/coffee-items"],
-    enabled: isAuthenticated,
   });
 
   // Auto-play functionality for elegant view
@@ -69,20 +63,6 @@ export default function MenuView() {
     return () => clearInterval(interval);
   }, [isAutoPlay, coffeeItems.length, viewMode]);
 
-  const handleLogin = () => {
-    if (password === "qahwa2025") {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("كلمة المرور غير صحيحة");
-    }
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setPassword("");
-    setError("");
-  };
 
   // Group coffee items by category for organized display
   const groupedItems = coffeeItems.reduce((acc, item) => {
@@ -99,102 +79,6 @@ export default function MenuView() {
     "cold": "المشروبات الباردة"
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
-        {/* Elegant Background Elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute opacity-10 animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.5}s`,
-                animationDuration: `${4 + Math.random() * 4}s`
-              }}
-            >
-              <Coffee className="w-8 h-8 text-amber-700/30 transform rotate-12" />
-            </div>
-          ))}
-          
-          {/* Gradient overlays */}
-          <div className="absolute top-20 left-20 w-96 h-96 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-300/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-300/15 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        {/* Login Card */}
-        <Card className="relative w-full max-w-lg mx-4 bg-card/95 backdrop-blur-xl border border-primary/20 shadow-2xl shadow-primary/10 rounded-3xl overflow-hidden">
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center shadow-xl">
-              <Coffee className="w-8 h-8 text-white" />
-            </div>
-          </div>
-
-          <div className="p-8 pt-16">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold font-amiri text-primary mb-3">
-                عرض القائمة الفخم
-              </h1>
-              <p className="text-muted-foreground">
-                للوصول لقائمة المشروبات الخاصة
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder="كلمة المرور"
-                  className="pr-12 h-14 text-lg bg-background/50 border-primary/30 focus:border-primary rounded-xl"
-                  data-testid="input-password"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                  onClick={() => setShowPassword(!showPassword)}
-                  data-testid="button-toggle-password"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </Button>
-              </div>
-
-              {error && (
-                <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-lg" data-testid="text-login-error">
-                  {error}
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  onClick={() => setLocation("/menu")} 
-                  variant="outline" 
-                  className="h-14 text-lg border-primary/30 hover:bg-primary/10"
-                  data-testid="button-back"
-                >
-                  <ArrowLeft className="w-5 h-5 ml-2" />
-                  العودة
-                </Button>
-                <Button 
-                  onClick={handleLogin} 
-                  className="h-14 text-lg bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-600/90"
-                  data-testid="button-login"
-                >
-                  دخول
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -262,12 +146,13 @@ export default function MenuView() {
           </div>
 
           <Button 
-            onClick={logout} 
+            onClick={() => setLocation("/menu")} 
             variant="outline"
             className="bg-card/90 backdrop-blur-xl border-primary/20 hover:bg-primary/10"
-            data-testid="button-logout"
+            data-testid="button-back"
           >
-            خروج
+            <ArrowLeft className="w-5 h-5 ml-2" />
+            العودة
           </Button>
         </div>
       </div>
