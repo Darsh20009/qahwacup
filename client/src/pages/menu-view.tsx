@@ -215,15 +215,7 @@ export default function MenuView() {
                     <div className="flex items-center space-x-3 space-x-reverse">
                       <span className="text-4xl font-bold text-primary">{currentItem.price}</span>
                       <span className="text-2xl text-muted-foreground">ريال</span>
-                      {currentItem.oldPrice && (
-                        <span className="text-xl text-red-500 line-through">{currentItem.oldPrice}</span>
-                      )}
                     </div>
-                    {currentItem.oldPrice && (
-                      <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold inline-block">
-                        خصم {Math.round(((parseFloat(currentItem.oldPrice) - parseFloat(currentItem.price)) / parseFloat(currentItem.oldPrice)) * 100)}%
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex items-center space-x-2 space-x-reverse">
@@ -300,11 +292,6 @@ export default function MenuView() {
                             }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
-                          {item.oldPrice && (
-                            <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-2 rounded-full text-sm font-bold">
-                              خصم {Math.round(((parseFloat(item.oldPrice) - parseFloat(item.price)) / parseFloat(item.oldPrice)) * 100)}%
-                            </div>
-                          )}
                         </div>
                         <div className="p-6 space-y-4">
                           <h3 className="font-amiri text-2xl font-bold text-primary line-clamp-1">
@@ -318,9 +305,6 @@ export default function MenuView() {
                               <div className="flex items-center space-x-2 space-x-reverse">
                                 <span className="text-2xl font-bold text-primary">{item.price}</span>
                                 <span className="text-lg text-muted-foreground">ريال</span>
-                                {item.oldPrice && (
-                                  <span className="text-lg text-red-500 line-through">{item.oldPrice}</span>
-                                )}
                               </div>
                             </div>
                             <div className="flex items-center space-x-1 space-x-reverse">
@@ -371,11 +355,6 @@ export default function MenuView() {
                         <h3 className="font-amiri text-lg font-bold mb-1">{item.nameAr}</h3>
                         <p className="text-sm opacity-90">{item.price} ريال</p>
                       </div>
-                      {item.oldPrice && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                          خصم
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -405,11 +384,6 @@ export default function MenuView() {
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
-                      {item.oldPrice && (
-                        <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-2 rounded-full text-sm font-bold">
-                          خصم {Math.round(((parseFloat(item.oldPrice) - parseFloat(item.price)) / parseFloat(item.oldPrice)) * 100)}%
-                        </div>
-                      )}
                     </div>
                     <div className="p-6 space-y-3">
                       <h3 className="font-amiri text-xl font-bold text-primary">
@@ -422,9 +396,6 @@ export default function MenuView() {
                         <div className="flex items-center space-x-2 space-x-reverse">
                           <span className="text-xl font-bold text-primary">{item.price}</span>
                           <span className="text-lg text-muted-foreground">ريال</span>
-                          {item.oldPrice && (
-                            <span className="text-sm text-red-500 line-through">{item.oldPrice}</span>
-                          )}
                         </div>
                         <div className="flex items-center space-x-1 space-x-reverse">
                           {Array.from({length: 5}).map((_, i) => (
@@ -481,11 +452,6 @@ export default function MenuView() {
                             <div className="text-6xl font-bold text-primary">
                               {currentItem.price} <span className="text-4xl">ريال</span>
                             </div>
-                            {currentItem.oldPrice && (
-                              <div className="bg-red-500 text-white px-6 py-3 rounded-full text-xl font-bold inline-block">
-                                خصم {Math.round(((parseFloat(currentItem.oldPrice) - parseFloat(currentItem.price)) / parseFloat(currentItem.oldPrice)) * 100)}%
-                              </div>
-                            )}
                           </div>
 
                           <div className="flex items-center space-x-3 space-x-reverse">
@@ -565,7 +531,7 @@ export default function MenuView() {
                   
                   <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-2xl p-6">
                     <p className="text-2xl font-bold">
-                      🎉 خصم 20% على الطلب الأول
+☕ أفضل قهوة في المدينة
                     </p>
                   </div>
                 </div>
@@ -584,11 +550,6 @@ export default function MenuView() {
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent"></div>
-                        {item.oldPrice && (
-                          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                            خصم
-                          </div>
-                        )}
                       </div>
                       <div className="p-4 space-y-2">
                         <h3 className="font-amiri text-xl font-bold text-primary">
