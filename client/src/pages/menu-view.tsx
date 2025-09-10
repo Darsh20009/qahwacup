@@ -156,21 +156,37 @@ export default function MenuView() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
-        <Card className="w-full max-w-md p-8 bg-card/90 backdrop-blur-md border-2 border-primary/30">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary font-amiri mb-2">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-900/20 dark:via-orange-900/10 dark:to-yellow-900/20 flex items-center justify-center">
+        {/* Background coffee decorative elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute bottom-32 right-16 w-24 h-24 bg-accent/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-10 w-20 h-20 bg-primary/5 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+        
+        <Card className="relative w-full max-w-md p-8 bg-gradient-to-br from-card/95 via-card/90 to-card/95 backdrop-blur-md border-2 border-primary/40 shadow-2xl">
+          {/* Coffee cup decoration */}
+          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg">
+              <Coffee className="w-6 h-6 text-primary-foreground" />
+            </div>
+          </div>
+          
+          <div className="text-center mb-8 pt-4">
+            <h1 className="text-3xl font-bold text-primary font-amiri mb-2 bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
               عرض القائمة
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground font-medium">
               قسم خاص بالموظفين
             </p>
+            <div className="w-16 h-1 bg-gradient-to-r from-primary to-accent rounded-full mx-auto mt-2"></div>
           </div>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                كلمة المرور
+              <label className="text-sm font-medium text-foreground flex items-center space-x-2 space-x-reverse">
+                <span>كلمة المرور</span>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
               </label>
               <div className="relative">
                 <Input
@@ -179,30 +195,31 @@ export default function MenuView() {
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleLogin()}
                   placeholder="أدخل كلمة المرور"
-                  className="pr-10 bg-background/50 border-primary/30"
+                  className="pr-10 bg-background/70 border-primary/40 focus:border-primary/60 transition-all duration-300"
                   data-testid="input-password"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute left-0 top-0 h-full px-3"
+                  className="absolute left-0 top-0 h-full px-3 text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
               {error && (
-                <p className="text-sm text-red-500" data-testid="text-error">
-                  {error}
+                <p className="text-sm text-destructive font-medium flex items-center space-x-2 space-x-reverse" data-testid="text-error">
+                  <span>{error}</span>
+                  <div className="w-2 h-2 bg-destructive rounded-full animate-bounce"></div>
                 </p>
               )}
             </div>
 
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 space-x-reverse">
               <Button 
                 onClick={handleLogin} 
-                className="flex-1"
+                className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300 font-medium"
                 data-testid="button-login"
               >
                 دخول
@@ -210,10 +227,20 @@ export default function MenuView() {
               <Button 
                 variant="outline" 
                 onClick={() => setLocation("/")}
+                className="border-primary/40 text-primary hover:bg-primary/10 transition-all duration-300"
                 data-testid="button-back"
               >
                 رجوع
               </Button>
+            </div>
+          </div>
+          
+          {/* Decorative bottom element */}
+          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-accent/60 rounded-full animate-bounce delay-100"></div>
+              <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce delay-200"></div>
             </div>
           </div>
         </Card>
