@@ -16,7 +16,7 @@ export const getCoffeeImage = (coffeeId: string): string => {
     "iced-cappuccino": "/images/iced-cappuccino.png",
     "iced-condensed": "/images/iced-chocolate.png",
     "vanilla-cold-brew": "/images/vanilla-cold-brew.png",
-    "coffee-day-cold": "/images/signature-qahwa.png"
+    "coffee-day-cold": "/attached_assets/coffee-day-cold-new.png"
   };
   
   return imageMap[coffeeId] || "/images/default-coffee.png";
