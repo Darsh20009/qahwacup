@@ -10,7 +10,7 @@ export const getCoffeeImage = (coffeeId: string): string => {
     "vanilla-latte": "/images/vanilla-latte.png",
     "mocha": "/images/mocha.png",
     "con-panna": "/images/con-panna.png",
-    "coffee-day-hot": "/images/golden-latte.png",
+    "coffee-day-hot": "/attached_assets/Screenshot 2025-09-09 192022_1757685132648.png",
     "iced-latte": "/images/iced-latte.png",
     "iced-mocha": "/images/iced-mocha-drink.png",
     "iced-cappuccino": "/images/iced-cappuccino.png",
