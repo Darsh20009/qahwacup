@@ -28,6 +28,7 @@ export default function CheckoutModal() {
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
+    enabled: isCheckoutOpen, // Only fetch when modal is open
   });
 
   const createOrderMutation = useMutation({

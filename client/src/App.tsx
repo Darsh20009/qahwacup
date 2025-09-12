@@ -11,7 +11,7 @@ import CartPage from "@/pages/cart-page";
 import CheckoutPage from "@/pages/checkout";
 import CartModal from "@/components/cart-modal";
 import CheckoutModal from "@/components/checkout-modal";
-import { CartProvider } from "@/lib/cart-store";
+import { CartProvider, useCartStore } from "@/lib/cart-store";
 
 function Router() {
   return (
@@ -27,16 +27,27 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const { isCartOpen, isCheckoutOpen } = useCartStore();
+
+  return (
+    <>
+      <Router />
+      {/* Only render modals when they are open */}
+      {isCartOpen && <CartModal />}
+      {isCheckoutOpen && <CheckoutModal />}
+      <Toaster />
+    </>
+  );
+}
+
 function App() {
   return (
     <div className="dark">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <CartProvider>
-            <Router />
-            <CartModal />
-            <CheckoutModal />
-            <Toaster />
+            <AppContent />
           </CartProvider>
         </TooltipProvider>
       </QueryClientProvider>
