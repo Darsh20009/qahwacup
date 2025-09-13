@@ -62,26 +62,26 @@ export const generatePDF = async (
   };
 
   content.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 3px solid #D4AF37; padding-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 4px solid #D4AF37; padding-bottom: 25px; background: linear-gradient(135deg, #FFF8DC, #FFFBEB); border-radius: 15px 15px 0 0; padding: 25px 20px;">
       <div style="flex: 1; text-align: center;">
-        <h1 style="font-family: 'Amiri', serif; font-size: 36px; color: #D4AF37; margin: 0; font-weight: bold;">
-          قهوة كوب
+        <h1 style="font-family: 'Amiri', serif; font-size: 42px; color: #B8860B; margin: 0; font-weight: bold; text-shadow: 2px 2px 4px rgba(184, 134, 11, 0.2);">
+          ☕ قهوة كوب ☕
         </h1>
-        <p style="color: #8B6F47; font-size: 16px; margin: 10px 0 5px 0;">تجربة قهوة استثنائية</p>
-        <p style="color: #666; font-size: 14px; margin: 5px 0 0 0; font-style: italic;">
+        <p style="color: #8B6F47; font-size: 18px; margin: 12px 0 8px 0; font-weight: 600;">🌟 تجربة قهوة استثنائية 🌟</p>
+        <p style="color: #666; font-size: 16px; margin: 8px 0 0 0; font-style: italic; font-weight: 500;">
           "لكل لحظة قهوة ، لحظة نجاح"
         </p>
       </div>
-      <div style="text-align: center; padding: 0 20px;">
-        <img src="${qrCodeDataURL}" alt="QR Code" style="width: 100px; height: 100px; border: 2px solid #D4AF37; border-radius: 8px;" />
-        <p style="margin: 8px 0 0 0; color: #666; font-size: 10px; font-weight: bold;">
-          مسح الرمز للتحقق
+      <div style="text-align: center; padding: 0 25px;">
+        <img src="${qrCodeDataURL}" alt="QR Code" style="width: 110px; height: 110px; border: 3px solid #D4AF37; border-radius: 12px; box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);" />
+        <p style="margin: 10px 0 0 0; color: #8B6F47; font-size: 11px; font-weight: bold;">
+          🔗 امسح للوصول للموقع
         </p>
       </div>
     </div>
 
     <div style="margin-bottom: 30px;">
-      <h2 style="color: #D4AF37; font-size: 24px; margin-bottom: 15px; font-weight: bold;">فاتورة</h2>
+      <h2 style="color: #D4AF37; font-size: 28px; margin-bottom: 15px; font-weight: bold; text-align: center; background: linear-gradient(135deg, #D4AF37, #F4D03F); -webkit-background-clip: text; color: transparent; text-shadow: 2px 2px 4px rgba(212, 175, 55, 0.3);">✨ فاتورة استلام الطلب ✨</h2>
       <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
         <span style="font-weight: bold;">رقم الطلب:</span>
         <span>${order.orderNumber}</span>
@@ -158,12 +158,15 @@ export const generatePDF = async (
       </p>
     </div>
 
-    <!-- Footer -->
-    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 3px solid #D4AF37; color: #8B6F47;">
-      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #D4AF37;">شكراً لاختياركم قهوة كوب</p>
-      <p style="margin: 5px 0; font-size: 14px;">"لكل لحظة قهوة ، لحظة نجاح"</p>
-      <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
-        تم إنشاء هذه الفاتورة إلكترونياً في ${new Date().toLocaleDateString('ar-SA')} الساعة ${new Date().toLocaleTimeString('ar-SA')}
+    <!-- Creative Footer -->
+    <div style="text-align: center; margin-top: 35px; padding: 25px; border-top: 4px solid #D4AF37; background: linear-gradient(135deg, #FFF8DC, #FFFBEB); border-radius: 0 0 15px 15px; color: #8B6F47;">
+      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #B8860B;">🌟 شكراً لاختياركم قهوة كوب 🌟</p>
+      <p style="margin: 8px 0; font-size: 16px; font-style: italic; color: #8B6F47;">☕ "لكل لحظة قهوة ، لحظة نجاح" ☕</p>
+      <p style="margin: 15px 0 5px 0; font-size: 13px; color: #666; font-weight: 500;">
+        📄 تم إنشاء فاتورة الاستلام هذه إلكترونياً
+      </p>
+      <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">
+        📅 ${new Date().toLocaleDateString('ar-SA')} | ⏰ ${new Date().toLocaleTimeString('ar-SA')}
       </p>
     </div>
   `;

@@ -204,7 +204,7 @@ export default function CheckoutPage() {
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-semibold"
                 >
                   <MessageCircle className="w-5 h-5 ml-2" />
-                  مشاركة تفاصيل الطلب عبر واتساب
+                  مشاركة لتجهيز الطلب
                 </Button>
                 
                 <Button
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
                         data-testid="button-share-whatsapp"
                       >
                         <MessageCircle className="w-4 h-4 ml-2" />
-                        مشاركة تفاصيل الطلب عبر واتساب
+                        مشاركة لتجهيز الطلب
                       </Button>
                     </div>
                   )}
