@@ -404,25 +404,39 @@ ${itemsWithPrices}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label htmlFor="transfer-name" className="text-sm font-semibold text-slate-600">
-                            اسم صاحب التحويل (اختياري)
-                          </Label>
-                          <Input
-                            id="transfer-name"
-                            type="text"
-                            placeholder="أدخل اسم صاحب التحويل (إذا كان مختلفاً)"
-                            value={transferOwnerName}
-                            onChange={(e) => setTransferOwnerName(e.target.value)}
-                            className="text-right"
-                            data-testid="input-transfer-name"
-                          />
-                        </div>
+                        {/* Show transfer name field only for non-cash payments */}
+                        {selectedPaymentMethod && selectedPaymentMethod !== 'cash' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="transfer-name" className="text-sm font-semibold text-slate-600 flex items-center">
+                              <CreditCard className="w-4 h-4 ml-1" />
+                              اسم صاحب التحويل أو اكتب ✓ إذا هو نفس اسم العميل
+                            </Label>
+                            <Input
+                              id="transfer-name"
+                              type="text"
+                              placeholder="أدخل اسم صاحب التحويل أو اكتب ✓"
+                              value={transferOwnerName}
+                              onChange={(e) => setTransferOwnerName(e.target.value)}
+                              className="text-right focus:border-primary focus:ring-primary"
+                              data-testid="input-transfer-name"
+                            />
+                            <p className="text-xs text-primary/70 flex items-center">
+                              💳 هذا الحقل مطلوب لطرق الدفع الإلكترونية
+                            </p>
+                          </div>
+                        )}
                       </div>
                       
-                      <p className="text-xs text-slate-500 mt-3">
-                        💡 إذا لم تدخل اسم صاحب التحويل، سيتم استخدام اسم العميل تلقائياً
-                      </p>
+                      {selectedPaymentMethod === 'cash' && (
+                        <p className="text-xs text-emerald-600 mt-3 bg-emerald-50 p-2 rounded-lg">
+                          💰 الدفع النقدي - لا يتطلب تفاصيل تحويل إضافية
+                        </p>
+                      )}
+                      {selectedPaymentMethod && selectedPaymentMethod !== 'cash' && (
+                        <p className="text-xs text-blue-600 mt-3 bg-blue-50 p-2 rounded-lg">
+                          💳 للدفع الإلكتروني - يرجى إدخال اسم صاحب التحويل أو ✓ للتأكيد
+                        </p>
+                      )}
                     </div>
                   </div>
 
