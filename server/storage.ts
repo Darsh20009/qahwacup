@@ -153,7 +153,33 @@ export class MemStorage implements IStorage {
   // Order methods
   async createOrder(orderData: InsertOrder): Promise<Order> {
     const id = randomUUID();
-    const orderNumber = `CUP${String(this.orderCounter++).padStart(6, '0')}`;
+    
+    // Create creative order number based on customer name
+    let orderNumber = 'CUP000001';
+    const customerInfo = orderData.customerInfo as any;
+    if (customerInfo?.customerName) {
+      // Get customer name and create artistic order number
+      const customerName = (customerInfo.customerName as string).trim();
+      const nameInitials = customerName.split(' ')
+        .map((word: string) => word.charAt(0).toUpperCase())
+        .join('');
+      
+      // Add timestamp for uniqueness
+      const now = new Date();
+      const timeStamp = `${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      // Create beautiful order number: Coffee cup emoji + initials + timestamp
+      orderNumber = `☕${nameInitials}${timeStamp}`;
+      
+      // If name is too short, add counter for beauty
+      if (nameInitials.length < 2) {
+        orderNumber = `☕${customerName.substring(0, 2).toUpperCase()}${timeStamp}`;
+      }
+    } else {
+      // Fallback to counter-based system with coffee theme
+      orderNumber = `☕CUP${String(this.orderCounter++).padStart(4, '0')}`;
+    }
+    
     const order: Order = { 
       ...orderData, 
       id, 
