@@ -196,6 +196,27 @@ ${itemsWithPrices}
                 تم إنشاء طلبك بنجاح!
               </h1>
               
+              {/* Personal Welcome for Customer */}
+              {orderDetails?.customerInfo?.customerName && (
+                <div className="mb-6 bg-gradient-to-r from-primary/15 to-secondary/15 rounded-2xl p-6 border-2 border-primary/20 shadow-lg animate-in fade-in-20 slide-in-from-top-4 duration-1500">
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center ml-3">
+                      <User className="w-8 h-8 text-primary" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-amiri text-lg text-muted-foreground mb-1">أهلاً وسهلاً</p>
+                      <h2 className="font-amiri text-3xl font-bold text-primary">
+                        {orderDetails.customerInfo.customerName} 
+                      </h2>
+                      <p className="text-sm text-primary/70 mt-1">☕ لكل لحظة قهوة ، لحظة نجاح</p>
+                    </div>
+                  </div>
+                  <div className="text-center text-muted-foreground text-sm bg-primary/5 rounded-lg p-3">
+                    🌟 شكراً لثقتك في قهوة كوب - طلبك الآن في قائمة التحضير
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-6 mb-8">
                 <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/20">
                   <p className="text-2xl text-foreground font-medium mb-2">
