@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useCartStore } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "@/components/payment-methods";
 import { generatePDF } from "@/lib/pdf-generator";
-import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star } from "lucide-react";
+import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
 
 export default function CheckoutPage() {
@@ -17,6 +19,8 @@ export default function CheckoutPage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [transferOwnerName, setTransferOwnerName] = useState("");
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
@@ -53,6 +57,14 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!customerName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "يرجى إدخال اسم العميل",
+      });
+      return;
+    }
+
     const orderData = {
       items: cartItems.map(item => ({
         coffeeItemId: item.coffeeItemId,
@@ -64,6 +76,10 @@ export default function CheckoutPage() {
       paymentMethod: selectedPaymentMethod,
       paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
       status: "pending",
+      customerInfo: {
+        customerName: customerName.trim(),
+        transferOwnerName: transferOwnerName.trim() || customerName.trim(),
+      },
     };
 
     createOrderMutation.mutate(orderData);
@@ -101,9 +117,44 @@ export default function CheckoutPage() {
 
   const handleShareWhatsApp = () => {
     if (orderDetails) {
-      const message = `طلب جديد من قهوة كوب\n\nرقم الطلب: ${orderDetails.orderNumber}\nالمجموع: ${getTotalPrice().toFixed(2)} ريال\nطريقة الدفع: ${getPaymentMethodName(selectedPaymentMethod!)}\n\nتفاصيل الطلب:\n${cartItems.map(item => `${item.coffeeItem?.nameAr} × ${item.quantity}`).join('\n')}`;
+      const totalAmount = parseFloat(orderDetails.totalAmount).toFixed(2);
+      
+      // Use orderDetails.items if available (after cart cleared), otherwise use cartItems
+      const itemsSource = orderDetails.items && orderDetails.items.length > 0 ? orderDetails.items : cartItems;
+      const itemsWithPrices = itemsSource.map((item: any) => {
+        if (orderDetails.items && orderDetails.items.length > 0) {
+          // Using orderDetails.items format
+          const itemTotal = (parseFloat(item.price || "0") * item.quantity).toFixed(2);
+          return `• ${item.name} × ${item.quantity} = ${itemTotal} ريال`;
+        } else {
+          // Using cartItems format
+          const itemPrice = parseFloat(item.coffeeItem?.price || "0");
+          const itemTotal = (itemPrice * item.quantity).toFixed(2);
+          return `• ${item.coffeeItem?.nameAr} × ${item.quantity} = ${itemTotal} ريال`;
+        }
+      }).join('\n');
+      
+      const customerName = orderDetails.customerInfo?.customerName || 'غير محدد';
+      const transferName = orderDetails.customerInfo?.transferOwnerName || 'غير محدد';
+      
+      const message = `🔔 طلب جديد للتجهيز - قهوة كوب ☕
+
+📋 تفاصيل الطلب:
+رقم الطلب: ${orderDetails.orderNumber}
+اسم العميل: ${customerName}
+اسم صاحب التحويل: ${transferName}
+طريقة الدفع: ${getPaymentMethodName(selectedPaymentMethod!)}
+
+☕ المنتجات المطلوبة:
+${itemsWithPrices}
+
+💰 إجمالي المبلغ: ${totalAmount} ريال
+
+يرجى تجهيز الطلب وإشعار العميل عند الانتهاء.
+شكراً لكم 🙏`;
+
       const encodedMessage = encodeURIComponent(message);
-      window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+      window.open(`https://wa.me/966532441566?text=${encodedMessage}`, '_blank');
     }
   };
 
@@ -151,7 +202,7 @@ export default function CheckoutPage() {
                     رقم الطلب: <span className="font-bold text-primary">{orderDetails?.orderNumber}</span>
                   </p>
                   <p className="text-lg text-muted-foreground">
-                    المبلغ المدفوع: <span className="font-semibold text-primary">{getTotalPrice().toFixed(2)} ريال</span>
+                    المبلغ المدفوع: <span className="font-semibold text-primary">{parseFloat(orderDetails.totalAmount).toFixed(2)} ريال</span>
                   </p>
                 </div>
 
@@ -327,6 +378,53 @@ export default function CheckoutPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 space-y-8">
+
+                  {/* Customer Information */}
+                  <div className="space-y-6" data-testid="section-customer-info">
+                    <div className="bg-gradient-to-r from-blue-50 to-slate-50 rounded-xl p-6 border border-blue-200">
+                      <h4 className="font-amiri text-lg font-bold text-slate-700 mb-4 flex items-center">
+                        <User className="w-5 h-5 ml-2" />
+                        معلومات العميل
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="customer-name" className="text-sm font-semibold text-slate-600">
+                            اسم العميل (مطلوب) *
+                          </Label>
+                          <Input
+                            id="customer-name"
+                            type="text"
+                            placeholder="أدخل اسم العميل"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            className="text-right"
+                            data-testid="input-customer-name"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="transfer-name" className="text-sm font-semibold text-slate-600">
+                            اسم صاحب التحويل (اختياري)
+                          </Label>
+                          <Input
+                            id="transfer-name"
+                            type="text"
+                            placeholder="أدخل اسم صاحب التحويل (إذا كان مختلفاً)"
+                            value={transferOwnerName}
+                            onChange={(e) => setTransferOwnerName(e.target.value)}
+                            className="text-right"
+                            data-testid="input-transfer-name"
+                          />
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-slate-500 mt-3">
+                        💡 إذا لم تدخل اسم صاحب التحويل، سيتم استخدام اسم العميل تلقائياً
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Payment Methods */}
                   <PaymentMethods

@@ -19,7 +19,7 @@ export const generatePDF = async (
   paymentMethod: PaymentMethod
 ): Promise<Blob> => {
   // Generate QR code for website URL
-  const websiteUrl = window.location.origin || 'https://qahwacup.ma3k.online';
+  const websiteUrl = 'https://qahwa.ma3k.online';
   const qrCodeDataURL = await QRCode.toDataURL(websiteUrl, {
     width: 120,
     margin: 2,
@@ -148,13 +148,16 @@ export const generatePDF = async (
       </div>
     </div>
 
-    <!-- QR Code Information -->
-    <div style="margin-bottom: 20px; padding: 15px; background-color: #fff8dc; border-radius: 8px; border: 1px solid #D4AF37;">
-      <p style="margin: 0; font-size: 12px; text-align: center; color: #666;">
-        <span style="font-weight: bold;">رمز الاستجابة السريع:</span> يحتوي على رابط موقع قهوة كوب
+    <!-- QR Code Information with Slogan -->
+    <div style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #FFF8DC, #FFFFE0); border-radius: 12px; border: 2px solid #D4AF37; box-shadow: 0 4px 8px rgba(212, 175, 55, 0.2);">
+      <p style="margin: 0 0 15px 0; font-size: 18px; text-align: center; color: #B8860B; font-weight: bold; font-family: 'Amiri', serif;">
+        ☕ "لكل لحظة قهوة ، لحظة نجاح" ☕
       </p>
-      <p style="margin: 5px 0 0 0; font-size: 11px; text-align: center; color: #666;">
-        امسح الرمز للوصول إلى موقعنا الإلكتروني وطلب المزيد من منتجاتنا اللذيذة
+      <p style="margin: 0; font-size: 13px; text-align: center; color: #666; font-weight: 600;">
+        <span style="font-weight: bold;">🔗 رمز الاستجابة السريع:</span> يحتوي على رابط موقع قهوة كوب
+      </p>
+      <p style="margin: 8px 0 0 0; font-size: 12px; text-align: center; color: #8B6F47;">
+        امسح الرمز للوصول إلى <span style="font-weight: bold; color: #D4AF37;">qahwa.ma3k.online</span> وطلب المزيد من منتجاتنا اللذيذة
       </p>
     </div>
 
