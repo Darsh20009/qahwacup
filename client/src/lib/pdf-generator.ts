@@ -18,8 +18,9 @@ export const generatePDF = async (
   cartItems: CartItem[],
   paymentMethod: PaymentMethod
 ): Promise<Blob> => {
-  // Generate QR code for order number
-  const qrCodeDataURL = await QRCode.toDataURL(order.orderNumber, {
+  // Generate QR code for website URL
+  const websiteUrl = window.location.origin || 'https://qahwacup.ma3k.online';
+  const qrCodeDataURL = await QRCode.toDataURL(websiteUrl, {
     width: 120,
     margin: 2,
     color: {
@@ -150,10 +151,10 @@ export const generatePDF = async (
     <!-- QR Code Information -->
     <div style="margin-bottom: 20px; padding: 15px; background-color: #fff8dc; border-radius: 8px; border: 1px solid #D4AF37;">
       <p style="margin: 0; font-size: 12px; text-align: center; color: #666;">
-        <span style="font-weight: bold;">رمز الاستجابة السريع:</span> يحتوي على رقم الطلبية ${order.orderNumber}
+        <span style="font-weight: bold;">رمز الاستجابة السريع:</span> يحتوي على رابط موقع قهوة كوب
       </p>
       <p style="margin: 5px 0 0 0; font-size: 11px; text-align: center; color: #666;">
-        يمكن استخدام هذا الرمز للتحقق من صحة الفاتورة والاستعلام عن حالة الطلب
+        امسح الرمز للوصول إلى موقعنا الإلكتروني وطلب المزيد من منتجاتنا اللذيذة
       </p>
     </div>
 

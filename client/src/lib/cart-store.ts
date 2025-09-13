@@ -61,10 +61,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const queryClient = useQueryClient();
 
-  // Fetch cart items - only when cart is opened or when mutations happen
+  // Fetch cart items - always enabled so cart updates are immediately visible
   const { data: cartItems = [], isLoading } = useQuery<EnrichedCartItem[]>({
     queryKey: ["/api/cart", sessionId],
-    enabled: isCartOpen || isCheckoutOpen, // Only fetch when modals are open
+    enabled: true, // Always fetch to show cart updates immediately
     refetchOnWindowFocus: false,
     staleTime: 30000, // 30 seconds
   });
