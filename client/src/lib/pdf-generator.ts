@@ -82,17 +82,24 @@ export const generatePDF = async (
 
     <div style="margin-bottom: 30px;">
       <h2 style="color: #D4AF37; font-size: 28px; margin-bottom: 15px; font-weight: bold; text-align: center; background: linear-gradient(135deg, #D4AF37, #F4D03F); -webkit-background-clip: text; color: transparent; text-shadow: 2px 2px 4px rgba(212, 175, 55, 0.3);">✨ فاتورة استلام الطلب ✨</h2>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-        <span style="font-weight: bold;">رقم الطلب:</span>
-        <span>${order.orderNumber}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-        <span style="font-weight: bold;">التاريخ:</span>
-        <span>${new Date(order.createdAt).toLocaleDateString('ar-SA')}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-        <span style="font-weight: bold;">الوقت:</span>
-        <span>${new Date(order.createdAt).toLocaleTimeString('ar-SA')}</span>
+      
+      <div style="background: linear-gradient(135deg, #FFF8DC, #FFFBEB); padding: 20px; border-radius: 12px; border: 2px solid #D4AF37; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-weight: bold; color: #8B6F47;">🙋‍♂️ اسم العميل:</span>
+          <span style="font-weight: bold; color: #D4AF37; font-size: 18px;">${(order.customerInfo as any)?.customerName || 'غير محدد'}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-weight: bold; color: #8B6F47;">📋 رقم الطلب:</span>
+          <span style="font-weight: bold; color: #D4AF37; font-size: 16px;">${order.orderNumber}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-weight: bold; color: #8B6F47;">📅 التاريخ:</span>
+          <span>${new Date(order.createdAt).toLocaleDateString('ar-SA')}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="font-weight: bold; color: #8B6F47;">⏰ الوقت:</span>
+          <span>${new Date(order.createdAt).toLocaleTimeString('ar-SA')}</span>
+        </div>
       </div>
     </div>
 

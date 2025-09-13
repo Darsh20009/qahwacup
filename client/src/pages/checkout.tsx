@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useCartStore } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -21,6 +22,7 @@ export default function CheckoutPage() {
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [transferOwnerName, setTransferOwnerName] = useState("");
+  const [isSameAsCustomer, setIsSameAsCustomer] = useState(true);
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
@@ -78,7 +80,7 @@ export default function CheckoutPage() {
       status: "pending",
       customerInfo: {
         customerName: customerName.trim(),
-        transferOwnerName: transferOwnerName.trim() || customerName.trim(),
+        transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
       },
     };
 
@@ -444,27 +446,61 @@ ${itemsWithPrices}
                           />
                         </div>
                         
-                        {/* Show transfer name field only for non-cash payments */}
-                        {selectedPaymentMethod && selectedPaymentMethod !== 'cash' && (
-                          <div className="space-y-2">
-                            <Label htmlFor="transfer-name" className="text-sm font-semibold text-slate-600 flex items-center">
-                              <CreditCard className="w-4 h-4 ml-1" />
-                              اسم صاحب التحويل أو اكتب ✓ إذا هو نفس اسم العميل
-                            </Label>
-                            <Input
-                              id="transfer-name"
-                              type="text"
-                              placeholder="أدخل اسم صاحب التحويل أو اكتب ✓"
-                              value={transferOwnerName}
-                              onChange={(e) => setTransferOwnerName(e.target.value)}
-                              className="text-right focus:border-primary focus:ring-primary"
-                              data-testid="input-transfer-name"
+                        {/* Transfer name section - always visible */}
+                        <div className="space-y-4 bg-slate-50 rounded-lg p-4 border border-slate-200">
+                          <Label className="text-sm font-semibold text-slate-700 flex items-center">
+                            <CreditCard className="w-4 h-4 ml-1" />
+                            معلومات صاحب التحويل (إجباري)
+                          </Label>
+                          
+                          {/* Checkbox for same as customer */}
+                          <div className="flex items-center space-x-3 space-x-reverse bg-primary/5 rounded-lg p-3 border border-primary/20">
+                            <Checkbox
+                              id="same-as-customer"
+                              checked={isSameAsCustomer}
+                              onCheckedChange={(checked) => setIsSameAsCustomer(!!checked)}
+                              data-testid="checkbox-same-as-customer"
+                              className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                             />
-                            <p className="text-xs text-primary/70 flex items-center">
-                              💳 هذا الحقل مطلوب لطرق الدفع الإلكترونية
-                            </p>
+                            <Label htmlFor="same-as-customer" className="text-sm font-medium text-slate-700 cursor-pointer flex items-center">
+                              <User className="w-4 h-4 ml-2 text-primary" />
+                              اسم صاحب التحويل هو نفس اسم العميل ✓
+                            </Label>
                           </div>
-                        )}
+                          
+                          {/* Transfer name input - only show when not same as customer */}
+                          {!isSameAsCustomer && (
+                            <div className="space-y-2">
+                              <Label htmlFor="transfer-name" className="text-sm font-medium text-slate-700">
+                                اسم صاحب التحويل *
+                              </Label>
+                              <Input
+                                id="transfer-name"
+                                type="text"
+                                placeholder="أدخل اسم صاحب التحويل"
+                                value={transferOwnerName}
+                                onChange={(e) => setTransferOwnerName(e.target.value)}
+                                className="text-right focus:border-primary focus:ring-primary"
+                                data-testid="input-transfer-name"
+                                required
+                              />
+                              <p className="text-xs text-slate-600 bg-blue-50 p-2 rounded">
+                                💳 يرجى إدخال اسم الشخص الذي سيقوم بالتحويل
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Info message based on selection */}
+                          {isSameAsCustomer ? (
+                            <p className="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg flex items-center">
+                              ✅ سيتم استخدام اسم العميل كاسم صاحب التحويل
+                            </p>
+                          ) : (
+                            <p className="text-xs text-blue-700 bg-blue-50 p-2 rounded-lg flex items-center">
+                              📝 يرجى كتابة اسم صاحب التحويل بوضوح
+                            </p>
+                          )}
+                        </div>
                       </div>
                       
                       {selectedPaymentMethod === 'cash' && (
