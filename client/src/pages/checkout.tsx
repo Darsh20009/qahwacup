@@ -338,7 +338,11 @@ ${itemsWithPrices}
             <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
               اختر طريقة الدفع المفضلة لديك واستمتع بتجربة قهوة لا تُنسى
             </p>
-            <div className="mt-6 w-24 h-1 bg-slate-300 mx-auto rounded-full"></div>
+            <div className="mt-6 flex items-center justify-center space-x-2">
+              <div className="w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
+              <Coffee className="w-6 h-6 text-primary animate-bounce" />
+              <div className="w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -377,13 +381,28 @@ ${itemsWithPrices}
                     ))}
                   </div>
                   
-                  <div className="bg-slate-600 text-white rounded-lg p-4">
-                    <div className="flex justify-between items-center">
-                      <span className="font-amiri text-lg font-bold">المجموع الكلي:</span>
-                      <span className="text-2xl font-bold" data-testid="text-summary-total">
-                        {getTotalPrice().toFixed(2)} ريال
-                      </span>
+                  <div className="bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl p-6 shadow-lg relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-amiri text-xl font-bold flex items-center">
+                          <Coffee className="w-6 h-6 ml-2 animate-pulse" />
+                          المجموع الكلي:
+                        </span>
+                        <div className="text-center">
+                          <span className="text-3xl font-bold block" data-testid="text-summary-total">
+                            {getTotalPrice().toFixed(2)} ريال
+                          </span>
+                          <span className="text-sm opacity-90">شامل جميع العناصر ☕</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 text-center text-sm opacity-90 bg-white/20 rounded-lg p-2">
+                        ✨ لكل لحظة قهوة ، لحظة نجاح
+                      </div>
                     </div>
+                    {/* Decorative elements */}
+                    <div className="absolute top-2 right-2 w-4 h-4 bg-yellow-400 rounded-full animate-bounce opacity-80"></div>
+                    <div className="absolute bottom-2 left-2 w-3 h-3 bg-white/40 rounded-full animate-ping"></div>
                   </div>
                 </CardContent>
               </Card>
@@ -505,26 +524,43 @@ ${itemsWithPrices}
                     </div>
                   )}
 
-                  {/* Modern Proceed Button */}
-                  <Button
-                    onClick={handleProceedPayment}
-                    disabled={!selectedPaymentMethod || createOrderMutation.isPending}
-                    size="lg"
-                    className="w-full bg-slate-600 hover:bg-slate-700 text-white py-4 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg"
-                    data-testid="button-proceed-payment"
-                  >
-                    {createOrderMutation.isPending ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
-                        جاري معالجة طلبك...
-                      </div>
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5 ml-2" />
-                        متابعة الدفع ({getTotalPrice().toFixed(2)} ريال)
-                      </>
-                    )}
-                  </Button>
+                  {/* Creative Proceed Button */}
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                    <Button
+                      onClick={handleProceedPayment}
+                      disabled={!selectedPaymentMethod || createOrderMutation.isPending}
+                      size="lg"
+                      className="relative w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground py-6 text-xl font-bold transition-all duration-500 shadow-xl hover:shadow-2xl rounded-lg transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
+                      data-testid="button-proceed-payment"
+                    >
+                      {/* Animated background sparkle effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                      
+                      {createOrderMutation.isPending ? (
+                        <div className="flex items-center justify-center relative z-10">
+                          <div className="flex space-x-1 space-x-reverse">
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                          <span className="mr-3 font-amiri">جاري معالجة طلبك بعناية...</span>
+                          <Coffee className="w-6 h-6 animate-pulse ml-2" />
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center relative z-10">
+                          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center ml-3 group-hover:scale-110 transition-transform duration-300">
+                            <CreditCard className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="text-center">
+                            <div className="font-amiri text-xl">تأكيد طلب القهوة</div>
+                            <div className="text-sm opacity-90">{getTotalPrice().toFixed(2)} ريال ☕</div>
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                        </div>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
