@@ -421,13 +421,30 @@ ${itemsWithPrices}
                 </CardHeader>
                 <CardContent className="p-8 space-y-8">
 
-                  {/* Customer Information */}
+                  {/* Customer Information - Creative Popup Style */}
                   <div className="space-y-6" data-testid="section-customer-info">
-                    <div className="bg-gradient-to-r from-blue-50 to-slate-50 rounded-xl p-6 border border-blue-200">
-                      <h4 className="font-amiri text-lg font-bold text-slate-700 mb-4 flex items-center">
-                        <User className="w-5 h-5 ml-2" />
-                        معلومات العميل
-                      </h4>
+                    <div className="relative group">
+                      {/* Glow effect background */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
+                      
+                      {/* Main popup container */}
+                      <div className="relative bg-gradient-to-br from-white/95 via-blue-50/80 to-slate-50/90 backdrop-blur-sm rounded-2xl p-8 border-2 border-primary/20 shadow-2xl transform transition-all duration-500 hover:scale-[1.01] hover:shadow-3xl">
+                        {/* Header with floating animation */}
+                        <div className="flex items-center justify-center mb-8">
+                          <div className="relative">
+                            <div className="absolute -inset-2 bg-gradient-to-r from-primary to-blue-500 rounded-full opacity-20 blur animate-pulse"></div>
+                            <div className="relative bg-gradient-to-r from-primary to-blue-500 rounded-full p-4 text-white shadow-lg">
+                              <User className="w-8 h-8" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <h4 className="font-amiri text-2xl font-bold text-center mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                          معلومات العميل
+                        </h4>
+                        <p className="text-center text-slate-600 mb-8 text-sm">
+                          ✨ أدخل بياناتك للمتابعة مع تجربة قهوة رائعة
+                        </p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -503,16 +520,21 @@ ${itemsWithPrices}
                         </div>
                       </div>
                       
-                      {selectedPaymentMethod === 'cash' && (
-                        <p className="text-xs text-emerald-600 mt-3 bg-emerald-50 p-2 rounded-lg">
-                          💰 الدفع النقدي - لا يتطلب تفاصيل تحويل إضافية
-                        </p>
-                      )}
-                      {selectedPaymentMethod && selectedPaymentMethod !== 'cash' && (
-                        <p className="text-xs text-blue-600 mt-3 bg-blue-50 p-2 rounded-lg">
-                          💳 للدفع الإلكتروني - يرجى إدخال اسم صاحب التحويل أو ✓ للتأكيد
-                        </p>
-                      )}
+                        {selectedPaymentMethod === 'cash' && (
+                          <p className="text-xs text-emerald-600 mt-3 bg-emerald-50 p-2 rounded-lg">
+                            💰 الدفع النقدي - لا يتطلب تفاصيل تحويل إضافية
+                          </p>
+                        )}
+                        {selectedPaymentMethod && selectedPaymentMethod !== 'cash' && (
+                          <p className="text-xs text-blue-600 mt-3 bg-blue-50 p-2 rounded-lg">
+                            💳 للدفع الإلكتروني - يرجى إدخال اسم صاحب التحويل أو ✓ للتأكيد
+                          </p>
+                        )}
+                        
+                        {/* Decorative elements */}
+                        <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-60 animate-bounce"></div>
+                        <div className="absolute bottom-4 left-4 w-2 h-2 bg-gradient-to-r from-primary to-blue-500 rounded-full opacity-40 animate-ping"></div>
+                      </div>
                     </div>
                   </div>
 
@@ -523,13 +545,42 @@ ${itemsWithPrices}
                     onSelectMethod={setSelectedPaymentMethod}
                   />
 
-                  {/* Payment Confirmation */}
+                  {/* Payment Confirmation - Creative Popup Style */}
                   {showConfirmation && (
-                    <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/30 shadow-lg" data-testid="section-payment-confirmation">
-                      <h4 className="font-amiri text-lg font-bold text-foreground mb-3">تأكيد الدفع</h4>
-                      <p className="text-muted-foreground mb-6">
-                        هل قمت بإرسال المبلغ <span className="font-bold text-primary">{getTotalPrice().toFixed(2)} ريال</span> باستخدام الطريقة المحددة؟
-                      </p>
+                    <div className="relative group animate-in fade-in-0 slide-in-from-bottom-10 duration-700" data-testid="section-payment-confirmation">
+                      {/* Animated glow background */}
+                      <div className="absolute -inset-2 bg-gradient-to-r from-green-400/30 via-primary/30 to-emerald-500/30 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
+                      
+                      {/* Main confirmation popup */}
+                      <div className="relative bg-gradient-to-br from-white/95 via-green-50/90 to-emerald-50/85 backdrop-blur-sm rounded-3xl p-8 border-2 border-emerald-300/50 shadow-2xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl">
+                        {/* Header with animated checkmark */}
+                        <div className="flex items-center justify-center mb-6">
+                          <div className="relative">
+                            <div className="absolute -inset-3 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full opacity-20 blur animate-pulse"></div>
+                            <div className="relative bg-gradient-to-r from-emerald-500 to-green-600 rounded-full p-4 text-white shadow-xl animate-bounce">
+                              <CheckCircle className="w-10 h-10" />
+                            </div>
+                            {/* Sparkle effects */}
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping opacity-60"></div>
+                            <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-emerald-300 rounded-full animate-pulse"></div>
+                          </div>
+                        </div>
+                        
+                        <h4 className="font-amiri text-3xl font-bold text-center mb-3 bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
+                          تأكيد الدفع ✨
+                        </h4>
+                        
+                        <div className="text-center mb-8 space-y-3">
+                          <p className="text-slate-700 text-lg leading-relaxed">
+                            هل قمت بإرسال المبلغ المطلوب؟
+                          </p>
+                          <div className="bg-gradient-to-r from-primary/20 to-emerald-500/20 rounded-2xl p-4 border border-primary/30">
+                            <div className="text-3xl font-bold font-amiri bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">
+                              {getTotalPrice().toFixed(2)} ريال
+                            </div>
+                            <p className="text-sm text-slate-600 mt-1">💳 باستخدام الطريقة المحددة</p>
+                          </div>
+                        </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                         <Button 
                           onClick={() => handlePaymentConfirmed(orderDetails)}
@@ -557,7 +608,12 @@ ${itemsWithPrices}
                         <MessageCircle className="w-4 h-4 ml-2" />
                         مشاركة لتجهيز الطلب
                       </Button>
+                      
+                      {/* Decorative floating elements */}
+                      <div className="absolute top-6 right-6 w-4 h-4 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full opacity-50 animate-pulse"></div>
+                      <div className="absolute bottom-8 left-8 w-3 h-3 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full opacity-40 animate-bounce"></div>
                     </div>
+                  </div>
                   )}
 
                   {/* Creative Proceed Button */}
