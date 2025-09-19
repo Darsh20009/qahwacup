@@ -4,6 +4,13 @@ This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) 
 
 # Recent Changes
 
+**2025-09-19**: GitHub import setup for Replit environment
+- Successfully imported and configured project for Replit deployment
+- Verified all dependencies are properly installed (tsx, vite, express, react)
+- Confirmed frontend configuration with allowedHosts: true for Replit proxy support
+- Set up autoscale deployment configuration with npm build/start scripts
+- Tested application functionality - API endpoints and Vite HMR working correctly
+
 **2025-09-10**: Enhanced auto-rotation and promotional messaging
 - Implemented automatic drink rotation every 6 seconds across ALL display modes (elegant, showcase, grid, mosaic, waterfall, tv-display, window-display)
 - All display modes now show single current item instead of multiple items for cleaner presentation
