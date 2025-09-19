@@ -7,6 +7,7 @@ import { useCartStore } from "@/lib/cart-store";
 import { getCoffeeImage } from "@/lib/coffee-images";
 import { Plus, Eye } from "lucide-react";
 import type { CoffeeItem } from "@shared/schema";
+import CoffeeStrengthBadge from "@/components/coffee-strength-badge";
 
 interface CoffeeCardProps {
   item: CoffeeItem;
@@ -95,11 +96,22 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
 
         {/* Elegant Content */}
         <div className="p-6 space-y-4">
-          <div className="text-center border-b border-border/30 pb-3">
+          <div className="text-center border-b border-border/30 pb-3 space-y-2">
             <h4 className="font-amiri text-xl font-bold text-primary mb-1 golden-gradient" data-testid={`text-name-${item.id}`}>
               {item.nameAr}
             </h4>
-            <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2" data-testid={`text-description-${item.id}`}>
+            
+            {/* Coffee Strength Indicator */}
+            <div className="flex justify-center">
+              <CoffeeStrengthBadge 
+                strength={item.coffeeStrength} 
+                strengthLevel={item.strengthLevel}
+                size="sm"
+                className="transform transition-all duration-300 hover:scale-105"
+              />
+            </div>
+            
+            <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 pt-1" data-testid={`text-description-${item.id}`}>
               {item.description}
             </p>
           </div>
