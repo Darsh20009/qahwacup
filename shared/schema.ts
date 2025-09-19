@@ -96,7 +96,7 @@ export interface PaymentMethodInfo {
 export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 // Coffee Categories
-export type CoffeeCategory = 'basic' | 'hot' | 'cold';
+export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty';
 
 // Legacy User Schema (keeping for compatibility)
 export const users = pgTable("users", {

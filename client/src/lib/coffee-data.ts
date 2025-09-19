@@ -14,6 +14,9 @@ const getCoffeeImage = (coffeeId: string): string => {
     "con-panna": "/images/con-panna.png",
     "coffee-day-hot": "/images/golden-latte.png",
     "hot-tea": "/attached_assets/Screenshot 2025-09-19 161654_1758288116712.png",
+    "ice-tea": "/attached_assets/Screenshot 2025-09-19 161645_1758288659656.png",
+    "iced-matcha-latte": "/attached_assets/Screenshot 2025-09-19 161627_1758288688792.png",
+    "hot-matcha-latte": "/attached_assets/Screenshot 2025-09-19 161637_1758288723420.png",
     "iced-latte": "/images/iced-latte.png",
     "iced-mocha": "/images/iced-mocha-drink.png",
     "iced-cappuccino": "/images/iced-cappuccino.png",
@@ -47,6 +50,13 @@ export const coffeeCategories = [
     nameEn: "Cold Coffee",
     description: "مشروبات باردة منعشة ومثلجة",
     icon: "snowflake"
+  },
+  {
+    id: "specialty" as CoffeeCategory,
+    nameAr: "المشروبات الإضافية",
+    nameEn: "Specialty Drinks",
+    description: "تشكيلة استثنائية من المشروبات المميزة والفريدة",
+    icon: "star"
   }
 ];
 
@@ -172,8 +182,41 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     description: "شاي طبيعي مُحضر بعناية من أوراق الشاي المختارة، يُقدم ساخناً ومنعشاً لبداية يوم مثالية",
     price: "2.00",
     oldPrice: null,
-    category: "hot",
+    category: "specialty",
     imageUrl: getCoffeeImage("hot-tea"),
+    isAvailable: 1
+  },
+  {
+    id: "ice-tea",
+    nameAr: "آيس تي",
+    nameEn: "Ice Tea",
+    description: "انتعاش لا يُقاوم مع مزيج مثالي من الشاي المنقوع ببرودة والطعم المميز، رحلة منعشة في كل رشفة تجدد طاقتك وتمنحك لحظات من الصفاء",
+    price: "3.00",
+    oldPrice: null,
+    category: "specialty",
+    imageUrl: getCoffeeImage("ice-tea"),
+    isAvailable: 1
+  },
+  {
+    id: "iced-matcha-latte",
+    nameAr: "آيس لاتيه ماتشا",
+    nameEn: "Iced Matcha Latte",
+    description: "إبداع ياباني ساحر يجمع بين نعومة الحليب المثلج وسحر الماتشا الأخضر النقي، تجربة بصرية وذوقية استثنائية تأخذك في رحلة إلى عالم من الهدوء والتميز",
+    price: "10.00",
+    oldPrice: null,
+    category: "specialty",
+    imageUrl: getCoffeeImage("iced-matcha-latte"),
+    isAvailable: 1
+  },
+  {
+    id: "hot-matcha-latte",
+    nameAr: "لاتيه ماتشا حار",
+    nameEn: "Hot Matcha Latte",
+    description: "دفء ساحر يلتقي مع نكهة الماتشا الاستثنائية في لحن متناغم من الكريمة والطعم الياباني الأصيل، يُقدم ساخناً بفن لاتيه مبهر يسعد العين قبل أن يأسر الذوق",
+    price: "11.00",
+    oldPrice: null,
+    category: "specialty",
+    imageUrl: getCoffeeImage("hot-matcha-latte"),
     isAvailable: 1
   },
   

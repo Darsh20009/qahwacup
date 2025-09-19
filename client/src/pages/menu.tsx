@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import CoffeeCard from "@/components/coffee-card";
 import { useCartStore } from "@/lib/cart-store";
 import { useLocation } from "wouter";
-import { Coffee, ShoppingCart, Flame, Snowflake } from "lucide-react";
+import { Coffee, ShoppingCart, Flame, Snowflake, Star } from "lucide-react";
 import type { CoffeeItem } from "@shared/schema";
 
 export default function MenuPage() {
@@ -24,6 +24,7 @@ export default function MenuPage() {
     { id: "basic", nameAr: "قهوة أساسية", nameEn: "Basic Coffee", icon: Coffee },
     { id: "hot", nameAr: "قهوة ساخنة", nameEn: "Hot Coffee", icon: Flame },
     { id: "cold", nameAr: "قهوة باردة", nameEn: "Cold Coffee", icon: Snowflake },
+    { id: "specialty", nameAr: "المشروبات الإضافية", nameEn: "Specialty Drinks", icon: Star },
   ];
 
   const filteredItems = selectedCategory === "all" 
