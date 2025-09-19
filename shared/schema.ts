@@ -14,6 +14,9 @@ export const coffeeItems = pgTable("coffee_items", {
   category: varchar("category", { length: 50 }).notNull(), // 'basic', 'hot', 'cold'
   imageUrl: text("image_url"),
   isAvailable: integer("is_available").default(1).notNull(),
+  // Coffee strength properties
+  coffeeStrength: varchar("coffee_strength", { length: 20 }).default("classic"), // 'classic', 'mild', 'medium', 'strong'
+  strengthLevel: integer("strength_level"), // 1-4 mild, 4-8 medium, 8-12 strong, null for classic
 });
 
 // Orders Schema
@@ -97,6 +100,19 @@ export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 // Coffee Categories
 export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty';
+
+// Coffee Strength Types
+export type CoffeeStrength = 'classic' | 'mild' | 'medium' | 'strong';
+
+export interface CoffeeStrengthInfo {
+  id: CoffeeStrength;
+  nameAr: string;
+  nameEn: string;
+  description: string;
+  levelRange: string;
+  color: string;
+  icon: string;
+}
 
 // Legacy User Schema (keeping for compatibility)
 export const users = pgTable("users", {
