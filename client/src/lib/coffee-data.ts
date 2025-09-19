@@ -13,6 +13,7 @@ const getCoffeeImage = (coffeeId: string): string => {
     "mocha": "/images/mocha.png",
     "con-panna": "/images/con-panna.png",
     "coffee-day-hot": "/images/golden-latte.png",
+    "hot-tea": "/attached_assets/Screenshot 2025-09-19 161654_1758288116712.png",
     "iced-latte": "/images/iced-latte.png",
     "iced-mocha": "/images/iced-mocha-drink.png",
     "iced-cappuccino": "/images/iced-cappuccino.png",
@@ -162,6 +163,17 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     oldPrice: "5.50",
     category: "hot",
     imageUrl: getCoffeeImage("coffee-day-hot"),
+    isAvailable: 1
+  },
+  {
+    id: "hot-tea",
+    nameAr: "شاي حار",
+    nameEn: "Hot Tea",
+    description: "شاي طبيعي مُحضر بعناية من أوراق الشاي المختارة، يُقدم ساخناً ومنعشاً لبداية يوم مثالية",
+    price: "2.00",
+    oldPrice: null,
+    category: "hot",
+    imageUrl: getCoffeeImage("hot-tea"),
     isAvailable: 1
   },
   
