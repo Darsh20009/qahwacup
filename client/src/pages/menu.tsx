@@ -5,13 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import CoffeeCard from "@/components/coffee-card";
 import { useCartStore } from "@/lib/cart-store";
 import { useLocation } from "wouter";
-import { Coffee, ShoppingCart, Flame, Snowflake, Star } from "lucide-react";
+import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter } from "lucide-react";
+import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
 
 export default function MenuPage() {
   const { cartItems } = useCartStore();
   const [, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedStrength, setSelectedStrength] = useState<CoffeeStrengthType | "all">("all");
 
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
     queryKey: ["/api/coffee-items"],
@@ -27,12 +29,26 @@ export default function MenuPage() {
     { id: "specialty", nameAr: "المشروبات الإضافية", nameEn: "Specialty Drinks", icon: Star },
   ];
 
-  const filteredItems = selectedCategory === "all" 
+  // Coffee strength filter options
+  const strengthOptions = [
+    { id: "all" as const, labelAr: "جميع الأنواع", icon: "🌟" },
+    { id: "mild" as const, labelAr: "خفيف (1-4)", icon: "🌱" },
+    { id: "medium" as const, labelAr: "متوسط (4-8)", icon: "⚡" },
+    { id: "strong" as const, labelAr: "قوي (8-12)", icon: "🔥" },
+    { id: "classic" as const, labelAr: "العادي/الكلاسيك", icon: "☕" },
+  ];
+
+  // Filter by both category and strength
+  let filteredItems = selectedCategory === "all" 
     ? coffeeItems 
     : coffeeItems.filter(item => item.category === selectedCategory);
+  
+  filteredItems = filterCoffeeByStrength(filteredItems, selectedStrength);
 
-  const getCategoryItems = (category: string) => 
-    coffeeItems.filter(item => item.category === category);
+  const getCategoryItems = (category: string) => {
+    let items = coffeeItems.filter(item => item.category === category);
+    return filterCoffeeByStrength(items, selectedStrength);
+  };
 
   if (isLoading) {
     return (
@@ -135,7 +151,7 @@ export default function MenuPage() {
           </div>
 
           {/* Elegant Category Filter */}
-          <div className="flex flex-wrap justify-center gap-6 mb-12 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000 delay-700" data-testid="filter-categories">
+          <div className="flex flex-wrap justify-center gap-6 mb-8 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000 delay-700" data-testid="filter-categories">
             {categories.map((category, index) => {
               const Icon = category.icon;
               return (
@@ -158,6 +174,52 @@ export default function MenuPage() {
                 </Button>
               );
             })}
+          </div>
+
+          {/* Coffee Strength Filter */}
+          <div className="mb-12 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000 delay-900" data-testid="filter-strength">
+            {/* Filter Title */}
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <Filter className="w-6 h-6 text-primary" />
+                <h3 className="font-amiri text-2xl font-bold text-primary">
+                  فلترة حسب نسبة القهوة
+                </h3>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                اختر نسبة القوة المفضلة لديك
+              </p>
+            </div>
+
+            {/* Strength Filter Buttons */}
+            <div className="flex flex-wrap justify-center gap-4">
+              {strengthOptions.map((strength, index) => {
+                const config = strength.id === "all" ? null : getCoffeeStrengthConfig(strength.id);
+                const isSelected = selectedStrength === strength.id;
+                
+                return (
+                  <Button
+                    key={strength.id}
+                    variant={isSelected ? "default" : "outline"}
+                    onClick={() => setSelectedStrength(strength.id)}
+                    className={`
+                      transition-all duration-300 px-6 py-3 text-base font-semibold rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5
+                      ${isSelected 
+                        ? "bg-primary text-primary-foreground glow-effect" 
+                        : config 
+                          ? `${config.bgColor} ${config.textColor} ${config.borderColor} border-2 hover:scale-105`
+                          : "bg-slate-100 text-slate-700 border-2 border-slate-300 hover:bg-slate-200"
+                      }
+                    `}
+                    data-testid={`button-strength-${strength.id}`}
+                    style={{animationDelay: `${index * 0.1 + 1.1}s`}}
+                  >
+                    <span className="ml-2 text-lg">{strength.icon}</span>
+                    {strength.labelAr}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Elegant Coffee Grid */}
