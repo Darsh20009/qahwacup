@@ -8,7 +8,9 @@ import {
   type CartItem,
   type InsertCartItem,
   type User,
-  type InsertUser
+  type InsertUser,
+  type Employee,
+  type InsertEmployee
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -17,6 +19,12 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+
+  // Employee methods
+  getEmployee(id: string): Promise<Employee | undefined>;
+  getEmployeeByUsername(username: string): Promise<Employee | undefined>;
+  createEmployee(employee: InsertEmployee): Promise<Employee>;
+  getEmployees(): Promise<Employee[]>;
 
   // Coffee Item methods
   getCoffeeItems(): Promise<CoffeeItem[]>;
@@ -46,6 +54,7 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+  private employees: Map<string, Employee>;
   private coffeeItems: Map<string, CoffeeItem>;
   private orders: Map<string, Order>;
   private orderItems: Map<string, OrderItem>;
@@ -54,13 +63,15 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.users = new Map();
+    this.employees = new Map();
     this.coffeeItems = new Map();
     this.orders = new Map();
     this.orderItems = new Map();
     this.cartItems = new Map();
     
-    // Initialize with coffee menu data
+    // Initialize with coffee menu data and demo employee
     this.initializeCoffeeMenu();
+    this.initializeDemoEmployee();
   }
 
   private initializeCoffeeMenu() {
@@ -97,6 +108,47 @@ export class MemStorage implements IStorage {
     coffeeMenuData.forEach(item => {
       this.coffeeItems.set(item.id, item);
     });
+  }
+
+  private initializeDemoEmployee() {
+    // Create demo employee: درويش
+    const demoEmployee: Employee = {
+      id: 'demo-employee-1',
+      username: 'darwish',
+      password: '2009', // في production يجب تشفير الباسورد
+      fullName: 'يوسف درويش',
+      role: 'manager',
+      title: 'مدير المقهى',
+      createdAt: new Date()
+    };
+    this.employees.set(demoEmployee.id, demoEmployee);
+  }
+
+  // Employee methods
+  async getEmployee(id: string): Promise<Employee | undefined> {
+    return this.employees.get(id);
+  }
+
+  async getEmployeeByUsername(username: string): Promise<Employee | undefined> {
+    return Array.from(this.employees.values()).find(
+      (emp) => emp.username === username,
+    );
+  }
+
+  async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    const id = randomUUID();
+    const employee: Employee = { 
+      ...insertEmployee, 
+      id,
+      title: insertEmployee.title ?? null,
+      createdAt: new Date()
+    };
+    this.employees.set(id, employee);
+    return employee;
+  }
+
+  async getEmployees(): Promise<Employee[]> {
+    return Array.from(this.employees.values());
   }
 
   // User methods (legacy)
@@ -193,9 +245,11 @@ export class MemStorage implements IStorage {
       id, 
       orderNumber,
       createdAt: new Date(),
+      updatedAt: new Date(),
       paymentDetails: orderData.paymentDetails ?? null,
       status: orderData.status ?? "pending",
-      customerInfo: orderData.customerInfo ?? null
+      customerInfo: orderData.customerInfo ?? null,
+      employeeId: orderData.employeeId ?? null
     };
     this.orders.set(id, order);
     return order;

@@ -19,6 +19,17 @@ export const coffeeItems = pgTable("coffee_items", {
   strengthLevel: integer("strength_level"), // 1-4 mild, 4-8 medium, 8-12 strong, null for classic
 });
 
+// Employees Schema
+export const employees = pgTable("employees", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  password: text("password").notNull(),
+  fullName: text("full_name").notNull(),
+  role: varchar("role", { length: 20 }).notNull(), // 'manager', 'cashier'
+  title: text("title"), // اللقب أو البرستيج
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Orders Schema
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -28,8 +39,10 @@ export const orders = pgTable("orders", {
   paymentMethod: varchar("payment_method", { length: 50 }).notNull(),
   paymentDetails: text("payment_details"),
   status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending', 'confirmed', 'completed', 'cancelled'
-  customerInfo: jsonb("customer_info"), // Optional customer details
+  customerInfo: jsonb("customer_info"), // Customer details: {name, phone}
+  employeeId: varchar("employee_id").references(() => employees.id), // الموظف الذي أنشأ الطلب
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Order Items Schema (for detailed tracking)
@@ -56,10 +69,16 @@ export const insertCoffeeItemSchema = createInsertSchema(coffeeItems).omit({
   id: true,
 });
 
+export const insertEmployeeSchema = createInsertSchema(employees).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
   orderNumber: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
@@ -74,6 +93,9 @@ export const insertCartItemSchema = createInsertSchema(cartItems).omit({
 // TypeScript Types
 export type CoffeeItem = typeof coffeeItems.$inferSelect;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
+
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
@@ -95,8 +117,11 @@ export interface PaymentMethodInfo {
   icon: string;
 }
 
+// Employee Role Types
+export type EmployeeRole = 'manager' | 'cashier';
+
 // Order Status Types
-export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'in_progress';
 
 // Coffee Categories
 export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty';
