@@ -1,9 +1,99 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertCartItemSchema, type PaymentMethod } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // EMPLOYEE ROUTES
+  
+  // Employee login
+  app.post("/api/employees/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password required" });
+      }
+
+      const employee = await storage.getEmployeeByUsername(username);
+      
+      if (!employee || employee.password !== password) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Don't send password back
+      const { password: _, ...employeeData } = employee;
+      res.json(employeeData);
+    } catch (error) {
+      console.error("Error during employee login:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Get employee by ID
+  app.get("/api/employees/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const employee = await storage.getEmployee(id);
+      
+      if (!employee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Don't send password back
+      const { password: _, ...employeeData } = employee;
+      res.json(employeeData);
+    } catch (error) {
+      console.error("Error fetching employee:", error);
+      res.status(500).json({ error: "Failed to fetch employee" });
+    }
+  });
+
+  // Create new employee (admin only - you might want to add auth middleware)
+  app.post("/api/employees", async (req, res) => {
+    try {
+      const validatedData = insertEmployeeSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existing = await storage.getEmployeeByUsername(validatedData.username);
+      if (existing) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      const employee = await storage.createEmployee(validatedData);
+      
+      // Don't send password back
+      const { password: _, ...employeeData } = employee;
+      res.status(201).json(employeeData);
+    } catch (error) {
+      console.error("Error creating employee:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error.issues });
+      }
+      res.status(500).json({ error: "Failed to create employee" });
+    }
+  });
+
+  // Get all employees
+  app.get("/api/employees", async (req, res) => {
+    try {
+      const employees = await storage.getEmployees();
+      
+      // Don't send passwords back
+      const employeesData = employees.map(emp => {
+        const { password: _, ...data } = emp;
+        return data;
+      });
+      
+      res.json(employeesData);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      res.status(500).json({ error: "Failed to fetch employees" });
+    }
+  });
+
+  // COFFEE ROUTES
+  
   // Get all coffee items
   app.get("/api/coffee-items", async (req, res) => {
     try {
@@ -251,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
 
-      const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+      const validStatuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
@@ -266,6 +356,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ error: "Failed to update order status" });
+    }
+  });
+  
+  // Get all orders (for employees)
+  app.get("/api/orders", async (req, res) => {
+    try {
+      const { limit, offset } = req.query;
+      const limitNum = limit ? parseInt(limit as string) : undefined;
+      const offsetNum = offset ? parseInt(offset as string) : undefined;
+      
+      const orders = await storage.getOrders(limitNum, offsetNum);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ error: "Failed to fetch orders" });
     }
   });
 
