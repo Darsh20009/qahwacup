@@ -4,6 +4,19 @@ This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) 
 
 # Recent Changes
 
+**2025-09-30**: Loyalty Card System & Unified Hub Implementation
+- Implemented comprehensive loyalty card system with QR code generation
+- Added loyalty_cards, loyalty_transactions, and loyalty_rewards database tables
+- Created loyalty card issuance page at /employee/loyalty with customer name and phone input
+- Built QR scanner component for cashier to scan customer loyalty cards
+- Integrated automatic 10% discount when loyalty QR is scanned at checkout
+- Added loyalty card tier system: Bronze (0-99), Silver (100-499), Gold (500-999), Platinum (1000+)
+- Created unified hub page at route "/0" combining employee dashboard and menu view
+- Enhanced employee dashboard with creative coffee-themed UI and loyalty management button
+- Added loyalty card component with Apple Wallet export capability (prepared for future implementation)
+- QR tokens generated with nanoid for security, scan validation prevents replay attacks
+- Loyalty discount displayed in cashier interface with subtotal breakdown
+
 **2025-09-30**: Employee Management & Cashier System Implementation
 - Built comprehensive employee management system with secure authentication
 - Added employee gateway page with general password protection (1802009)
@@ -71,14 +84,20 @@ The server uses Express.js with TypeScript in a RESTful API pattern:
 - **Cashier Interface**: Staff can create orders for customers with product selection and payment method
 - **WhatsApp Integration**: Automated invoice delivery and order status notifications via WhatsApp
 - **Employee Dashboard**: Profile cards with QR codes for employee identification
+- **Loyalty Card System**: QR-based loyalty cards with automatic 10% discounts and tier progression
+- **QR Scanner Integration**: Cashier can scan customer loyalty cards for instant discount application
+- **Unified Hub Page**: Combined dashboard and menu view at route "/0" for employees
 
 ## Database Schema
-The system uses five main entities:
+The system uses eight main entities:
 - **Coffee Items**: Product catalog with multilingual names, pricing, categories, and availability status
 - **Orders**: Order tracking with status management, payment details, customer info (name, phone), and employee reference
 - **Order Items**: Detailed line items for each order
 - **Cart Items**: Session-based temporary storage for shopping cart state
 - **Employees**: Staff accounts with secure bcrypt-hashed passwords, roles (manager/cashier), and profile information
+- **Loyalty Cards**: Customer loyalty cards with unique QR codes, points balance, and tier status
+- **Loyalty Transactions**: Transaction history for loyalty card points and purchases
+- **Loyalty Rewards**: Redeemable rewards based on accumulated points and tier level
 
 ## Component Architecture
 - **Page Components**: Splash screen, menu browsing, product details, cart management, and employee system (gateway, login, dashboard, cashier, orders)

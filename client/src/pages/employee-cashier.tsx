@@ -62,7 +62,7 @@ export default function EmployeeCashier() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
-  const [loyaltyDiscount, setLoyaltyDiscount] = useState<{percentage: number; amount: string; finalAmount: string} | null>(null);
+  const [hasLoyaltyDiscount, setHasLoyaltyDiscount] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -121,6 +121,7 @@ export default function EmployeeCashier() {
       setCustomerName("");
       setCustomerPhone("");
       setPaymentMethod("cash");
+      setHasLoyaltyDiscount(false);
     },
     onError: () => {
       toast({
@@ -161,30 +162,29 @@ export default function EmployeeCashier() {
     setOrderItems(orderItems.filter(item => item.coffeeItem.id !== coffeeItemId));
   };
 
-  const calculateTotal = () => {
-    const subtotal = orderItems.reduce((total, item) => {
-      return total + (parseFloat(item.coffeeItem.price) * item.quantity);
-    }, 0);
-    
-    // If loyalty discount applied, return the final amount
-    if (loyaltyDiscount) {
-      return loyaltyDiscount.finalAmount;
-    }
-    
-    return subtotal.toFixed(2);
-  };
-
   const getSubtotal = () => {
     return orderItems.reduce((total, item) => {
       return total + (parseFloat(item.coffeeItem.price) * item.quantity);
-    }, 0).toFixed(2);
+    }, 0);
   };
 
-  const handleDiscountApplied = (discount: {percentage: number; amount: string; finalAmount: string}) => {
-    setLoyaltyDiscount(discount);
+  const getDiscountAmount = () => {
+    if (!hasLoyaltyDiscount) return 0;
+    return getSubtotal() * 0.1; // 10% discount
+  };
+
+  const calculateTotal = () => {
+    const subtotal = getSubtotal();
+    const discount = getDiscountAmount();
+    return (subtotal - discount).toFixed(2);
+  };
+
+  const handleDiscountApplied = () => {
+    setHasLoyaltyDiscount(true);
+    const discountAmount = (getSubtotal() * 0.1).toFixed(2);
     toast({
       title: "تم تطبيق خصم الولاء! 🎉",
-      description: `خصم ${discount.percentage}% - ${discount.amount} ر.س`,
+      description: `خصم 10% - ${discountAmount} ر.س`,
       className: "bg-green-900 border-green-700 text-white"
     });
   };
@@ -439,15 +439,15 @@ export default function EmployeeCashier() {
                     </Button>
 
                     {/* Discount Breakdown */}
-                    {loyaltyDiscount && (
+                    {hasLoyaltyDiscount && (
                       <div className="space-y-2 bg-green-900/20 border border-green-500/30 rounded-lg p-3">
                         <div className="flex justify-between text-sm text-gray-300">
                           <span>المجموع الفرعي:</span>
-                          <span>{getSubtotal()} ريال</span>
+                          <span>{getSubtotal().toFixed(2)} ريال</span>
                         </div>
                         <div className="flex justify-between text-sm text-green-400">
-                          <span>خصم الولاء ({loyaltyDiscount.percentage}%):</span>
-                          <span>- {loyaltyDiscount.amount} ريال</span>
+                          <span>خصم الولاء (10%):</span>
+                          <span>- {getDiscountAmount().toFixed(2)} ريال</span>
                         </div>
                       </div>
                     )}
@@ -480,7 +480,7 @@ export default function EmployeeCashier() {
       <QRScanner
         isOpen={isQRScannerOpen}
         onClose={() => setIsQRScannerOpen(false)}
-        orderAmount={parseFloat(getSubtotal())}
+        orderAmount={getSubtotal()}
         onDiscountApplied={handleDiscountApplied}
         employeeId={employee?.id}
       />
