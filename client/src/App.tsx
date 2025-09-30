@@ -9,6 +9,9 @@ import ProductDetails from "@/pages/product-details";
 import MenuView from "@/pages/menu-view";
 import CartPage from "@/pages/cart-page";
 import CheckoutPage from "@/pages/checkout";
+import EmployeeGateway from "@/pages/employee-gateway";
+import EmployeeLogin from "@/pages/employee-login";
+import EmployeeDashboard from "@/pages/employee-dashboard";
 import CartModal from "@/components/cart-modal";
 import CheckoutModal from "@/components/checkout-modal";
 import { CartProvider, useCartStore } from "@/lib/cart-store";
@@ -22,6 +25,9 @@ function Router() {
       <Route path="/cart" component={CartPage} />
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/product/:id" component={ProductDetails} />
+      <Route path="/employee/gateway" component={EmployeeGateway} />
+      <Route path="/employee/login" component={EmployeeLogin} />
+      <Route path="/employee/dashboard" component={EmployeeDashboard} />
       <Route component={SplashScreen} />
     </Switch>
   );
