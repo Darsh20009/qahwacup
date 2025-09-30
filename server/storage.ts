@@ -1,5 +1,5 @@
-import { 
-  type CoffeeItem, 
+import {
+  type CoffeeItem,
   type InsertCoffeeItem,
   type Order,
   type InsertOrder,
@@ -69,7 +69,7 @@ export class MemStorage implements IStorage {
     this.orders = new Map();
     this.orderItems = new Map();
     this.cartItems = new Map();
-    
+
     // Initialize with coffee menu data and demo employee
     this.initializeCoffeeMenu();
     this.initializeDemoEmployee();
@@ -82,7 +82,7 @@ export class MemStorage implements IStorage {
       { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "strong", strengthLevel: 12 },
       { id: "americano", nameAr: "أمريكانو", nameEn: "Americano", description: "إسبريسو مخفف بالماء الساخن لطعم معتدل", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757426884660.png", isAvailable: 1, coffeeStrength: "mild", strengthLevel: 3 },
       { id: "ristretto", nameAr: "ريستريتو", nameEn: "Ristretto", description: "إسبريسو مركز بنصف كمية الماء لطعم أقوى", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757428239748.png", isAvailable: 1, coffeeStrength: "strong", strengthLevel: 11 },
-      
+
       // Hot Coffee
       { id: "cafe-latte", nameAr: "كافيه لاتيه", nameEn: "Cafe Latte", description: "إسبريسو مع حليب مخفوق كريمي ورغوة ناعمة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/generated_images/Luxury_café_latte_drink_156cb225.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
       { id: "cappuccino", nameAr: "كابتشينو", nameEn: "Cappuccino", description: "مزيج متوازن من الإسبريسو والحليب والرغوة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191916_1757434923575.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
@@ -90,13 +90,13 @@ export class MemStorage implements IStorage {
       { id: "mocha", nameAr: "موكا", nameEn: "Mocha", description: "مزيج رائع من القهوة والشوكولاتة والحليب", price: "7.00", oldPrice: "8.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191928_1757434923575.png", isAvailable: 1, coffeeStrength: "medium", strengthLevel: 6 },
       { id: "con-panna", nameAr: "كافيه كون بانا", nameEn: "Cafe Con Panna", description: "إسبريسو مع كريمة مخفوقة طازجة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191936_1757434923574.png", isAvailable: 1, coffeeStrength: "medium", strengthLevel: 7 },
       { id: "coffee-day-hot", nameAr: "قهوة اليوم (حار)", nameEn: "Coffee of the Day Hot", description: "تشكيلة مختارة يومياً من أفضل حبوب القهوة", price: "4.95", oldPrice: "5.50", category: "hot", imageUrl: "/attached_assets/coffee-day-hot-new.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
-      
+
       // Specialty Drinks
       { id: "hot-tea", nameAr: "شاي حار", nameEn: "Hot Tea", description: "شاي طبيعي مُحضر بعناية من أوراق الشاي المختارة، يُقدم ساخناً ومنعشاً لبداية يوم مثالية", price: "2.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161654_1758288116712.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
       { id: "ice-tea", nameAr: "آيس تي", nameEn: "Ice Tea", description: "انتعاش لا يُقاوم مع مزيج مثالي من الشاي المنقوع ببرودة والطعم المميز، رحلة منعشة في كل رشفة تجدد طاقتك وتمنحك لحظات من الصفاء", price: "3.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161645_1758288659656.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
       { id: "iced-matcha-latte", nameAr: "آيس لاتيه ماتشا", nameEn: "Iced Matcha Latte", description: "إبداع ياباني ساحر يجمع بين نعومة الحليب المثلج وسحر الماتشا الأخضر النقي، تجربة بصرية وذوقية استثنائية تأخذك في رحلة إلى عالم من الهدوء والتميز", price: "10.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161627_1758288688792.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
       { id: "hot-matcha-latte", nameAr: "لاتيه ماتشا حار", nameEn: "Hot Matcha Latte", description: "دفء ساحر يلتقي مع نكهة الماتشا الاستثنائية في لحن متناغم من الكريمة والطعم الياباني الأصيل، يُقدم ساخناً بفن لاتيه مبهر يسعد العين قبل أن يأسر الذوق", price: "11.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161637_1758288723420.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
-      
+
       // Cold Coffee
       { id: "iced-latte", nameAr: "آيسد لاتيه", nameEn: "Iced Latte", description: "لاتيه منعش مع الثلج والحليب البارد", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/generated_images/Luxury_iced_coffee_drink_571860f5.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
       { id: "iced-mocha", nameAr: "آيسد موكا", nameEn: "Iced Mocha", description: "موكا باردة مع الشوكولاتة والكريمة المخفوقة", price: "7.00", oldPrice: "8.00", category: "cold", imageUrl: "/attached_assets/generated_images/Luxury_iced_coffee_drink_571860f5.png", isAvailable: 1, coffeeStrength: "medium", strengthLevel: 5 },
@@ -141,8 +141,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     // Hash the password before storing
     const hashedPassword = await bcrypt.hash(insertEmployee.password, 10);
-    const employee: Employee = { 
-      ...insertEmployee, 
+    const employee: Employee = {
+      ...insertEmployee,
       id,
       password: hashedPassword,
       title: insertEmployee.title ?? null,
@@ -192,9 +192,9 @@ export class MemStorage implements IStorage {
 
   async createCoffeeItem(item: InsertCoffeeItem): Promise<CoffeeItem> {
     const id = randomUUID();
-    const coffeeItem: CoffeeItem = { 
-      ...item, 
-      id, 
+    const coffeeItem: CoffeeItem = {
+      ...item,
+      id,
       isAvailable: item.isAvailable ?? 1,
       nameEn: item.nameEn ?? null,
       oldPrice: item.oldPrice ?? null,
@@ -209,7 +209,7 @@ export class MemStorage implements IStorage {
   async updateCoffeeItem(id: string, updates: Partial<CoffeeItem>): Promise<CoffeeItem | undefined> {
     const existing = this.coffeeItems.get(id);
     if (!existing) return undefined;
-    
+
     const updated = { ...existing, ...updates, id };
     this.coffeeItems.set(id, updated);
     return updated;
@@ -218,7 +218,7 @@ export class MemStorage implements IStorage {
   // Order methods
   async createOrder(orderData: InsertOrder): Promise<Order> {
     const id = randomUUID();
-    
+
     // Create creative order number based on customer name
     let orderNumber = 'CUP000001';
     const customerInfo = orderData.customerInfo as any;
@@ -228,14 +228,14 @@ export class MemStorage implements IStorage {
       const nameInitials = customerName.split(' ')
         .map((word: string) => word.charAt(0).toUpperCase())
         .join('');
-      
+
       // Add timestamp for uniqueness
       const now = new Date();
       const timeStamp = `${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
-      
+
       // Create beautiful order number: Coffee cup emoji + initials + timestamp
       orderNumber = `☕${nameInitials}${timeStamp}`;
-      
+
       // If name is too short, add counter for beauty
       if (nameInitials.length < 2) {
         orderNumber = `☕${customerName.substring(0, 2).toUpperCase()}${timeStamp}`;
@@ -244,10 +244,10 @@ export class MemStorage implements IStorage {
       // Fallback to counter-based system with coffee theme
       orderNumber = `☕CUP${String(this.orderCounter++).padStart(4, '0')}`;
     }
-    
-    const order: Order = { 
-      ...orderData, 
-      id, 
+
+    const order: Order = {
+      ...orderData,
+      id,
       orderNumber,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -271,7 +271,7 @@ export class MemStorage implements IStorage {
   async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
     const existing = this.orders.get(id);
     if (!existing) return undefined;
-    
+
     const updated = { ...existing, status };
     this.orders.set(id, updated);
     return updated;
@@ -280,13 +280,13 @@ export class MemStorage implements IStorage {
   async getOrders(limit?: number, offset?: number): Promise<Order[]> {
     const orders = Array.from(this.orders.values())
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     if (limit || offset) {
       const start = offset || 0;
       const end = limit ? start + limit : undefined;
       return orders.slice(start, end);
     }
-    
+
     return orders;
   }
 
@@ -322,8 +322,8 @@ export class MemStorage implements IStorage {
 
     // Create new cart item
     const id = randomUUID();
-    const newItem: CartItem = { 
-      ...cartItem, 
+    const newItem: CartItem = {
+      ...cartItem,
       id,
       createdAt: new Date()
     };
