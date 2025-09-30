@@ -4,6 +4,20 @@ This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) 
 
 # Recent Changes
 
+**2025-09-30**: Employee Management & Cashier System Implementation
+- Built comprehensive employee management system with secure authentication
+- Added employee gateway page with general password protection (1802009)
+- Implemented individual employee login with bcrypt-hashed passwords
+- Created employee dashboard with profile cards and QR code generation
+- Built cashier interface for creating customer orders with product selection
+- Added customer information capture (name + phone number)
+- Integrated WhatsApp invoice delivery system
+- Implemented order management page with real-time status updates
+- Added WhatsApp notifications for completed orders
+- Security: All passwords hashed using bcrypt (10 rounds) before storage
+- Demo employee credentials: username "darwish", password "2009"
+- Subtly placed employee access button on splash screen (bottom-left)
+
 **2025-09-30**: GitHub import setup completed for Replit environment
 - Successfully imported and configured project for Replit deployment
 - Configured workflow "Start application" to run on port 5000 with webview output
@@ -53,19 +67,25 @@ The server uses Express.js with TypeScript in a RESTful API pattern:
 - **Payment Integration**: Multiple payment methods including cash, digital wallets (STC Pay, Alinma Pay), and bank transfers
 - **PDF Generation**: Client-side receipt generation for completed orders
 - **Responsive Design**: Mobile-first approach with adaptive layouts
+- **Employee Management System**: Secure employee authentication with role-based access (manager/cashier)
+- **Cashier Interface**: Staff can create orders for customers with product selection and payment method
+- **WhatsApp Integration**: Automated invoice delivery and order status notifications via WhatsApp
+- **Employee Dashboard**: Profile cards with QR codes for employee identification
 
 ## Database Schema
-The system uses four main entities:
+The system uses five main entities:
 - **Coffee Items**: Product catalog with multilingual names, pricing, categories, and availability status
-- **Orders**: Order tracking with status management and payment details
+- **Orders**: Order tracking with status management, payment details, customer info (name, phone), and employee reference
 - **Order Items**: Detailed line items for each order
 - **Cart Items**: Session-based temporary storage for shopping cart state
+- **Employees**: Staff accounts with secure bcrypt-hashed passwords, roles (manager/cashier), and profile information
 
 ## Component Architecture
-- **Page Components**: Splash screen, menu browsing, product details, and cart management
+- **Page Components**: Splash screen, menu browsing, product details, cart management, and employee system (gateway, login, dashboard, cashier, orders)
 - **UI Components**: Reusable Shadcn/ui components with Arabic localization
 - **Modal System**: Cart and checkout modals for streamlined user experience
 - **Animation**: CSS animations for loading states and interactive feedback
+- **QR Code Generation**: Dynamic QR code creation using qrcode library for employee identification
 
 # External Dependencies
 
@@ -101,3 +121,7 @@ The system uses four main entities:
 ## Database and Storage
 - **connect-pg-simple**: PostgreSQL session store (configured but using in-memory for development)
 - **drizzle-kit**: Database migration and schema management tools
+
+## Security Dependencies
+- **bcryptjs**: Password hashing library for secure employee credential storage
+- **@types/bcryptjs**: TypeScript type definitions for bcryptjs
