@@ -13,6 +13,7 @@ import {
   type InsertEmployee
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
   // User methods (legacy)
@@ -111,11 +112,12 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDemoEmployee() {
-    // Create demo employee: درويش
+    // Create demo employee: درويش with hashed password
+    const hashedPassword = bcrypt.hashSync('2009', 10);
     const demoEmployee: Employee = {
       id: 'demo-employee-1',
       username: 'darwish',
-      password: '2009', // في production يجب تشفير الباسورد
+      password: hashedPassword, // Hashed password
       fullName: 'يوسف درويش',
       role: 'manager',
       title: 'مدير المقهى',
@@ -137,9 +139,12 @@ export class MemStorage implements IStorage {
 
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
     const id = randomUUID();
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(insertEmployee.password, 10);
     const employee: Employee = { 
       ...insertEmployee, 
       id,
+      password: hashedPassword,
       title: insertEmployee.title ?? null,
       createdAt: new Date()
     };

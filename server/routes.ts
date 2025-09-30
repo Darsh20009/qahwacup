@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
+import bcrypt from "bcryptjs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // EMPLOYEE ROUTES
@@ -17,7 +18,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const employee = await storage.getEmployeeByUsername(username);
       
-      if (!employee || employee.password !== password) {
+      if (!employee) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Verify password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, employee.password);
+      
+      if (!isPasswordValid) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
