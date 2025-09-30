@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles } from "lucide-react";
 import QRCodeComponent from "@/components/qr-code";
 import type { Employee } from "@shared/schema";
 
@@ -108,7 +108,7 @@ export default function EmployeeDashboard() {
             <CardHeader>
               <CardTitle className="text-amber-500 text-right">الخدمات المتاحة</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
                 size="lg"
                 className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white"
@@ -119,6 +119,25 @@ export default function EmployeeDashboard() {
                 <div className="text-center">
                   <div className="font-bold text-lg">نظام الكاشير</div>
                   <div className="text-sm opacity-90">إضافة طلب جديد</div>
+                </div>
+              </Button>
+
+              <Button
+                size="lg"
+                className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white relative overflow-hidden group"
+                onClick={() => setLocation("/employee/loyalty")}
+                data-testid="button-loyalty"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <Gift className="w-10 h-10" />
+                    <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-amber-400 animate-pulse" />
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg">بطاقات الولاء</div>
+                    <div className="text-sm opacity-90">إصدار وإدارة البطاقات</div>
+                  </div>
                 </div>
               </Button>
 
@@ -138,15 +157,34 @@ export default function EmployeeDashboard() {
           </Card>
 
           {/* Info Card */}
-          <Card className="bg-[#2d1f1a] border-amber-500/20">
+          <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20 shadow-xl">
             <CardHeader>
-              <CardTitle className="text-amber-500 text-right">معلومات مهمة</CardTitle>
+              <CardTitle className="text-amber-500 text-right flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                معلومات مهمة
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-gray-300 text-right space-y-2">
-              <p>• يمكنك استخدام نظام الكاشير لإضافة طلبات جديدة للعملاء</p>
-              <p>• يتم إرسال الفاتورة تلقائياً للعميل عبر واتساب</p>
-              <p>• يمكنك متابعة حالة الطلبات وتحديثها من صفحة إدارة الطلبات</p>
-              <p>• رمز QR الخاص بك يمكن استخدامه للتعريف أو تسجيل الحضور</p>
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-amber-500 rounded-full" />
+                يمكنك استخدام نظام الكاشير لإضافة طلبات جديدة للعملاء
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full" />
+                بطاقات الولاء تمنح خصم 10% تلقائي عند المسح
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                يتم إرسال الفاتورة تلقائياً للعميل عبر واتساب
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-500 rounded-full" />
+                يمكنك متابعة حالة الطلبات وتحديثها من صفحة إدارة الطلبات
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-amber-500 rounded-full" />
+                رمز QR الخاص بك يمكن استخدامه للتعريف أو تسجيل الحضور
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check } from "lucide-react";
+import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan } from "lucide-react";
+import QRScanner from "@/components/qr-scanner";
 import type { Employee, CoffeeItem, PaymentMethod } from "@shared/schema";
 
 interface OrderItem {
@@ -60,6 +61,8 @@ export default function EmployeeCashier() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState<{percentage: number; amount: string; finalAmount: string} | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -159,9 +162,31 @@ export default function EmployeeCashier() {
   };
 
   const calculateTotal = () => {
+    const subtotal = orderItems.reduce((total, item) => {
+      return total + (parseFloat(item.coffeeItem.price) * item.quantity);
+    }, 0);
+    
+    // If loyalty discount applied, return the final amount
+    if (loyaltyDiscount) {
+      return loyaltyDiscount.finalAmount;
+    }
+    
+    return subtotal.toFixed(2);
+  };
+
+  const getSubtotal = () => {
     return orderItems.reduce((total, item) => {
       return total + (parseFloat(item.coffeeItem.price) * item.quantity);
     }, 0).toFixed(2);
+  };
+
+  const handleDiscountApplied = (discount: {percentage: number; amount: string; finalAmount: string}) => {
+    setLoyaltyDiscount(discount);
+    toast({
+      title: "تم تطبيق خصم الولاء! 🎉",
+      description: `خصم ${discount.percentage}% - ${discount.amount} ر.س`,
+      className: "bg-green-900 border-green-700 text-white"
+    });
   };
 
   const handleSubmitOrder = () => {
@@ -401,6 +426,32 @@ export default function EmployeeCashier() {
 
                     <Separator className="bg-amber-500/20" />
 
+                    {/* Loyalty Scan Button */}
+                    <Button
+                      onClick={() => setIsQRScannerOpen(true)}
+                      variant="outline"
+                      className="w-full border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                      disabled={orderItems.length === 0}
+                      data-testid="button-scan-loyalty"
+                    >
+                      <Scan className="w-4 h-4 ml-2" />
+                      مسح بطاقة ولاء العميل (خصم 10%)
+                    </Button>
+
+                    {/* Discount Breakdown */}
+                    {loyaltyDiscount && (
+                      <div className="space-y-2 bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                        <div className="flex justify-between text-sm text-gray-300">
+                          <span>المجموع الفرعي:</span>
+                          <span>{getSubtotal()} ريال</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-green-400">
+                          <span>خصم الولاء ({loyaltyDiscount.percentage}%):</span>
+                          <span>- {loyaltyDiscount.amount} ريال</span>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-center text-lg font-bold">
                       <span className="text-amber-500">الإجمالي:</span>
                       <span className="text-amber-500" data-testid="text-total">
@@ -424,6 +475,15 @@ export default function EmployeeCashier() {
           </div>
         </div>
       </div>
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isOpen={isQRScannerOpen}
+        onClose={() => setIsQRScannerOpen(false)}
+        orderAmount={parseFloat(getSubtotal())}
+        onDiscountApplied={handleDiscountApplied}
+        employeeId={employee?.id}
+      />
     </div>
   );
 }

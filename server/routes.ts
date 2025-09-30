@@ -401,6 +401,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // LOYALTY CARD ROUTES
+  
+  // Create new loyalty card (issue card to customer)
+  app.post("/api/loyalty/cards", async (req, res) => {
+    try {
+      const { customerName, phoneNumber } = req.body;
+      
+      if (!customerName || !phoneNumber) {
+        return res.status(400).json({ error: "اسم العميل ورقم الهاتف مطلوبان" });
+      }
+
+      // Check if customer already has a card
+      const existingCard = await storage.getLoyaltyCardByPhone(phoneNumber);
+      if (existingCard) {
+        return res.status(400).json({ error: "هذا العميل لديه بطاقة ولاء مسبقاً" });
+      }
+
+      const card = await storage.createLoyaltyCard({ customerName, phoneNumber });
+      res.status(201).json(card);
+    } catch (error) {
+      console.error("Error creating loyalty card:", error);
+      res.status(500).json({ error: "فشل في إنشاء بطاقة الولاء" });
+    }
+  });
+
+  // Get all loyalty cards
+  app.get("/api/loyalty/cards", async (req, res) => {
+    try {
+      const cards = await storage.getLoyaltyCards();
+      res.json(cards);
+    } catch (error) {
+      console.error("Error fetching loyalty cards:", error);
+      res.status(500).json({ error: "فشل في جلب بطاقات الولاء" });
+    }
+  });
+
+  // Get loyalty card by QR token (for scanning)
+  app.get("/api/loyalty/cards/qr/:qrToken", async (req, res) => {
+    try {
+      const { qrToken } = req.params;
+      const card = await storage.getLoyaltyCardByQRToken(qrToken);
+      
+      if (!card) {
+        return res.status(404).json({ error: "بطاقة الولاء غير موجودة أو غير نشطة" });
+      }
+
+      res.json(card);
+    } catch (error) {
+      console.error("Error fetching loyalty card by QR:", error);
+      res.status(500).json({ error: "فشل في جلب بطاقة الولاء" });
+    }
+  });
+
+  // Get loyalty card by phone
+  app.get("/api/loyalty/cards/phone/:phoneNumber", async (req, res) => {
+    try {
+      const { phoneNumber } = req.params;
+      const card = await storage.getLoyaltyCardByPhone(phoneNumber);
+      
+      if (!card) {
+        return res.status(404).json({ error: "بطاقة الولاء غير موجودة" });
+      }
+
+      res.json(card);
+    } catch (error) {
+      console.error("Error fetching loyalty card by phone:", error);
+      res.status(500).json({ error: "فشل في جلب بطاقة الولاء" });
+    }
+  });
+
+  // Scan loyalty card and apply discount
+  app.post("/api/loyalty/scan", async (req, res) => {
+    try {
+      const { qrToken, orderAmount, employeeId } = req.body;
+      
+      if (!qrToken || !orderAmount) {
+        return res.status(400).json({ error: "رمز QR ومبلغ الطلب مطلوبان" });
+      }
+
+      const card = await storage.getLoyaltyCardByQRToken(qrToken);
+      
+      if (!card) {
+        return res.status(404).json({ error: "بطاقة ولاء غير صالحة" });
+      }
+
+      // Calculate 10% discount
+      const discountPercentage = 10;
+      const discountAmount = (parseFloat(orderAmount) * discountPercentage) / 100;
+      const finalAmount = parseFloat(orderAmount) - discountAmount;
+
+      // Update card - increment discount count and update last used
+      await storage.updateLoyaltyCard(card.id, {
+        discountCount: card.discountCount + 1,
+        totalSpent: (parseFloat(card.totalSpent) + finalAmount).toFixed(2),
+        lastUsedAt: new Date()
+      });
+
+      // Create loyalty transaction
+      await storage.createLoyaltyTransaction({
+        cardId: card.id,
+        type: 'discount_applied',
+        pointsChange: 0,
+        discountAmount: discountAmount.toFixed(2),
+        orderAmount: orderAmount,
+        description: `خصم ${discountPercentage}% على الطلب`,
+        employeeId: employeeId || null
+      });
+
+      res.json({
+        success: true,
+        card: {
+          ...card,
+          discountCount: card.discountCount + 1
+        },
+        discount: {
+          percentage: discountPercentage,
+          amount: discountAmount.toFixed(2),
+          originalAmount: orderAmount,
+          finalAmount: finalAmount.toFixed(2)
+        }
+      });
+    } catch (error) {
+      console.error("Error scanning loyalty card:", error);
+      res.status(500).json({ error: "فشل في مسح بطاقة الولاء" });
+    }
+  });
+
+  // Get loyalty card transactions
+  app.get("/api/loyalty/cards/:cardId/transactions", async (req, res) => {
+    try {
+      const { cardId } = req.params;
+      const transactions = await storage.getLoyaltyTransactions(cardId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching loyalty transactions:", error);
+      res.status(500).json({ error: "فشل في جلب معاملات الولاء" });
+    }
+  });
+
+  // Get loyalty tier information
+  app.get("/api/loyalty/tiers", async (req, res) => {
+    try {
+      const tiers = [
+        {
+          id: 'bronze',
+          nameAr: 'برونزي',
+          nameEn: 'Bronze',
+          pointsRequired: 0,
+          benefits: ['خصم 10% على كل طلب', 'بطاقة رقمية مجانية'],
+          color: '#CD7F32',
+          icon: '🥉'
+        },
+        {
+          id: 'silver',
+          nameAr: 'فضي',
+          nameEn: 'Silver',
+          pointsRequired: 100,
+          benefits: ['خصم 15% على كل طلب', 'قهوة مجانية شهرياً', 'أولوية في الطلبات'],
+          color: '#C0C0C0',
+          icon: '🥈'
+        },
+        {
+          id: 'gold',
+          nameAr: 'ذهبي',
+          nameEn: 'Gold',
+          pointsRequired: 500,
+          benefits: ['خصم 20% على كل طلب', 'قهوتين مجانيتين شهرياً', 'دعوات خاصة للفعاليات'],
+          color: '#FFD700',
+          icon: '🥇'
+        },
+        {
+          id: 'platinum',
+          nameAr: 'بلاتيني',
+          nameEn: 'Platinum',
+          pointsRequired: 1000,
+          benefits: ['خصم 25% على كل طلب', 'قهوة يومية مجانية', 'خدمة VIP', 'بطاقة فيزيائية مطبوعة'],
+          color: '#E5E4E2',
+          icon: '💎'
+        }
+      ];
+
+      res.json(tiers);
+    } catch (error) {
+      console.error("Error fetching loyalty tiers:", error);
+      res.status(500).json({ error: "فشل في جلب مستويات الولاء" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

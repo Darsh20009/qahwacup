@@ -10,7 +10,13 @@ import {
   type User,
   type InsertUser,
   type Employee,
-  type InsertEmployee
+  type InsertEmployee,
+  type LoyaltyCard,
+  type InsertLoyaltyCard,
+  type LoyaltyTransaction,
+  type InsertLoyaltyTransaction,
+  type LoyaltyReward,
+  type InsertLoyaltyReward
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
@@ -51,6 +57,24 @@ export interface IStorage {
   updateCartItemQuantity(sessionId: string, coffeeItemId: string, quantity: number): Promise<CartItem | undefined>;
   removeFromCart(sessionId: string, coffeeItemId: string): Promise<boolean>;
   clearCart(sessionId: string): Promise<boolean>;
+
+  // Loyalty Card methods
+  createLoyaltyCard(card: InsertLoyaltyCard): Promise<LoyaltyCard>;
+  getLoyaltyCard(id: string): Promise<LoyaltyCard | undefined>;
+  getLoyaltyCardByQRToken(qrToken: string): Promise<LoyaltyCard | undefined>;
+  getLoyaltyCardByPhone(phoneNumber: string): Promise<LoyaltyCard | undefined>;
+  getLoyaltyCards(): Promise<LoyaltyCard[]>;
+  updateLoyaltyCard(id: string, updates: Partial<LoyaltyCard>): Promise<LoyaltyCard | undefined>;
+
+  // Loyalty Transaction methods
+  createLoyaltyTransaction(transaction: InsertLoyaltyTransaction): Promise<LoyaltyTransaction>;
+  getLoyaltyTransactions(cardId: string): Promise<LoyaltyTransaction[]>;
+  getAllLoyaltyTransactions(limit?: number): Promise<LoyaltyTransaction[]>;
+
+  // Loyalty Reward methods
+  createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward>;
+  getLoyaltyRewards(): Promise<LoyaltyReward[]>;
+  getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -60,6 +84,9 @@ export class MemStorage implements IStorage {
   private orders: Map<string, Order>;
   private orderItems: Map<string, OrderItem>;
   private cartItems: Map<string, CartItem>;
+  private loyaltyCards: Map<string, LoyaltyCard>;
+  private loyaltyTransactions: Map<string, LoyaltyTransaction>;
+  private loyaltyRewards: Map<string, LoyaltyReward>;
   private orderCounter: number = 1;
 
   constructor() {
@@ -69,6 +96,9 @@ export class MemStorage implements IStorage {
     this.orders = new Map();
     this.orderItems = new Map();
     this.cartItems = new Map();
+    this.loyaltyCards = new Map();
+    this.loyaltyTransactions = new Map();
+    this.loyaltyRewards = new Map();
 
     // Initialize with coffee menu data and demo employee
     this.initializeCoffeeMenu();
@@ -369,6 +399,126 @@ export class MemStorage implements IStorage {
     });
 
     return true;
+  }
+
+  // Loyalty Card methods
+  async createLoyaltyCard(cardData: InsertLoyaltyCard): Promise<LoyaltyCard> {
+    const id = randomUUID();
+    // Generate unique QR token (UUID-based for security)
+    const qrToken = `CUP-${randomUUID().replace(/-/g, '').substring(0, 16).toUpperCase()}`;
+    
+    const card: LoyaltyCard = {
+      ...cardData,
+      id,
+      qrToken,
+      points: 0,
+      tier: "bronze",
+      totalSpent: "0",
+      discountCount: 0,
+      status: "active",
+      lastUsedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.loyaltyCards.set(id, card);
+    return card;
+  }
+
+  async getLoyaltyCard(id: string): Promise<LoyaltyCard | undefined> {
+    return this.loyaltyCards.get(id);
+  }
+
+  async getLoyaltyCardByQRToken(qrToken: string): Promise<LoyaltyCard | undefined> {
+    return Array.from(this.loyaltyCards.values()).find(
+      card => card.qrToken === qrToken && card.status === "active"
+    );
+  }
+
+  async getLoyaltyCardByPhone(phoneNumber: string): Promise<LoyaltyCard | undefined> {
+    return Array.from(this.loyaltyCards.values()).find(
+      card => card.phoneNumber === phoneNumber
+    );
+  }
+
+  async getLoyaltyCards(): Promise<LoyaltyCard[]> {
+    return Array.from(this.loyaltyCards.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async updateLoyaltyCard(id: string, updates: Partial<LoyaltyCard>): Promise<LoyaltyCard | undefined> {
+    const existing = this.loyaltyCards.get(id);
+    if (!existing) return undefined;
+
+    const updated = { 
+      ...existing, 
+      ...updates, 
+      id,
+      updatedAt: new Date()
+    };
+    this.loyaltyCards.set(id, updated);
+    return updated;
+  }
+
+  // Loyalty Transaction methods
+  async createLoyaltyTransaction(transactionData: InsertLoyaltyTransaction): Promise<LoyaltyTransaction> {
+    const id = randomUUID();
+    const transaction: LoyaltyTransaction = {
+      ...transactionData,
+      id,
+      orderId: transactionData.orderId ?? null,
+      discountAmount: transactionData.discountAmount ?? null,
+      orderAmount: transactionData.orderAmount ?? null,
+      description: transactionData.description ?? null,
+      employeeId: transactionData.employeeId ?? null,
+      createdAt: new Date()
+    };
+    
+    this.loyaltyTransactions.set(id, transaction);
+    return transaction;
+  }
+
+  async getLoyaltyTransactions(cardId: string): Promise<LoyaltyTransaction[]> {
+    return Array.from(this.loyaltyTransactions.values())
+      .filter(t => t.cardId === cardId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getAllLoyaltyTransactions(limit?: number): Promise<LoyaltyTransaction[]> {
+    const transactions = Array.from(this.loyaltyTransactions.values())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    if (limit) {
+      return transactions.slice(0, limit);
+    }
+    return transactions;
+  }
+
+  // Loyalty Reward methods
+  async createLoyaltyReward(rewardData: InsertLoyaltyReward): Promise<LoyaltyReward> {
+    const id = randomUUID();
+    const reward: LoyaltyReward = {
+      ...rewardData,
+      id,
+      nameEn: rewardData.nameEn ?? null,
+      discountPercentage: rewardData.discountPercentage ?? null,
+      discountAmount: rewardData.discountAmount ?? null,
+      tier: rewardData.tier ?? null,
+      isActive: rewardData.isActive ?? 1,
+      createdAt: new Date()
+    };
+    
+    this.loyaltyRewards.set(id, reward);
+    return reward;
+  }
+
+  async getLoyaltyRewards(): Promise<LoyaltyReward[]> {
+    return Array.from(this.loyaltyRewards.values()).filter(r => r.isActive === 1);
+  }
+
+  async getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined> {
+    return this.loyaltyRewards.get(id);
   }
 }
 

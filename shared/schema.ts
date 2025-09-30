@@ -139,6 +139,96 @@ export interface CoffeeStrengthInfo {
   icon: string;
 }
 
+// Loyalty Cards Schema - بطاقات الولاء
+export const loyaltyCards = pgTable("loyalty_cards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerName: text("customer_name").notNull(),
+  phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+  qrToken: varchar("qr_token", { length: 100 }).notNull().unique(), // Unique QR code token
+  points: integer("points").default(0).notNull(), // نقاط الولاء
+  tier: varchar("tier", { length: 20 }).default("bronze").notNull(), // 'bronze', 'silver', 'gold', 'platinum'
+  totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0").notNull(),
+  discountCount: integer("discount_count").default(0).notNull(), // عدد مرات استخدام الخصم
+  status: varchar("status", { length: 20 }).default("active").notNull(), // 'active', 'suspended', 'expired'
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Loyalty Transactions Schema - سجل معاملات النقاط
+export const loyaltyTransactions = pgTable("loyalty_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cardId: varchar("card_id").references(() => loyaltyCards.id).notNull(),
+  orderId: varchar("order_id").references(() => orders.id),
+  type: varchar("type", { length: 20 }).notNull(), // 'earn', 'redeem', 'discount_applied', 'bonus'
+  pointsChange: integer("points_change").notNull(), // موجب للكسب، سالب للاستخدام
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }),
+  orderAmount: decimal("order_amount", { precision: 10, scale: 2 }),
+  description: text("description"),
+  employeeId: varchar("employee_id").references(() => employees.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Loyalty Rewards Master Data - جوائز الولاء
+export const loyaltyRewards = pgTable("loyalty_rewards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nameAr: text("name_ar").notNull(),
+  nameEn: text("name_en"),
+  description: text("description").notNull(),
+  pointsCost: integer("points_cost").notNull(),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }),
+  tier: varchar("tier", { length: 20 }), // null = available to all tiers
+  isActive: integer("is_active").default(1).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Zod Schemas for Loyalty
+export const insertLoyaltyCardSchema = createInsertSchema(loyaltyCards).omit({
+  id: true,
+  qrToken: true,
+  points: true,
+  totalSpent: true,
+  discountCount: true,
+  status: true,
+  lastUsedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLoyaltyTransactionSchema = createInsertSchema(loyaltyTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards).omit({
+  id: true,
+  createdAt: true,
+});
+
+// TypeScript Types for Loyalty
+export type LoyaltyCard = typeof loyaltyCards.$inferSelect;
+export type InsertLoyaltyCard = z.infer<typeof insertLoyaltyCardSchema>;
+
+export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
+export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;
+
+export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
+export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
+
+// Loyalty Tier Types
+export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+
+export interface LoyaltyTierInfo {
+  id: LoyaltyTier;
+  nameAr: string;
+  nameEn: string;
+  pointsRequired: number;
+  benefits: string[];
+  color: string;
+  icon: string;
+}
+
 // Legacy User Schema (keeping for compatibility)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
