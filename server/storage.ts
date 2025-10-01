@@ -968,14 +968,8 @@ export class DBStorage implements IStorage {
 }
 
 // Create and initialize storage
-let storage: IStorage;
-
-// Initialize storage asynchronously
-(async () => {
-  const dbStorage = new DBStorage();
-  await dbStorage.initialize();
-  storage = dbStorage;
-})();
+// Using MemStorage for development - no database setup required
+const storage: IStorage = new MemStorage();
 
 // Export storage - will be initialized by the time routes are registered
 export { storage };
