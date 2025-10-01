@@ -984,17 +984,17 @@ export class DBStorage implements IStorage {
 // Create and initialize storage
 let storage: IStorage;
 
-// Use DBStorage for production (Render) with DATABASE_URL, fallback to MemStorage for development
-if (process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
-  // Production: Use PostgreSQL database
+// Use DBStorage if DATABASE_URL is available (both production and development)
+if (process.env.DATABASE_URL) {
+  // Use PostgreSQL database
   const dbStorage = new DBStorage();
   await dbStorage.initialize();
   storage = dbStorage;
-  console.log("✅ Using DBStorage with PostgreSQL database (Production)");
+  console.log("✅ Using DBStorage with PostgreSQL database");
 } else {
-  // Development: Use in-memory storage for faster development
+  // Fallback: Use in-memory storage (limited functionality)
   storage = new MemStorage();
-  console.log("⚠️  Using MemStorage (in-memory) for development - no persistence");
+  console.log("⚠️  Using MemStorage (in-memory) - Customer features disabled");
 }
 
 // Export storage - initialized and ready to use
