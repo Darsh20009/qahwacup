@@ -666,6 +666,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get loyalty card by card number (for cashier lookup)
+  app.get("/api/loyalty/card/:cardNumber", async (req, res) => {
+    try {
+      const { cardNumber } = req.params;
+      const card = await storage.getLoyaltyCardByCardNumber(cardNumber);
+      
+      if (!card) {
+        return res.status(404).json({ error: "بطاقة الولاء غير موجودة" });
+      }
+
+      res.json(card);
+    } catch (error) {
+      console.error("Error fetching loyalty card by number:", error);
+      res.status(500).json({ error: "فشل في جلب بطاقة الولاء" });
+    }
+  });
+
+  // Generate loyalty codes for an order
+  app.post("/api/orders/:orderId/generate-codes", async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      
+      const order = await storage.getOrder(orderId);
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+
+      const orderItems = Array.isArray(order.items) ? order.items : [];
+      const drinks = orderItems.map((item: any) => ({
+        name: item.nameAr || item.name || "مشروب",
+        quantity: item.quantity || 1
+      }));
+
+      const codes = await storage.generateCodesForOrder(orderId, drinks);
+      res.status(201).json(codes);
+    } catch (error) {
+      console.error("Error generating codes:", error);
+      res.status(500).json({ error: "فشل في إنشاء الأكواد" });
+    }
+  });
+
+  // Get codes for an order
+  app.get("/api/orders/:orderId/codes", async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const codes = await storage.getCodesByOrder(orderId);
+      res.json(codes);
+    } catch (error) {
+      console.error("Error fetching codes:", error);
+      res.status(500).json({ error: "فشل في جلب الأكواد" });
+    }
+  });
+
+  // Redeem a code on a loyalty card
+  app.post("/api/loyalty/redeem-code", async (req, res) => {
+    try {
+      const { code, cardId } = req.body;
+      
+      if (!code || !cardId) {
+        return res.status(400).json({ error: "الكود ومعرف البطاقة مطلوبان" });
+      }
+
+      const result = await storage.redeemCode(code, cardId);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: result.message });
+      }
+
+      res.json({
+        success: true,
+        message: result.message,
+        card: result.card
+      });
+    } catch (error) {
+      console.error("Error redeeming code:", error);
+      res.status(500).json({ error: "فشل في استخدام الكود" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
