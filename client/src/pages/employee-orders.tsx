@@ -227,7 +227,12 @@ export default function EmployeeOrders() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                               <div className="text-right">
-                                <p className="text-gray-400 text-sm mb-1">العميل</p>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-gray-400 text-sm">العميل</p>
+                                  {order.customerId && (
+                                    <Badge className="bg-green-600/80 text-xs">عضو مسجل</Badge>
+                                  )}
+                                </div>
                                 <p className="text-white font-medium" data-testid={`text-customer-name-${order.id}`}>
                                   {customerInfo?.name || "غير محدد"}
                                 </p>
