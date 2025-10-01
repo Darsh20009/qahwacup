@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Download, Coffee, QrCode, Trophy, Gift } from "lucide-react";
+import { ArrowRight, Download, Coffee, QrCode, Trophy, Gift, ScanLine, Upload } from "lucide-react";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 
@@ -75,7 +75,32 @@ export default function MyCard() {
 
     setIsLoading(true);
 
-    // Create unique card ID
+    // Check if card with same phone exists in localStorage
+    const existingCardKey = `qahwa-card-${phoneNumber.trim()}`;
+    const existingCardData = localStorage.getItem(existingCardKey);
+    
+    if (existingCardData) {
+      try {
+        const existingCard = JSON.parse(existingCardData);
+        // Restore existing card
+        localStorage.setItem("qahwa-loyalty-card", JSON.stringify(existingCard));
+        setCard(existingCard);
+        setHasCard(true);
+        await generateQRCode(existingCard);
+        
+        toast({
+          title: "تم استرجاع بطاقتك! 🎉",
+          description: `مرحباً مجدداً ${existingCard.customerName}! لديك ${existingCard.stamps} ختم`,
+        });
+        
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        console.error("Error retrieving card:", error);
+      }
+    }
+
+    // Create new card
     const cardId = `CUP-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
     
     const newCard: LoyaltyCard = {
@@ -87,8 +112,9 @@ export default function MyCard() {
       createdAt: new Date().toISOString(),
     };
 
-    // Save to localStorage
+    // Save to multiple locations for backup
     localStorage.setItem("qahwa-loyalty-card", JSON.stringify(newCard));
+    localStorage.setItem(`qahwa-card-${phoneNumber.trim()}`, JSON.stringify(newCard));
     setCard(newCard);
     setHasCard(true);
     await generateQRCode(newCard);
@@ -109,6 +135,40 @@ export default function MyCard() {
     });
 
     setIsLoading(false);
+  };
+
+  const handleQRUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          
+          // Note: For QR scanning from image, we'd need a QR code reader library
+          // For now, we'll show instructions to the user
+          toast({
+            title: "ميزة مستقبلية 🔮",
+            description: "قريباً: مسح QR من الصورة. حالياً، استخدم نموذج الاسترجاع",
+          });
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error reading QR:", error);
+    }
   };
 
   const downloadCardImage = async () => {
@@ -228,8 +288,37 @@ export default function MyCard() {
                 className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-cairo"
                 data-testid="button-create-card"
               >
-                {isLoading ? "جاري الإصدار..." : "إصدار البطاقة 🎉"}
+                {isLoading ? "جاري البحث..." : "إصدار أو استرجاع البطاقة 🎉"}
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-amber-300"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-amber-700 font-cairo">أو</span>
+                </div>
+              </div>
+
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleQRUpload}
+                  className="hidden"
+                  data-testid="input-qr-upload"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 font-cairo"
+                  onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()}
+                  data-testid="button-upload-qr"
+                >
+                  <Upload className="ml-2 h-5 w-5" />
+                  تحميل صورة QR لاسترجاع البطاقة
+                </Button>
+              </label>
             </div>
 
             <div className="mt-6 p-4 bg-amber-50 rounded-lg">
