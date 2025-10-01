@@ -584,8 +584,10 @@ export class DBStorage implements IStorage {
   private initialized = false;
 
   constructor() {
-    // Configure Neon to use WebSocket for serverless deployment
-    neonConfig.webSocketConstructor = ws;
+    // Disable WebSocket in development environment
+    neonConfig.webSocketConstructor = undefined;
+    neonConfig.useSecureWebSocket = false;
+    neonConfig.pipelineConnect = false;
     
     // Create connection pool with SSL configuration
     this.pool = new Pool({ 
