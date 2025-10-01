@@ -100,6 +100,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CUSTOMER ROUTES
+  
+  // Customer authentication (register or login with phone)
+  app.post("/api/customers/auth", async (req, res) => {
+    try {
+      const { phone, name } = req.body;
+      
+      if (!phone) {
+        return res.status(400).json({ error: "Phone number required" });
+      }
+
+      // Try to find existing customer
+      let customer = await storage.getCustomerByPhone(phone);
+      
+      if (!customer) {
+        // Create new customer
+        customer = await storage.createCustomer({ phone, name });
+      } else if (name && customer.name !== name) {
+        // Update name if provided and different
+        customer = await storage.updateCustomer(customer.id, { name }) || customer;
+      }
+
+      res.json(customer);
+    } catch (error) {
+      console.error("Error during customer auth:", error);
+      res.status(500).json({ error: "Authentication failed" });
+    }
+  });
+
+  // Get customer by ID
+  app.get("/api/customers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const customer = await storage.getCustomer(id);
+      
+      if (!customer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      res.json(customer);
+    } catch (error) {
+      console.error("Error fetching customer:", error);
+      res.status(500).json({ error: "Failed to fetch customer" });
+    }
+  });
+
+  // Update customer
+  app.patch("/api/customers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      
+      const customer = await storage.updateCustomer(id, { name });
+      
+      if (!customer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      res.json(customer);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      res.status(500).json({ error: "Failed to update customer" });
+    }
+  });
+
+  // Get customer orders
+  app.get("/api/customers/:id/orders", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const orders = await storage.getCustomerOrders(id);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching customer orders:", error);
+      res.status(500).json({ error: "Failed to fetch orders" });
+    }
+  });
+
   // COFFEE ROUTES
   
   // Get all coffee items
