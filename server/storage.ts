@@ -584,11 +584,13 @@ export class DBStorage implements IStorage {
   private initialized = false;
 
   constructor() {
-    // Configure Neon to use WebSocket
+    // Configure Neon to use WebSocket for serverless deployment
     neonConfig.webSocketConstructor = ws;
     
     // Create connection pool
-    this.pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.pool = new Pool({ 
+      connectionString: process.env.DATABASE_URL
+    });
     this.db = drizzle(this.pool);
   }
 
@@ -982,17 +984,17 @@ export class DBStorage implements IStorage {
 // Create and initialize storage
 let storage: IStorage;
 
-// Use DBStorage when DATABASE_URL is available, fallback to MemStorage
-if (process.env.DATABASE_URL) {
-  // Use database when DATABASE_URL is configured
+// Use DBStorage for production (Render) with DATABASE_URL, fallback to MemStorage for development
+if (process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
+  // Production: Use PostgreSQL database
   const dbStorage = new DBStorage();
   await dbStorage.initialize();
   storage = dbStorage;
-  console.log("✅ Using DBStorage with PostgreSQL database");
+  console.log("✅ Using DBStorage with PostgreSQL database (Production)");
 } else {
-  // Fallback: Use in-memory storage
+  // Development: Use in-memory storage for faster development
   storage = new MemStorage();
-  console.log("⚠️  Using MemStorage (in-memory) - no persistence");
+  console.log("⚠️  Using MemStorage (in-memory) for development - no persistence");
 }
 
 // Export storage - initialized and ready to use
