@@ -1,19 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Download, Coffee, QrCode, Trophy, Gift } from "lucide-react";
+import { ArrowRight, Download, Coffee, Check, Gift, Sparkles } from "lucide-react";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LoyaltyCard {
+  id: string;
   customerName: string;
   phoneNumber: string;
-  stamps: number; // 0-7
-  freeRewards: number;
-  cardId: string;
+  stamps: number;
+  freeCupsEarned: number;
+  freeCupsRedeemed: number;
+  cardNumber: string;
+  qrToken: string;
   createdAt: string;
 }
 
@@ -23,12 +29,15 @@ export default function MyCard() {
   const [hasCard, setHasCard] = useState(false);
   const [card, setCard] = useState<LoyaltyCard | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [redeemCode, setRedeemCode] = useState("");
+  const [showConfetti, setShowConfetti] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Form for creating/retrieving card
   const [customerName, setCustomerName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const totalStamps = 6;
 
   useEffect(() => {
     // Check if card exists in localStorage
@@ -47,8 +56,7 @@ export default function MyCard() {
 
   const generateQRCode = async (cardData: LoyaltyCard) => {
     try {
-      // Encode card data in QR
-      const qrData = btoa(JSON.stringify(cardData));
+      const qrData = cardData.qrToken || btoa(JSON.stringify(cardData));
       const qrUrl = await QRCode.toDataURL(qrData, {
         width: 200,
         margin: 1,
@@ -63,6 +71,65 @@ export default function MyCard() {
     }
   };
 
+  const redeemMutation = useMutation({
+    mutationFn: async (code: string) => {
+      if (!card) throw new Error("No card found");
+      return await apiRequest("POST", "/api/loyalty/redeem-code", {
+        code,
+        cardId: card.id,
+      });
+    },
+    onSuccess: (data: any) => {
+      const updatedCard = data.card;
+      setCard(updatedCard);
+      localStorage.setItem("qahwa-loyalty-card", JSON.stringify(updatedCard));
+      generateQRCode(updatedCard);
+      
+      if (updatedCard.stamps === 6) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+        toast({
+          title: "🎉 مبروك! قهوة مجانية!",
+          description: "لقد حصلت على 6 أختام! استخدم قهوتك المجانية في طلبك القادم",
+          duration: 5000,
+        });
+      } else if (updatedCard.stamps === 5) {
+        toast({
+          title: "🎉 تم فتح خصم 10%!",
+          description: "ختم واحد فقط لقهوة مجانية!",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "✅ تم إضافة الختم بنجاح!",
+          description: `لديك الآن ${updatedCard.stamps} أختام من ${totalStamps}`,
+        });
+      }
+      
+      setRedeemCode("");
+      queryClient.invalidateQueries({ queryKey: ["/api/loyalty/cards"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "❌ خطأ في استخدام الكود",
+        description: error.message || "الكود غير صالح أو مستخدم مسبقاً",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleRedeemCode = () => {
+    if (!redeemCode.trim()) {
+      toast({
+        title: "خطأ",
+        description: "الرجاء إدخال الكود",
+        variant: "destructive",
+      });
+      return;
+    }
+    redeemMutation.mutate(redeemCode.trim());
+  };
+
   const createOrRetrieveCard = async () => {
     if (!customerName.trim() || !phoneNumber.trim()) {
       toast({
@@ -75,14 +142,11 @@ export default function MyCard() {
 
     setIsLoading(true);
 
-    // Check if card with same phone exists in localStorage
-    const existingCardKey = `qahwa-card-${phoneNumber.trim()}`;
-    const existingCardData = localStorage.getItem(existingCardKey);
-    
-    if (existingCardData) {
-      try {
-        const existingCard = JSON.parse(existingCardData);
-        // Restore existing card
+    try {
+      const response = await fetch(`/api/loyalty/cards/phone/${phoneNumber.trim()}`);
+      
+      if (response.ok) {
+        const existingCard = await response.json();
         localStorage.setItem("qahwa-loyalty-card", JSON.stringify(existingCard));
         setCard(existingCard);
         setHasCard(true);
@@ -92,47 +156,39 @@ export default function MyCard() {
           title: "تم استرجاع بطاقتك! 🎉",
           description: `مرحباً مجدداً ${existingCard.customerName}! لديك ${existingCard.stamps} ختم`,
         });
-        
-        setIsLoading(false);
-        return;
-      } catch (error) {
-        console.error("Error retrieving card:", error);
+      } else {
+        const newCardResponse = await fetch("/api/loyalty/cards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerName: customerName.trim(),
+            phoneNumber: phoneNumber.trim(),
+          }),
+        });
+
+        if (!newCardResponse.ok) {
+          throw new Error("Failed to create card");
+        }
+
+        const newCard = await newCardResponse.json();
+        localStorage.setItem("qahwa-loyalty-card", JSON.stringify(newCard));
+        setCard(newCard);
+        setHasCard(true);
+        await generateQRCode(newCard);
+
+        toast({
+          title: "تم إصدار البطاقة بنجاح! 🎉",
+          description: "احفظ بطاقتك كصورة أو استخدم QR للوصول إليها",
+        });
       }
+    } catch (error) {
+      console.error("Error creating/retrieving card:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في إصدار أو استرجاع البطاقة",
+        variant: "destructive",
+      });
     }
-
-    // Create new card
-    const cardId = `CUP-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
-    
-    const newCard: LoyaltyCard = {
-      customerName: customerName.trim(),
-      phoneNumber: phoneNumber.trim(),
-      stamps: 0,
-      freeRewards: 0,
-      cardId,
-      createdAt: new Date().toISOString(),
-    };
-
-    // Save to multiple locations for backup
-    localStorage.setItem("qahwa-loyalty-card", JSON.stringify(newCard));
-    localStorage.setItem(`qahwa-card-${phoneNumber.trim()}`, JSON.stringify(newCard));
-    setCard(newCard);
-    setHasCard(true);
-    await generateQRCode(newCard);
-
-    // Send WhatsApp message
-    const message = `🎉 *تم إصدار بطاقة ولاء جديدة*\n\n` +
-      `👤 الاسم: ${newCard.customerName}\n` +
-      `📱 الجوال: ${newCard.phoneNumber}\n` +
-      `🎫 رقم البطاقة: ${newCard.cardId}\n\n` +
-      `مبروك! احصل على ختم مع كل قهوة، وعند 7 أختام تحصل على قهوة مجانية! ☕`;
-    
-    const whatsappUrl = `https://wa.me/966532441566?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank");
-
-    toast({
-      title: "تم إصدار البطاقة بنجاح! 🎉",
-      description: "احفظ بطاقتك كصورة أو استخدم QR للوصول إليها",
-    });
 
     setIsLoading(false);
   };
@@ -174,19 +230,56 @@ export default function MyCard() {
     setQrDataUrl("");
   };
 
-  // Calculate stamps for display
-  const totalCups = 7;
-  const filledCups = card?.stamps || 0;
+  const filledStamps = card?.stamps || 0;
+  const availableFreeCups = (card?.freeCupsEarned || 0) - (card?.freeCupsRedeemed || 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 p-4" data-testid="page-my-card">
-      {/* Header */}
+    <div className="min-h-screen bg-[#F5EFE7] p-4" data-testid="page-my-card">
+      <AnimatePresence>
+        {showConfetti && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center"
+          >
+            {[...Array(50)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ 
+                  x: 0, 
+                  y: 0, 
+                  opacity: 1,
+                  scale: 0 
+                }}
+                animate={{
+                  x: (Math.random() - 0.5) * 1000,
+                  y: Math.random() * 1000,
+                  opacity: 0,
+                  scale: 1,
+                  rotate: Math.random() * 360
+                }}
+                transition={{
+                  duration: 2,
+                  ease: "easeOut",
+                  delay: Math.random() * 0.3
+                }}
+                className="absolute w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: ['#D4AF37', '#F59E0B', '#EAB308', '#FCD34D'][Math.floor(Math.random() * 4)]
+                }}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
             onClick={() => setLocation("/menu")}
-            className="text-amber-800 hover:text-amber-900"
+            className="text-amber-800 hover:text-amber-900 hover:bg-amber-100"
             data-testid="button-back"
           >
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -197,7 +290,7 @@ export default function MyCard() {
             <Button
               variant="ghost"
               onClick={resetCard}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
               data-testid="button-reset"
             >
               إصدار بطاقة جديدة
@@ -205,17 +298,12 @@ export default function MyCard() {
           )}
         </div>
 
-        <h1 className="text-3xl font-cairo font-bold text-amber-900 text-center mb-8" data-testid="text-title">
-          بطاقتي - قهوة كوب
-        </h1>
-
         {!hasCard ? (
-          /* Create/Retrieve Card Form */
-          <Card className="p-6 bg-white/90 backdrop-blur-sm" data-testid="card-form">
-            <h2 className="text-xl font-cairo font-semibold text-amber-900 mb-4">
+          <Card className="p-6 bg-white/90 backdrop-blur-sm shadow-lg" data-testid="card-form">
+            <h2 className="text-2xl font-amiri font-bold text-amber-900 mb-4 text-center">
               إصدار أو استرجاع بطاقة الولاء
             </h2>
-            <p className="text-amber-700 mb-6 font-cairo">
+            <p className="text-amber-700 mb-6 font-cairo text-center">
               أدخل اسمك ورقم جوالك لإصدار بطاقة جديدة أو استرجاع بطاقتك الحالية
             </p>
 
@@ -229,7 +317,7 @@ export default function MyCard() {
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="أدخل اسمك الكامل"
-                  className="text-right"
+                  className="text-right border-amber-300 focus:border-amber-500"
                   data-testid="input-customer-name"
                 />
               </div>
@@ -243,7 +331,7 @@ export default function MyCard() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="05xxxxxxxx"
-                  className="text-right"
+                  className="text-right border-amber-300 focus:border-amber-500"
                   data-testid="input-phone-number"
                 />
               </div>
@@ -257,142 +345,167 @@ export default function MyCard() {
                 {isLoading ? "جاري البحث..." : "إصدار أو استرجاع البطاقة 🎉"}
               </Button>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-amber-300"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-amber-700 font-cairo">أو</span>
-                </div>
+              <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <h3 className="font-cairo font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                  <Gift className="h-5 w-5" />
+                  مميزات البطاقة:
+                </h3>
+                <ul className="space-y-2 text-sm text-amber-800 font-cairo">
+                  <li className="flex items-center gap-2">
+                    <Coffee className="h-4 w-4 text-amber-600" />
+                    احصل على ختم مع كل عملية شراء
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-amber-600" />
+                    6 أختام = قهوة مجانية! ☕
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Gift className="h-4 w-4 text-amber-600" />
+                    خصم 10% عند 5 أختام
+                  </li>
+                </ul>
               </div>
-
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800 font-cairo text-center">
-                  💡 <strong>نصيحة:</strong> احفظ البطاقة كصورة في جهازك. يمكنك استرجاعها لاحقاً بإدخال نفس رقم الجوال
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 p-4 bg-amber-50 rounded-lg">
-              <h3 className="font-cairo font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                <Gift className="h-5 w-5" />
-                مميزات البطاقة:
-              </h3>
-              <ul className="space-y-2 text-sm text-amber-800 font-cairo">
-                <li className="flex items-center gap-2">
-                  <Coffee className="h-4 w-4 text-amber-600" />
-                  احصل على ختم مع كل عملية شراء
-                </li>
-                <li className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-amber-600" />
-                  7 أختام = قهوة مجانية! ☕
-                </li>
-                <li className="flex items-center gap-2">
-                  <QrCode className="h-4 w-4 text-amber-600" />
-                  استخدم QR للوصول السريع لبطاقتك
-                </li>
-                <li className="flex items-center gap-2">
-                  <Download className="h-4 w-4 text-amber-600" />
-                  حمّل بطاقتك كصورة واحفظها في جهازك
-                </li>
-              </ul>
             </div>
           </Card>
         ) : (
-          /* Display Loyalty Card */
           <div className="space-y-6">
-            {/* Card Display */}
+            {filledStamps === 5 && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-lg text-center font-cairo font-bold text-lg shadow-lg"
+                data-testid="banner-discount"
+              >
+                🎉 تم فتح خصم 10%!
+              </motion.div>
+            )}
+
+            {filledStamps === 6 && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-lg text-center font-cairo font-bold text-lg shadow-lg"
+                data-testid="banner-free-coffee"
+              >
+                🎁 قهوة مجانية! استخدمها في طلبك القادم
+              </motion.div>
+            )}
+
+            <Card className="p-6 bg-white shadow-lg" data-testid="card-redeem-section">
+              <h3 className="text-xl font-amiri font-bold text-amber-900 mb-4 text-center flex items-center justify-center gap-2">
+                <Gift className="h-6 w-6 text-amber-600" />
+                أضف ختم جديد 🎁
+              </h3>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={redeemCode}
+                  onChange={(e) => setRedeemCode(e.target.value)}
+                  placeholder="أدخل الكود هنا"
+                  className="text-right border-amber-300 focus:border-amber-500"
+                  data-testid="input-redeem-code"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleRedeemCode();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleRedeemCode}
+                  disabled={redeemMutation.isPending}
+                  className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-cairo whitespace-nowrap"
+                  data-testid="button-redeem-code"
+                >
+                  {redeemMutation.isPending ? "جاري التحقق..." : "استخدام الكود"}
+                </Button>
+              </div>
+            </Card>
+
             <div ref={cardRef} className="relative" data-testid="loyalty-card-display">
-              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-                {/* Header with Logo */}
-                <div className="bg-gradient-to-r from-amber-100 to-orange-100 p-6 text-center border-b-2 border-amber-300">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Coffee className="h-8 w-8 text-amber-800" />
-                      <h2 className="text-2xl font-cairo font-bold text-amber-900">
-                        قهوة كوب
-                      </h2>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-amber-700 font-cairo">أختام</div>
-                      <div className="text-3xl font-bold text-amber-900 font-cairo">
-                        {filledCups}/{totalCups}
-                      </div>
-                    </div>
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-amber-200">
+                <div className="bg-gradient-to-r from-amber-100 via-orange-50 to-amber-100 p-6 text-center border-b-2 border-amber-300">
+                  <h1 className="text-4xl font-amiri font-bold text-amber-900 mb-2" data-testid="text-card-header">
+                    بطاقتي ☕ قهوة كوب
+                  </h1>
+                  <div className="text-2xl font-bold text-amber-800 font-cairo" data-testid="text-card-number">
+                    {card?.cardNumber}
                   </div>
                 </div>
 
-                {/* Coffee Cups Display */}
-                <div className="p-6 bg-gradient-to-b from-gray-800 to-gray-900 relative overflow-hidden">
-                  {/* Coffee beans background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    {[...Array(20)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute w-3 h-4 bg-amber-400 rounded-full"
-                        style={{
-                          left: `${Math.random() * 100}%`,
-                          top: `${Math.random() * 100}%`,
-                          transform: `rotate(${Math.random() * 360}deg)`,
-                        }}
-                      />
-                    ))}
+                <div className="p-6 bg-gradient-to-b from-[#F5EFE7] to-white">
+                  <div className="text-center mb-4">
+                    <div className="text-3xl font-amiri font-bold text-amber-900" data-testid="text-stamps-progress">
+                      ختم {filledStamps}/{totalStamps}
+                    </div>
+                    {availableFreeCups > 0 && (
+                      <div className="text-lg font-cairo text-green-600 mt-2 flex items-center justify-center gap-2" data-testid="text-available-cups">
+                        <Gift className="h-5 w-5" />
+                        لديك {availableFreeCups} قهوة مجانية متاحة!
+                      </div>
+                    )}
                   </div>
 
-                  <div className="relative grid grid-cols-4 gap-4 mb-4">
-                    {[...Array(totalCups)].map((_, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center justify-center transition-all duration-300 ${
-                          index < filledCups ? "scale-110" : "scale-100 opacity-50"
-                        }`}
-                      >
-                        <div
-                          className={`w-16 h-20 rounded-lg flex items-center justify-center ${
-                            index < filledCups
-                              ? "bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg"
-                              : "bg-gray-600"
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    {[...Array(totalStamps)].map((_, index) => {
+                      const isFilled = index < filledStamps;
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`aspect-square rounded-xl flex items-center justify-center relative ${
+                            isFilled
+                              ? "bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-amber-600 shadow-lg"
+                              : "bg-gray-100 border-2 border-dashed border-gray-300"
                           }`}
+                          data-testid={`stamp-slot-${index}`}
                         >
                           <Coffee
-                            className={`h-8 w-8 ${
-                              index < filledCups ? "text-white" : "text-gray-400"
+                            className={`h-12 w-12 ${
+                              isFilled ? "text-white" : "text-gray-400"
                             }`}
                           />
-                        </div>
-                      </div>
-                    ))}
+                          {isFilled && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 0.2 }}
+                              className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1"
+                            >
+                              <Check className="h-4 w-4 text-white" />
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
                   </div>
-                </div>
 
-                {/* Customer Info */}
-                <div className="p-6 bg-white">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="text-right">
                       <div className="text-sm text-amber-700 font-cairo mb-1">الاسم</div>
-                      <div className="text-xl font-bold text-amber-900 font-cairo" data-testid="text-card-name">
+                      <div className="text-lg font-bold text-amber-900 font-cairo" data-testid="text-card-name">
                         {card?.customerName}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-amber-700 font-cairo mb-1">قسائم مجانية</div>
-                      <div className="text-xl font-bold text-green-600 font-cairo" data-testid="text-free-rewards">
-                        {card?.freeRewards}
+                      <div className="text-sm text-amber-700 font-cairo mb-1">رقم الجوال</div>
+                      <div className="text-lg font-bold text-amber-900 font-cairo" data-testid="text-phone-number">
+                        {card?.phoneNumber}
                       </div>
                     </div>
                   </div>
 
-                  {/* QR Code */}
                   {qrDataUrl && (
-                    <div className="flex flex-col items-center mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex flex-col items-center mt-4 p-4 bg-gray-50 rounded-lg border border-amber-200">
                       <img
                         src={qrDataUrl}
                         alt="QR Code"
                         className="w-40 h-40 border-4 border-amber-300 rounded-lg"
                         data-testid="img-qr-code"
                       />
-                      <div className="text-center mt-2 text-sm text-amber-800 font-cairo" data-testid="text-phone-number">
-                        {card?.phoneNumber}
+                      <div className="text-center mt-2 text-sm text-amber-800 font-cairo">
+                        اعرض هذا الكود للكاشير
                       </div>
                     </div>
                   )}
@@ -400,7 +513,6 @@ export default function MyCard() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-4">
               <Button
                 onClick={downloadCardImage}
@@ -412,16 +524,16 @@ export default function MyCard() {
               </Button>
             </div>
 
-            {/* Info Card */}
-            <Card className="p-4 bg-amber-50/80 backdrop-blur-sm">
+            <Card className="p-4 bg-amber-50/80 backdrop-blur-sm border border-amber-200">
               <h3 className="font-cairo font-semibold text-amber-900 mb-2">
-                💡 نصائح للاستفادة من بطاقتك:
+                💡 كيف تستخدم بطاقتك:
               </h3>
               <ul className="space-y-2 text-sm text-amber-800 font-cairo">
-                <li>• حمّل البطاقة واحفظها في الصور في جهازك</li>
-                <li>• اعرض البطاقة للكاشير عند كل عملية شراء للحصول على ختم</li>
-                <li>• عند 7 أختام، احصل على قهوتك المفضلة مجاناً!</li>
-                <li>• يمكنك مشاركة QR مع أصدقائك</li>
+                <li>• احصل على كود مع كل عملية شراء من الكاشير</li>
+                <li>• أدخل الكود في الحقل أعلاه للحصول على ختم</li>
+                <li>• عند 5 أختام، احصل على خصم 10%</li>
+                <li>• عند 6 أختام، احصل على قهوة مجانية!</li>
+                <li>• اعرض QR للكاشير لاستخدام قهوتك المجانية</li>
               </ul>
             </Card>
           </div>
