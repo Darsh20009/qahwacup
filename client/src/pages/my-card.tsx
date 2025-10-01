@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Download, Coffee, QrCode, Trophy, Gift, ScanLine, Upload } from "lucide-react";
+import { ArrowRight, Download, Coffee, QrCode, Trophy, Gift } from "lucide-react";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 
@@ -137,40 +137,6 @@ export default function MyCard() {
     setIsLoading(false);
   };
 
-  const handleQRUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const img = new Image();
-        img.onload = async () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return;
-
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          
-          // Note: For QR scanning from image, we'd need a QR code reader library
-          // For now, we'll show instructions to the user
-          toast({
-            title: "ميزة مستقبلية 🔮",
-            description: "قريباً: مسح QR من الصورة. حالياً، استخدم نموذج الاسترجاع",
-          });
-        };
-        img.src = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error("Error reading QR:", error);
-    }
-  };
-
   const downloadCardImage = async () => {
     if (!cardRef.current || !card) return;
 
@@ -300,25 +266,11 @@ export default function MyCard() {
                 </div>
               </div>
 
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleQRUpload}
-                  className="hidden"
-                  data-testid="input-qr-upload"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 font-cairo"
-                  onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()}
-                  data-testid="button-upload-qr"
-                >
-                  <Upload className="ml-2 h-5 w-5" />
-                  تحميل صورة QR لاسترجاع البطاقة
-                </Button>
-              </label>
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 font-cairo text-center">
+                  💡 <strong>نصيحة:</strong> احفظ البطاقة كصورة في جهازك. يمكنك استرجاعها لاحقاً بإدخال نفس رقم الجوال
+                </p>
+              </div>
             </div>
 
             <div className="mt-6 p-4 bg-amber-50 rounded-lg">

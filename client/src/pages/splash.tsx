@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import CoffeeSteam from "@/components/coffee-steam";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CreditCard } from "lucide-react";
 import { useEffect, useState } from "react";
 import qahwaLogo from "@/assets/qahwa-cup-logo.png";
 
@@ -57,6 +57,17 @@ export default function SplashScreen() {
         data-testid="button-employee-access"
       >
         <span className="text-xs">دخول الموظفين</span>
+      </Button>
+
+      {/* My Card Access - Subtle */}
+      <Button
+        variant="ghost"
+        onClick={() => setLocation("/my-card")}
+        className="absolute bottom-4 right-4 text-amber-600 hover:text-amber-800 opacity-50 hover:opacity-100 transition-all flex items-center gap-2"
+        data-testid="button-my-card-splash"
+      >
+        <CreditCard className="w-4 h-4" />
+        <span className="text-xs">بطاقتي</span>
       </Button>
       {/* Luxury Background Elements with Coffee Theme */}
       <div className="absolute inset-0 pointer-events-none">
