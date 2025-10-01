@@ -9,9 +9,10 @@ import { useCartStore } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "@/components/payment-methods";
+import LoyaltyCardComponent from "@/components/loyalty-card";
 import { generatePDF } from "@/lib/pdf-generator";
-import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User } from "lucide-react";
-import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
+import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award } from "lucide-react";
+import type { PaymentMethodInfo, PaymentMethod, LoyaltyCard } from "@shared/schema";
 
 export default function CheckoutPage() {
   const { cartItems, clearCart, getTotalPrice } = useCartStore();
@@ -23,9 +24,33 @@ export default function CheckoutPage() {
   const [customerName, setCustomerName] = useState("");
   const [transferOwnerName, setTransferOwnerName] = useState("");
   const [isSameAsCustomer, setIsSameAsCustomer] = useState(true);
+  const [wantsLoyaltyCard, setWantsLoyaltyCard] = useState(false);
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [createdLoyaltyCard, setCreatedLoyaltyCard] = useState<LoyaltyCard | null>(null);
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
+  });
+
+  const createLoyaltyCardMutation = useMutation({
+    mutationFn: async (customerData: { customerName: string; phoneNumber: string }) => {
+      const response = await apiRequest("POST", "/api/loyalty/cards", customerData);
+      return response.json();
+    },
+    onSuccess: (loyaltyCard) => {
+      setCreatedLoyaltyCard(loyaltyCard);
+      toast({
+        title: "🎉 تم إنشاء بطاقة الولاء بنجاح!",
+        description: "يمكنك الآن الاستفادة من خصم 10% على مشترياتك القادمة",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ في إنشاء بطاقة الولاء",
+        description: error.message,
+      });
+    },
   });
 
   const createOrderMutation = useMutation({
@@ -50,7 +75,7 @@ export default function CheckoutPage() {
     },
   });
 
-  const handleProceedPayment = () => {
+  const handleProceedPayment = async () => {
     if (!selectedPaymentMethod) {
       toast({
         variant: "destructive",
@@ -67,6 +92,27 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (wantsLoyaltyCard && !customerPhone.trim()) {
+      toast({
+        variant: "destructive",
+        title: "يرجى إدخال رقم الهاتف لإنشاء بطاقة الولاء",
+      });
+      return;
+    }
+
+    // Create loyalty card first if requested
+    if (wantsLoyaltyCard && customerPhone.trim()) {
+      try {
+        await createLoyaltyCardMutation.mutateAsync({
+          customerName: customerName.trim(),
+          phoneNumber: customerPhone.trim(),
+        });
+      } catch (error) {
+        // Continue with order even if loyalty card creation fails
+        console.warn("Failed to create loyalty card:", error);
+      }
+    }
+
     const orderData = {
       items: cartItems.map(item => ({
         coffeeItemId: item.coffeeItemId,
@@ -81,6 +127,7 @@ export default function CheckoutPage() {
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
+        phoneNumber: customerPhone.trim() || undefined,
       },
     };
 
@@ -463,6 +510,100 @@ ${itemsWithPrices}
                           />
                         </div>
                         
+                        <div className="space-y-2">
+                          <Label htmlFor="customer-phone" className="text-sm font-semibold text-slate-600">
+                            رقم الهاتف {wantsLoyaltyCard ? "(مطلوب للولاء) *" : "(اختياري)"}
+                          </Label>
+                          <Input
+                            id="customer-phone"
+                            type="tel"
+                            placeholder="05xxxxxxxx"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            className="text-right"
+                            data-testid="input-customer-phone"
+                            required={wantsLoyaltyCard}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Loyalty Card Offer */}
+                      <div className="mt-6 relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-yellow-500/30 to-orange-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+                        
+                        <div className="relative bg-gradient-to-br from-amber-50/90 via-yellow-50/80 to-orange-50/90 backdrop-blur-sm rounded-2xl p-6 border-2 border-amber-300/50 shadow-xl">
+                          <div className="flex items-center justify-center mb-4">
+                            <div className="relative">
+                              <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full opacity-20 blur animate-pulse"></div>
+                              <div className="relative bg-gradient-to-r from-amber-500 to-orange-600 rounded-full p-3 text-white shadow-lg">
+                                <Gift className="w-8 h-8" />
+                              </div>
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping opacity-60"></div>
+                            </div>
+                          </div>
+                          
+                          <h4 className="font-amiri text-2xl font-bold text-center mb-3 bg-gradient-to-r from-amber-600 to-orange-700 bg-clip-text text-transparent">
+                            انضم إلى برنامج الولاء! 🎁
+                          </h4>
+                          
+                          <div className="text-center mb-6 space-y-2">
+                            <p className="text-amber-800 font-semibold text-lg">
+                              وفّر مع قهوة كوب واحصل على خصم 10% فوري!
+                            </p>
+                            <div className="flex items-center justify-center space-x-4 space-x-reverse text-sm text-amber-700">
+                              <div className="flex items-center space-x-1 space-x-reverse">
+                                <Sparkles className="w-4 h-4" />
+                                <span>خصم فوري 10%</span>
+                              </div>
+                              <div className="flex items-center space-x-1 space-x-reverse">
+                                <Award className="w-4 h-4" />
+                                <span>مستويات مكافآت</span>
+                              </div>
+                              <div className="flex items-center space-x-1 space-x-reverse">
+                                <Coffee className="w-4 h-4" />
+                                <span>عروض حصرية</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-3 space-x-reverse bg-white/70 rounded-xl p-4 border border-amber-300/30">
+                            <Checkbox
+                              id="wants-loyalty-card"
+                              checked={wantsLoyaltyCard}
+                              onCheckedChange={(checked) => setWantsLoyaltyCard(!!checked)}
+                              data-testid="checkbox-loyalty-card"
+                              className="border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 scale-125"
+                            />
+                            <Label htmlFor="wants-loyalty-card" className="text-amber-800 font-semibold cursor-pointer flex items-center text-lg">
+                              <Gift className="w-5 h-5 ml-2 text-amber-600" />
+                              نعم، أريد إنشاء بطاقة ولاء مجانية ✨
+                            </Label>
+                          </div>
+                          
+                          {wantsLoyaltyCard && (
+                            <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 animate-in fade-in-0 slide-in-from-top-2 duration-500">
+                              <div className="flex items-center space-x-2 space-x-reverse text-emerald-700">
+                                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                                <div className="text-sm">
+                                  <p className="font-semibold">رائع! ستحصل على:</p>
+                                  <ul className="mt-1 space-y-1 text-xs">
+                                    <li>• بطاقة ولاء رقمية مع QR كود</li>
+                                    <li>• إمكانية إضافة البطاقة لـ Apple Wallet</li>
+                                    <li>• خصم 10% على مشترياتك القادمة</li>
+                                    <li>• تراكم نقاط ومكافآت حصرية</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-60 animate-bounce"></div>
+                          <div className="absolute bottom-4 left-4 w-2 h-2 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full opacity-40 animate-ping"></div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 mt-4">
+                        
                         {/* Transfer name section - always visible */}
                         <div className="space-y-4 bg-slate-50 rounded-lg p-4 border border-slate-200">
                           <Label className="text-sm font-semibold text-slate-700 flex items-center">
@@ -537,6 +678,48 @@ ${itemsWithPrices}
                       </div>
                     </div>
                   </div>
+
+                  {/* Display Created Loyalty Card */}
+                  {createdLoyaltyCard && (
+                    <div className="relative group animate-in fade-in-0 slide-in-from-bottom-10 duration-700">
+                      <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/30 via-green-500/30 to-teal-400/30 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
+                      
+                      <div className="relative bg-gradient-to-br from-emerald-50/95 via-green-50/90 to-teal-50/85 backdrop-blur-sm rounded-3xl p-6 border-2 border-emerald-300/50 shadow-2xl">
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="relative">
+                            <div className="absolute -inset-3 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full opacity-20 blur animate-pulse"></div>
+                            <div className="relative bg-gradient-to-r from-emerald-500 to-green-600 rounded-full p-4 text-white shadow-xl">
+                              <CheckCircle className="w-10 h-10" />
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping opacity-60"></div>
+                          </div>
+                        </div>
+                        
+                        <h4 className="font-amiri text-2xl font-bold text-center mb-4 bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
+                          🎉 تم إنشاء بطاقة الولاء بنجاح!
+                        </h4>
+                        
+                        <p className="text-center text-emerald-700 mb-6 text-lg">
+                          مبروك! يمكنك الآن توفير 10% على مشترياتك القادمة
+                        </p>
+                        
+                        <LoyaltyCardComponent 
+                          card={createdLoyaltyCard} 
+                          showActions={true}
+                        />
+                        
+                        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 space-x-reverse text-amber-700">
+                            <Sparkles className="w-5 h-5 flex-shrink-0" />
+                            <div className="text-sm">
+                              <p className="font-semibold">💡 نصيحة:</p>
+                              <p>أضف البطاقة لـ Apple Wallet لسهولة الوصول والاستخدام السريع!</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Payment Methods */}
                   <PaymentMethods
@@ -621,7 +804,7 @@ ${itemsWithPrices}
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-300"></div>
                     <Button
                       onClick={handleProceedPayment}
-                      disabled={!selectedPaymentMethod || createOrderMutation.isPending}
+                      disabled={!selectedPaymentMethod || createOrderMutation.isPending || createLoyaltyCardMutation.isPending}
                       size="lg"
                       className="relative w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground py-6 text-xl font-bold transition-all duration-500 shadow-xl hover:shadow-2xl rounded-lg transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
                       data-testid="button-proceed-payment"
@@ -629,14 +812,16 @@ ${itemsWithPrices}
                       {/* Animated background sparkle effect */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
                       
-                      {createOrderMutation.isPending ? (
+                      {(createOrderMutation.isPending || createLoyaltyCardMutation.isPending) ? (
                         <div className="flex items-center justify-center relative z-10">
                           <div className="flex space-x-1 space-x-reverse">
                             <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
                             <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                             <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                           </div>
-                          <span className="mr-3 font-amiri">جاري معالجة طلبك بعناية...</span>
+                          <span className="mr-3 font-amiri">
+                            {createLoyaltyCardMutation.isPending ? "جاري إنشاء بطاقة الولاء..." : "جاري معالجة طلبك بعناية..."}
+                          </span>
                           <Coffee className="w-6 h-6 animate-pulse ml-2" />
                         </div>
                       ) : (

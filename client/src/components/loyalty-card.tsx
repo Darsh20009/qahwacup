@@ -133,9 +133,68 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
   };
 
   const addToAppleWallet = () => {
-    // This would require a backend service to generate .pkpass files
-    // For now, we'll show a message
-    alert('ميزة إضافة للمحفظة قيد التطوير. يمكنك حفظ البطاقة كصورة الآن.');
+    // Create a better Apple Wallet experience
+    const passData = {
+      formatVersion: 1,
+      passTypeIdentifier: "pass.com.qahwacup.loyalty",
+      serialNumber: card.qrToken,
+      teamIdentifier: "QAHWACUP",
+      webServiceURL: "https://api.qahwacup.com/passes/",
+      authenticationToken: card.qrToken,
+      barcode: {
+        message: card.qrToken,
+        format: "PKBarcodeFormatQR",
+        messageEncoding: "iso-8859-1"
+      },
+      organizationName: "قهوة كوب",
+      description: "بطاقة ولاء قهوة كوب",
+      logoText: "قهوة كوب",
+      foregroundColor: "rgb(255, 255, 255)",
+      backgroundColor: "rgb(212, 175, 55)",
+      storeCard: {
+        primaryFields: [
+          {
+            key: "balance",
+            label: "الخصومات المستخدمة",
+            value: card.discountCount.toString()
+          }
+        ],
+        secondaryFields: [
+          {
+            key: "name",
+            label: "اسم العميل",
+            value: card.customerName
+          }
+        ],
+        auxiliaryFields: [
+          {
+            key: "level",
+            label: "المستوى",
+            value: card.tier === 'bronze' ? 'برونزي' : 
+                  card.tier === 'silver' ? 'فضي' : 
+                  card.tier === 'gold' ? 'ذهبي' : 'بلاتيني'
+          }
+        ],
+        backFields: [
+          {
+            key: "terms",
+            label: "الشروط والأحكام",
+            value: "صالح للاستخدام في جميع فروع قهوة كوب. خصم 10% على جميع المشتريات."
+          }
+        ]
+      }
+    };
+
+    // For now, show instructions since we need backend support for .pkpass
+    alert(`لإضافة البطاقة لـ Apple Wallet:
+
+1. احفظ البطاقة كصورة أولاً
+2. اذهب للإعدادات > Wallet & Apple Pay
+3. أضف البطاقة يدوياً
+
+أو يمكنك استخدام QR Code مباشرة من التطبيق عند الشراء.
+
+رمز البطاقة: ${card.qrToken}`);
   };
 
   const tierInfo = {

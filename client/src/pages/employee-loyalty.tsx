@@ -26,12 +26,9 @@ export default function EmployeeLoyalty() {
 
   // Create loyalty card mutation
   const createCardMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/loyalty/cards", {
-        customerName,
-        phoneNumber
-      });
-      return res.json();
+    mutationFn: async (customerData: { customerName: string; phoneNumber: string }) => {
+      const response = await apiRequest("POST", "/api/loyalty/cards", customerData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/loyalty/cards"] });
