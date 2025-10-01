@@ -540,6 +540,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate Apple Wallet pass
+  app.get("/api/loyalty/cards/:cardId/apple-wallet-pass", async (req, res) => {
+    try {
+      const { cardId } = req.params;
+      const card = await storage.getLoyaltyCard(cardId);
+      
+      if (!card) {
+        return res.status(404).json({ error: "بطاقة الولاء غير موجودة" });
+      }
+
+      // This is a simplified implementation
+      // In production, you'd use the Apple PassKit library to generate a proper .pkpass file
+      const passData = {
+        formatVersion: 1,
+        passTypeIdentifier: "pass.com.qahwacup.loyalty",
+        serialNumber: card.id,
+        teamIdentifier: "YOUR_TEAM_ID",
+        organizationName: "قهوة كوب",
+        description: "بطاقة ولاء قهوة كوب",
+        logoText: "قهوة كوب",
+        foregroundColor: "rgb(255, 255, 255)",
+        backgroundColor: "rgb(139, 69, 19)",
+        storeCard: {
+          primaryFields: [
+            {
+              key: "balance",
+              label: "عدد الخصومات المستخدمة",
+              value: card.discountCount.toString()
+            }
+          ],
+          secondaryFields: [
+            {
+              key: "name",
+              label: "اسم العميل",
+              value: card.customerName
+            }
+          ],
+          backFields: [
+            {
+              key: "phone",
+              label: "رقم الهاتف",
+              value: card.phoneNumber
+            },
+            {
+              key: "total",
+              label: "إجمالي المنصرف",
+              value: `${card.totalSpent} ر.س`
+            }
+          ]
+        },
+        barcode: {
+          message: card.qrToken,
+          format: "PKBarcodeFormatQR",
+          messageEncoding: "iso-8859-1"
+        }
+      };
+
+      // For now, return JSON (in production, this would be a .pkpass file)
+      res.setHeader('Content-Type', 'application/vnd.apple.pkpass');
+      res.setHeader('Content-Disposition', `attachment; filename="loyalty-card-${card.id}.pkpass"`);
+      res.json(passData);
+      
+    } catch (error) {
+      console.error("Error generating Apple Wallet pass:", error);
+      res.status(500).json({ error: "فشل في إنشاء ملف Apple Wallet" });
+    }
+  });
+
   // Get loyalty tier information
   app.get("/api/loyalty/tiers", async (req, res) => {
     try {

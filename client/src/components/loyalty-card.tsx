@@ -121,7 +121,7 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(40, 220, 240, 240);
         ctx.drawImage(qrImage, 50, 230, 220, 220);
-        
+
         // Download
         const link = document.createElement('a');
         link.download = `loyalty-card-${card.customerName}.png`;
@@ -132,69 +132,32 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
     }
   };
 
-  const addToAppleWallet = () => {
-    // Create a better Apple Wallet experience
-    const passData = {
-      formatVersion: 1,
-      passTypeIdentifier: "pass.com.qahwacup.loyalty",
-      serialNumber: card.qrToken,
-      teamIdentifier: "QAHWACUP",
-      webServiceURL: "https://api.qahwacup.com/passes/",
-      authenticationToken: card.qrToken,
-      barcode: {
-        message: card.qrToken,
-        format: "PKBarcodeFormatQR",
-        messageEncoding: "iso-8859-1"
-      },
-      organizationName: "قهوة كوب",
-      description: "بطاقة ولاء قهوة كوب",
-      logoText: "قهوة كوب",
-      foregroundColor: "rgb(255, 255, 255)",
-      backgroundColor: "rgb(212, 175, 55)",
-      storeCard: {
-        primaryFields: [
-          {
-            key: "balance",
-            label: "الخصومات المستخدمة",
-            value: card.discountCount.toString()
-          }
-        ],
-        secondaryFields: [
-          {
-            key: "name",
-            label: "اسم العميل",
-            value: card.customerName
-          }
-        ],
-        auxiliaryFields: [
-          {
-            key: "level",
-            label: "المستوى",
-            value: card.tier === 'bronze' ? 'برونزي' : 
-                  card.tier === 'silver' ? 'فضي' : 
-                  card.tier === 'gold' ? 'ذهبي' : 'بلاتيني'
-          }
-        ],
-        backFields: [
-          {
-            key: "terms",
-            label: "الشروط والأحكام",
-            value: "صالح للاستخدام في جميع فروع قهوة كوب. خصم 10% على جميع المشتريات."
-          }
-        ]
-      }
-    };
+  const addToAppleWallet = async () => {
+    try {
+      // Generate a pass file URL (this would typically be generated server-side)
+      const passData = {
+        cardId: card.id,
+        customerName: card.customerName,
+        phoneNumber: card.phoneNumber,
+        qrToken: card.qrToken
+      };
 
-    // For now, show instructions since we need backend support for .pkpass
-    alert(`لإضافة البطاقة لـ Apple Wallet:
+      // Create a temporary download link for Apple Wallet pass
+      const passUrl = `/api/loyalty/cards/${card.id}/apple-wallet-pass`;
 
-1. احفظ البطاقة كصورة أولاً
-2. اذهب للإعدادات > Wallet & Apple Pay
-3. أضف البطاقة يدوياً
+      // For now, show instructions to the user
+      alert(`
+        لإضافة البطاقة إلى Apple Wallet:
+        1. افتح هذا الرابط على iPhone/iPad
+        2. انقر على "إضافة إلى Wallet"
 
-أو يمكنك استخدام QR Code مباشرة من التطبيق عند الشراء.
+        الرابط: ${window.location.origin}${passUrl}
 
-رمز البطاقة: ${card.qrToken}`);
+        أو امسح رمز QR أدناه باستخدام كاميرا iPhone
+      `);
+    } catch (error) {
+      alert("حدث خطأ أثناء إنشاء ملف Apple Wallet");
+    }
   };
 
   const tierInfo = {
@@ -214,7 +177,7 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
         <div className="absolute top-4 right-4 text-6xl opacity-20">{currentTier.icon}</div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 translate-y-1/2"></div>
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2"></div>
-        
+
         <div className="relative p-6 space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -281,7 +244,7 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
             <Download className="w-4 h-4" />
             حفظ البطاقة
           </Button>
-          
+
           <Button
             onClick={addToAppleWallet}
             className="gap-2 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black"

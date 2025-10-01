@@ -40,8 +40,8 @@ export default function QRScanner({
 
     try {
       const res = await apiRequest(
-        "/api/loyalty/scan",
         "POST",
+        "/api/loyalty/scan",
         {
           qrToken: qrToken.trim(),
           orderAmount: orderAmount.toString(),
