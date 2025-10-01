@@ -51,15 +51,18 @@ export default function EmployeeLoyalty() {
   });
 
   const handleCreateCard = () => {
-    if (!customerName.trim() || !phoneNumber.trim()) {
+    if (!phoneNumber.trim()) {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "الرجاء إدخال اسم العميل ورقم الهاتف"
+        description: "الرجاء إدخال رقم الهاتف"
       });
       return;
     }
-    createCardMutation.mutate();
+    createCardMutation.mutate({
+      customerName: customerName.trim(),
+      phoneNumber: phoneNumber.trim()
+    });
   };
 
   return (

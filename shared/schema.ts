@@ -159,9 +159,13 @@ export interface CoffeeStrengthInfo {
 // Loyalty Cards Schema - بطاقات الولاء
 export const loyaltyCards = pgTable("loyalty_cards", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerName: text("customer_name").notNull(),
+  customerName: text("customer_name"), // اختياري الآن
   phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
   qrToken: varchar("qr_token", { length: 100 }).notNull().unique(), // Unique QR code token
+  cardNumber: varchar("card_number", { length: 20 }).notNull().unique(), // رقم البطاقة للعرض
+  stamps: integer("stamps").default(0).notNull(), // الأختام (0-6، بعد 6 يحصل على كوب مجاني)
+  freeCupsEarned: integer("free_cups_earned").default(0).notNull(), // عدد الأكواب المجانية المكتسبة
+  freeCupsRedeemed: integer("free_cups_redeemed").default(0).notNull(), // عدد الأكواب المجانية المستخدمة
   points: integer("points").default(0).notNull(), // نقاط الولاء
   tier: varchar("tier", { length: 20 }).default("bronze").notNull(), // 'bronze', 'silver', 'gold', 'platinum'
   totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0").notNull(),
@@ -170,6 +174,17 @@ export const loyaltyCards = pgTable("loyalty_cards", {
   lastUsedAt: timestamp("last_used_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Card Codes Schema - أرقام البطاقات للاستخدام الواحد
+export const cardCodes = pgTable("card_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cardId: varchar("card_id").references(() => loyaltyCards.id).notNull(),
+  code: varchar("code", { length: 10 }).notNull().unique(), // الرقم السري (مثال: 12345678)
+  isUsed: integer("is_used").default(0).notNull(), // 0 = لم يستخدم، 1 = مستخدم
+  usedAt: timestamp("used_at"),
+  orderId: varchar("order_id").references(() => orders.id), // الطلب الذي استخدم فيه
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Loyalty Transactions Schema - سجل معاملات النقاط
@@ -204,13 +219,27 @@ export const loyaltyRewards = pgTable("loyalty_rewards", {
 export const insertLoyaltyCardSchema = createInsertSchema(loyaltyCards).omit({
   id: true,
   qrToken: true,
+  cardNumber: true,
+  stamps: true,
+  freeCupsEarned: true,
+  freeCupsRedeemed: true,
   points: true,
   totalSpent: true,
   discountCount: true,
+  tier: true,
   status: true,
   lastUsedAt: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertCardCodeSchema = createInsertSchema(cardCodes).omit({
+  id: true,
+  code: true,
+  isUsed: true,
+  usedAt: true,
+  orderId: true,
+  createdAt: true,
 });
 
 export const insertLoyaltyTransactionSchema = createInsertSchema(loyaltyTransactions).omit({
@@ -226,6 +255,9 @@ export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards).omit
 // TypeScript Types for Loyalty
 export type LoyaltyCard = typeof loyaltyCards.$inferSelect;
 export type InsertLoyaltyCard = z.infer<typeof insertLoyaltyCardSchema>;
+
+export type CardCode = typeof cardCodes.$inferSelect;
+export type InsertCardCode = z.infer<typeof insertCardCodeSchema>;
 
 export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
 export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;

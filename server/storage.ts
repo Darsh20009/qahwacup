@@ -15,6 +15,8 @@ import {
   type InsertEmployee,
   type LoyaltyCard,
   type InsertLoyaltyCard,
+  type CardCode,
+  type InsertCardCode,
   type LoyaltyTransaction,
   type InsertLoyaltyTransaction,
   type LoyaltyReward,
@@ -27,6 +29,7 @@ import {
   cartItems,
   users,
   loyaltyCards,
+  cardCodes,
   loyaltyTransactions,
   loyaltyRewards
 } from "@shared/schema";
@@ -430,11 +433,18 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     // Generate unique QR token (UUID-based for security)
     const qrToken = `CUP-${randomUUID().replace(/-/g, '').substring(0, 16).toUpperCase()}`;
+    // Generate unique card number for display
+    const cardNumber = `${Date.now().toString().slice(-8)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     
     const card: LoyaltyCard = {
-      ...cardData,
       id,
+      customerName: cardData.customerName || null,
+      phoneNumber: cardData.phoneNumber,
       qrToken,
+      cardNumber,
+      stamps: 0,
+      freeCupsEarned: 0,
+      freeCupsRedeemed: 0,
       points: 0,
       tier: "bronze",
       totalSpent: "0",
@@ -890,10 +900,12 @@ export class DBStorage implements IStorage {
   // Loyalty Card methods
   async createLoyaltyCard(cardData: InsertLoyaltyCard): Promise<LoyaltyCard> {
     const qrToken = `CUP-${randomUUID().replace(/-/g, '').substring(0, 16).toUpperCase()}`;
+    const cardNumber = `${Date.now().toString().slice(-8)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     
     const result = await this.db.insert(loyaltyCards).values({
       ...cardData,
-      qrToken
+      qrToken,
+      cardNumber
     }).returning();
     return result[0];
   }
@@ -968,8 +980,20 @@ export class DBStorage implements IStorage {
 }
 
 // Create and initialize storage
-// Using MemStorage for development - no database setup required
-const storage: IStorage = new MemStorage();
+let storage: IStorage;
+
+// Use DBStorage for production with DATABASE_URL, fallback to MemStorage for development
+if (process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
+  // Production: Use database
+  (async () => {
+    const dbStorage = new DBStorage();
+    await dbStorage.initialize();
+    storage = dbStorage;
+  })();
+} else {
+  // Development: Use in-memory storage
+  storage = new MemStorage();
+}
 
 // Export storage - will be initialized by the time routes are registered
 export { storage };
