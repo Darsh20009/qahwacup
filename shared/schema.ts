@@ -176,14 +176,15 @@ export const loyaltyCards = pgTable("loyalty_cards", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Card Codes Schema - أرقام البطاقات للاستخدام الواحد
+// Card Codes Schema - أكواد للاستخدام الواحد (كود لكل مشروب)
 export const cardCodes = pgTable("card_codes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  cardId: varchar("card_id").references(() => loyaltyCards.id).notNull(),
-  code: varchar("code", { length: 10 }).notNull().unique(), // الرقم السري (مثال: 12345678)
-  isUsed: integer("is_used").default(0).notNull(), // 0 = لم يستخدم، 1 = مستخدم
-  usedAt: timestamp("used_at"),
-  orderId: varchar("order_id").references(() => orders.id), // الطلب الذي استخدم فيه
+  code: varchar("code", { length: 12 }).notNull().unique(), // الكود الفريد للاستخدام مرة واحدة
+  issuedForOrderId: varchar("issued_for_order_id").references(() => orders.id).notNull(), // الطلب الذي أصدر هذا الكود
+  drinkName: text("drink_name").notNull(), // اسم المشروب
+  isRedeemed: integer("is_redeemed").default(0).notNull(), // 0 = لم يستخدم، 1 = مستخدم
+  redeemedAt: timestamp("redeemed_at"),
+  redeemedByCardId: varchar("redeemed_by_card_id").references(() => loyaltyCards.id), // البطاقة التي استخدمت الكود
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -236,9 +237,9 @@ export const insertLoyaltyCardSchema = createInsertSchema(loyaltyCards).omit({
 export const insertCardCodeSchema = createInsertSchema(cardCodes).omit({
   id: true,
   code: true,
-  isUsed: true,
-  usedAt: true,
-  orderId: true,
+  isRedeemed: true,
+  redeemedAt: true,
+  redeemedByCardId: true,
   createdAt: true,
 });
 
