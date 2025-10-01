@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import CoffeeSteam from "@/components/coffee-steam";
-import { ArrowLeft, CreditCard } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import qahwaLogo from "@/assets/qahwa-cup-logo.png";
 
@@ -49,26 +49,6 @@ export default function SplashScreen() {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex flex-col items-center justify-center z-50 overflow-hidden" data-testid="splash-screen">
-      {/* Employee Gateway Access - Subtle */}
-      <Button
-        variant="ghost"
-        onClick={() => setLocation("/employee/gateway")}
-        className="absolute bottom-4 left-4 text-amber-600 hover:text-amber-800 opacity-50 hover:opacity-100 transition-all"
-        data-testid="button-employee-access"
-      >
-        <span className="text-xs">دخول الموظفين</span>
-      </Button>
-
-      {/* My Card Access - Subtle */}
-      <Button
-        variant="ghost"
-        onClick={() => setLocation("/my-card")}
-        className="absolute bottom-4 right-4 text-amber-600 hover:text-amber-800 opacity-50 hover:opacity-100 transition-all flex items-center gap-2"
-        data-testid="button-my-card-splash"
-      >
-        <CreditCard className="w-4 h-4" />
-        <span className="text-xs">بطاقتي</span>
-      </Button>
       {/* Luxury Background Elements with Coffee Theme */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-20 w-40 h-40 bg-amber-300/30 rounded-full blur-3xl animate-pulse"></div>
