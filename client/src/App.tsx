@@ -20,12 +20,15 @@ import MyCard from "@/pages/my-card";
 import CartModal from "@/components/cart-modal";
 import CheckoutModal from "@/components/checkout-modal";
 import { CartProvider, useCartStore } from "@/lib/cart-store";
+import { CustomerProvider } from "@/contexts/CustomerContext";
+import CustomerAuth from "@/pages/CustomerAuth";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={SplashScreen} />
       <Route path="/0" component={UnifiedHub} />
+      <Route path="/auth" component={CustomerAuth} />
       <Route path="/menu" component={MenuPage} />
       <Route path="/menu-view" component={MenuView} />
       <Route path="/my-card" component={MyCard} />
@@ -62,9 +65,11 @@ function App() {
     <div className="dark">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
+          <CustomerProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </CustomerProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </div>
