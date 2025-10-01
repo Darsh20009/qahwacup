@@ -39,6 +39,7 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { eq, desc, and, sql } from "drizzle-orm";
 import ws from "ws";
+import { nanoid } from "nanoid";
 
 export interface IStorage {
   // User methods (legacy)
@@ -88,9 +89,16 @@ export interface IStorage {
   createLoyaltyCard(card: InsertLoyaltyCard): Promise<LoyaltyCard>;
   getLoyaltyCard(id: string): Promise<LoyaltyCard | undefined>;
   getLoyaltyCardByQRToken(qrToken: string): Promise<LoyaltyCard | undefined>;
+  getLoyaltyCardByCardNumber(cardNumber: string): Promise<LoyaltyCard | undefined>;
   getLoyaltyCardByPhone(phoneNumber: string): Promise<LoyaltyCard | undefined>;
   getLoyaltyCards(): Promise<LoyaltyCard[]>;
   updateLoyaltyCard(id: string, updates: Partial<LoyaltyCard>): Promise<LoyaltyCard | undefined>;
+
+  // Card Code methods
+  generateCodesForOrder(orderId: string, drinks: Array<{name: string, quantity: number}>): Promise<CardCode[]>;
+  redeemCode(code: string, cardId: string): Promise<{success: boolean, message: string, card?: LoyaltyCard}>;
+  getCodesByOrder(orderId: string): Promise<CardCode[]>;
+  getCodeDetails(code: string): Promise<CardCode | undefined>;
 
   // Loyalty Transaction methods
   createLoyaltyTransaction(transaction: InsertLoyaltyTransaction): Promise<LoyaltyTransaction>;
@@ -475,6 +483,12 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getLoyaltyCardByCardNumber(cardNumber: string): Promise<LoyaltyCard | undefined> {
+    return Array.from(this.loyaltyCards.values()).find(
+      card => card.cardNumber === cardNumber
+    );
+  }
+
   async getLoyaltyCards(): Promise<LoyaltyCard[]> {
     return Array.from(this.loyaltyCards.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -493,6 +507,23 @@ export class MemStorage implements IStorage {
     };
     this.loyaltyCards.set(id, updated);
     return updated;
+  }
+
+  // Card Code methods (not implemented in MemStorage)
+  async generateCodesForOrder(orderId: string, drinks: Array<{name: string, quantity: number}>): Promise<CardCode[]> {
+    throw new Error("Not implemented in MemStorage");
+  }
+
+  async redeemCode(code: string, cardId: string): Promise<{success: boolean, message: string, card?: LoyaltyCard}> {
+    throw new Error("Not implemented in MemStorage");
+  }
+
+  async getCodesByOrder(orderId: string): Promise<CardCode[]> {
+    throw new Error("Not implemented in MemStorage");
+  }
+
+  async getCodeDetails(code: string): Promise<CardCode | undefined> {
+    throw new Error("Not implemented in MemStorage");
   }
 
   // Loyalty Transaction methods
@@ -931,6 +962,13 @@ export class DBStorage implements IStorage {
     return result[0];
   }
 
+  async getLoyaltyCardByCardNumber(cardNumber: string): Promise<LoyaltyCard | undefined> {
+    const result = await this.db.select().from(loyaltyCards)
+      .where(eq(loyaltyCards.cardNumber, cardNumber))
+      .limit(1);
+    return result[0];
+  }
+
   async getLoyaltyCards(): Promise<LoyaltyCard[]> {
     return await this.db.select().from(loyaltyCards).orderBy(desc(loyaltyCards.createdAt));
   }
@@ -940,6 +978,111 @@ export class DBStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(loyaltyCards.id, id))
       .returning();
+    return result[0];
+  }
+
+  // Card Code methods
+  async generateCodesForOrder(orderId: string, drinks: Array<{name: string, quantity: number}>): Promise<CardCode[]> {
+    const codesToInsert: Array<{
+      code: string;
+      issuedForOrderId: string;
+      drinkName: string;
+      isRedeemed: number;
+    }> = [];
+    let totalCodes = 0;
+
+    for (const drink of drinks) {
+      const codesToGenerate = Math.min(drink.quantity, 5 - totalCodes);
+      
+      for (let i = 0; i < codesToGenerate; i++) {
+        const code = nanoid(8);
+        codesToInsert.push({
+          code,
+          issuedForOrderId: orderId,
+          drinkName: drink.name,
+          isRedeemed: 0
+        });
+        totalCodes++;
+        
+        if (totalCodes >= 5) break;
+      }
+      
+      if (totalCodes >= 5) break;
+    }
+
+    if (codesToInsert.length === 0) {
+      return [];
+    }
+
+    const result = await this.db.insert(cardCodes).values(codesToInsert).returning();
+    return result;
+  }
+
+  async redeemCode(code: string, cardId: string): Promise<{success: boolean, message: string, card?: LoyaltyCard}> {
+    try {
+      return await this.db.transaction(async (tx) => {
+        const codeResult = await tx.select().from(cardCodes)
+          .where(eq(cardCodes.code, code))
+          .limit(1);
+
+        if (codeResult.length === 0) {
+          return { success: false, message: "رمز غير صالح" };
+        }
+
+        const cardCode = codeResult[0];
+
+        if (cardCode.isRedeemed === 1) {
+          return { success: false, message: "تم استخدام هذا الرمز من قبل" };
+        }
+
+        await tx.update(cardCodes)
+          .set({
+            isRedeemed: 1,
+            redeemedByCardId: cardId,
+            redeemedAt: new Date()
+          })
+          .where(eq(cardCodes.id, cardCode.id));
+
+        const cardResult = await tx.select().from(loyaltyCards)
+          .where(eq(loyaltyCards.id, cardId))
+          .limit(1);
+
+        if (cardResult.length === 0) {
+          return { success: false, message: "البطاقة غير موجودة" };
+        }
+
+        const card = cardResult[0];
+        const newStamps = card.stamps + 1;
+
+        const updatedCardResult = await tx.update(loyaltyCards)
+          .set({
+            stamps: newStamps,
+            lastUsedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(loyaltyCards.id, cardId))
+          .returning();
+
+        return {
+          success: true,
+          message: "تم استخدام الرمز بنجاح",
+          card: updatedCardResult[0]
+        };
+      });
+    } catch (error) {
+      return { success: false, message: "حدث خطأ أثناء استخدام الرمز" };
+    }
+  }
+
+  async getCodesByOrder(orderId: string): Promise<CardCode[]> {
+    return await this.db.select().from(cardCodes)
+      .where(eq(cardCodes.issuedForOrderId, orderId));
+  }
+
+  async getCodeDetails(code: string): Promise<CardCode | undefined> {
+    const result = await this.db.select().from(cardCodes)
+      .where(eq(cardCodes.code, code))
+      .limit(1);
     return result[0];
   }
 
