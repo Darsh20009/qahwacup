@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/cart-store";
+import { useCustomer } from "@/contexts/CustomerContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "./payment-methods";
@@ -20,6 +21,7 @@ export default function CheckoutModal() {
     clearCart, 
     getTotalPrice 
   } = useCartStore();
+  const { customer } = useCustomer();
   
   const { toast } = useToast();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
@@ -73,6 +75,7 @@ export default function CheckoutModal() {
       paymentMethod: selectedPaymentMethod,
       paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
       status: "pending",
+      customerId: customer?.id, // Link order to customer if logged in
     };
 
     createOrderMutation.mutate(orderData);

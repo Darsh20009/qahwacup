@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CoffeeCard from "@/components/coffee-card";
 import { useCartStore } from "@/lib/cart-store";
+import { useCustomer } from "@/contexts/CustomerContext";
 import { useLocation } from "wouter";
-import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter, CreditCard } from "lucide-react";
+import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter, CreditCard, User } from "lucide-react";
 import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
 
 export default function MenuPage() {
   const { cartItems } = useCartStore();
+  const { isAuthenticated } = useCustomer();
   const [, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStrength, setSelectedStrength] = useState<CoffeeStrengthType | "all">("all");
@@ -106,13 +108,22 @@ export default function MenuPage() {
             
             <div className="flex items-center gap-3">
               <Button 
-                onClick={() => setLocation("/my-card")}
+                onClick={() => setLocation(isAuthenticated ? "/copy-card" : "/auth")}
                 variant="outline"
                 className="bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 transition-all duration-300 px-4 py-2 shadow-sm hover:shadow-md rounded-lg"
                 data-testid="button-my-card"
               >
-                <CreditCard className="w-5 h-5 ml-2" />
-                بطاقتي
+                {isAuthenticated ? (
+                  <>
+                    <CreditCard className="w-5 h-5 ml-2" />
+                    بطاقة كوبي
+                  </>
+                ) : (
+                  <>
+                    <User className="w-5 h-5 ml-2" />
+                    تسجيل الدخول
+                  </>
+                )}
               </Button>
               
               <Button 
