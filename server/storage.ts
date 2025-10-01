@@ -584,17 +584,12 @@ export class DBStorage implements IStorage {
   private initialized = false;
 
   constructor() {
-    // Disable WebSocket in development environment
-    neonConfig.webSocketConstructor = undefined;
-    neonConfig.useSecureWebSocket = false;
-    neonConfig.pipelineConnect = false;
+    // Configure Neon to use WebSocket (required for serverless)
+    neonConfig.webSocketConstructor = ws;
     
-    // Create connection pool with SSL configuration
+    // Create connection pool
     this.pool = new Pool({ 
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      connectionString: process.env.DATABASE_URL
     });
     this.db = drizzle(this.pool);
   }
