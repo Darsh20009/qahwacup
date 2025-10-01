@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import CoffeeCard from "@/components/coffee-card";
 import { useCartStore } from "@/lib/cart-store";
 import { useLocation } from "wouter";
-import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter } from "lucide-react";
+import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter, CreditCard } from "lucide-react";
 import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
 
@@ -104,24 +104,36 @@ export default function MenuPage() {
               </div>
             </div>
             
-            <Button 
-              onClick={() => setLocation("/cart")}
-              variant="default"
-              className="relative bg-slate-600 hover:bg-slate-700 text-white transition-all duration-300 px-6 py-3 text-lg font-semibold shadow-md hover:shadow-lg rounded-lg"
-              data-testid="button-cart"
-            >
-              <ShoppingCart className="w-5 h-5 ml-2" />
-              السلة
-              {totalItems > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-2 -left-2 h-6 w-6 flex items-center justify-center p-0 text-sm font-bold bg-blue-500"
-                  data-testid="badge-cart-count"
-                >
-                  {totalItems}
-                </Badge>
-              )}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => setLocation("/my-card")}
+                variant="outline"
+                className="bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 transition-all duration-300 px-4 py-2 shadow-sm hover:shadow-md rounded-lg"
+                data-testid="button-my-card"
+              >
+                <CreditCard className="w-5 h-5 ml-2" />
+                بطاقتي
+              </Button>
+              
+              <Button 
+                onClick={() => setLocation("/cart")}
+                variant="default"
+                className="relative bg-slate-600 hover:bg-slate-700 text-white transition-all duration-300 px-6 py-3 text-lg font-semibold shadow-md hover:shadow-lg rounded-lg"
+                data-testid="button-cart"
+              >
+                <ShoppingCart className="w-5 h-5 ml-2" />
+                السلة
+                {totalItems > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -left-2 h-6 w-6 flex items-center justify-center p-0 text-sm font-bold bg-blue-500"
+                    data-testid="badge-cart-count"
+                  >
+                    {totalItems}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>

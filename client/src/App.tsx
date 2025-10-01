@@ -16,6 +16,7 @@ import EmployeeCashier from "@/pages/employee-cashier";
 import EmployeeOrders from "@/pages/employee-orders";
 import EmployeeLoyalty from "@/pages/employee-loyalty";
 import UnifiedHub from "@/pages/unified-hub";
+import MyCard from "@/pages/my-card";
 import CartModal from "@/components/cart-modal";
 import CheckoutModal from "@/components/checkout-modal";
 import { CartProvider, useCartStore } from "@/lib/cart-store";
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/0" component={UnifiedHub} />
       <Route path="/menu" component={MenuPage} />
       <Route path="/menu-view" component={MenuView} />
+      <Route path="/my-card" component={MyCard} />
       <Route path="/cart" component={CartPage} />
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/product/:id" component={ProductDetails} />
