@@ -4,6 +4,20 @@ This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) 
 
 # Recent Changes
 
+**2025-10-01**: Customer-Facing Loyalty Card System with localStorage
+- Built web-based "My Card" loyalty system (/my-card route) replacing Apple Wallet integration
+- Implemented localStorage-based card storage with automatic phone number backup (qahwa-card-{phoneNumber})
+- Added stamp collection UI (7 stamps = 1 free coffee) with visual progress indicators
+- Created QR code generation for each card with card details encoded
+- Implemented card retrieval system: customers can recover their card by entering phone number
+- Added PNG image download feature using html2canvas for offline card storage
+- Integrated WhatsApp notification when card is issued (sends card number, name, and phone)
+- Designed card UI inspired by Fuji Cafe with amber/orange color scheme
+- Added "My Card" access button in menu page header and splash screen (bottom-right)
+- Removed Apple Wallet endpoint from server/routes.ts and cleaned up unused code
+- Security note: Card data stored in browser localStorage (unencrypted) - suitable for non-sensitive loyalty data
+- System is fully self-sufficient without requiring database or programmer intervention
+
 **2025-10-01**: GitHub Import Setup for Replit Environment
 - Successfully configured GitHub import to run in Replit environment
 - Fixed npm scripts to use npx prefix for proper PATH resolution (tsx, vite, esbuild, tsc, drizzle-kit)
@@ -96,7 +110,13 @@ The server uses Express.js with TypeScript in a RESTful API pattern:
 - **Cashier Interface**: Staff can create orders for customers with product selection and payment method
 - **WhatsApp Integration**: Automated invoice delivery and order status notifications via WhatsApp
 - **Employee Dashboard**: Profile cards with QR codes for employee identification
-- **Loyalty Card System**: QR-based loyalty cards with automatic 10% discounts and tier progression
+- **Customer Loyalty Card System**: Web-based "My Card" system with localStorage storage (no database required)
+  - Stamp collection: 7 stamps = 1 free coffee
+  - QR code for each card with encoded card details
+  - Card retrieval via phone number
+  - PNG image download for offline storage
+  - WhatsApp notification on card issuance
+  - Fuji Cafe-inspired design with amber/orange theme
 - **QR Scanner Integration**: Cashier can scan customer loyalty cards for instant discount application
 - **Unified Hub Page**: Combined dashboard and menu view at route "/0" for employees
 
