@@ -9,6 +9,8 @@ import {
   type InsertCartItem,
   type User,
   type InsertUser,
+  type Customer,
+  type InsertCustomer,
   type Employee,
   type InsertEmployee,
   type LoyaltyCard,
@@ -18,6 +20,7 @@ import {
   type LoyaltyReward,
   type InsertLoyaltyReward,
   coffeeItems,
+  customers,
   employees,
   orders,
   orderItems,
@@ -45,6 +48,13 @@ export interface IStorage {
   getEmployeeByUsername(username: string): Promise<Employee | undefined>;
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   getEmployees(): Promise<Employee[]>;
+
+  // Customer methods
+  getCustomer(id: string): Promise<Customer | undefined>;
+  getCustomerByPhone(phone: string): Promise<Customer | undefined>;
+  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer | undefined>;
+  getCustomerOrders(customerId: string): Promise<Order[]>;
 
   // Coffee Item methods
   getCoffeeItems(): Promise<CoffeeItem[]>;
@@ -297,6 +307,7 @@ export class MemStorage implements IStorage {
       paymentDetails: orderData.paymentDetails ?? null,
       status: orderData.status ?? "pending",
       customerInfo: orderData.customerInfo ?? null,
+      customerId: orderData.customerId ?? null,
       employeeId: orderData.employeeId ?? null
     };
     this.orders.set(id, order);
@@ -533,6 +544,27 @@ export class MemStorage implements IStorage {
   async getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined> {
     return this.loyaltyRewards.get(id);
   }
+
+  // Customer methods (stub - not used with database)
+  async getCustomer(id: string): Promise<Customer | undefined> {
+    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  }
+
+  async getCustomerByPhone(phone: string): Promise<Customer | undefined> {
+    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  }
+
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  }
+
+  async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer | undefined> {
+    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  }
+
+  async getCustomerOrders(customerId: string): Promise<Order[]> {
+    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  }
 }
 
 // Database Storage Implementation using Drizzle ORM
@@ -640,6 +672,36 @@ export class DBStorage implements IStorage {
 
   async getEmployees(): Promise<Employee[]> {
     return await this.db.select().from(employees);
+  }
+
+  // Customer methods
+  async getCustomer(id: string): Promise<Customer | undefined> {
+    const result = await this.db.select().from(customers).where(eq(customers.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getCustomerByPhone(phone: string): Promise<Customer | undefined> {
+    const result = await this.db.select().from(customers).where(eq(customers.phone, phone)).limit(1);
+    return result[0];
+  }
+
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    const result = await this.db.insert(customers).values(insertCustomer).returning();
+    return result[0];
+  }
+
+  async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | undefined> {
+    const result = await this.db.update(customers)
+      .set(updates)
+      .where(eq(customers.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getCustomerOrders(customerId: string): Promise<Order[]> {
+    return await this.db.select().from(orders)
+      .where(eq(orders.customerId, customerId))
+      .orderBy(desc(orders.createdAt));
   }
 
   // User methods (legacy)
