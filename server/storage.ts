@@ -587,12 +587,14 @@ export class DBStorage implements IStorage {
     // Configure Neon to use WebSocket for serverless deployment
     neonConfig.webSocketConstructor = ws;
     
-    // Create connection pool with SSL configuration
+    // Disable TLS validation in development for self-signed certificates
+    neonConfig.wsProxy = (host: string) => `${host}?sslmode=require`;
+    neonConfig.useSecureWebSocket = false;
+    neonConfig.pipelineTLS = false;
+    
+    // Create connection pool
     this.pool = new Pool({ 
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      connectionString: process.env.DATABASE_URL
     });
     this.db = drizzle(this.pool);
   }
