@@ -4,6 +4,18 @@ This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) 
 
 # Recent Changes
 
+**2025-10-01**: Loyalty System Redesign - Card Numbers + Stamps System
+- Migrated loyalty system from QR-based to one-time use card code system
+- Updated loyalty card schema: added `cardNumber` (unique display number), removed old QR requirement
+- Created new `cardCodes` table for managing 100+ one-time use codes per card
+- Each code can be used only once, tracked with `isUsed` and `usedAt` fields
+- New stamp collection logic: 5 stamps trigger 10% discount, 6th stamp = free coffee
+- Customer name made optional (nullable) in loyalty card creation forms
+- Schema changes: `loyaltyCards.customerName` is now nullable, `cardNumber` added for display
+- Prepared API infrastructure for code redemption and discount application
+- Employee loyalty management page updated to reflect new code-based system
+- Cashier interface will use card number input instead of QR scanner
+
 **2025-10-01**: Database Migration - Complete PostgreSQL Integration
 - Migrated from in-memory storage (MemStorage) to PostgreSQL database with Drizzle ORM
 - Created DBStorage class implementing all IStorage methods with database queries
