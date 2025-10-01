@@ -331,6 +331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate order items and calculate total
       const orderItems = Array.isArray(validatedData.items) ? validatedData.items : [];
       let calculatedTotal = 0;
+      let cheapestItemPrice = Infinity;
 
       for (const item of orderItems) {
         if (typeof item !== 'object' || !item.coffeeItemId || !item.quantity || !item.price) {
@@ -342,13 +343,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: `Coffee item ${item.coffeeItemId} not found` });
         }
         
-        calculatedTotal += parseFloat(item.price) * item.quantity;
+        const itemPrice = parseFloat(item.price);
+        calculatedTotal += itemPrice * item.quantity;
+        
+        if (itemPrice < cheapestItemPrice) {
+          cheapestItemPrice = itemPrice;
+        }
       }
 
-      // Verify total matches
+      // Apply loyalty discounts if applicable
+      let expectedTotal = calculatedTotal;
+      const loyaltyDiscountApplied = (req.body as any).loyaltyDiscountApplied;
+      const freeCoffeeUsed = (req.body as any).freeCoffeeUsed;
+      
+      if (freeCoffeeUsed && cheapestItemPrice !== Infinity) {
+        expectedTotal -= cheapestItemPrice;
+      }
+      
+      if (loyaltyDiscountApplied) {
+        expectedTotal = expectedTotal * 0.9;
+      }
+
+      // Verify total matches (with small tolerance for floating point)
       const requestedTotal = parseFloat(validatedData.totalAmount);
-      if (Math.abs(calculatedTotal - requestedTotal) > 0.01) {
-        return res.status(400).json({ error: "Total amount mismatch" });
+      if (Math.abs(expectedTotal - requestedTotal) > 0.01) {
+        console.log(`Total mismatch: calculated=${calculatedTotal}, withDiscounts=${expectedTotal}, requested=${requestedTotal}`);
+        return res.status(400).json({ 
+          error: "Total amount mismatch",
+          details: { calculated: calculatedTotal, expected: expectedTotal, requested: requestedTotal }
+        });
       }
 
       const order = await storage.createOrder(validatedData);

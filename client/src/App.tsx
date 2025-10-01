@@ -23,7 +23,7 @@ import { CartProvider, useCartStore } from "@/lib/cart-store";
 import { CustomerProvider } from "@/contexts/CustomerContext";
 import CustomerAuth from "@/pages/CustomerAuth";
 import CopyCard from "@/pages/CopyCard";
-import MyOrders from "@/pages/MyOrders";
+import MyOrdersPage from "@/pages/my-orders";
 
 function Router() {
   return (
@@ -32,7 +32,7 @@ function Router() {
       <Route path="/0" component={UnifiedHub} />
       <Route path="/auth" component={CustomerAuth} />
       <Route path="/copy-card" component={CopyCard} />
-      <Route path="/my-orders" component={MyOrders} />
+      <Route path="/my-orders" component={MyOrdersPage} />
       <Route path="/menu" component={MenuPage} />
       <Route path="/menu-view" component={MenuView} />
       <Route path="/my-card" component={MyCard} />
