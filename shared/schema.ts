@@ -19,6 +19,14 @@ export const coffeeItems = pgTable("coffee_items", {
   strengthLevel: integer("strength_level"), // 1-4 mild, 4-8 medium, 8-12 strong, null for classic
 });
 
+// Customers Schema - العملاء
+export const customers = pgTable("customers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phone: varchar("phone", { length: 20 }).notNull().unique(),
+  name: text("name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Employees Schema
 export const employees = pgTable("employees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -39,7 +47,8 @@ export const orders = pgTable("orders", {
   paymentMethod: varchar("payment_method", { length: 50 }).notNull(),
   paymentDetails: text("payment_details"),
   status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending', 'confirmed', 'completed', 'cancelled'
-  customerInfo: jsonb("customer_info"), // Customer details: {name, phone}
+  customerInfo: jsonb("customer_info"), // Customer details: {name, phone} - legacy field
+  customerId: varchar("customer_id").references(() => customers.id), // العميل المسجل
   employeeId: varchar("employee_id").references(() => employees.id), // الموظف الذي أنشأ الطلب
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -90,9 +99,17 @@ export const insertCartItemSchema = createInsertSchema(cartItems).omit({
   createdAt: true,
 });
 
+export const insertCustomerSchema = createInsertSchema(customers).omit({
+  id: true,
+  createdAt: true,
+});
+
 // TypeScript Types
 export type CoffeeItem = typeof coffeeItems.$inferSelect;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
+
+export type Customer = typeof customers.$inferSelect;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 
 export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
