@@ -438,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertOrderSchema.parse(req.body);
 
       // Validate payment method
-      const validPaymentMethods: PaymentMethod[] = ['cash', 'stc', 'alinma', 'ur', 'barq', 'rajhi'];
+      const validPaymentMethods: PaymentMethod[] = ['cash', 'stc', 'alinma', 'ur', 'barq', 'rajhi', 'qahwa-card'];
       if (!validPaymentMethods.includes(validatedData.paymentMethod as PaymentMethod)) {
         return res.status(400).json({ error: "Invalid payment method" });
       }

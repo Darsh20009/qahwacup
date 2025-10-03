@@ -145,7 +145,7 @@ export type CartItem = typeof cartItems.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 
 // Payment Method Types
-export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi';
+export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card';
 
 export interface PaymentMethodInfo {
   id: PaymentMethod;
