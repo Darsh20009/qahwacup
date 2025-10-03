@@ -523,6 +523,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         freeItemsDiscount: freeItemsDiscount || "0.00"
       });
 
+      // Add stamps automatically if customer has loyalty card
+      if (finalCustomerId) {
+        try {
+          const customer = await storage.getCustomer(finalCustomerId);
+          if (customer?.phone) {
+            let loyaltyCard = await storage.getLoyaltyCardByPhone(customer.phone);
+            
+            // Create loyalty card if doesn't exist
+            if (!loyaltyCard) {
+              loyaltyCard = await storage.createLoyaltyCard({
+                customerName: customerInfo.customerName,
+                phoneNumber: customer.phone
+              });
+            }
+
+            // Calculate stamps (1 stamp per drink, but not for free drinks used)
+            const totalDrinks = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+            const stampsToAdd = paymentMethod === 'qahwa-card' ? Math.max(0, totalDrinks - usedFreeDrinks) : totalDrinks;
+
+            if (stampsToAdd > 0) {
+              const newStamps = loyaltyCard.stamps + stampsToAdd;
+              const freeCupsToEarn = Math.floor(newStamps / 6);
+              const remainingStamps = newStamps % 6;
+
+              await storage.updateLoyaltyCard(loyaltyCard.id, {
+                stamps: remainingStamps,
+                freeCupsEarned: loyaltyCard.freeCupsEarned + freeCupsToEarn,
+                totalSpent: (parseFloat(loyaltyCard.totalSpent) + parseFloat(totalAmount)).toFixed(2),
+                lastUsedAt: new Date()
+              });
+
+              // Create loyalty transaction for stamps
+              await storage.createLoyaltyTransaction({
+                cardId: loyaltyCard.id,
+                type: 'stamps_earned',
+                pointsChange: stampsToAdd,
+                discountAmount: "0.00",
+                orderAmount: totalAmount,
+                description: `اكتسبت ${stampsToAdd} ختم من الطلب`,
+                employeeId: null
+              });
+
+              // Create transaction for free cups earned
+              if (freeCupsToEarn > 0) {
+                await storage.createLoyaltyTransaction({
+                  cardId: loyaltyCard.id,
+                  type: 'free_cup_earned',
+                  pointsChange: 0,
+                  discountAmount: "0.00",
+                  orderAmount: totalAmount,
+                  description: `اكتسبت ${freeCupsToEarn} قهوة مجانية!`,
+                  employeeId: null
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error adding stamps:", error);
+          // Don't fail the order if stamp addition fails
+        }
+      }
+
       res.status(201).json(order);
     } catch (error) {
       console.error("Error creating order:", error);
