@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "@/components/payment-methods";
 import { generatePDF } from "@/lib/pdf-generator";
+import { customerStorage } from "@/lib/customer-storage";
 import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
 
@@ -26,6 +27,18 @@ export default function CheckoutPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [loyaltyCodes, setLoyaltyCodes] = useState<any[]>([]);
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
+  const [useFreeDrink, setUseFreeDrink] = useState(false);
+  const [isRegisteredCustomer, setIsRegisteredCustomer] = useState(false);
+
+  // Load customer data if registered
+  useEffect(() => {
+    const profile = customerStorage.getProfile();
+    if (profile && !customerStorage.isGuestMode()) {
+      setCustomerName(profile.name);
+      setCustomerPhone(profile.phone);
+      setIsRegisteredCustomer(true);
+    }
+  }, []);
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
@@ -83,6 +96,23 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Check if using free drink
+    const profile = customerStorage.getProfile();
+    if (useFreeDrink && profile) {
+      if (profile.freeDrinks <= 0) {
+        toast({
+          variant: "destructive",
+          title: "ليس لديك مشروبات مجانية",
+          description: "يرجى إلغاء تفعيل استخدام بطاقتي"
+        });
+        return;
+      }
+    }
+
+    const totalAmount = useFreeDrink && profile && profile.freeDrinks > 0 
+      ? 0  // Free if using free drink
+      : getTotalPrice();
+
     const orderData = {
       items: cartItems.map(item => ({
         coffeeItemId: item.coffeeItemId,
@@ -90,7 +120,7 @@ export default function CheckoutPage() {
         price: item.coffeeItem?.price || "0",
         name: item.coffeeItem?.nameAr || "",
       })),
-      totalAmount: getTotalPrice().toString(),
+      totalAmount: totalAmount.toString(),
       paymentMethod: selectedPaymentMethod,
       paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
       status: "pending",
@@ -106,6 +136,32 @@ export default function CheckoutPage() {
 
   const handlePaymentConfirmed = async (order: any) => {
     try {
+      // Save order to localStorage if customer is registered
+      if (isRegisteredCustomer && !customerStorage.isGuestMode()) {
+        customerStorage.addOrder({
+          orderNumber: order.orderNumber,
+          items: cartItems.map(item => ({
+            id: item.coffeeItemId,
+            nameAr: item.coffeeItem?.nameAr || "",
+            quantity: item.quantity,
+            price: parseFloat(item.coffeeItem?.price || "0")
+          })),
+          totalAmount: parseFloat(order.totalAmount),
+          paymentMethod: selectedPaymentMethod!,
+          transferOwnerName: isSameAsCustomer ? customerName : transferOwnerName,
+          usedFreeDrink: useFreeDrink
+        });
+
+        // Use free drink if selected
+        if (useFreeDrink) {
+          customerStorage.useFreeDrink();
+          toast({
+            title: "تم استخدام المشروب المجاني! 🎉",
+            description: "استمتع بقهوتك",
+          });
+        }
+      }
+
       // Generate PDF invoice
       const pdfBlob = await generatePDF(order, cartItems, selectedPaymentMethod!);
       
@@ -537,7 +593,7 @@ ${itemsWithPrices}
                     ))}
                   </div>
                   
-                  <div className="bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl p-6 shadow-lg relative overflow-hidden">
+                  <div className={`bg-gradient-to-r ${useFreeDrink ? 'from-green-500 to-emerald-600' : 'from-primary to-secondary'} text-primary-foreground rounded-xl p-6 shadow-lg relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                     <div className="relative z-10">
                       <div className="flex justify-between items-center mb-2">
@@ -546,14 +602,27 @@ ${itemsWithPrices}
                           المجموع الكلي:
                         </span>
                         <div className="text-center">
-                          <span className="text-3xl font-bold block" data-testid="text-summary-total">
-                            {getTotalPrice().toFixed(2)} ريال
-                          </span>
-                          <span className="text-sm opacity-90">شامل جميع العناصر ☕</span>
+                          {useFreeDrink ? (
+                            <>
+                              <span className="text-3xl font-bold block" data-testid="text-summary-total">
+                                مجاني 🎉
+                              </span>
+                              <span className="text-sm opacity-90 line-through">
+                                {getTotalPrice().toFixed(2)} ريال
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-3xl font-bold block" data-testid="text-summary-total">
+                                {getTotalPrice().toFixed(2)} ريال
+                              </span>
+                              <span className="text-sm opacity-90">شامل جميع العناصر ☕</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="mt-3 text-center text-sm opacity-90 bg-white/20 rounded-lg p-2">
-                        ✨ لكل لحظة قهوة ، لحظة نجاح
+                        {useFreeDrink ? '🎁 استخدمت بطاقتك - استمتع بقهوتك المجانية!' : '✨ لكل لحظة قهوة ، لحظة نجاح'}
                       </div>
                     </div>
                     {/* Decorative elements */}
@@ -596,9 +665,15 @@ ${itemsWithPrices}
                         <h4 className="font-amiri text-2xl font-bold text-center mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                           معلومات العميل
                         </h4>
-                        <p className="text-center text-slate-600 mb-8 text-sm">
-                          ✨ أدخل بياناتك للمتابعة مع تجربة قهوة رائعة
-                        </p>
+                        {isRegisteredCustomer ? (
+                          <p className="text-center text-green-600 mb-8 text-sm bg-green-50 py-2 px-4 rounded-lg">
+                            ✓ مرحباً {customerName} - حسابك مسجل لدينا
+                          </p>
+                        ) : (
+                          <p className="text-center text-slate-600 mb-8 text-sm">
+                            ✨ أدخل بياناتك للمتابعة مع تجربة قهوة رائعة
+                          </p>
+                        )}
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -613,6 +688,7 @@ ${itemsWithPrices}
                             onChange={(e) => setCustomerName(e.target.value)}
                             className="text-right"
                             data-testid="input-customer-name"
+                            disabled={isRegisteredCustomer}
                             required
                           />
                         </div>
@@ -629,43 +705,81 @@ ${itemsWithPrices}
                             onChange={(e) => setCustomerPhone(e.target.value)}
                             className="text-right"
                             data-testid="input-customer-phone"
+                            disabled={isRegisteredCustomer}
                           />
                         </div>
                       </div>
 
-                      {/* بطاقتي - رابط سريع */}
-                      <div className="mt-6 relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-orange-500/30 to-amber-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
-                        
-                        <div className="relative bg-gradient-to-br from-amber-50/90 via-orange-50/80 to-amber-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-amber-300/50 shadow-xl">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full opacity-20 blur animate-pulse"></div>
-                                <div className="relative bg-gradient-to-r from-amber-500 to-orange-600 rounded-full p-2.5 text-white shadow-lg">
-                                  <Gift className="w-6 h-6" />
+                      {/* Use Free Drink Option - Only for registered customers with free drinks */}
+                      {isRegisteredCustomer && customerStorage.getProfile()?.freeDrinks! > 0 && (
+                        <div className="mt-6 relative group" data-testid="section-free-drink">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-green-400/30 via-emerald-500/30 to-green-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+                          
+                          <div className="relative bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-green-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-green-300/50 shadow-xl">
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                              <Checkbox
+                                id="use-free-drink"
+                                checked={useFreeDrink}
+                                onCheckedChange={(checked) => setUseFreeDrink(!!checked)}
+                                data-testid="checkbox-use-free-drink"
+                                className="border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                              />
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="relative">
+                                  <div className="absolute -inset-2 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full opacity-20 blur animate-pulse"></div>
+                                  <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 rounded-full p-2.5 text-white shadow-lg">
+                                    <Gift className="w-6 h-6" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <Label htmlFor="use-free-drink" className="font-amiri text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent cursor-pointer">
+                                    استخدام بطاقتي (مشروب مجاني)
+                                  </Label>
+                                  <p className="text-sm text-green-700 font-cairo">
+                                    لديك {customerStorage.getProfile()?.freeDrinks} مشروب مجاني متاح! 🎉
+                                  </p>
                                 </div>
                               </div>
-                              <div>
-                                <h4 className="font-amiri text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-700 bg-clip-text text-transparent">
-                                  اجمع الأختام واحصل على قهوة مجانية!
-                                </h4>
-                                <p className="text-sm text-amber-700 font-cairo">
-                                  6 أختام = قهوة مجانية ☕
-                                </p>
-                              </div>
                             </div>
-                            <Button
-                              onClick={() => window.location.href = '/my-card'}
-                              variant="outline"
-                              className="border-amber-500 text-amber-700 hover:bg-amber-100 font-cairo"
-                              data-testid="button-my-card-link"
-                            >
-                              بطاقتي
-                            </Button>
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* بطاقتي - رابط سريع - Only show for non-registered users */}
+                      {!isRegisteredCustomer && (
+                        <div className="mt-6 relative group">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-orange-500/30 to-amber-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+                          
+                          <div className="relative bg-gradient-to-br from-amber-50/90 via-orange-50/80 to-amber-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-amber-300/50 shadow-xl">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="relative">
+                                  <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full opacity-20 blur animate-pulse"></div>
+                                  <div className="relative bg-gradient-to-r from-amber-500 to-orange-600 rounded-full p-2.5 text-white shadow-lg">
+                                    <Gift className="w-6 h-6" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="font-amiri text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-700 bg-clip-text text-transparent">
+                                    سجل دخولك واحصل على مشروبات مجانية!
+                                  </h4>
+                                  <p className="text-sm text-amber-700 font-cairo">
+                                    5 طوابع = قهوة مجانية ☕
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() => window.location.href = '/customer-login'}
+                                variant="outline"
+                                className="border-amber-500 text-amber-700 hover:bg-amber-100 font-cairo"
+                                data-testid="button-register-link"
+                              >
+                                تسجيل
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-1 gap-4 mt-4">
                         

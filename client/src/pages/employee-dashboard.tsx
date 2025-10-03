@@ -1,20 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles } from "lucide-react";
-import QRCodeComponent from "@/components/qr-code";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard } from "lucide-react";
+import QRCode from "qrcode";
+import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
 
 export default function EmployeeDashboard() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const storedEmployee = localStorage.getItem("currentEmployee");
     if (storedEmployee) {
-      setEmployee(JSON.parse(storedEmployee));
+      const emp = JSON.parse(storedEmployee);
+      setEmployee(emp);
+      
+      // Generate QR code with employee info
+      const employeeData = {
+        id: emp.id,
+        username: emp.username,
+        fullName: emp.fullName,
+        role: emp.role,
+        title: emp.title
+      };
+      
+      QRCode.toDataURL(JSON.stringify(employeeData), {
+        width: 200,
+        margin: 1,
+        color: {
+          dark: '#1a1410',
+          light: '#f59e0b'
+        }
+      }).then(url => {
+        setQrCodeUrl(url);
+      });
     } else {
       setLocation("/employee/gateway");
     }
@@ -23,6 +48,24 @@ export default function EmployeeDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("currentEmployee");
     setLocation("/employee/gateway");
+  };
+
+  const downloadCard = async () => {
+    if (!cardRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: '#1a1410',
+        scale: 2
+      });
+      
+      const link = document.createElement('a');
+      link.download = `employee-card-${employee?.username}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    } catch (error) {
+      console.error('Error downloading card:', error);
+    }
   };
 
   if (!employee) {
@@ -61,45 +104,108 @@ export default function EmployeeDashboard() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Employee Card */}
         <div className="lg:col-span-1">
-          <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20 overflow-hidden">
-            <div className="h-24 bg-gradient-to-r from-amber-500 to-amber-700"></div>
-            <CardContent className="pt-0 -mt-12">
-              <div className="flex flex-col items-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center border-4 border-[#2d1f1a] mb-4">
-                  <User className="w-12 h-12 text-white" />
-                </div>
-                
-                <h2 className="text-2xl font-bold text-amber-500 mb-2 text-center" data-testid="text-employee-name">
-                  {employee.fullName}
-                </h2>
-                
-                <Badge className={`${roleColor} text-white mb-2`} data-testid="badge-role">
-                  {roleArabic}
-                </Badge>
-                
-                {employee.title && (
-                  <div className="flex items-center gap-2 mb-4">
-                    <Award className="w-4 h-4 text-amber-500" />
-                    <span className="text-gray-300" data-testid="text-title">{employee.title}</span>
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-[#2d1f1a] border-amber-500/20">
+              <TabsTrigger value="profile" data-testid="tab-profile">
+                <User className="w-4 h-4 ml-2" />
+                الملف الشخصي
+              </TabsTrigger>
+              <TabsTrigger value="card" data-testid="tab-card">
+                <IdCard className="w-4 h-4 ml-2" />
+                بطاقة الموظف
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile">
+              <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20 overflow-hidden">
+                <div className="h-24 bg-gradient-to-r from-amber-500 to-amber-700"></div>
+                <CardContent className="pt-0 -mt-12">
+                  <div className="flex flex-col items-center">
+                    <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center border-4 border-[#2d1f1a] mb-4">
+                      <User className="w-12 h-12 text-white" />
+                    </div>
+                    
+                    <h2 className="text-2xl font-bold text-amber-500 mb-2 text-center" data-testid="text-employee-name">
+                      {employee.fullName}
+                    </h2>
+                    
+                    <Badge className={`${roleColor} text-white mb-2`} data-testid="badge-role">
+                      {roleArabic}
+                    </Badge>
+                    
+                    {employee.title && (
+                      <div className="flex items-center gap-2 mb-4">
+                        <Award className="w-4 h-4 text-amber-500" />
+                        <span className="text-gray-300" data-testid="text-title">{employee.title}</span>
+                      </div>
+                    )}
+                    
+                    <div className="text-center text-gray-400 text-sm">
+                      <p>معرف الموظف: {employee.id.slice(0, 8)}</p>
+                      <p className="mt-1">اسم المستخدم: {employee.username}</p>
+                    </div>
                   </div>
-                )}
-                
-                <div className="w-full bg-[#1a1410] rounded-lg p-4 mb-4">
-                  <QRCodeComponent 
-                    url={`EMPLOYEE:${employee.id}`}
-                    title="معرف الموظف"
-                    size="md"
-                    showURL={false}
-                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="card">
+              <div className="space-y-4">
+                {/* Employee Card - Downloadable */}
+                <div ref={cardRef} className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-2 border-amber-500/30 rounded-xl overflow-hidden" data-testid="employee-card">
+                  {/* Card Header */}
+                  <div className="h-20 bg-gradient-to-r from-amber-500 to-amber-700 flex items-center justify-center relative">
+                    <Coffee className="w-8 h-8 text-white absolute left-4" />
+                    <div className="text-center">
+                      <h3 className="text-white font-bold text-xl">قهوة كوب</h3>
+                      <p className="text-white/90 text-sm">بطاقة موظف</p>
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-6 space-y-4">
+                    {/* Employee Info */}
+                    <div className="text-center space-y-2">
+                      <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center mx-auto">
+                        <User className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-amber-500 font-bold text-xl">{employee.fullName}</h3>
+                      <Badge className={`${roleColor} text-white`}>
+                        {roleArabic}
+                      </Badge>
+                      {employee.title && (
+                        <p className="text-gray-300 text-sm">{employee.title}</p>
+                      )}
+                    </div>
+
+                    {/* QR Code */}
+                    <div className="flex justify-center">
+                      {qrCodeUrl && (
+                        <img src={qrCodeUrl} alt="Employee QR Code" className="w-40 h-40" data-testid="img-qr-code" />
+                      )}
+                    </div>
+
+                    {/* Employee Details */}
+                    <div className="bg-[#1a1410] rounded-lg p-3 text-center space-y-1">
+                      <p className="text-gray-400 text-sm">اسم المستخدم</p>
+                      <p className="text-amber-500 font-mono font-bold">{employee.username}</p>
+                      <p className="text-gray-400 text-xs mt-2">ID: {employee.id.slice(0, 12)}</p>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="text-center text-gray-400 text-sm">
-                  <p>معرف الموظف: {employee.id.slice(0, 8)}</p>
-                  <p className="mt-1">اسم المستخدم: {employee.username}</p>
-                </div>
+
+                {/* Download Button */}
+                <Button
+                  onClick={downloadCard}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-6"
+                  data-testid="button-download-card"
+                >
+                  <Download className="w-5 h-5 ml-2" />
+                  تحميل بطاقة الموظف
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Actions */}
