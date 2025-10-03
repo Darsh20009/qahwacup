@@ -466,12 +466,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Apply loyalty discounts if applicable
+      // Apply discounts if applicable
       let expectedTotal = calculatedTotal;
+      const isQahwaCardPayment = validatedData.paymentMethod === 'qahwa-card';
       const loyaltyDiscountApplied = (req.body as any).loyaltyDiscountApplied;
       const freeCoffeeUsed = (req.body as any).freeCoffeeUsed;
 
-      if (freeCoffeeUsed && cheapestItemPrice !== Infinity) {
+      // For qahwa-card, deduct cheapest item (free drink)
+      if (isQahwaCardPayment && cheapestItemPrice !== Infinity) {
+        expectedTotal = Math.max(0, expectedTotal - cheapestItemPrice);
+      } else if (freeCoffeeUsed && cheapestItemPrice !== Infinity) {
         expectedTotal -= cheapestItemPrice;
       }
 
@@ -482,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify total matches (with small tolerance for floating point)
       const requestedTotal = parseFloat(validatedData.totalAmount);
       if (Math.abs(expectedTotal - requestedTotal) > 0.01) {
-        console.log(`Total mismatch: calculated=${calculatedTotal}, withDiscounts=${expectedTotal}, requested=${requestedTotal}`);
+        console.log(`Total mismatch: calculated=${calculatedTotal}, withDiscounts=${expectedTotal}, requested=${requestedTotal}, paymentMethod=${validatedData.paymentMethod}`);
         return res.status(400).json({ 
           error: "Total amount mismatch",
           details: { calculated: calculatedTotal, expected: expectedTotal, requested: requestedTotal }

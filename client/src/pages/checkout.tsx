@@ -210,9 +210,18 @@ export default function CheckoutPage() {
       return;
     }
 
-    const totalAmount = (useFreeDrink && hasFreeDrinks) || isQahwaCardPayment
-      ? 0  // Free if using free drink or qahwa-card payment
-      : getTotalPrice();
+    // Calculate total amount considering free drinks
+    let totalAmount = getTotalPrice();
+    
+    // If using qahwa-card, deduct cheapest item price (free drink can be any item)
+    if (isQahwaCardPayment) {
+      const cheapestItemPrice = Math.min(...cartItems.map(item => 
+        parseFloat(item.coffeeItem?.price || "0")
+      ));
+      totalAmount = Math.max(0, totalAmount - cheapestItemPrice);
+    } else if (useFreeDrink && hasFreeDrinks) {
+      totalAmount = 0; // Local storage free drink = full order free
+    }
 
     // Prepare order items
     const orderItems = cartItems.map(item => ({
