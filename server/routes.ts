@@ -601,6 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/payment-methods", async (req, res) => {
     try {
       const paymentMethods = [
+        { id: 'qahwa-card', nameAr: 'بطاقة كوبي (مجاني)', nameEn: 'Qahwa Card (Free)', details: 'استخدم مشروبك المجاني 🎁', icon: 'fas fa-gift' },
         { id: 'cash', nameAr: 'الدفع نقداً', nameEn: 'Cash Payment', details: 'ادفع عند الاستلام', icon: 'fas fa-money-bill-wave' },
         { id: 'stc', nameAr: 'STC Pay', nameEn: 'STC Pay', details: '0532441566', icon: 'fas fa-mobile-alt' },
         { id: 'alinma', nameAr: 'Alinma Pay', nameEn: 'Alinma Pay', details: '0532441566', icon: 'fas fa-credit-card' },

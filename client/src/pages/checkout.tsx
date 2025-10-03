@@ -140,7 +140,10 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Check if using free drink
+    // Check if using qahwa-card payment method (free drink)
+    const isQahwaCardPayment = selectedPaymentMethod === 'qahwa-card';
+    
+    // Check if using free drink checkbox
     const profile = customerStorage.getProfile();
     const hasFreeDrinks = customer?.id ? false : (profile && profile.freeDrinks > 0); // CustomerContext users don't use local free drinks
 
@@ -153,8 +156,8 @@ export default function CheckoutPage() {
       return;
     }
 
-    const totalAmount = useFreeDrink && hasFreeDrinks
-      ? 0  // Free if using free drink
+    const totalAmount = (useFreeDrink && hasFreeDrinks) || isQahwaCardPayment
+      ? 0  // Free if using free drink or qahwa-card payment
       : getTotalPrice();
 
     // Prepare order items

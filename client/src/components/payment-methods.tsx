@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Smartphone, CreditCard, University, Zap, Building, Banknote } from "lucide-react";
+import { Smartphone, CreditCard, University, Zap, Building, Banknote, Gift } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
 
 interface PaymentMethodsProps {
@@ -15,6 +15,8 @@ export default function PaymentMethods({
 }: PaymentMethodsProps) {
   const getIcon = (iconName: string) => {
     switch (iconName) {
+      case 'fas fa-gift':
+        return <Gift className="w-6 h-6 text-primary" />;
       case 'fas fa-money-bill-wave':
         return <Banknote className="w-6 h-6 text-primary" />;
       case 'fas fa-mobile-alt':
