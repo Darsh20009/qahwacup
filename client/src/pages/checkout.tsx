@@ -40,31 +40,25 @@ export default function CheckoutPage() {
     enabled: !!customer?.id,
   });
 
-  // Calculate free drinks available
+  // Get loyalty card data
+  const { data: loyaltyCard } = useQuery({
+    queryKey: ["/api/loyalty/cards/phone", customer?.phone],
+    queryFn: async () => {
+      if (!customer?.phone) return null;
+      const res = await fetch(`/api/loyalty/cards/phone/${customer.phone}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!customer?.phone,
+  });
+
+  // Calculate free drinks available from loyalty card
   const calculateFreeDrinks = () => {
-    if (!customer?.id) return 0;
+    if (!loyaltyCard) return 0;
 
-    // Count total drinks from all previous orders
-    let totalDrinks = 0;
-    customerOrders.forEach(order => {
-      try {
-        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-        if (Array.isArray(items)) {
-          items.forEach((item: any) => {
-            totalDrinks += item.quantity || 0;
-          });
-        }
-      } catch {}
-    });
-
-    // Every 5 drinks = 1 free drink
-    const freeDrinksEarned = Math.floor(totalDrinks / 5);
-
-    // Get already used free drinks (from localStorage or context)
-    const profile = customerStorage.getProfile();
-    const usedFreeDrinks = profile?.usedFreeDrinks || 0;
-
-    return Math.max(0, freeDrinksEarned - usedFreeDrinks);
+    // المشروبات المجانية المتاحة = المكتسبة - المستخدمة
+    const available = (loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0);
+    return Math.max(0, available);
   };
 
   const availableFreeDrinks = calculateFreeDrinks();
@@ -765,21 +759,28 @@ ${itemsWithPrices}
 
                               <div className="bg-white/60 rounded-xl p-4 space-y-2">
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-amber-700">إجمالي المشروبات:</span>
+                                  <span className="text-sm text-amber-700">الأختام المكتسبة:</span>
                                   <span className="font-bold text-amber-900">
-                                    {customerOrders.reduce((total, order) => {
-                                      try {
-                                        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-                                        return total + (Array.isArray(items) ? items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0);
-                                      } catch {
-                                        return total;
-                                      }
-                                    }, 0)}
+                                    {loyaltyCard?.stamps || 0} / 6
                                   </span>
                                 </div>
 
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-green-700">مشروبات مجانية متاحة:</span>
+                                  <span className="text-sm text-blue-700">مشروبات مجانية مكتسبة:</span>
+                                  <span className="font-bold text-blue-600">
+                                    {loyaltyCard?.freeCupsEarned || 0}
+                                  </span>
+                                </div>
+
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-orange-700">مشروبات تم استخدامها:</span>
+                                  <span className="font-bold text-orange-600">
+                                    {loyaltyCard?.freeCupsRedeemed || 0}
+                                  </span>
+                                </div>
+
+                                <div className="flex justify-between items-center pt-2 border-t border-amber-300">
+                                  <span className="text-sm text-green-700 font-bold">مشروبات مجانية متاحة:</span>
                                   <span className="font-bold text-green-600 text-xl">
                                     {availableFreeDrinks} 🎁
                                   </span>
@@ -857,14 +858,7 @@ ${itemsWithPrices}
                                 </div>
                               ) : (
                                 <p className="text-sm text-amber-700 bg-amber-100 rounded-lg p-2">
-                                  📊 اطلب {5 - (customerOrders.reduce((total, order) => {
-                                    try {
-                                      const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-                                      return total + (Array.isArray(items) ? items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0);
-                                    } catch {
-                                      return total;
-                                    }
-                                  }, 0) % 5)} مشروبات إضافية للحصول على المشروب المجاني القادم!
+                                  📊 اجمع {6 - (loyaltyCard?.stamps || 0)} أختام إضافية للحصول على المشروب المجاني القادم!
                                 </p>
                               )}
                             </div>
