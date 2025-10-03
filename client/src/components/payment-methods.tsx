@@ -111,11 +111,6 @@ export default function PaymentMethods({
                       >
                         {method.details}
                       </p>
-                      {isQahwaCard && (
-                        <p className="text-xs text-amber-700 mt-1 bg-amber-100/50 rounded-full px-3 py-1 inline-block border border-amber-200/50">
-                          🎉 كل 5 مشروبات = المشروب السادس مجاني
-                        </p>
-                      )}
                     </div>
 
                     {selectedMethod === method.id && (

@@ -51,8 +51,16 @@ export default function CheckoutPage() {
     }
   }, [customer]);
 
-  const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
-    queryKey: ["/api/payment-methods"],
+  const profile = customerStorage.getProfile();
+  const hasFreeDrinks = profile && profile.freeDrinks > 0;
+
+  const { data: paymentMethods = [], isLoading: loadingPaymentMethods } = useQuery<PaymentMethodInfo[]>({
+    queryKey: ["/api/payment-methods", hasFreeDrinks ? 'true' : 'false'],
+    queryFn: async () => {
+      const res = await fetch(`/api/payment-methods?hasFreeDrinks=${hasFreeDrinks}`);
+      if (!res.ok) throw new Error('Failed to fetch payment methods');
+      return res.json();
+    }
   });
 
   const generateCodesMutation = useMutation({
@@ -142,7 +150,7 @@ export default function CheckoutPage() {
 
     // Check if using qahwa-card payment method (free drink)
     const isQahwaCardPayment = selectedPaymentMethod === 'qahwa-card';
-    
+
     // Check if using free drink checkbox
     const profile = customerStorage.getProfile();
     const hasFreeDrinks = customer?.id ? false : (profile && profile.freeDrinks > 0); // CustomerContext users don't use local free drinks

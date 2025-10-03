@@ -6,25 +6,25 @@ import bcrypt from "bcryptjs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // EMPLOYEE ROUTES
-  
+
   // Employee login
   app.post("/api/employees/login", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password required" });
       }
 
       const employee = await storage.getEmployeeByUsername(username);
-      
+
       if (!employee) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       // Verify password using bcrypt
       const isPasswordValid = await bcrypt.compare(password, employee.password);
-      
+
       if (!isPasswordValid) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const employee = await storage.getEmployee(id);
-      
+
       if (!employee) {
         return res.status(404).json({ error: "Employee not found" });
       }
@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/employees", async (req, res) => {
     try {
       const validatedData = insertEmployeeSchema.parse(req.body);
-      
+
       // Check if username already exists
       const existing = await storage.getEmployeeByUsername(validatedData.username);
       if (existing) {
@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const employee = await storage.createEmployee(validatedData);
-      
+
       // Don't send password back
       const { password: _, ...employeeData } = employee;
       res.status(201).json(employeeData);
@@ -86,13 +86,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/employees", async (req, res) => {
     try {
       const employees = await storage.getEmployees();
-      
+
       // Don't send passwords back
       const employeesData = employees.map(emp => {
         const { password: _, ...data } = emp;
         return data;
       });
-      
+
       res.json(employeesData);
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -101,13 +101,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // DISCOUNT CODE ROUTES
-  
+
   // Create discount code
   app.post("/api/discount-codes", async (req, res) => {
     try {
       const { insertDiscountCodeSchema } = await import("@shared/schema");
       const validatedData = insertDiscountCodeSchema.parse(req.body);
-      
+
       // Check if code already exists
       const existing = await storage.getDiscountCodeByCode(validatedData.code);
       if (existing) {
@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { code } = req.params;
       const discountCode = await storage.getDiscountCodeByCode(code);
-      
+
       if (!discountCode) {
         return res.status(404).json({ error: "Discount code not found" });
       }
@@ -163,27 +163,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { isActive, employeeId } = req.body;
-      
+
       // Require employee ID for authorization
       if (!employeeId) {
         return res.status(401).json({ error: "Employee authentication required" });
       }
-      
+
       // Verify the discount code exists and belongs to this employee
       const existingCode = await storage.getDiscountCode(id);
       if (!existingCode) {
         return res.status(404).json({ error: "Discount code not found" });
       }
-      
+
       if (existingCode.employeeId !== employeeId) {
         return res.status(403).json({ error: "Unauthorized: You can only update your own discount codes" });
       }
-      
+
       // Only allow updating isActive field
       if (typeof isActive !== 'number' || (isActive !== 0 && isActive !== 1)) {
         return res.status(400).json({ error: "Only isActive field can be updated (0 or 1)" });
       }
-      
+
       const discountCode = await storage.updateDiscountCode(id, { isActive });
       res.json(discountCode);
     } catch (error) {
@@ -196,17 +196,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/discount-codes/:id/use", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Check if code exists and is active first
       const code = await storage.getDiscountCode(id);
       if (!code) {
         return res.status(404).json({ error: "Discount code not found" });
       }
-      
+
       if (code.isActive === 0) {
         return res.status(400).json({ error: "Discount code is inactive" });
       }
-      
+
       const discountCode = await storage.incrementDiscountCodeUsage(id);
       res.json(discountCode);
     } catch (error) {
@@ -216,19 +216,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CUSTOMER ROUTES
-  
+
   // Customer authentication (register or login with phone)
   app.post("/api/customers/auth", async (req, res) => {
     try {
       const { phone, name } = req.body;
-      
+
       if (!phone) {
         return res.status(400).json({ error: "Phone number required" });
       }
 
       // Try to find existing customer
       let customer = await storage.getCustomerByPhone(phone);
-      
+
       if (!customer) {
         // Create new customer
         customer = await storage.createCustomer({ phone, name });
@@ -249,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const customer = await storage.getCustomer(id);
-      
+
       if (!customer) {
         return res.status(404).json({ error: "Customer not found" });
       }
@@ -266,9 +266,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { name } = req.body;
-      
+
       const customer = await storage.updateCustomer(id, { name });
-      
+
       if (!customer) {
         return res.status(404).json({ error: "Customer not found" });
       }
@@ -293,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // COFFEE ROUTES
-  
+
   // Get all coffee items
   app.get("/api/coffee-items", async (req, res) => {
     try {
@@ -337,21 +337,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const cartItems = await storage.getCartItems(sessionId);
-      
+
       if (cartItems.length === 0) {
         return res.json([]);
       }
-      
+
       // Get all coffee items once instead of multiple queries
       const allCoffeeItems = await storage.getCoffeeItems();
       const coffeeItemsMap = new Map(allCoffeeItems.map(item => [item.id, item]));
-      
+
       // Enrich cart items with coffee details efficiently
       const enrichedItems = cartItems.map((cartItem) => ({
         ...cartItem,
         coffeeItem: coffeeItemsMap.get(cartItem.coffeeItemId)
       })).filter(item => item.coffeeItem); // Filter out items where coffee doesn't exist
-      
+
       res.json(enrichedItems);
     } catch (error) {
       console.error("Error fetching cart items:", error);
@@ -363,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cart", async (req, res) => {
     try {
       const validatedData = insertCartItemSchema.parse(req.body);
-      
+
       // Verify coffee item exists
       const coffeeItem = await storage.getCoffeeItem(validatedData.coffeeItemId);
       if (!coffeeItem) {
@@ -408,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId, coffeeItemId } = req.params;
       const removed = await storage.removeFromCart(sessionId, coffeeItemId);
-      
+
       if (!removed) {
         return res.status(404).json({ error: "Cart item not found" });
       }
@@ -436,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/orders", async (req, res) => {
     try {
       const validatedData = insertOrderSchema.parse(req.body);
-      
+
       // Validate payment method
       const validPaymentMethods: PaymentMethod[] = ['cash', 'stc', 'alinma', 'ur', 'barq', 'rajhi'];
       if (!validPaymentMethods.includes(validatedData.paymentMethod as PaymentMethod)) {
@@ -452,15 +452,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (typeof item !== 'object' || !item.coffeeItemId || !item.quantity || !item.price) {
           return res.status(400).json({ error: "Invalid order item format" });
         }
-        
+
         const coffeeItem = await storage.getCoffeeItem(item.coffeeItemId);
         if (!coffeeItem) {
           return res.status(400).json({ error: `Coffee item ${item.coffeeItemId} not found` });
         }
-        
+
         const itemPrice = parseFloat(item.price);
         calculatedTotal += itemPrice * item.quantity;
-        
+
         if (itemPrice < cheapestItemPrice) {
           cheapestItemPrice = itemPrice;
         }
@@ -470,11 +470,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let expectedTotal = calculatedTotal;
       const loyaltyDiscountApplied = (req.body as any).loyaltyDiscountApplied;
       const freeCoffeeUsed = (req.body as any).freeCoffeeUsed;
-      
+
       if (freeCoffeeUsed && cheapestItemPrice !== Infinity) {
         expectedTotal -= cheapestItemPrice;
       }
-      
+
       if (loyaltyDiscountApplied) {
         expectedTotal = expectedTotal * 0.9;
       }
@@ -517,14 +517,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const order = await storage.getOrder(id);
-      
+
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
 
       // Get order items
       const orderItems = await storage.getOrderItems(id);
-      
+
       res.json({
         ...order,
         orderItems
@@ -540,14 +540,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { orderNumber } = req.params;
       const order = await storage.getOrderByNumber(orderNumber);
-      
+
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
 
       // Get order items
       const orderItems = await storage.getOrderItems(order.id);
-      
+
       res.json({
         ...order,
         orderItems
@@ -570,7 +570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedOrder = await storage.updateOrderStatus(id, status);
-      
+
       if (!updatedOrder) {
         return res.status(404).json({ error: "Order not found" });
       }
@@ -581,14 +581,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to update order status" });
     }
   });
-  
+
   // Get all orders (for employees)
   app.get("/api/orders", async (req, res) => {
     try {
       const { limit, offset } = req.query;
       const limitNum = limit ? parseInt(limit as string) : undefined;
       const offsetNum = offset ? parseInt(offset as string) : undefined;
-      
+
       const orders = await storage.getOrders(limitNum, offsetNum);
       res.json(orders);
     } catch (error) {
@@ -600,15 +600,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get payment method details
   app.get("/api/payment-methods", async (req, res) => {
     try {
+      const hasFreeDrinks = req.query.hasFreeDrinks as string; // Check for hasFreeDrinks query parameter
+      
       const paymentMethods = [
-        { id: 'qahwa-card', nameAr: 'بطاقة كوبي (مجاني)', nameEn: 'Qahwa Card (Free)', details: 'استخدم مشروبك المجاني 🎁', icon: 'fas fa-gift' },
         { id: 'cash', nameAr: 'الدفع نقداً', nameEn: 'Cash Payment', details: 'ادفع عند الاستلام', icon: 'fas fa-money-bill-wave' },
         { id: 'stc', nameAr: 'STC Pay', nameEn: 'STC Pay', details: '0532441566', icon: 'fas fa-mobile-alt' },
         { id: 'alinma', nameAr: 'Alinma Pay', nameEn: 'Alinma Pay', details: '0532441566', icon: 'fas fa-credit-card' },
         { id: 'ur', nameAr: 'Ur Pay', nameEn: 'Ur Pay', details: '0532441566', icon: 'fas fa-university' },
         { id: 'barq', nameAr: 'Barq', nameEn: 'Barq', details: '0532441566', icon: 'fas fa-bolt' },
-        { id: 'rajhi', nameAr: 'بنك الراجحي', nameEn: 'Al Rajhi Bank', details: 'SA78 8000 0539 6080 1942 4738', icon: 'fas fa-building-columns' },
+        { id: 'bank', nameAr: 'بنك الراجحي', nameEn: 'Al Rajhi Bank', details: 'SA78 8000 0539 6080 1942 4738', icon: 'fas fa-building-columns' },
       ];
+
+      // Add qahwa-card at the beginning if customer has free drinks
+      if (hasFreeDrinks === 'true') {
+        paymentMethods.unshift({ 
+          id: 'qahwa-card', 
+          nameAr: 'بطاقة كوبي (مجاني)', 
+          nameEn: 'Qahwa Card (Free)', 
+          details: 'استخدم مشروبك المجاني 🎁', 
+          icon: 'fas fa-gift' 
+        });
+      }
 
       res.json(paymentMethods);
     } catch (error) {
@@ -618,12 +630,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // LOYALTY CARD ROUTES
-  
+
   // Create new loyalty card (issue card to customer)
   app.post("/api/loyalty/cards", async (req, res) => {
     try {
       const { customerName, phoneNumber } = req.body;
-      
+
       if (!customerName || !phoneNumber) {
         return res.status(400).json({ error: "اسم العميل ورقم الهاتف مطلوبان" });
       }
@@ -658,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { qrToken } = req.params;
       const card = await storage.getLoyaltyCardByQRToken(qrToken);
-      
+
       if (!card) {
         return res.status(404).json({ error: "بطاقة الولاء غير موجودة أو غير نشطة" });
       }
@@ -675,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber } = req.params;
       const card = await storage.getLoyaltyCardByPhone(phoneNumber);
-      
+
       if (!card) {
         return res.status(404).json({ error: "بطاقة الولاء غير موجودة" });
       }
@@ -691,13 +703,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/loyalty/scan", async (req, res) => {
     try {
       const { qrToken, orderAmount, employeeId } = req.body;
-      
+
       if (!qrToken || !orderAmount) {
         return res.status(400).json({ error: "رمز QR ومبلغ الطلب مطلوبان" });
       }
 
       const card = await storage.getLoyaltyCardByQRToken(qrToken);
-      
+
       if (!card) {
         return res.status(404).json({ error: "بطاقة ولاء غير صالحة" });
       }
@@ -810,7 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cardNumber } = req.params;
       const card = await storage.getLoyaltyCardByCardNumber(cardNumber);
-      
+
       if (!card) {
         return res.status(404).json({ error: "بطاقة الولاء غير موجودة" });
       }
@@ -826,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/orders/:orderId/generate-codes", async (req, res) => {
     try {
       const { orderId } = req.params;
-      
+
       const order = await storage.getOrder(orderId);
       if (!order) {
         return res.status(404).json({ error: "الطلب غير موجود" });
@@ -862,13 +874,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/loyalty/redeem-code", async (req, res) => {
     try {
       const { code, cardId } = req.body;
-      
+
       if (!code || !cardId) {
         return res.status(400).json({ error: "الكود ومعرف البطاقة مطلوبان" });
       }
 
       const result = await storage.redeemCode(code, cardId);
-      
+
       if (!result.success) {
         return res.status(400).json({ error: result.message });
       }
