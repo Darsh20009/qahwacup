@@ -41,7 +41,7 @@ export default function CheckoutPage() {
       setIsRegisteredCustomer(true);
       return;
     }
-    
+
     // Then check customerStorage (local storage users)
     const profile = customerStorage.getProfile();
     if (profile && !customerStorage.isGuestMode()) {
@@ -71,15 +71,48 @@ export default function CheckoutPage() {
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       const response = await apiRequest("POST", "/api/orders", orderData);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "فشل في إنشاء الطلب");
+      }
       return response.json();
     },
-    onSuccess: (order) => {
-      setOrderDetails(order);
-      if (selectedPaymentMethod === 'cash') {
-        handlePaymentConfirmed(order);
-      } else {
-        setShowConfirmation(true);
+    onSuccess: (data) => {
+      setOrderDetails(data);
+      clearCart();
+      setShowSuccessPage(true);
+
+      // Generate loyalty codes for the order
+      if (data.id) {
+        generateCodesMutation.mutate(data.id);
       }
+
+      // Save customer data and sync with CustomerContext
+      if (customerPhone) {
+        localStorage.setItem("customer-phone", customerPhone);
+        if (data.customerId) {
+          localStorage.setItem("customer-id", data.customerId);
+
+          // Update CustomerContext if available
+          if (customer?.id !== data.customerId) {
+            // Fetch and update customer in context
+            fetch(`/api/customers/${data.customerId}`)
+              .then(res => res.json())
+              .then(customerData => {
+                if (customerData && !customerData.error) {
+                  // This will trigger a re-render and update orders
+                  window.location.reload();
+                }
+              })
+              .catch(err => console.error("Failed to sync customer:", err));
+          }
+        }
+      }
+
+      toast({
+        title: "تم إنشاء الطلب بنجاح",
+        description: `رقم الطلب: ${data.orderNumber}`,
+      });
     },
     onError: (error) => {
       toast({
@@ -110,7 +143,7 @@ export default function CheckoutPage() {
     // Check if using free drink
     const profile = customerStorage.getProfile();
     const hasFreeDrinks = customer?.id ? false : (profile && profile.freeDrinks > 0); // CustomerContext users don't use local free drinks
-    
+
     if (useFreeDrink && !hasFreeDrinks) {
       toast({
         variant: "destructive",
@@ -124,18 +157,45 @@ export default function CheckoutPage() {
       ? 0  // Free if using free drink
       : getTotalPrice();
 
+    // Prepare order items
+    const orderItems = cartItems.map(item => ({
+      coffeeItemId: item.coffeeItemId,
+      quantity: item.quantity,
+      price: item.coffeeItem?.price || "0",
+      name: item.coffeeItem?.nameAr || "",
+    }));
+
+    // Get or create customer ID
+    let activeCustomerId = customer?.id;
+
+    // If user is authenticated but we need to ensure customer exists in backend
+    if (customerPhone && !activeCustomerId) {
+      try {
+        const authResponse = await fetch("/api/customers/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: customerPhone,
+            name: customerName.trim()
+          })
+        });
+
+        if (authResponse.ok) {
+          const customerData = await authResponse.json();
+          activeCustomerId = customerData.id;
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+      }
+    }
+
     const orderData = {
-      items: cartItems.map(item => ({
-        coffeeItemId: item.coffeeItemId,
-        quantity: item.quantity,
-        price: item.coffeeItem?.price || "0",
-        name: item.coffeeItem?.nameAr || "",
-      })),
+      items: orderItems,
       totalAmount: totalAmount.toString(),
       paymentMethod: selectedPaymentMethod,
       paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
       status: "pending",
-      customerId: customer?.id || null, // Include customer ID from context
+      customerId: activeCustomerId || null, // Include customer ID from context
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
@@ -176,7 +236,7 @@ export default function CheckoutPage() {
 
       // Generate PDF invoice
       const pdfBlob = await generatePDF(order, cartItems, selectedPaymentMethod!);
-      
+
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -194,7 +254,7 @@ export default function CheckoutPage() {
 
       // Clear cart
       clearCart();
-      
+
       // Show success page
       setShowSuccessPage(true);
       setShowConfirmation(false);
@@ -228,7 +288,7 @@ export default function CheckoutPage() {
   const handleShareWhatsApp = () => {
     if (orderDetails) {
       const totalAmount = parseFloat(orderDetails.totalAmount).toFixed(2);
-      
+
       // Use orderDetails.items if available (after cart cleared), otherwise use cartItems
       const itemsSource = orderDetails.items && orderDetails.items.length > 0 ? orderDetails.items : cartItems;
       const itemsWithPrices = itemsSource.map((item: any) => {
@@ -243,10 +303,10 @@ export default function CheckoutPage() {
           return `• ${item.coffeeItem?.nameAr} × ${item.quantity} = ${itemTotal} ريال`;
         }
       }).join('\n');
-      
+
       const customerName = orderDetails.customerInfo?.customerName || 'غير محدد';
       const transferName = orderDetails.customerInfo?.transferOwnerName || 'غير محدد';
-      
+
       const message = `🔔 طلب جديد للتجهيز - قهوة كوب ☕
 
 📋 تفاصيل الطلب:
@@ -305,7 +365,7 @@ ${itemsWithPrices}
               <h1 className="font-amiri text-5xl font-bold text-primary mb-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
                 تم إنشاء طلبك بنجاح!
               </h1>
-              
+
               {/* Personal Welcome for Customer */}
               {(orderDetails?.customerInfo?.customerName || customer?.name) && (
                 <div className="mb-6 bg-gradient-to-r from-primary/15 to-secondary/15 rounded-2xl p-6 border-2 border-primary/20 shadow-lg animate-in fade-in-20 slide-in-from-top-4 duration-1500">
@@ -326,7 +386,7 @@ ${itemsWithPrices}
                   </div>
                 </div>
               )}
-              
+
               <div className="space-y-6 mb-8">
                 <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/20">
                   <p className="text-2xl text-foreground font-medium mb-2">
@@ -383,7 +443,7 @@ ${itemsWithPrices}
                   <div className="relative group" data-testid="section-loyalty-codes">
                     {/* Glow effect background */}
                     <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-yellow-500/30 to-orange-400/30 rounded-3xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-500 animate-pulse"></div>
-                    
+
                     {/* Main container */}
                     <div className="relative bg-gradient-to-br from-amber-50/95 via-yellow-50/90 to-orange-50/95 backdrop-blur-sm rounded-3xl p-8 border-3 border-amber-300/50 shadow-2xl">
                       {/* Header with floating gift icon */}
@@ -422,7 +482,7 @@ ${itemsWithPrices}
                           >
                             {/* Card glow effect */}
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-orange-400 rounded-2xl opacity-0 group-hover/card:opacity-50 transition-opacity duration-300 blur"></div>
-                            
+
                             {/* Card content */}
                             <div className="relative bg-gradient-to-br from-white via-amber-50/50 to-orange-50/50 rounded-2xl p-5 border-2 border-amber-200/60 shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
                               {/* Drink name with icon */}
@@ -437,7 +497,7 @@ ${itemsWithPrices}
                               <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-4 mb-4 border-2 border-dashed border-amber-300/60 relative overflow-hidden">
                                 {/* Sparkle animation background */}
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-                                
+
                                 <p className="font-mono text-2xl font-bold text-center text-amber-900 tracking-wider relative z-10" data-testid={`text-code-value-${codeItem.id || index}`}>
                                   {codeItem.code}
                                 </p>
@@ -502,7 +562,7 @@ ${itemsWithPrices}
                   <MessageCircle className="w-5 h-5 ml-2" />
                   مشاركة لتجهيز الطلب
                 </Button>
-                
+
                 <Button
                   onClick={() => {
                     setShowSuccessPage(false);
@@ -604,7 +664,7 @@ ${itemsWithPrices}
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className={`bg-gradient-to-r ${useFreeDrink ? 'from-green-500 to-emerald-600' : 'from-primary to-secondary'} text-primary-foreground rounded-xl p-6 shadow-lg relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                     <div className="relative z-10">
@@ -661,7 +721,7 @@ ${itemsWithPrices}
                     <div className="relative group">
                       {/* Glow effect background */}
                       <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
-                      
+
                       {/* Main popup container */}
                       <div className="relative bg-gradient-to-br from-white/95 via-blue-50/80 to-slate-50/90 backdrop-blur-sm rounded-2xl p-8 border-2 border-primary/20 shadow-2xl transform transition-all duration-500 hover:scale-[1.01] hover:shadow-3xl">
                         {/* Header with floating animation */}
@@ -673,7 +733,7 @@ ${itemsWithPrices}
                             </div>
                           </div>
                         </div>
-                        
+
                         <h4 className="font-amiri text-2xl font-bold text-center mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                           معلومات العميل
                         </h4>
@@ -686,7 +746,7 @@ ${itemsWithPrices}
                             ✨ أدخل بياناتك للمتابعة مع تجربة قهوة رائعة
                           </p>
                         )}
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="customer-name" className="text-sm font-semibold text-slate-600">
@@ -704,7 +764,7 @@ ${itemsWithPrices}
                             required
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="customer-phone" className="text-sm font-semibold text-slate-600">
                             رقم الهاتف (اختياري)
@@ -726,7 +786,7 @@ ${itemsWithPrices}
                       {isRegisteredCustomer && customerStorage.getProfile()?.freeDrinks! > 0 && (
                         <div className="mt-6 relative group" data-testid="section-free-drink">
                           <div className="absolute -inset-1 bg-gradient-to-r from-green-400/30 via-emerald-500/30 to-green-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
-                          
+
                           <div className="relative bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-green-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-green-300/50 shadow-xl">
                             <div className="flex items-center space-x-3 space-x-reverse">
                               <Checkbox
@@ -761,7 +821,7 @@ ${itemsWithPrices}
                       {!isRegisteredCustomer && (
                         <div className="mt-6 relative group">
                           <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-orange-500/30 to-amber-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
-                          
+
                           <div className="relative bg-gradient-to-br from-amber-50/90 via-orange-50/80 to-amber-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-amber-300/50 shadow-xl">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
@@ -794,14 +854,14 @@ ${itemsWithPrices}
                       )}
 
                       <div className="grid grid-cols-1 gap-4 mt-4">
-                        
+
                         {/* Transfer name section - always visible */}
                         <div className="space-y-4 bg-slate-50 rounded-lg p-4 border border-slate-200">
                           <Label className="text-sm font-semibold text-slate-700 flex items-center">
                             <CreditCard className="w-4 h-4 ml-1" />
                             معلومات صاحب التحويل (إجباري)
                           </Label>
-                          
+
                           {/* Checkbox for same as customer */}
                           <div className="flex items-center space-x-3 space-x-reverse bg-primary/5 rounded-lg p-3 border border-primary/20">
                             <Checkbox
@@ -816,7 +876,7 @@ ${itemsWithPrices}
                               اسم صاحب التحويل هو نفس اسم العميل ✓
                             </Label>
                           </div>
-                          
+
                           {/* Transfer name input - only show when not same as customer */}
                           {!isSameAsCustomer && (
                             <div className="space-y-2">
@@ -838,7 +898,7 @@ ${itemsWithPrices}
                               </p>
                             </div>
                           )}
-                          
+
                           {/* Info message based on selection */}
                           {isSameAsCustomer ? (
                             <p className="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg flex items-center">
@@ -851,7 +911,7 @@ ${itemsWithPrices}
                           )}
                         </div>
                       </div>
-                      
+
                         {selectedPaymentMethod === 'cash' && (
                           <p className="text-xs text-emerald-600 mt-3 bg-emerald-50 p-2 rounded-lg">
                             💰 الدفع النقدي - لا يتطلب تفاصيل تحويل إضافية
@@ -862,7 +922,7 @@ ${itemsWithPrices}
                             💳 للدفع الإلكتروني - يرجى إدخال اسم صاحب التحويل أو ✓ للتأكيد
                           </p>
                         )}
-                        
+
                         {/* Decorative elements */}
                         <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-60 animate-bounce"></div>
                         <div className="absolute bottom-4 left-4 w-2 h-2 bg-gradient-to-r from-primary to-blue-500 rounded-full opacity-40 animate-ping"></div>
@@ -882,7 +942,7 @@ ${itemsWithPrices}
                     <div className="relative group animate-in fade-in-0 slide-in-from-bottom-10 duration-700" data-testid="section-payment-confirmation">
                       {/* Animated glow background */}
                       <div className="absolute -inset-2 bg-gradient-to-r from-green-400/30 via-primary/30 to-emerald-500/30 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
-                      
+
                       {/* Main confirmation popup */}
                       <div className="relative bg-gradient-to-br from-white/95 via-green-50/90 to-emerald-50/85 backdrop-blur-sm rounded-3xl p-8 border-2 border-emerald-300/50 shadow-2xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl">
                         {/* Header with animated checkmark */}
@@ -897,11 +957,11 @@ ${itemsWithPrices}
                             <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-emerald-300 rounded-full animate-pulse"></div>
                           </div>
                         </div>
-                        
+
                         <h4 className="font-amiri text-3xl font-bold text-center mb-3 bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
                           تأكيد الدفع ✨
                         </h4>
-                        
+
                         <div className="text-center mb-8 space-y-3">
                           <p className="text-slate-700 text-lg leading-relaxed">
                             هل قمت بإرسال المبلغ المطلوب؟
@@ -940,7 +1000,7 @@ ${itemsWithPrices}
                         <MessageCircle className="w-4 h-4 ml-2" />
                         مشاركة لتجهيز الطلب
                       </Button>
-                      
+
                       {/* Decorative floating elements */}
                       <div className="absolute top-6 right-6 w-4 h-4 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full opacity-50 animate-pulse"></div>
                       <div className="absolute bottom-8 left-8 w-3 h-3 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full opacity-40 animate-bounce"></div>
@@ -960,7 +1020,7 @@ ${itemsWithPrices}
                     >
                       {/* Animated background sparkle effect */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
-                      
+
                       {createOrderMutation.isPending ? (
                         <div className="flex items-center justify-center relative z-10">
                           <div className="flex space-x-1 space-x-reverse">
