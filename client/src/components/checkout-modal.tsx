@@ -10,23 +10,30 @@ import PaymentMethods from "./payment-methods";
 import { generatePDF } from "@/lib/pdf-generator";
 import { CreditCard, FileText, MessageCircle, Check, ArrowRight, Coffee, ShoppingCart, Wallet, Star, Phone } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type CheckoutStep = 'review' | 'payment' | 'confirmation' | 'success';
 
 export default function CheckoutModal() {
-  const { 
-    cartItems, 
-    isCheckoutOpen, 
-    hideCheckout, 
-    clearCart, 
-    getTotalPrice 
+  const {
+    cartItems,
+    isCheckoutOpen,
+    hideCheckout,
+    clearCart,
+    getTotalPrice
   } = useCartStore();
   const { customer } = useCustomer();
-  
+
   const { toast } = useToast();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('review');
   const [orderDetails, setOrderDetails] = useState<any>(null);
+
+  // State for customer form fields, pre-filled if customer is logged in
+  const [customerName, setCustomerName] = useState(customer?.name || "");
+  const [customerPhone, setCustomerPhone] = useState(customer?.phone || "");
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
@@ -64,6 +71,18 @@ export default function CheckoutModal() {
       return;
     }
 
+    // Use form data if customer is not logged in or if fields were manually changed
+    const finalCustomerName = customer?.name ? customerName : customerName;
+    const finalCustomerPhone = customer?.phone ? customerPhone : customerPhone;
+
+    if (!finalCustomerName || !finalCustomerPhone) {
+      toast({
+        variant: "destructive",
+        title: "يرجى إدخال الاسم ورقم الهاتف",
+      });
+      return;
+    }
+
     const orderData = {
       items: cartItems.map(item => ({
         coffeeItemId: item.coffeeItemId,
@@ -75,7 +94,12 @@ export default function CheckoutModal() {
       paymentMethod: selectedPaymentMethod,
       paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
       status: "pending",
-      customerId: customer?.id, // Link order to customer if logged in
+      // Use customer ID if available, otherwise null
+      customerId: customer?.id || null,
+      customerInfo: {
+        name: finalCustomerName,
+        phone: finalCustomerPhone,
+      },
     };
 
     createOrderMutation.mutate(orderData);
@@ -85,7 +109,7 @@ export default function CheckoutModal() {
     try {
       // Generate PDF invoice
       const pdfBlob = await generatePDF(order, cartItems, selectedPaymentMethod!);
-      
+
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -98,7 +122,7 @@ export default function CheckoutModal() {
 
       // Move to success step
       setCurrentStep('success');
-      
+
       toast({
         title: "تم إنشاء الطلب بنجاح! 🎉",
         description: "تم تحميل الفاتورة. سيتم إرسالها لرقمك الجوال قريباً.",
@@ -135,6 +159,11 @@ export default function CheckoutModal() {
     setCurrentStep('review');
     setOrderDetails(null);
     setSelectedPaymentMethod(null);
+    // Reset form fields on close if customer is not logged in
+    if (!customer) {
+      setCustomerName("");
+      setCustomerPhone("");
+    }
   };
 
   const handleSuccessComplete = () => {
@@ -161,7 +190,7 @@ export default function CheckoutModal() {
           </DialogTitle>
           <p className="text-muted-foreground mt-2">"لكل لحظة قهوة ، لحظة نجاح"</p>
         </DialogHeader>
-        
+
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-4 space-x-reverse">
@@ -169,7 +198,7 @@ export default function CheckoutModal() {
               const isActive = step.id === currentStep;
               const isCompleted = index < getCurrentStepIndex();
               const StepIcon = step.icon;
-              
+
               return (
                 <div key={step.id} className="flex items-center">
                   <div className={`
@@ -183,12 +212,12 @@ export default function CheckoutModal() {
                     ) : (
                       <StepIcon className={`w-6 h-6 ${isActive ? 'animate-pulse' : ''}`} />
                     )}
-                    
+
                     {isActive && (
                       <div className="absolute -inset-1 rounded-full bg-primary/20 animate-ping" />
                     )}
                   </div>
-                  
+
                   {index < steps.length - 1 && (
                     <div className={`
                       w-16 h-1 mx-2 rounded-full transition-all duration-500
@@ -216,7 +245,43 @@ export default function CheckoutModal() {
         <div className="space-y-6">
           {/* Step Content */}
           {currentStep === 'review' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-10 duration-500">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-10 duration-500" data-testid="section-checkout-review">
+              {/* Customer Info Form */}
+              {!customer && ( // Only show form if customer is not logged in
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-right flex items-center gap-2">
+                      <User className="w-5 h-5" />
+                      معلومات العميل
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="customer-name">الاسم</Label>
+                      <Input
+                        id="customer-name"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="أدخل اسمك"
+                        className="text-right"
+                        dir="rtl"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="customer-phone">رقم الهاتف</Label>
+                      <Input
+                        id="customer-phone"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="05xxxxxxxx"
+                        className="text-right"
+                        dir="ltr"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <div className="bg-card/50 rounded-xl p-6 border border-primary/20" data-testid="section-checkout-summary">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <ShoppingCart className="w-5 h-5 ml-2" />
@@ -265,7 +330,7 @@ export default function CheckoutModal() {
                   <Wallet className="w-5 h-5 ml-2" />
                   اختر طريقة الدفع
                 </h3>
-                
+
                 <PaymentMethods
                   paymentMethods={paymentMethods}
                   selectedMethod={selectedPaymentMethod}
@@ -329,7 +394,7 @@ export default function CheckoutModal() {
                 </div>
 
                 <div className="flex space-x-3 space-x-reverse">
-                  <Button 
+                  <Button
                     onClick={() => handlePaymentConfirmed(orderDetails)}
                     className="flex-1 bg-primary text-accent-foreground hover:bg-primary/90 py-3"
                     data-testid="button-checkout-confirm"
@@ -337,7 +402,7 @@ export default function CheckoutModal() {
                     <FileText className="w-4 h-4 ml-2" />
                     نعم، تم الدفع
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={handleSendInvoiceToPhone}
                     className="flex-1 py-3"
@@ -347,7 +412,7 @@ export default function CheckoutModal() {
                     إرسال للجوال
                   </Button>
                 </div>
-                
+
                 <Button
                   variant="outline"
                   onClick={handleSendInvoiceToPhone}
