@@ -135,6 +135,7 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.employees = new Map();
+    this.customers = new Map();
     this.discountCodes = new Map();
     this.coffeeItems = new Map();
     this.orders = new Map();
@@ -648,25 +649,44 @@ export class MemStorage implements IStorage {
     return this.loyaltyRewards.get(id);
   }
 
-  // Customer methods (stub - not used with database)
+  // Customer methods
+  private customers: Map<string, Customer> = new Map();
+
   async getCustomer(id: string): Promise<Customer | undefined> {
-    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+    return this.customers.get(id);
   }
 
   async getCustomerByPhone(phone: string): Promise<Customer | undefined> {
-    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+    return Array.from(this.customers.values()).find(
+      customer => customer.phone === phone
+    );
   }
 
-  async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    const id = randomUUID();
+    const customer: Customer = {
+      ...insertCustomer,
+      id,
+      name: insertCustomer.name ?? null,
+      createdAt: new Date()
+    };
+    this.customers.set(id, customer);
+    return customer;
   }
 
-  async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer | undefined> {
-    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+  async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | undefined> {
+    const existing = this.customers.get(id);
+    if (!existing) return undefined;
+
+    const updated = { ...existing, ...updates, id };
+    this.customers.set(id, updated);
+    return updated;
   }
 
   async getCustomerOrders(customerId: string): Promise<Order[]> {
-    throw new Error("MemStorage customer methods not implemented - use DBStorage");
+    return Array.from(this.orders.values())
+      .filter(order => order.customerId === customerId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 }
 
