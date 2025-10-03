@@ -35,11 +35,15 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { Pool as NeonPool, neonConfig } from "@neondatabase/serverless";
+import pg from "pg";
 import { eq, desc, and, sql } from "drizzle-orm";
 import ws from "ws";
 import { nanoid } from "nanoid";
+
+const { Pool: PgPool } = pg;
 
 export interface IStorage {
   // User methods (legacy)
@@ -610,19 +614,24 @@ export class MemStorage implements IStorage {
 
 // Database Storage Implementation using Drizzle ORM
 export class DBStorage implements IStorage {
-  private db;
-  private pool;
+  private db: any;
+  private pool: PgPool | NeonPool;
   private initialized = false;
 
   constructor() {
-    // Configure Neon to use WebSocket (required for serverless)
-    neonConfig.webSocketConstructor = ws;
+    const connectionString = process.env.DATABASE_URL;
     
-    // Create connection pool
-    this.pool = new Pool({ 
-      connectionString: process.env.DATABASE_URL
-    });
-    this.db = drizzle(this.pool);
+    // Use Neon serverless for cloud, standard pg for local Replit PostgreSQL
+    if (connectionString?.includes('neon.tech')) {
+      // Neon serverless connection
+      neonConfig.webSocketConstructor = ws;
+      this.pool = new NeonPool({ connectionString });
+      this.db = drizzleNeon(this.pool as any);
+    } else {
+      // Standard PostgreSQL connection (Replit local database)
+      this.pool = new PgPool({ connectionString });
+      this.db = drizzlePg(this.pool);
+    }
   }
 
   async initialize() {
@@ -1020,7 +1029,7 @@ export class DBStorage implements IStorage {
 
   async redeemCode(code: string, cardId: string): Promise<{success: boolean, message: string, card?: LoyaltyCard}> {
     try {
-      return await this.db.transaction(async (tx) => {
+      return await this.db.transaction(async (tx: any) => {
         const codeResult = await tx.select().from(cardCodes)
           .where(eq(cardCodes.code, code))
           .limit(1);

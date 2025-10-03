@@ -4,6 +4,20 @@ This is a digital coffee menu application called "قهوة كوب" (Coffee Cup) 
 
 # Recent Changes
 
+**2025-10-03**: Fresh GitHub Import - Replit Environment Configuration
+- Successfully imported GitHub repository and configured for Replit environment
+- Fixed database connection issue: Modified DBStorage to support both Neon serverless (cloud) and standard PostgreSQL (Replit local)
+- Added conditional database driver selection: Uses `drizzle-orm/node-postgres` with standard `pg` Pool for Replit's local PostgreSQL
+- Configured imports to handle ESM compatibility: Import `pg` as default module and destructure Pool
+- Database connection now working with Replit's DATABASE_URL (postgresql://postgres:password@helium/heliumdb?sslmode=disable)
+- Workflow "Start application" verified running on port 5000 with webview output type
+- Frontend successfully rendering with Arabic RTL layout and all UI components functioning
+- Vite dev server HMR connected and working with allowedHosts: true configuration
+- Backend Express server serving on port 5000 with 0.0.0.0 host binding
+- Database schema already pushed - all 8 tables created and coffee menu data initialized
+- Application fully functional with PostgreSQL persistence using DBStorage
+- Deployment configuration already set up with autoscale target using npm build/start scripts
+
 **2025-10-01**: Loyalty System Redesign - Card Numbers + Stamps System
 - Migrated loyalty system from QR-based to one-time use card code system
 - Updated loyalty card schema: added `cardNumber` (unique display number), removed old QR requirement
