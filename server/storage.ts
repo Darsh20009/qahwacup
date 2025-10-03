@@ -313,7 +313,11 @@ export class DBStorage implements IStorage {
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate short order number (max 20 chars): C + timestamp (last 6 digits) + random (4 chars)
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const orderNumber = `C${timestamp}${random}`;
+    
     const result = await this.db.insert(orders).values({
       ...order,
       orderNumber,
