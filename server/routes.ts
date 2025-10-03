@@ -446,84 +446,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create order
   app.post("/api/orders", async (req, res) => {
     try {
-      const validatedData = insertOrderSchema.parse(req.body);
+      const { items, totalAmount, paymentMethod, paymentDetails, customerInfo, customerId, customerNotes, freeItemsDiscount, usedFreeDrinks } = req.body;
 
-      // Validate payment method
-      const validPaymentMethods: PaymentMethod[] = ['cash', 'stc', 'alinma', 'ur', 'barq', 'rajhi', 'qahwa-card'];
-      if (!validPaymentMethods.includes(validatedData.paymentMethod as PaymentMethod)) {
-        return res.status(400).json({ error: "Invalid payment method" });
+      // Validate required fields
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: "Items are required" });
       }
 
-      // Validate order items and calculate total
-      const orderItems = Array.isArray(validatedData.items) ? validatedData.items : [];
-      let calculatedTotal = 0;
-      let cheapestItemPrice = Infinity;
+      if (!totalAmount || isNaN(parseFloat(totalAmount))) {
+        return res.status(400).json({ error: "Valid total amount is required" });
+      }
 
-      for (const item of orderItems) {
-        if (typeof item !== 'object' || !item.coffeeItemId || !item.quantity || !item.price) {
-          return res.status(400).json({ error: "Invalid order item format" });
+      if (!paymentMethod) {
+        return res.status(400).json({ error: "Payment method is required" });
+      }
+
+      if (!customerInfo?.customerName) {
+        return res.status(400).json({ error: "Customer name is required" });
+      }
+
+      // Get or create customer if phone number provided
+      let finalCustomerId = customerId;
+
+      if (customerInfo.phoneNumber && !customerId) {
+        try {
+          const existingCustomer = await storage.getCustomerByPhone(customerInfo.phoneNumber);
+          if (existingCustomer) {
+            finalCustomerId = existingCustomer.id;
+          }
+        } catch (error) {
+          console.log("Customer lookup failed, will create new order without customer ID");
         }
+      }
 
-        const coffeeItem = await storage.getCoffeeItem(item.coffeeItemId);
-        if (!coffeeItem) {
-          return res.status(400).json({ error: `Coffee item ${item.coffeeItemId} not found` });
+      // If using qahwa-card payment method (free drinks), update loyalty card
+      if (paymentMethod === 'qahwa-card' && finalCustomerId && usedFreeDrinks > 0) {
+        try {
+          // Get customer's loyalty card
+          const customer = await storage.getCustomer(finalCustomerId);
+          if (customer?.phone) {
+            const loyaltyCard = await storage.getLoyaltyCardByPhone(customer.phone);
+            if (loyaltyCard) {
+              // Update freeCupsRedeemed
+              await storage.updateLoyaltyCard(loyaltyCard.id, {
+                freeCupsRedeemed: loyaltyCard.freeCupsRedeemed + usedFreeDrinks,
+                lastUsedAt: new Date()
+              });
+
+              // Create loyalty transaction
+              await storage.createLoyaltyTransaction({
+                cardId: loyaltyCard.id,
+                type: 'free_cup_redeemed',
+                pointsChange: 0,
+                discountAmount: freeItemsDiscount || "0.00",
+                orderAmount: totalAmount,
+                description: `استخدام ${usedFreeDrinks} مشروب مجاني`,
+                employeeId: null
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error updating loyalty card:", error);
+          // Don't fail the order if loyalty card update fails
         }
-
-        const itemPrice = parseFloat(item.price);
-        calculatedTotal += itemPrice * item.quantity;
-
-        if (itemPrice < cheapestItemPrice) {
-          cheapestItemPrice = itemPrice;
-        }
       }
 
-      // Apply discounts if applicable
-      let expectedTotal = calculatedTotal;
-      const isQahwaCardPayment = validatedData.paymentMethod === 'qahwa-card';
-      const loyaltyDiscountApplied = (req.body as any).loyaltyDiscountApplied;
-      const freeCoffeeUsed = (req.body as any).freeCoffeeUsed;
-      const freeItemsDiscount = parseFloat((req.body as any).freeItemsDiscount || '0');
-
-      // For qahwa-card, use the calculated free items discount
-      if (isQahwaCardPayment && freeItemsDiscount > 0) {
-        expectedTotal = Math.max(0, expectedTotal - freeItemsDiscount);
-      } else if (freeCoffeeUsed && cheapestItemPrice !== Infinity) {
-        expectedTotal -= cheapestItemPrice;
-      }
-
-      if (loyaltyDiscountApplied) {
-        expectedTotal = expectedTotal * 0.9;
-      }
-
-      // Verify total matches (with small tolerance for floating point)
-      const requestedTotal = parseFloat(validatedData.totalAmount);
-      if (Math.abs(expectedTotal - requestedTotal) > 0.01) {
-        console.log(`Total mismatch: calculated=${calculatedTotal}, withDiscounts=${expectedTotal}, requested=${requestedTotal}, paymentMethod=${validatedData.paymentMethod}`);
-        return res.status(400).json({ 
-          error: "Total amount mismatch",
-          details: { calculated: calculatedTotal, expected: expectedTotal, requested: requestedTotal }
-        });
-      }
-
-      const order = await storage.createOrder(validatedData);
-
-      // Create individual order items for tracking
-      for (const item of orderItems) {
-        await storage.createOrderItem({
-          orderId: order.id,
-          coffeeItemId: item.coffeeItemId,
-          quantity: item.quantity,
-          unitPrice: item.price,
-          totalPrice: (parseFloat(item.price) * item.quantity).toString()
-        });
-      }
+      // Create order
+      const order = await storage.createOrder({
+        customerId: finalCustomerId || null,
+        totalAmount,
+        paymentMethod,
+        paymentDetails,
+        customerInfo,
+        customerNotes,
+        items: JSON.stringify(items),
+        freeItemsDiscount: freeItemsDiscount || "0.00"
+      });
 
       res.status(201).json(order);
     } catch (error) {
       console.error("Error creating order:", error);
-      if (error instanceof Error && 'issues' in error) {
-        return res.status(400).json({ error: "Validation error", details: error.issues });
-      }
       res.status(500).json({ error: "Failed to create order" });
     }
   });
@@ -596,13 +598,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const customerInfo = typeof updatedOrder.customerInfo === 'string' 
           ? JSON.parse(updatedOrder.customerInfo) 
           : updatedOrder.customerInfo;
-        
+
         const phoneNumber = customerInfo?.phoneNumber;
-        
+
         if (phoneNumber && status !== 'pending') {
           const message = getOrderStatusMessage(status, updatedOrder.orderNumber);
           const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
-          
+
           // Return WhatsApp URL in response so frontend can optionally use it
           res.json({
             ...updatedOrder,
@@ -645,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/payment-methods", async (req, res) => {
     try {
       const hasFreeDrinks = req.query.hasFreeDrinks as string; // Check for hasFreeDrinks query parameter
-      
+
       const paymentMethods = [
         { id: 'cash', nameAr: 'الدفع نقداً', nameEn: 'Cash Payment', details: 'ادفع عند الاستلام', icon: 'fas fa-money-bill-wave' },
         { id: 'stc', nameAr: 'STC Pay', nameEn: 'STC Pay', details: '0532441566', icon: 'fas fa-mobile-alt' },

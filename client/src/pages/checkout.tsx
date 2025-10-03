@@ -263,6 +263,9 @@ export default function CheckoutPage() {
       }
     }
 
+    // Calculate number of free drinks used
+    const usedFreeDrinks = isQahwaCardPayment ? Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0) : 0;
+
     const orderData = {
       items: orderItems,
       totalAmount: totalAmount.toFixed(2),
@@ -275,21 +278,9 @@ export default function CheckoutPage() {
       },
       customerId: activeCustomerId || null, // Include customer ID from context
       customerNotes: customerNotes.trim() || null,
-      freeItemsDiscount: freeItemsDiscount.toFixed(2) // إضافة قيمة الخصم
+      freeItemsDiscount: freeItemsDiscount.toFixed(2), // إضافة قيمة الخصم
+      usedFreeDrinks: usedFreeDrinks // عدد المشروبات المجانية المستخدمة
     };
-
-    // Track used free drink for database customers
-    if (isQahwaCardPayment && customer?.id) {
-      const profile = customerStorage.getProfile() || {
-        name: customer.name || '',
-        phone: customer.phone,
-        stamps: 0,
-        freeDrinks: 0,
-        usedFreeDrinks: 0
-      };
-      profile.usedFreeDrinks = (profile.usedFreeDrinks || 0) + 1;
-      localStorage.setItem('customer-profile', JSON.stringify(profile));
-    }
 
     createOrderMutation.mutate(orderData);
   };
