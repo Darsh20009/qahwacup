@@ -32,6 +32,41 @@ export default function CheckoutPage() {
   const [isRegisteredCustomer, setIsRegisteredCustomer] = useState(false);
   const { customer } = useCustomer();
 
+  // Calculate total drinks from all orders
+  const { data: customerOrders = [] } = useQuery<Order[]>({
+    queryKey: ["/api/customers", customer?.id, "orders"],
+    enabled: !!customer?.id,
+  });
+
+  // Calculate free drinks available
+  const calculateFreeDrinks = () => {
+    if (!customer?.id) return 0;
+    
+    // Count total drinks from all previous orders
+    let totalDrinks = 0;
+    customerOrders.forEach(order => {
+      try {
+        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+        if (Array.isArray(items)) {
+          items.forEach((item: any) => {
+            totalDrinks += item.quantity || 0;
+          });
+        }
+      } catch {}
+    });
+    
+    // Every 5 drinks = 1 free drink
+    const freeDrinksEarned = Math.floor(totalDrinks / 5);
+    
+    // Get already used free drinks (from localStorage or context)
+    const profile = customerStorage.getProfile();
+    const usedFreeDrinks = profile?.usedFreeDrinks || 0;
+    
+    return Math.max(0, freeDrinksEarned - usedFreeDrinks);
+  };
+
+  const availableFreeDrinks = calculateFreeDrinks();
+
   // Load customer data if registered
   useEffect(() => {
     // First check CustomerContext (database registered users)
@@ -52,7 +87,8 @@ export default function CheckoutPage() {
   }, [customer]);
 
   const profile = customerStorage.getProfile();
-  const hasFreeDrinks = profile && profile.freeDrinks > 0;
+  const localFreeDrinks = profile && profile.freeDrinks > 0;
+  const hasFreeDrinks = localFreeDrinks || availableFreeDrinks > 0;
 
   const { data: paymentMethods = [], isLoading: loadingPaymentMethods } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods", hasFreeDrinks ? 'true' : 'false'],
@@ -151,9 +187,19 @@ export default function CheckoutPage() {
     // Check if using qahwa-card payment method (free drink)
     const isQahwaCardPayment = selectedPaymentMethod === 'qahwa-card';
 
-    // Check if using free drink checkbox
+    // Validate qahwa-card usage
+    if (isQahwaCardPayment && availableFreeDrinks <= 0) {
+      toast({
+        variant: "destructive",
+        title: "ليس لديك مشروبات مجانية",
+        description: "اطلب المزيد للحصول على مشروب مجاني!"
+      });
+      return;
+    }
+
+    // Check if using free drink checkbox (for local storage users)
     const profile = customerStorage.getProfile();
-    const hasFreeDrinks = customer?.id ? false : (profile && profile.freeDrinks > 0); // CustomerContext users don't use local free drinks
+    const hasFreeDrinks = customer?.id ? false : (profile && profile.freeDrinks > 0);
 
     if (useFreeDrink && !hasFreeDrinks) {
       toast({
@@ -213,6 +259,19 @@ export default function CheckoutPage() {
         phoneNumber: customerPhone.trim() || undefined,
       },
     };
+
+    // Track used free drink for database customers
+    if (isQahwaCardPayment && customer?.id) {
+      const profile = customerStorage.getProfile() || { 
+        name: customer.name || '', 
+        phone: customer.phone, 
+        stamps: 0, 
+        freeDrinks: 0,
+        usedFreeDrinks: 0
+      };
+      profile.usedFreeDrinks = (profile.usedFreeDrinks || 0) + 1;
+      localStorage.setItem('customer-profile', JSON.stringify(profile));
+    }
 
     createOrderMutation.mutate(orderData);
   };
@@ -793,9 +852,67 @@ ${itemsWithPrices}
                         </div>
                       </div>
 
-                      {/* Use Free Drink Option - Only for registered customers with free drinks */}
-                      {isRegisteredCustomer && customerStorage.getProfile()?.freeDrinks! > 0 && (
+                      {/* Free Drinks Counter for Registered Users */}
+                      {isRegisteredCustomer && customer?.id && (
                         <div className="mt-6 relative group" data-testid="section-free-drink">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-orange-500/30 to-amber-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+
+                          <div className="relative bg-gradient-to-br from-amber-50/90 via-orange-50/80 to-amber-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-amber-300/50 shadow-xl">
+                            <div className="text-center space-y-3">
+                              <div className="flex items-center justify-center gap-2">
+                                <Coffee className="w-6 h-6 text-amber-600" />
+                                <h4 className="font-amiri text-xl font-bold text-amber-900">
+                                  بطاقة كوبي - مشروباتك
+                                </h4>
+                              </div>
+                              
+                              <div className="bg-white/60 rounded-xl p-4 space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-amber-700">إجمالي المشروبات:</span>
+                                  <span className="font-bold text-amber-900">
+                                    {customerOrders.reduce((total, order) => {
+                                      try {
+                                        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                                        return total + (Array.isArray(items) ? items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0);
+                                      } catch {
+                                        return total;
+                                      }
+                                    }, 0)}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-green-700">مشروبات مجانية متاحة:</span>
+                                  <span className="font-bold text-green-600 text-xl">
+                                    {availableFreeDrinks} 🎁
+                                  </span>
+                                </div>
+                              </div>
+
+                              {availableFreeDrinks > 0 ? (
+                                <p className="text-sm text-green-700 bg-green-100 rounded-lg p-2">
+                                  ✨ استخدم خيار "بطاقة كوبي" في طرق الدفع للحصول على مشروبك المجاني!
+                                </p>
+                              ) : (
+                                <p className="text-sm text-amber-700 bg-amber-100 rounded-lg p-2">
+                                  📊 اطلب {5 - (customerOrders.reduce((total, order) => {
+                                    try {
+                                      const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                                      return total + (Array.isArray(items) ? items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0);
+                                    } catch {
+                                      return total;
+                                    }
+                                  }, 0) % 5)} مشروبات إضافية للحصول على المشروب المجاني القادم!
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Use Free Drink Option - Only for local storage users with free drinks */}
+                      {isRegisteredCustomer && !customer?.id && customerStorage.getProfile()?.freeDrinks! > 0 && (
+                        <div className="mt-6 relative group" data-testid="section-free-drink-local">
                           <div className="absolute -inset-1 bg-gradient-to-r from-green-400/30 via-emerald-500/30 to-green-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
 
                           <div className="relative bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-green-50/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-green-300/50 shadow-xl">
