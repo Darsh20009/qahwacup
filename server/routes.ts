@@ -100,6 +100,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DISCOUNT CODE ROUTES
+  
+  // Create discount code
+  app.post("/api/discount-codes", async (req, res) => {
+    try {
+      const { insertDiscountCodeSchema } = await import("@shared/schema");
+      const validatedData = insertDiscountCodeSchema.parse(req.body);
+      
+      // Check if code already exists
+      const existing = await storage.getDiscountCodeByCode(validatedData.code);
+      if (existing) {
+        return res.status(400).json({ error: "Code already exists" });
+      }
+
+      const discountCode = await storage.createDiscountCode(validatedData);
+      res.status(201).json(discountCode);
+    } catch (error) {
+      console.error("Error creating discount code:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error });
+      }
+      res.status(500).json({ error: "Failed to create discount code" });
+    }
+  });
+
+  // Get discount code by code
+  app.get("/api/discount-codes/by-code/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      const discountCode = await storage.getDiscountCodeByCode(code);
+      
+      if (!discountCode) {
+        return res.status(404).json({ error: "Discount code not found" });
+      }
+
+      if (discountCode.isActive === 0) {
+        return res.status(400).json({ error: "Discount code is inactive" });
+      }
+
+      res.json(discountCode);
+    } catch (error) {
+      console.error("Error fetching discount code:", error);
+      res.status(500).json({ error: "Failed to fetch discount code" });
+    }
+  });
+
+  // Get all discount codes for an employee
+  app.get("/api/discount-codes/employee/:employeeId", async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const codes = await storage.getDiscountCodesByEmployee(employeeId);
+      res.json(codes);
+    } catch (error) {
+      console.error("Error fetching employee discount codes:", error);
+      res.status(500).json({ error: "Failed to fetch discount codes" });
+    }
+  });
+
+  // Update discount code (toggle active status only)
+  app.patch("/api/discount-codes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive, employeeId } = req.body;
+      
+      // Require employee ID for authorization
+      if (!employeeId) {
+        return res.status(401).json({ error: "Employee authentication required" });
+      }
+      
+      // Verify the discount code exists and belongs to this employee
+      const existingCode = await storage.getDiscountCode(id);
+      if (!existingCode) {
+        return res.status(404).json({ error: "Discount code not found" });
+      }
+      
+      if (existingCode.employeeId !== employeeId) {
+        return res.status(403).json({ error: "Unauthorized: You can only update your own discount codes" });
+      }
+      
+      // Only allow updating isActive field
+      if (typeof isActive !== 'number' || (isActive !== 0 && isActive !== 1)) {
+        return res.status(400).json({ error: "Only isActive field can be updated (0 or 1)" });
+      }
+      
+      const discountCode = await storage.updateDiscountCode(id, { isActive });
+      res.json(discountCode);
+    } catch (error) {
+      console.error("Error updating discount code:", error);
+      res.status(500).json({ error: "Failed to update discount code" });
+    }
+  });
+
+  // Increment discount code usage
+  app.post("/api/discount-codes/:id/use", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if code exists and is active first
+      const code = await storage.getDiscountCode(id);
+      if (!code) {
+        return res.status(404).json({ error: "Discount code not found" });
+      }
+      
+      if (code.isActive === 0) {
+        return res.status(400).json({ error: "Discount code is inactive" });
+      }
+      
+      const discountCode = await storage.incrementDiscountCodeUsage(id);
+      res.json(discountCode);
+    } catch (error) {
+      console.error("Error incrementing discount code usage:", error);
+      res.status(500).json({ error: "Failed to use discount code" });
+    }
+  });
+
   // CUSTOMER ROUTES
   
   // Customer authentication (register or login with phone)

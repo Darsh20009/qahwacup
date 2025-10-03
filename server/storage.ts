@@ -13,6 +13,8 @@ import {
   type InsertCustomer,
   type Employee,
   type InsertEmployee,
+  type DiscountCode,
+  type InsertDiscountCode,
   type LoyaltyCard,
   type InsertLoyaltyCard,
   type CardCode,
@@ -24,6 +26,7 @@ import {
   coffeeItems,
   customers,
   employees,
+  discountCodes,
   orders,
   orderItems,
   cartItems,
@@ -48,6 +51,15 @@ export interface IStorage {
   getEmployeeByUsername(username: string): Promise<Employee | undefined>;
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   getEmployees(): Promise<Employee[]>;
+
+  // Discount Code methods
+  createDiscountCode(discountCode: InsertDiscountCode): Promise<DiscountCode>;
+  getDiscountCode(id: string): Promise<DiscountCode | undefined>;
+  getDiscountCodeByCode(code: string): Promise<DiscountCode | undefined>;
+  getDiscountCodes(): Promise<DiscountCode[]>;
+  getDiscountCodesByEmployee(employeeId: string): Promise<DiscountCode[]>;
+  updateDiscountCode(id: string, updates: Partial<DiscountCode>): Promise<DiscountCode | undefined>;
+  incrementDiscountCodeUsage(id: string): Promise<DiscountCode | undefined>;
 
   // Customer methods
   getCustomer(id: string): Promise<Customer | undefined>;
@@ -110,6 +122,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private employees: Map<string, Employee>;
+  private discountCodes: Map<string, DiscountCode>;
   private coffeeItems: Map<string, CoffeeItem>;
   private orders: Map<string, Order>;
   private orderItems: Map<string, OrderItem>;
@@ -122,6 +135,7 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.employees = new Map();
+    this.discountCodes = new Map();
     this.coffeeItems = new Map();
     this.orders = new Map();
     this.orderItems = new Map();
@@ -214,6 +228,58 @@ export class MemStorage implements IStorage {
 
   async getEmployees(): Promise<Employee[]> {
     return Array.from(this.employees.values());
+  }
+
+  // Discount Code methods
+  async createDiscountCode(insertDiscountCode: InsertDiscountCode): Promise<DiscountCode> {
+    const id = randomUUID();
+    const discountCode: DiscountCode = {
+      ...insertDiscountCode,
+      id,
+      isActive: insertDiscountCode.isActive ?? 1,
+      usageCount: 0,
+      createdAt: new Date()
+    };
+    this.discountCodes.set(id, discountCode);
+    return discountCode;
+  }
+
+  async getDiscountCode(id: string): Promise<DiscountCode | undefined> {
+    return this.discountCodes.get(id);
+  }
+
+  async getDiscountCodeByCode(code: string): Promise<DiscountCode | undefined> {
+    return Array.from(this.discountCodes.values()).find(
+      (dc) => dc.code === code
+    );
+  }
+
+  async getDiscountCodes(): Promise<DiscountCode[]> {
+    return Array.from(this.discountCodes.values());
+  }
+
+  async getDiscountCodesByEmployee(employeeId: string): Promise<DiscountCode[]> {
+    return Array.from(this.discountCodes.values()).filter(
+      (dc) => dc.employeeId === employeeId
+    );
+  }
+
+  async updateDiscountCode(id: string, updates: Partial<DiscountCode>): Promise<DiscountCode | undefined> {
+    const existing = this.discountCodes.get(id);
+    if (!existing) return undefined;
+
+    const updated = { ...existing, ...updates, id };
+    this.discountCodes.set(id, updated);
+    return updated;
+  }
+
+  async incrementDiscountCodeUsage(id: string): Promise<DiscountCode | undefined> {
+    const code = this.discountCodes.get(id);
+    if (!code) return undefined;
+
+    const updated = { ...code, usageCount: code.usageCount + 1 };
+    this.discountCodes.set(id, updated);
+    return updated;
   }
 
   // User methods (legacy)

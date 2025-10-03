@@ -38,6 +38,18 @@ export const employees = pgTable("employees", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Discount Codes Schema - كودات الخصم
+export const discountCodes = pgTable("discount_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  discountPercentage: integer("discount_percentage").notNull(), // 5, 10, 15, etc.
+  reason: text("reason").notNull(), // سبب الخصم
+  employeeId: varchar("employee_id").references(() => employees.id).notNull(), // الموظف الذي أنشأ الكود
+  isActive: integer("is_active").default(1).notNull(), // 0 = inactive, 1 = active
+  usageCount: integer("usage_count").default(0).notNull(), // عدد مرات الاستخدام
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Orders Schema
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -104,6 +116,12 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   createdAt: true,
 });
 
+export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+});
+
 // TypeScript Types
 export type CoffeeItem = typeof coffeeItems.$inferSelect;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
@@ -113,6 +131,9 @@ export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 
 export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
+
+export type DiscountCode = typeof discountCodes.$inferSelect;
+export type InsertDiscountCode = z.infer<typeof insertDiscountCodeSchema>;
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
