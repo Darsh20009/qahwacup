@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "@/components/payment-methods";
 import { generatePDF } from "@/lib/pdf-generator";
 import { customerStorage } from "@/lib/customer-storage";
+import { useCustomer } from "@/contexts/CustomerContext";
 import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
 
@@ -29,16 +30,26 @@ export default function CheckoutPage() {
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [useFreeDrink, setUseFreeDrink] = useState(false);
   const [isRegisteredCustomer, setIsRegisteredCustomer] = useState(false);
+  const { customer } = useCustomer();
 
   // Load customer data if registered
   useEffect(() => {
+    // First check CustomerContext (database registered users)
+    if (customer?.name && customer?.phone) {
+      setCustomerName(customer.name);
+      setCustomerPhone(customer.phone);
+      setIsRegisteredCustomer(true);
+      return;
+    }
+    
+    // Then check customerStorage (local storage users)
     const profile = customerStorage.getProfile();
     if (profile && !customerStorage.isGuestMode()) {
       setCustomerName(profile.name);
       setCustomerPhone(profile.phone);
       setIsRegisteredCustomer(true);
     }
-  }, []);
+  }, [customer]);
 
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
@@ -98,18 +109,18 @@ export default function CheckoutPage() {
 
     // Check if using free drink
     const profile = customerStorage.getProfile();
-    if (useFreeDrink && profile) {
-      if (profile.freeDrinks <= 0) {
-        toast({
-          variant: "destructive",
-          title: "ليس لديك مشروبات مجانية",
-          description: "يرجى إلغاء تفعيل استخدام بطاقتي"
-        });
-        return;
-      }
+    const hasFreeDrinks = customer?.id ? false : (profile && profile.freeDrinks > 0); // CustomerContext users don't use local free drinks
+    
+    if (useFreeDrink && !hasFreeDrinks) {
+      toast({
+        variant: "destructive",
+        title: "ليس لديك مشروبات مجانية",
+        description: "يرجى إلغاء تفعيل استخدام بطاقتي"
+      });
+      return;
     }
 
-    const totalAmount = useFreeDrink && profile && profile.freeDrinks > 0 
+    const totalAmount = useFreeDrink && hasFreeDrinks
       ? 0  // Free if using free drink
       : getTotalPrice();
 
@@ -124,6 +135,7 @@ export default function CheckoutPage() {
       paymentMethod: selectedPaymentMethod,
       paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
       status: "pending",
+      customerId: customer?.id || null, // Include customer ID from context
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
@@ -295,7 +307,7 @@ ${itemsWithPrices}
               </h1>
               
               {/* Personal Welcome for Customer */}
-              {orderDetails?.customerInfo?.customerName && (
+              {(orderDetails?.customerInfo?.customerName || customer?.name) && (
                 <div className="mb-6 bg-gradient-to-r from-primary/15 to-secondary/15 rounded-2xl p-6 border-2 border-primary/20 shadow-lg animate-in fade-in-20 slide-in-from-top-4 duration-1500">
                   <div className="flex items-center justify-center mb-3">
                     <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center ml-3">
@@ -304,7 +316,7 @@ ${itemsWithPrices}
                     <div className="text-center">
                       <p className="font-amiri text-lg text-muted-foreground mb-1">أهلاً وسهلاً</p>
                       <h2 className="font-amiri text-3xl font-bold text-primary">
-                        {orderDetails.customerInfo.customerName} 
+                        {orderDetails?.customerInfo?.customerName || customer?.name} 
                       </h2>
                       <p className="text-sm text-primary/70 mt-1">☕ لكل لحظة قهوة ، لحظة نجاح</p>
                     </div>
