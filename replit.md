@@ -2,6 +2,14 @@
 
 "قهوة كوب" (Coffee Cup) is a full-stack web application providing an Arabic-first digital coffee menu. It enables customers to browse coffee items, manage a shopping cart, and place orders with various payment methods. The project aims to offer a modern, efficient, and culturally tailored ordering experience, targeting the digital transformation of local coffee shops.
 
+# Recent Changes (October 2025)
+
+## TypeScript Fixes & Type Safety Improvements
+- **CustomerProfile Extension**: Added optional `usedFreeDrinks` property to track free drinks usage across sessions
+- **Order Type Import**: Fixed missing `Order` type import in checkout page to resolve TypeScript errors
+- **Customer Notes Handling**: Fixed `customerNotes` field to ensure proper null handling (not undefined) in order creation
+- **Schema Typing**: Adjusted coffeeMenuData initialization to resolve strict type inference issues with Drizzle schema
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

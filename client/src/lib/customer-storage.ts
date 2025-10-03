@@ -9,6 +9,7 @@ export interface CustomerProfile {
   cardNumber?: string;
   stamps: number;
   freeDrinks: number;
+  usedFreeDrinks?: number;
 }
 
 // Order Types

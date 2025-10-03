@@ -148,7 +148,7 @@ export class DBStorage implements IStorage {
     const existingItems = await this.db.select().from(coffeeItems).limit(1);
     if (existingItems.length > 0) return;
 
-    const coffeeMenuData: typeof coffeeItems.$inferInsert[] = [
+    const coffeeMenuData: any[] = [
       { id: "espresso-single", nameAr: "إسبريسو (شوت)", nameEn: "Espresso Single", description: "قهوة إسبريسو مركزة من حبوب عربية مختارة", price: "4.00", oldPrice: "5.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 10 },
       { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 12 },
       { id: "americano", nameAr: "أمريكانو", nameEn: "Americano", description: "إسبريسو مخفف بالماء الساخن لطعم معتدل", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757426884660.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 3 },
@@ -779,7 +779,8 @@ export class MemStorage implements IStorage {
       status: orderData.status ?? "pending",
       customerInfo: orderData.customerInfo ?? null,
       customerId: orderData.customerId ?? null,
-      employeeId: orderData.employeeId ?? null
+      employeeId: orderData.employeeId ?? null,
+      customerNotes: orderData.customerNotes ?? null
     };
     this.orders.set(id, order);
     return order;

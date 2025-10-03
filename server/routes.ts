@@ -4,6 +4,17 @@ import { storage } from "./storage";
 import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
+// Helper function to send WhatsApp notification
+function getOrderStatusMessage(status: string, orderNumber: string): string {
+  const statusMessages: Record<string, string> = {
+    'confirmed': `✅ تم تأكيد طلبك رقم ${orderNumber}\nجاري تحضير قهوتك بعناية!`,
+    'in_progress': `⏳ طلبك رقم ${orderNumber} قيد التحضير الآن\nلن ننتظر طويلاً!`,
+    'completed': `🎉 طلبك رقم ${orderNumber} جاهز للاستلام!\nاستمتع بقهوتك ☕`,
+    'cancelled': `❌ تم إلغاء طلبك رقم ${orderNumber}\nنأسف للإزعاج`
+  };
+  return statusMessages[status] || `تم تحديث حالة طلبك رقم ${orderNumber} إلى: ${status}`;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // EMPLOYEE ROUTES
 
@@ -577,6 +588,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!updatedOrder) {
         return res.status(404).json({ error: "Order not found" });
+      }
+
+      // Send WhatsApp notification to customer
+      try {
+        const customerInfo = typeof updatedOrder.customerInfo === 'string' 
+          ? JSON.parse(updatedOrder.customerInfo) 
+          : updatedOrder.customerInfo;
+        
+        const phoneNumber = customerInfo?.phoneNumber;
+        
+        if (phoneNumber && status !== 'pending') {
+          const message = getOrderStatusMessage(status, updatedOrder.orderNumber);
+          const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+          
+          // Return WhatsApp URL in response so frontend can optionally use it
+          res.json({
+            ...updatedOrder,
+            whatsappNotification: {
+              url: whatsappUrl,
+              message: message,
+              phone: phoneNumber
+            }
+          });
+          return;
+        }
+      } catch (notificationError) {
+        console.error("WhatsApp notification error:", notificationError);
+        // Continue even if notification fails
       }
 
       res.json(updatedOrder);

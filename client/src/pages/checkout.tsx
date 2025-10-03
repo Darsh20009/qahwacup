@@ -13,7 +13,7 @@ import { generatePDF } from "@/lib/pdf-generator";
 import { customerStorage } from "@/lib/customer-storage";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check } from "lucide-react";
-import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
+import type { PaymentMethodInfo, PaymentMethod, Order } from "@shared/schema";
 
 export default function CheckoutPage() {
   const { cartItems, clearCart, getTotalPrice } = useCartStore();
@@ -30,6 +30,8 @@ export default function CheckoutPage() {
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [useFreeDrink, setUseFreeDrink] = useState(false);
   const [isRegisteredCustomer, setIsRegisteredCustomer] = useState(false);
+  const [selectedFreeItems, setSelectedFreeItems] = useState<{[key: string]: number}>({});
+  const [customerNotes, setCustomerNotes] = useState("");
   const { customer } = useCustomer();
 
   // Calculate total drinks from all orders
@@ -213,12 +215,18 @@ export default function CheckoutPage() {
     // Calculate total amount considering free drinks
     let totalAmount = getTotalPrice();
     
-    // If using qahwa-card, deduct cheapest item price (free drink can be any item)
+    // If using qahwa-card, calculate based on selected free items
     if (isQahwaCardPayment) {
-      const cheapestItemPrice = Math.min(...cartItems.map(item => 
-        parseFloat(item.coffeeItem?.price || "0")
-      ));
-      totalAmount = Math.max(0, totalAmount - cheapestItemPrice);
+      // Calculate total discount from selected free items
+      let freeItemsDiscount = 0;
+      Object.entries(selectedFreeItems).forEach(([itemId, quantity]) => {
+        const item = cartItems.find(ci => ci.coffeeItemId === itemId);
+        if (item && quantity > 0) {
+          const itemPrice = parseFloat(item.coffeeItem?.price || "0");
+          freeItemsDiscount += itemPrice * quantity;
+        }
+      });
+      totalAmount = Math.max(0, totalAmount - freeItemsDiscount);
     } else if (useFreeDrink && hasFreeDrinks) {
       totalAmount = 0; // Local storage free drink = full order free
     }
@@ -267,6 +275,7 @@ export default function CheckoutPage() {
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
         phoneNumber: customerPhone.trim() || undefined,
       },
+      customerNotes: customerNotes.trim() || null,
     };
 
     // Track used free drink for database customers
@@ -899,9 +908,74 @@ ${itemsWithPrices}
                               </div>
 
                               {availableFreeDrinks > 0 ? (
-                                <p className="text-sm text-green-700 bg-green-100 rounded-lg p-2">
-                                  ✨ استخدم خيار "بطاقة كوبي" في طرق الدفع للحصول على مشروبك المجاني!
-                                </p>
+                                <div>
+                                  <p className="text-sm text-green-700 bg-green-100 rounded-lg p-2 mb-3">
+                                    ✨ اختر المشروبات المجانية من طلبك الحالي!
+                                  </p>
+                                  
+                                  {/* Free Drinks Selection UI */}
+                                  {selectedPaymentMethod === 'qahwa-card' && (
+                                    <div className="bg-white/80 rounded-xl p-4 space-y-3 border-2 border-green-300">
+                                      <h5 className="font-bold text-green-800 flex items-center gap-2">
+                                        <Gift className="w-5 h-5" />
+                                        اختر {availableFreeDrinks} مشروب مجاني من طلبك
+                                      </h5>
+                                      
+                                      {cartItems.map((item) => {
+                                        const maxFree = Math.min(
+                                          item.quantity,
+                                          availableFreeDrinks - Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0)
+                                        );
+                                        const currentlySelected = selectedFreeItems[item.coffeeItemId] || 0;
+                                        
+                                        return (
+                                          <div key={item.coffeeItemId} className="flex items-center justify-between bg-green-50/50 p-3 rounded-lg">
+                                            <div className="flex-1">
+                                              <p className="font-semibold text-sm">{item.coffeeItem?.nameAr}</p>
+                                              <p className="text-xs text-gray-600">سعر الواحد: {item.coffeeItem?.price} ريال</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                  const newVal = Math.max(0, currentlySelected - 1);
+                                                  setSelectedFreeItems({...selectedFreeItems, [item.coffeeItemId]: newVal});
+                                                }}
+                                                disabled={currentlySelected === 0}
+                                                className="h-8 w-8 p-0"
+                                              >
+                                                -
+                                              </Button>
+                                              <span className="font-bold min-w-[2rem] text-center">{currentlySelected}</span>
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                  const newVal = Math.min(maxFree + currentlySelected, currentlySelected + 1, item.quantity);
+                                                  setSelectedFreeItems({...selectedFreeItems, [item.coffeeItemId]: newVal});
+                                                }}
+                                                disabled={currentlySelected >= item.quantity || Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0) >= availableFreeDrinks}
+                                                className="h-8 w-8 p-0"
+                                              >
+                                                +
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      
+                                      <div className="flex justify-between items-center pt-2 border-t border-green-300">
+                                        <span className="text-sm font-semibold">المشروبات المجانية المختارة:</span>
+                                        <span className="text-lg font-bold text-green-600">
+                                          {Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0)} / {availableFreeDrinks}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <p className="text-sm text-amber-700 bg-amber-100 rounded-lg p-2">
                                   📊 اطلب {5 - (customerOrders.reduce((total, order) => {
@@ -991,6 +1065,26 @@ ${itemsWithPrices}
                       )}
 
                       <div className="grid grid-cols-1 gap-4 mt-4">
+
+                        {/* Customer Notes Section */}
+                        <div className="space-y-2 bg-gradient-to-br from-blue-50/80 to-indigo-50/60 rounded-lg p-4 border border-blue-200">
+                          <Label htmlFor="customer-notes" className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                            <MessageCircle className="w-4 h-4" />
+                            ملاحظات إضافية على الطلب (اختياري)
+                          </Label>
+                          <textarea
+                            id="customer-notes"
+                            placeholder="مثال: بدون سكر، قهوة ساخنة جداً، إضافة كريمة..."
+                            value={customerNotes}
+                            onChange={(e) => setCustomerNotes(e.target.value)}
+                            className="w-full min-h-[80px] text-right p-3 border border-blue-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none bg-white/80"
+                            data-testid="textarea-customer-notes"
+                            maxLength={500}
+                          />
+                          <p className="text-xs text-blue-600">
+                            💭 شارك أي تفضيلات خاصة بطلبك ({customerNotes.length}/500 حرف)
+                          </p>
+                        </div>
 
                         {/* Transfer name section - always visible */}
                         <div className="space-y-4 bg-slate-50 rounded-lg p-4 border border-slate-200">

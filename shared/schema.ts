@@ -62,6 +62,7 @@ export const orders = pgTable("orders", {
   customerInfo: jsonb("customer_info"), // Customer details: {name, phone} - legacy field
   customerId: varchar("customer_id").references(() => customers.id), // العميل المسجل
   employeeId: varchar("employee_id").references(() => employees.id), // الموظف الذي أنشأ الطلب
+  customerNotes: text("customer_notes"), // ملاحظات العميل على الطلب
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
