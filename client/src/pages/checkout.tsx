@@ -43,7 +43,7 @@ export default function CheckoutPage() {
   // Calculate free drinks available
   const calculateFreeDrinks = () => {
     if (!customer?.id) return 0;
-    
+
     // Count total drinks from all previous orders
     let totalDrinks = 0;
     customerOrders.forEach(order => {
@@ -56,14 +56,14 @@ export default function CheckoutPage() {
         }
       } catch {}
     });
-    
+
     // Every 5 drinks = 1 free drink
     const freeDrinksEarned = Math.floor(totalDrinks / 5);
-    
+
     // Get already used free drinks (from localStorage or context)
     const profile = customerStorage.getProfile();
     const usedFreeDrinks = profile?.usedFreeDrinks || 0;
-    
+
     return Math.max(0, freeDrinksEarned - usedFreeDrinks);
   };
 
@@ -214,11 +214,11 @@ export default function CheckoutPage() {
 
     // Calculate total amount considering free drinks
     let totalAmount = getTotalPrice();
-    
+    let freeItemsDiscount = 0; // Initialize freeItemsDiscount
+
     // If using qahwa-card, calculate based on selected free items
     if (isQahwaCardPayment) {
       // Calculate total discount from selected free items
-      let freeItemsDiscount = 0;
       Object.entries(selectedFreeItems).forEach(([itemId, quantity]) => {
         const item = cartItems.find(ci => ci.coffeeItemId === itemId);
         if (item && quantity > 0) {
@@ -265,25 +265,25 @@ export default function CheckoutPage() {
 
     const orderData = {
       items: orderItems,
-      totalAmount: totalAmount.toString(),
+      totalAmount: totalAmount.toFixed(2),
       paymentMethod: selectedPaymentMethod,
-      paymentDetails: getPaymentMethodDetails(selectedPaymentMethod),
-      status: "pending",
-      customerId: activeCustomerId || null, // Include customer ID from context
+      paymentDetails: transferOwnerName || null,
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
         phoneNumber: customerPhone.trim() || undefined,
       },
+      customerId: activeCustomerId || null, // Include customer ID from context
       customerNotes: customerNotes.trim() || null,
+      freeItemsDiscount: freeItemsDiscount.toFixed(2) // إضافة قيمة الخصم
     };
 
     // Track used free drink for database customers
     if (isQahwaCardPayment && customer?.id) {
-      const profile = customerStorage.getProfile() || { 
-        name: customer.name || '', 
-        phone: customer.phone, 
-        stamps: 0, 
+      const profile = customerStorage.getProfile() || {
+        name: customer.name || '',
+        phone: customer.phone,
+        stamps: 0,
         freeDrinks: 0,
         usedFreeDrinks: 0
       };
@@ -464,7 +464,7 @@ ${itemsWithPrices}
                     <div className="text-center">
                       <p className="font-amiri text-lg text-muted-foreground mb-1">أهلاً وسهلاً</p>
                       <h2 className="font-amiri text-3xl font-bold text-primary">
-                        {orderDetails?.customerInfo?.customerName || customer?.name} 
+                        {orderDetails?.customerInfo?.customerName || customer?.name}
                       </h2>
                       <p className="text-sm text-primary/70 mt-1">☕ لكل لحظة قهوة ، لحظة نجاح</p>
                     </div>
@@ -559,7 +559,7 @@ ${itemsWithPrices}
                       {/* Codes Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {loyaltyCodes.slice(0, 5).map((codeItem, index) => (
-                          <div 
+                          <div
                             key={codeItem.id || index}
                             className="relative group/card"
                             data-testid={`card-loyalty-code-${codeItem.id || index}`}
@@ -730,8 +730,8 @@ ${itemsWithPrices}
                 <CardContent className="p-6" data-testid="section-order-summary">
                   <div className="space-y-4 mb-6">
                     {cartItems.map((item, index) => (
-                      <div 
-                        key={item.coffeeItemId} 
+                      <div
+                        key={item.coffeeItemId}
                         className="flex justify-between items-center py-3 px-4 bg-violet-50 rounded-xl border border-violet-100 animate-in fade-in-0 slide-in-from-left-5 duration-500"
                         style={{animationDelay: `${index * 0.1}s`}}
                       >
@@ -883,7 +883,7 @@ ${itemsWithPrices}
                                   بطاقة كوبي - مشروباتك
                                 </h4>
                               </div>
-                              
+
                               <div className="bg-white/60 rounded-xl p-4 space-y-2">
                                 <div className="flex justify-between items-center">
                                   <span className="text-sm text-amber-700">إجمالي المشروبات:</span>
@@ -898,7 +898,7 @@ ${itemsWithPrices}
                                     }, 0)}
                                   </span>
                                 </div>
-                                
+
                                 <div className="flex justify-between items-center">
                                   <span className="text-sm text-green-700">مشروبات مجانية متاحة:</span>
                                   <span className="font-bold text-green-600 text-xl">
@@ -912,7 +912,7 @@ ${itemsWithPrices}
                                   <p className="text-sm text-green-700 bg-green-100 rounded-lg p-2 mb-3">
                                     ✨ اختر المشروبات المجانية من طلبك الحالي!
                                   </p>
-                                  
+
                                   {/* Free Drinks Selection UI */}
                                   {selectedPaymentMethod === 'qahwa-card' && (
                                     <div className="bg-white/80 rounded-xl p-4 space-y-3 border-2 border-green-300">
@@ -920,14 +920,14 @@ ${itemsWithPrices}
                                         <Gift className="w-5 h-5" />
                                         اختر {availableFreeDrinks} مشروب مجاني من طلبك
                                       </h5>
-                                      
+
                                       {cartItems.map((item) => {
                                         const maxFree = Math.min(
                                           item.quantity,
                                           availableFreeDrinks - Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0)
                                         );
                                         const currentlySelected = selectedFreeItems[item.coffeeItemId] || 0;
-                                        
+
                                         return (
                                           <div key={item.coffeeItemId} className="flex items-center justify-between bg-green-50/50 p-3 rounded-lg">
                                             <div className="flex-1">
@@ -966,7 +966,7 @@ ${itemsWithPrices}
                                           </div>
                                         );
                                       })}
-                                      
+
                                       <div className="flex justify-between items-center pt-2 border-t border-green-300">
                                         <span className="text-sm font-semibold">المشروبات المجانية المختارة:</span>
                                         <span className="text-lg font-bold text-green-600">
@@ -992,9 +992,9 @@ ${itemsWithPrices}
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Use Free Drink Option - Only for local storage users with free drinks */}
-                      {isRegisteredCustomer && !customer?.id && customerStorage.getProfile()?.freeDrinks! > 0 && (
+                      {!isRegisteredCustomer && customerStorage.getProfile()?.freeDrinks! > 0 && (
                         <div className="mt-6 relative group" data-testid="section-free-drink-local">
                           <div className="absolute -inset-1 bg-gradient-to-r from-green-400/30 via-emerald-500/30 to-green-400/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
 
@@ -1205,7 +1205,7 @@ ${itemsWithPrices}
                           </div>
                         </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                        <Button 
+                        <Button
                           onClick={() => handlePaymentConfirmed(orderDetails)}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3"
                           data-testid="button-confirm-payment"
@@ -1213,7 +1213,7 @@ ${itemsWithPrices}
                           <FileText className="w-4 h-4 ml-2" />
                           نعم، تم الدفع
                         </Button>
-                        <Button 
+                        <Button
                           variant="outline"
                           onClick={() => setShowConfirmation(false)}
                           className="border-border hover:bg-muted font-semibold py-3"

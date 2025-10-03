@@ -482,10 +482,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isQahwaCardPayment = validatedData.paymentMethod === 'qahwa-card';
       const loyaltyDiscountApplied = (req.body as any).loyaltyDiscountApplied;
       const freeCoffeeUsed = (req.body as any).freeCoffeeUsed;
+      const freeItemsDiscount = parseFloat((req.body as any).freeItemsDiscount || '0');
 
-      // For qahwa-card, deduct cheapest item (free drink)
-      if (isQahwaCardPayment && cheapestItemPrice !== Infinity) {
-        expectedTotal = Math.max(0, expectedTotal - cheapestItemPrice);
+      // For qahwa-card, use the calculated free items discount
+      if (isQahwaCardPayment && freeItemsDiscount > 0) {
+        expectedTotal = Math.max(0, expectedTotal - freeItemsDiscount);
       } else if (freeCoffeeUsed && cheapestItemPrice !== Infinity) {
         expectedTotal -= cheapestItemPrice;
       }
