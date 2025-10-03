@@ -743,7 +743,7 @@ export class MemStorage implements IStorage {
   async createOrder(orderData: InsertOrder): Promise<Order> {
     const id = randomUUID();
 
-    // Create creative order number based on customer name (max 20 chars)
+    // Create creative order number based on customer name
     let orderNumber = 'CUP000001';
     const customerInfo = orderData.customerInfo as any;
     if (customerInfo?.customerName) {
@@ -751,23 +751,22 @@ export class MemStorage implements IStorage {
       const customerName = (customerInfo.customerName as string).trim();
       const nameInitials = customerName.split(' ')
         .map((word: string) => word.charAt(0).toUpperCase())
-        .join('')
-        .substring(0, 3); // Max 3 initials
+        .join('');
 
-      // Add timestamp for uniqueness (HHMM format)
+      // Add timestamp for uniqueness
       const now = new Date();
       const timeStamp = `${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      // Add random 2 digits for extra uniqueness
-      const randomDigits = Math.floor(Math.random() * 100).toString().padStart(2, '0');
 
-      // Create order number: CUP + initials + timestamp + random
-      // Format: CUP-XXX-HHMM-RR (max 16 chars)
-      orderNumber = `CUP${nameInitials}${timeStamp}${randomDigits}`;
+      // Create beautiful order number: Coffee cup emoji + initials + timestamp
+      orderNumber = `☕${nameInitials}${timeStamp}`;
+
+      // If name is too short, add counter for beauty
+      if (nameInitials.length < 2) {
+        orderNumber = `☕${customerName.substring(0, 2).toUpperCase()}${timeStamp}`;
+      }
     } else {
-      // Fallback to counter-based system
-      const timestamp = Date.now().toString().slice(-6);
-      orderNumber = `CUP${timestamp}${String(this.orderCounter++).padStart(3, '0')}`;
+      // Fallback to counter-based system with coffee theme
+      orderNumber = `☕CUP${String(this.orderCounter++).padStart(4, '0')}`;
     }
 
     const order: Order = {
