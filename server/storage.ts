@@ -39,6 +39,10 @@ import {
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { eq, desc, and } from "drizzle-orm";
+import pg from "pg";
+const { Pool } = pg;
 
 export interface IStorage {
   // User methods (legacy)
@@ -117,6 +121,399 @@ export interface IStorage {
   createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward>;
   getLoyaltyRewards(): Promise<LoyaltyReward[]>;
   getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined>;
+}
+
+export class DBStorage implements IStorage {
+  private db: ReturnType<typeof drizzle>;
+  private orderCounter: number = 1;
+
+  constructor(connectionString: string) {
+    const pool = new Pool({
+      connectionString,
+    });
+    this.db = drizzle(pool);
+    this.initializeDatabase();
+  }
+
+  private async initializeDatabase() {
+    try {
+      await this.initializeCoffeeMenu();
+      await this.initializeDemoEmployee();
+    } catch (error) {
+      console.error("Error initializing database:", error);
+    }
+  }
+
+  private async initializeCoffeeMenu() {
+    const existingItems = await this.db.select().from(coffeeItems).limit(1);
+    if (existingItems.length > 0) return;
+
+    const coffeeMenuData: typeof coffeeItems.$inferInsert[] = [
+      { id: "espresso-single", nameAr: "إسبريسو (شوت)", nameEn: "Espresso Single", description: "قهوة إسبريسو مركزة من حبوب عربية مختارة", price: "4.00", oldPrice: "5.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 10 },
+      { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 12 },
+      { id: "americano", nameAr: "أمريكانو", nameEn: "Americano", description: "إسبريسو مخفف بالماء الساخن لطعم معتدل", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757426884660.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 3 },
+      { id: "ristretto", nameAr: "ريستريتو", nameEn: "Ristretto", description: "إسبريسو مركز بنصف كمية الماء لطعم أقوى", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757428239748.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 11 },
+      { id: "cafe-latte", nameAr: "كافيه لاتيه", nameEn: "Cafe Latte", description: "إسبريسو مع حليب مخفوق كريمي ورغوة ناعمة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/generated_images/Luxury_café_latte_drink_156cb225.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "cappuccino", nameAr: "كابتشينو", nameEn: "Cappuccino", description: "مزيج متوازن من الإسبريسو والحليب والرغوة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191916_1757434923575.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "vanilla-latte", nameAr: "فانيلا لاتيه", nameEn: "Vanilla Latte", description: "لاتيه كلاسيكي مع نكهة الفانيلا الطبيعية", price: "6.00", oldPrice: "7.00", category: "hot", imageUrl: "/attached_assets/Elegant Coffee Culture Design_1757428233689.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "mocha", nameAr: "موكا", nameEn: "Mocha", description: "مزيج رائع من القهوة والشوكولاتة والحليب", price: "7.00", oldPrice: "8.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191928_1757434923575.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 6 },
+      { id: "con-panna", nameAr: "كافيه كون بانا", nameEn: "Cafe Con Panna", description: "إسبريسو مع كريمة مخفوقة طازجة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191936_1757434923574.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 7 },
+      { id: "coffee-day-hot", nameAr: "قهوة اليوم (حار)", nameEn: "Coffee of the Day Hot", description: "تشكيلة مختارة يومياً من أفضل حبوب القهوة", price: "4.95", oldPrice: "5.50", category: "hot", imageUrl: "/attached_assets/coffee-day-hot-new.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "hot-tea", nameAr: "شاي حار", nameEn: "Hot Tea", description: "شاي طبيعي مُحضر بعناية من أوراق الشاي المختارة، يُقدم ساخناً ومنعشاً لبداية يوم مثالية", price: "2.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161654_1758288116712.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "ice-tea", nameAr: "آيس تي", nameEn: "Ice Tea", description: "انتعاش لا يُقاوم مع مزيج مثالي من الشاي المنقوع ببرودة والطعم المميز، رحلة منعشة في كل رشفة تجدد طاقتك وتمنحك لحظات من الصفاء", price: "3.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161645_1758288659656.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "iced-matcha-latte", nameAr: "آيس لاتيه ماتشا", nameEn: "Iced Matcha Latte", description: "إبداع ياباني ساحر يجمع بين نعومة الحليب المثلج وسحر الماتشا الأخضر النقي، تجربة بصرية وذوقية استثنائية تأخذك في رحلة إلى عالم من الهدوء والتميز", price: "10.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161627_1758288688792.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "hot-matcha-latte", nameAr: "لاتيه ماتشا حار", nameEn: "Hot Matcha Latte", description: "دفء ساحر يلتقي مع نكهة الماتشا الاستثنائية في لحن متناغم من الكريمة والطعم الياباني الأصيل، يُقدم ساخناً بفن لاتيه مبهر يسعد العين قبل أن يأسر الذوق", price: "11.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161637_1758288723420.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "iced-latte", nameAr: "آيسد لاتيه", nameEn: "Iced Latte", description: "لاتيه منعش مع الثلج والحليب البارد", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/generated_images/Luxury_iced_coffee_drink_571860f5.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "iced-mocha", nameAr: "آيسد موكا", nameEn: "Iced Mocha", description: "موكا باردة مع الشوكولاتة والكريمة المخفوقة", price: "7.00", oldPrice: "8.00", category: "cold", imageUrl: "/attached_assets/generated_images/Luxury_iced_coffee_drink_571860f5.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 5 },
+      { id: "iced-cappuccino", nameAr: "آيسد كابتشينو", nameEn: "Iced Cappuccino", description: "كابتشينو بارد مع رغوة الحليب المثلجة", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192012_1757434923573.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+      { id: "iced-condensed", nameAr: "قهوة مثلجة بالحليب المكثف", nameEn: "Iced Coffee with Condensed Milk", description: "قهوة باردة مع حليب مكثف حلو ولذيذ", price: "5.00", oldPrice: "6.00", category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192022_1757434929813.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 5 },
+      { id: "vanilla-cold-brew", nameAr: "فانيلا كولد برو", nameEn: "Vanilla Cold Brew", description: "قهوة باردة منقوعة ببطء مع نكهة الفانيلا", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192045_1757434923573.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 2 },
+      { id: "coffee-day-cold", nameAr: "قهوة اليوم (بارد)", nameEn: "Coffee of the Day Cold", description: "تشكيلة مختارة يومياً من القهوة الباردة المنعشة", price: "4.95", oldPrice: "5.50", category: "cold", imageUrl: "/attached_assets/coffee-day-cold-new.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null },
+    ];
+
+    await this.db.insert(coffeeItems).values(coffeeMenuData);
+  }
+
+  private async initializeDemoEmployee() {
+    const existing = await this.db.select().from(employees).where(eq(employees.username, 'darwish')).limit(1);
+    if (existing.length > 0) return;
+
+    const hashedPassword = bcrypt.hashSync('2009', 10);
+    await this.db.insert(employees).values({
+      id: 'demo-employee-1',
+      username: 'darwish',
+      password: hashedPassword,
+      fullName: 'يوسف درويش',
+      role: 'manager',
+      title: 'مدير المقهى',
+    });
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const result = await this.db.insert(users).values({
+      ...user,
+      password: hashedPassword,
+    }).returning();
+    return result[0];
+  }
+
+  async getEmployee(id: string): Promise<Employee | undefined> {
+    const result = await this.db.select().from(employees).where(eq(employees.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getEmployeeByUsername(username: string): Promise<Employee | undefined> {
+    const result = await this.db.select().from(employees).where(eq(employees.username, username)).limit(1);
+    return result[0];
+  }
+
+  async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    const hashedPassword = await bcrypt.hash(insertEmployee.password, 10);
+    const result = await this.db.insert(employees).values({
+      ...insertEmployee,
+      password: hashedPassword,
+    }).returning();
+    return result[0];
+  }
+
+  async getEmployees(): Promise<Employee[]> {
+    return await this.db.select().from(employees);
+  }
+
+  async createDiscountCode(insertDiscountCode: InsertDiscountCode): Promise<DiscountCode> {
+    const result = await this.db.insert(discountCodes).values(insertDiscountCode).returning();
+    return result[0];
+  }
+
+  async getDiscountCode(id: string): Promise<DiscountCode | undefined> {
+    const result = await this.db.select().from(discountCodes).where(eq(discountCodes.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getDiscountCodeByCode(code: string): Promise<DiscountCode | undefined> {
+    const result = await this.db.select().from(discountCodes).where(eq(discountCodes.code, code)).limit(1);
+    return result[0];
+  }
+
+  async getDiscountCodes(): Promise<DiscountCode[]> {
+    return await this.db.select().from(discountCodes);
+  }
+
+  async getDiscountCodesByEmployee(employeeId: string): Promise<DiscountCode[]> {
+    return await this.db.select().from(discountCodes).where(eq(discountCodes.employeeId, employeeId));
+  }
+
+  async updateDiscountCode(id: string, updates: Partial<DiscountCode>): Promise<DiscountCode | undefined> {
+    const result = await this.db.update(discountCodes).set(updates).where(eq(discountCodes.id, id)).returning();
+    return result[0];
+  }
+
+  async incrementDiscountCodeUsage(id: string): Promise<DiscountCode | undefined> {
+    const code = await this.getDiscountCode(id);
+    if (!code) return undefined;
+    return this.updateDiscountCode(id, { usageCount: (code.usageCount || 0) + 1 });
+  }
+
+  async getCustomer(id: string): Promise<Customer | undefined> {
+    const result = await this.db.select().from(customers).where(eq(customers.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getCustomerByPhone(phone: string): Promise<Customer | undefined> {
+    const result = await this.db.select().from(customers).where(eq(customers.phone, phone)).limit(1);
+    return result[0];
+  }
+
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const result = await this.db.insert(customers).values(customer).returning();
+    return result[0];
+  }
+
+  async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | undefined> {
+    const result = await this.db.update(customers).set(updates).where(eq(customers.id, id)).returning();
+    return result[0];
+  }
+
+  async getCustomerOrders(customerId: string): Promise<Order[]> {
+    return await this.db.select().from(orders).where(eq(orders.customerId, customerId)).orderBy(desc(orders.createdAt));
+  }
+
+  async getCoffeeItems(): Promise<CoffeeItem[]> {
+    return await this.db.select().from(coffeeItems);
+  }
+
+  async getCoffeeItem(id: string): Promise<CoffeeItem | undefined> {
+    const result = await this.db.select().from(coffeeItems).where(eq(coffeeItems.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getCoffeeItemsByCategory(category: string): Promise<CoffeeItem[]> {
+    return await this.db.select().from(coffeeItems).where(eq(coffeeItems.category, category));
+  }
+
+  async createCoffeeItem(item: InsertCoffeeItem): Promise<CoffeeItem> {
+    const result = await this.db.insert(coffeeItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateCoffeeItem(id: string, updates: Partial<CoffeeItem>): Promise<CoffeeItem | undefined> {
+    const result = await this.db.update(coffeeItems).set(updates).where(eq(coffeeItems.id, id)).returning();
+    return result[0];
+  }
+
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const result = await this.db.insert(orders).values({
+      ...order,
+      orderNumber,
+    }).returning();
+    return result[0];
+  }
+
+  async getOrder(id: string): Promise<Order | undefined> {
+    const result = await this.db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getOrderByNumber(orderNumber: string): Promise<Order | undefined> {
+    const result = await this.db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
+    return result[0];
+  }
+
+  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
+    const result = await this.db.update(orders).set({ status }).where(eq(orders.id, id)).returning();
+    return result[0];
+  }
+
+  async getOrders(limit: number = 100, offset: number = 0): Promise<Order[]> {
+    return await this.db.select().from(orders).orderBy(desc(orders.createdAt)).limit(limit).offset(offset);
+  }
+
+  async createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem> {
+    const result = await this.db.insert(orderItems).values(orderItem).returning();
+    return result[0];
+  }
+
+  async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    return await this.db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  }
+
+  async getCartItems(sessionId: string): Promise<CartItem[]> {
+    return await this.db.select().from(cartItems).where(eq(cartItems.sessionId, sessionId));
+  }
+
+  async addToCart(cartItem: InsertCartItem): Promise<CartItem> {
+    const existing = await this.db.select().from(cartItems)
+      .where(and(eq(cartItems.sessionId, cartItem.sessionId), eq(cartItems.coffeeItemId, cartItem.coffeeItemId)))
+      .limit(1);
+
+    if (existing.length > 0) {
+      const updated = await this.db.update(cartItems)
+        .set({ quantity: existing[0].quantity + cartItem.quantity })
+        .where(eq(cartItems.id, existing[0].id))
+        .returning();
+      return updated[0];
+    }
+
+    const result = await this.db.insert(cartItems).values(cartItem).returning();
+    return result[0];
+  }
+
+  async updateCartItemQuantity(sessionId: string, coffeeItemId: string, quantity: number): Promise<CartItem | undefined> {
+    const result = await this.db.update(cartItems)
+      .set({ quantity })
+      .where(and(eq(cartItems.sessionId, sessionId), eq(cartItems.coffeeItemId, coffeeItemId)))
+      .returning();
+    return result[0];
+  }
+
+  async removeFromCart(sessionId: string, coffeeItemId: string): Promise<boolean> {
+    await this.db.delete(cartItems)
+      .where(and(eq(cartItems.sessionId, sessionId), eq(cartItems.coffeeItemId, coffeeItemId)));
+    return true;
+  }
+
+  async clearCart(sessionId: string): Promise<boolean> {
+    await this.db.delete(cartItems).where(eq(cartItems.sessionId, sessionId));
+    return true;
+  }
+
+  async createLoyaltyCard(card: InsertLoyaltyCard): Promise<LoyaltyCard> {
+    const qrToken = nanoid(32);
+    const cardNumber = `QC-${Date.now().toString().slice(-8)}-${nanoid(4).toUpperCase()}`;
+    const result = await this.db.insert(loyaltyCards).values({
+      ...card,
+      qrToken,
+      cardNumber,
+    }).returning();
+    return result[0];
+  }
+
+  async getLoyaltyCard(id: string): Promise<LoyaltyCard | undefined> {
+    const result = await this.db.select().from(loyaltyCards).where(eq(loyaltyCards.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getLoyaltyCardByQRToken(qrToken: string): Promise<LoyaltyCard | undefined> {
+    const result = await this.db.select().from(loyaltyCards).where(eq(loyaltyCards.qrToken, qrToken)).limit(1);
+    return result[0];
+  }
+
+  async getLoyaltyCardByCardNumber(cardNumber: string): Promise<LoyaltyCard | undefined> {
+    const result = await this.db.select().from(loyaltyCards).where(eq(loyaltyCards.cardNumber, cardNumber)).limit(1);
+    return result[0];
+  }
+
+  async getLoyaltyCardByPhone(phoneNumber: string): Promise<LoyaltyCard | undefined> {
+    const result = await this.db.select().from(loyaltyCards).where(eq(loyaltyCards.phoneNumber, phoneNumber)).limit(1);
+    return result[0];
+  }
+
+  async getLoyaltyCards(): Promise<LoyaltyCard[]> {
+    return await this.db.select().from(loyaltyCards).orderBy(desc(loyaltyCards.createdAt));
+  }
+
+  async updateLoyaltyCard(id: string, updates: Partial<LoyaltyCard>): Promise<LoyaltyCard | undefined> {
+    const result = await this.db.update(loyaltyCards).set(updates).where(eq(loyaltyCards.id, id)).returning();
+    return result[0];
+  }
+
+  async generateCodesForOrder(orderId: string, drinks: Array<{name: string, quantity: number}>): Promise<CardCode[]> {
+    const codes: CardCode[] = [];
+    for (const drink of drinks) {
+      for (let i = 0; i < drink.quantity; i++) {
+        const code = nanoid(12).toUpperCase();
+        const result = await this.db.insert(cardCodes).values({
+          code,
+          issuedForOrderId: orderId,
+          drinkName: drink.name,
+        }).returning();
+        codes.push(result[0]);
+      }
+    }
+    return codes;
+  }
+
+  async redeemCode(code: string, cardId: string): Promise<{success: boolean, message: string, card?: LoyaltyCard}> {
+    const codeDetails = await this.db.select().from(cardCodes).where(eq(cardCodes.code, code)).limit(1);
+    if (codeDetails.length === 0) {
+      return { success: false, message: "كود غير صالح" };
+    }
+
+    const cardCode = codeDetails[0];
+    if (cardCode.isRedeemed) {
+      return { success: false, message: "هذا الكود مستخدم من قبل" };
+    }
+
+    await this.db.update(cardCodes)
+      .set({ isRedeemed: 1, redeemedAt: new Date(), redeemedByCardId: cardId })
+      .where(eq(cardCodes.id, cardCode.id));
+
+    const card = await this.getLoyaltyCard(cardId);
+    if (!card) {
+      return { success: false, message: "بطاقة غير موجودة" };
+    }
+
+    const newStamps = (card.stamps || 0) + 1;
+    let updates: Partial<LoyaltyCard> = { stamps: newStamps };
+
+    if (newStamps >= 6) {
+      updates = {
+        stamps: 0,
+        freeCupsEarned: (card.freeCupsEarned || 0) + 1,
+      };
+    }
+
+    const updatedCard = await this.updateLoyaltyCard(cardId, updates);
+    return { success: true, message: "تم تسجيل الختم بنجاح", card: updatedCard };
+  }
+
+  async getCodesByOrder(orderId: string): Promise<CardCode[]> {
+    return await this.db.select().from(cardCodes).where(eq(cardCodes.issuedForOrderId, orderId));
+  }
+
+  async getCodeDetails(code: string): Promise<CardCode | undefined> {
+    const result = await this.db.select().from(cardCodes).where(eq(cardCodes.code, code)).limit(1);
+    return result[0];
+  }
+
+  async createLoyaltyTransaction(transaction: InsertLoyaltyTransaction): Promise<LoyaltyTransaction> {
+    const result = await this.db.insert(loyaltyTransactions).values(transaction).returning();
+    return result[0];
+  }
+
+  async getLoyaltyTransactions(cardId: string): Promise<LoyaltyTransaction[]> {
+    return await this.db.select().from(loyaltyTransactions).where(eq(loyaltyTransactions.cardId, cardId)).orderBy(desc(loyaltyTransactions.createdAt));
+  }
+
+  async getAllLoyaltyTransactions(limit: number = 100): Promise<LoyaltyTransaction[]> {
+    return await this.db.select().from(loyaltyTransactions).orderBy(desc(loyaltyTransactions.createdAt)).limit(limit);
+  }
+
+  async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> {
+    const result = await this.db.insert(loyaltyRewards).values(reward).returning();
+    return result[0];
+  }
+
+  async getLoyaltyRewards(): Promise<LoyaltyReward[]> {
+    return await this.db.select().from(loyaltyRewards).where(eq(loyaltyRewards.isActive, 1));
+  }
+
+  async getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined> {
+    const result = await this.db.select().from(loyaltyRewards).where(eq(loyaltyRewards.id, id)).limit(1);
+    return result[0];
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -690,8 +1087,15 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Create and export in-memory storage only
-const storage: IStorage = new MemStorage();
-console.log("✅ Using MemStorage - Simple in-memory storage for demo");
+// Create and export storage based on environment
+let storage: IStorage;
+
+if (process.env.DATABASE_URL) {
+  storage = new DBStorage(process.env.DATABASE_URL);
+  console.log("✅ Using DBStorage - PostgreSQL database for persistent storage");
+} else {
+  storage = new MemStorage();
+  console.log("✅ Using MemStorage - Simple in-memory storage for demo");
+}
 
 export { storage };
