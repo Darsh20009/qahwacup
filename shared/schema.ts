@@ -160,7 +160,7 @@ export interface PaymentMethodInfo {
 export type EmployeeRole = 'manager' | 'cashier';
 
 // Order Status Types
-export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'in_progress';
+export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
 
 // Coffee Categories
 export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty';

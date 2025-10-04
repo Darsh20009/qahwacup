@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, ChefHat, Package, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock, ChefHat, Package, Sparkles, Coffee, ShoppingBag } from "lucide-react";
 import type { Order } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,44 +13,64 @@ interface OrderTrackerProps {
 const orderSteps = [
   { 
     id: "pending", 
-    label: "تم الطلب", 
+    label: "إرسال الطلب", 
     icon: Clock, 
-    color: "text-blue-500", 
-    bgColor: "bg-blue-500/20",
+    color: "text-yellow-400", 
+    bgColor: "bg-yellow-900/30",
     description: "تم استلام طلبك بنجاح"
   },
   { 
-    id: "confirmed", 
-    label: "تم التأكيد", 
-    icon: CheckCircle2, 
-    color: "text-green-500", 
-    bgColor: "bg-green-500/20",
-    description: "تم تأكيد طلبك"
+    id: "payment_confirmed", 
+    label: "تأكيد الدفع", 
+    icon: CheckCircle, 
+    color: "text-orange-400", 
+    bgColor: "bg-orange-900/30",
+    description: "تم تأكيد الدفع أو التحويل"
   },
   { 
     id: "in_progress", 
-    label: "تحت التحضير", 
-    icon: ChefHat, 
-    color: "text-amber-500", 
-    bgColor: "bg-amber-500/20",
-    description: "جاري تحضير قهوتك بعناية"
+    label: "جاري التحضير", 
+    icon: Coffee, 
+    color: "text-blue-400", 
+    bgColor: "bg-blue-900/30",
+    description: "نحن نحضر قهوتك الآن"
+  },
+  { 
+    id: "ready", 
+    label: "جاهز للاستلام", 
+    icon: ShoppingBag, 
+    color: "text-purple-400", 
+    bgColor: "bg-purple-900/30",
+    description: "طلبك جاهز! تفضل بالاستلام"
   },
   { 
     id: "completed", 
-    label: "جاهز للاستلام", 
-    icon: Package, 
-    color: "text-purple-500", 
-    bgColor: "bg-purple-500/20",
-    description: "طلبك جاهز! استمتع بقهوتك"
+    label: "مكتمل", 
+    icon: CheckCircle, 
+    color: "text-green-400", 
+    bgColor: "bg-green-900/30",
+    description: "تم استلام الطلب بنجاح"
   },
 ];
 
+const getStepIndex = (status: string) => {
+    const statusMap: Record<string, number> = {
+      'pending': 0,
+      'payment_confirmed': 1,
+      'in_progress': 2,
+      'ready': 3,
+      'completed': 4,
+      'cancelled': -1,
+    };
+    return statusMap[status] ?? 0;
+  };
+
 export default function OrderTracker({ order, compact = false }: OrderTrackerProps) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(getStepIndex(order.status));
   const [previousStatus, setPreviousStatus] = useState(order.status);
 
   useEffect(() => {
-    const stepIndex = orderSteps.findIndex(step => step.id === order.status);
+    const stepIndex = getStepIndex(order.status);
     if (stepIndex !== -1 && stepIndex !== currentStepIndex) {
       setPreviousStatus(orderSteps[currentStepIndex]?.id || order.status);
       setCurrentStepIndex(stepIndex);
@@ -116,13 +136,13 @@ export default function OrderTracker({ order, compact = false }: OrderTrackerPro
             }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           />
-          
+
           <div className="relative flex justify-between">
             {orderSteps.map((step, index) => {
               const isActive = index === currentStepIndex;
               const isCompleted = index < currentStepIndex;
               const StepIcon = step.icon;
-              
+
               return (
                 <motion.div
                   key={step.id}
@@ -186,7 +206,7 @@ export default function OrderTracker({ order, compact = false }: OrderTrackerPro
         </AnimatePresence>
 
         {/* Estimated Time (if in progress) */}
-        {(order.status === "confirmed" || order.status === "in_progress") && (
+        {(order.status === "payment_confirmed" || order.status === "in_progress") && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -194,7 +214,7 @@ export default function OrderTracker({ order, compact = false }: OrderTrackerPro
           >
             <p className="text-sm text-gray-400">
               <Clock className="w-4 h-4 inline ml-1" />
-              الوقت التقريبي للتحضير: 5-10 دقائق
+              الوقت المتوقع: {order.status === "payment_confirmed" ? "جاري تأكيد الدفع..." : "5-10 دقائق"}
             </p>
           </motion.div>
         )}

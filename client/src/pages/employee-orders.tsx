@@ -108,9 +108,13 @@ export default function EmployeeOrders() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-yellow-600">قيد الانتظار</Badge>;
+        return <Badge className="bg-yellow-600">إرسال الطلب</Badge>;
+      case "payment_confirmed":
+        return <Badge className="bg-orange-600">تأكيد الدفع</Badge>;
       case "in_progress":
-        return <Badge className="bg-blue-600">قيد التنفيذ</Badge>;
+        return <Badge className="bg-blue-600">جاري التحضير</Badge>;
+      case "ready":
+        return <Badge className="bg-purple-600">جاهز للاستلام</Badge>;
       case "completed":
         return <Badge className="bg-green-600">مكتمل</Badge>;
       case "cancelled":
@@ -124,8 +128,12 @@ export default function EmployeeOrders() {
     switch (status) {
       case "pending":
         return <Clock className="w-5 h-5 text-yellow-500" />;
+      case "payment_confirmed":
+        return <CheckCircle2 className="w-5 h-5 text-orange-500" />;
       case "in_progress":
         return <Package className="w-5 h-5 text-blue-500" />;
+      case "ready":
+        return <Coffee className="w-5 h-5 text-purple-500" />;
       case "completed":
         return <CheckCircle2 className="w-5 h-5 text-green-500" />;
       case "cancelled":
@@ -152,7 +160,7 @@ export default function EmployeeOrders() {
   }
 
   const activeOrders = orders.filter(order => 
-    order.status === "pending" || order.status === "in_progress"
+    order.status === "pending" || order.status === "payment_confirmed" || order.status === "in_progress" || order.status === "ready"
   );
   
   const completedOrders = orders.filter(order => 
@@ -314,8 +322,10 @@ export default function EmployeeOrders() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="pending">قيد الانتظار</SelectItem>
-                                    <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                                    <SelectItem value="pending">إرسال الطلب</SelectItem>
+                                    <SelectItem value="payment_confirmed">تأكيد الدفع</SelectItem>
+                                    <SelectItem value="in_progress">جاري التحضير</SelectItem>
+                                    <SelectItem value="ready">جاهز للاستلام</SelectItem>
                                     <SelectItem value="completed">مكتمل</SelectItem>
                                     <SelectItem value="cancelled">ملغي</SelectItem>
                                   </SelectContent>

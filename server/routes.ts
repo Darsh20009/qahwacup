@@ -7,9 +7,12 @@ import bcrypt from "bcryptjs";
 // Helper function to send WhatsApp notification
 function getOrderStatusMessage(status: string, orderNumber: string): string {
   const statusMessages: Record<string, string> = {
+    'pending': `⏳ طلبك رقم ${orderNumber} في الانتظار\nنحن نستعد لتجهيزه!`, // Added pending status
     'confirmed': `✅ تم تأكيد طلبك رقم ${orderNumber}\nجاري تحضير قهوتك بعناية!`,
     'in_progress': `⏳ طلبك رقم ${orderNumber} قيد التحضير الآن\nلن ننتظر طويلاً!`,
-    'completed': `🎉 طلبك رقم ${orderNumber} جاهز للاستلام!\nاستمتع بقهوتك ☕`,
+    'ready': `🎉 طلبك رقم ${orderNumber} جاهز للاستلام!\nاستمتع بقهوتك ☕`, // Renamed completed to ready
+    'paid': `💰 تم تأكيد دفع طلبك رقم ${orderNumber}\nجاري تحضيره الآن!`, // Added paid status for payment confirmation
+    'delivered': `🚚 تم توصيل طلبك رقم ${orderNumber}\nنتمنى أن تستمتع بقهوتك!`, // Added delivered status
     'cancelled': `❌ تم إلغاء طلبك رقم ${orderNumber}\nنأسف للإزعاج`
   };
   return statusMessages[status] || `تم تحديث حالة طلبك رقم ${orderNumber} إلى: ${status}`;
@@ -645,7 +648,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
 
-      const validStatuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
+      // Updated valid statuses based on the Arabic request
+      const validStatuses = ['pending', 'confirmed', 'paid', 'in_progress', 'ready', 'delivered', 'cancelled'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
@@ -658,18 +662,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send WhatsApp notification to customer
       try {
-        const customerInfo = typeof updatedOrder.customerInfo === 'string' 
-          ? JSON.parse(updatedOrder.customerInfo) 
+        const customerInfo = typeof updatedOrder.customerInfo === 'string'
+          ? JSON.parse(updatedOrder.customerInfo)
           : updatedOrder.customerInfo;
 
         const phoneNumber = customerInfo?.phoneNumber;
 
         if (phoneNumber && status !== 'pending') {
           const message = getOrderStatusMessage(status, updatedOrder.orderNumber);
+          // The WhatsApp URL generation logic should remain the same
           const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
 
           // Return WhatsApp URL in response so frontend can optionally use it
-          res.json({
+          return res.json({
             ...updatedOrder,
             whatsappNotification: {
               url: whatsappUrl,
@@ -677,7 +682,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               phone: phoneNumber
             }
           });
-          return;
         }
       } catch (notificationError) {
         console.error("WhatsApp notification error:", notificationError);
@@ -745,12 +749,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add qahwa-card at the beginning if customer has free drinks
       if (hasFreeDrinks === 'true') {
-        paymentMethods.unshift({ 
-          id: 'qahwa-card', 
-          nameAr: 'بطاقة كوبي (مجاني)', 
-          nameEn: 'Qahwa Card (Free)', 
-          details: 'استخدم مشروبك المجاني 🎁', 
-          icon: 'fas fa-gift' 
+        paymentMethods.unshift({
+          id: 'qahwa-card',
+          nameAr: 'بطاقة كوبي (مجاني)',
+          nameEn: 'Qahwa Card (Free)',
+          details: 'استخدم مشروبك المجاني 🎁',
+          icon: 'fas fa-gift'
         });
       }
 
