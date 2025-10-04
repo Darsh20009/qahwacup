@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const customer = await storage.getCustomer(finalCustomerId);
           if (customer?.phone) {
             let loyaltyCard = await storage.getLoyaltyCardByPhone(customer.phone);
-            
+
             // Create loyalty card if doesn't exist
             if (!loyaltyCard) {
               loyaltyCard = await storage.createLoyaltyCard({
@@ -691,7 +691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all orders (for employees)
+  // Get all orders (for employee dashboard)
   app.get("/api/orders", async (req, res) => {
     try {
       const { limit, offset } = req.query;
@@ -699,10 +699,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const offsetNum = offset ? parseInt(offset as string) : undefined;
 
       const orders = await storage.getOrders(limitNum, offsetNum);
-      res.json(orders);
+      const coffeeItems = await storage.getAllCoffeeItems();
+
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const items = (order.items as any[]).map(item => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...order,
+          items
+        };
+      });
+
+      return res.json(enrichedOrders);
     } catch (error) {
       console.error("Error fetching orders:", error);
-      res.status(500).json({ error: "Failed to fetch orders" });
+      return res.status(500).json({ error: "Failed to fetch orders" });
     }
   });
 
