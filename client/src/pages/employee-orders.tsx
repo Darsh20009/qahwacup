@@ -17,6 +17,11 @@ interface OrderItemData {
   nameAr?: string;
   unitPrice?: string;
   imageUrl?: string;
+  coffeeItem?: {
+    nameAr: string;
+    price: string;
+    imageUrl?: string;
+  };
 }
 
 function generateCompletionWhatsAppLink(order: Order): string {
@@ -253,21 +258,27 @@ export default function EmployeeOrders() {
                             </div>
 
                             <div className="bg-[#2d1f1a] rounded-lg p-3 mb-4">
-                              <p className="text-gray-400 text-sm mb-2">العناصر</p>
+                              <p className="text-gray-400 text-sm mb-2">العناصر ({items.length})</p>
                               <div className="space-y-2">
-                                {items.map((item, index) => (
-                                  <div key={index} className="flex items-start gap-2">
-                                    <span className="text-amber-400">•</span>
-                                    <div className="flex-1">
-                                      <p className="text-white text-sm font-medium">
-                                        {item.nameAr || "مشروب"}
-                                      </p>
-                                      <p className="text-gray-400 text-xs">
-                                        {item.quantity} × {parseFloat(item.price || item.unitPrice || "0").toFixed(2)} ر.س
-                                      </p>
+                                {items.map((item, index) => {
+                                  // Get the coffee item name from the coffeeItem object if available
+                                  const itemName = item.coffeeItem?.nameAr || item.nameAr || "مشروب";
+                                  const itemPrice = item.price || item.unitPrice || item.coffeeItem?.price || "0";
+                                  
+                                  return (
+                                    <div key={index} className="flex items-start gap-2">
+                                      <span className="text-amber-400">•</span>
+                                      <div className="flex-1">
+                                        <p className="text-white text-sm font-medium">
+                                          {itemName}
+                                        </p>
+                                        <p className="text-gray-400 text-xs">
+                                          الكمية: {item.quantity} × {parseFloat(itemPrice).toFixed(2)} ر.س = {(item.quantity * parseFloat(itemPrice)).toFixed(2)} ر.س
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
 
@@ -336,6 +347,8 @@ export default function EmployeeOrders() {
                   <div className="space-y-3">
                     {completedOrders.slice(0, 10).map((order) => {
                       const customerInfo = order.customerInfo as any;
+                      const items = (order.items as OrderItemData[]) || [];
+                      const itemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
                       
                       return (
                         <div 
@@ -349,7 +362,7 @@ export default function EmployeeOrders() {
                                 {order.orderNumber}
                               </p>
                               <p className="text-gray-400 text-xs">
-                                {customerInfo?.name || "غير محدد"}
+                                {customerInfo?.name || "غير محدد"} • {itemsCount} عنصر
                               </p>
                             </div>
                           </div>
