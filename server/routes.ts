@@ -511,17 +511,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Create order
-      const order = await storage.createOrder({
+      // Create order - ensure freeItemsDiscount is not included if column doesn't exist
+      const orderData: any = {
         customerId: finalCustomerId || null,
         totalAmount,
         paymentMethod,
         paymentDetails,
         customerInfo,
         customerNotes,
-        items: JSON.stringify(items),
-        freeItemsDiscount: freeItemsDiscount || "0.00"
-      });
+        items: JSON.stringify(items)
+      };
+
+      const order = await storage.createOrder(orderData);
 
       // Add stamps automatically if customer has loyalty card
       if (finalCustomerId) {
