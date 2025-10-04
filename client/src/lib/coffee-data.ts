@@ -57,6 +57,13 @@ export const coffeeCategories = [
     nameEn: "Specialty Drinks",
     description: "تشكيلة استثنائية من المشروبات المميزة والفريدة",
     icon: "star"
+  },
+  {
+    id: "desserts" as CoffeeCategory,
+    nameAr: "الحلويات",
+    nameEn: "Desserts",
+    description: "حلويات شهية ولذيذة تكمل تجربة القهوة",
+    icon: "cake"
   }
 ];
 

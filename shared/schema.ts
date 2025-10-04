@@ -11,7 +11,7 @@ export const coffeeItems = pgTable("coffee_items", {
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   oldPrice: decimal("old_price", { precision: 10, scale: 2 }),
-  category: varchar("category", { length: 50 }).notNull(), // 'basic', 'hot', 'cold'
+  category: varchar("category", { length: 50 }).notNull(), // 'basic', 'hot', 'cold', 'specialty', 'desserts'
   imageUrl: text("image_url"),
   isAvailable: integer("is_available").default(1).notNull(),
   // Coffee strength properties
@@ -163,7 +163,7 @@ export type EmployeeRole = 'manager' | 'cashier';
 export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
 
 // Coffee Categories
-export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty';
+export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty' | 'desserts';
 
 // Coffee Strength Types
 export type CoffeeStrength = 'classic' | 'mild' | 'medium' | 'strong';
