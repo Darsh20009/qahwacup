@@ -199,8 +199,8 @@ export default function EmployeeCashier() {
       totalAmount: calculateTotal(),
       paymentMethod,
       customerInfo: {
-        name: customerName,
-        phone: customerPhone
+        customerName: customerName,
+        customerPhone: customerPhone
       },
       employeeId: employee?.id,
       status: "in_progress"

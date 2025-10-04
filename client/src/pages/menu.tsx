@@ -6,7 +6,7 @@ import CoffeeCard from "@/components/coffee-card";
 import { useCartStore } from "@/lib/cart-store";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { useLocation } from "wouter";
-import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter, CreditCard, User } from "lucide-react";
+import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter, CreditCard, User, Cake } from "lucide-react";
 import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
 import CurrentOrderBanner from "@/components/current-order-banner";
@@ -30,6 +30,7 @@ export default function MenuPage() {
     { id: "hot", nameAr: "قهوة ساخنة", nameEn: "Hot Coffee", icon: Flame },
     { id: "cold", nameAr: "قهوة باردة", nameEn: "Cold Coffee", icon: Snowflake },
     { id: "specialty", nameAr: "المشروبات الإضافية", nameEn: "Specialty Drinks", icon: Star },
+    { id: "desserts", nameAr: "الحلويات", nameEn: "Desserts", icon: Cake },
   ];
 
   // Coffee strength filter options
