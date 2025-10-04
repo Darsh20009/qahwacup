@@ -7,12 +7,11 @@ import bcrypt from "bcryptjs";
 // Helper function to send WhatsApp notification
 function getOrderStatusMessage(status: string, orderNumber: string): string {
   const statusMessages: Record<string, string> = {
-    'pending': `⏳ طلبك رقم ${orderNumber} في الانتظار\nنحن نستعد لتجهيزه!`, // Added pending status
-    'confirmed': `✅ تم تأكيد طلبك رقم ${orderNumber}\nجاري تحضير قهوتك بعناية!`,
-    'in_progress': `⏳ طلبك رقم ${orderNumber} قيد التحضير الآن\nلن ننتظر طويلاً!`,
-    'ready': `🎉 طلبك رقم ${orderNumber} جاهز للاستلام!\nاستمتع بقهوتك ☕`, // Renamed completed to ready
-    'paid': `💰 تم تأكيد دفع طلبك رقم ${orderNumber}\nجاري تحضيره الآن!`, // Added paid status for payment confirmation
-    'delivered': `🚚 تم توصيل طلبك رقم ${orderNumber}\nنتمنى أن تستمتع بقهوتك!`, // Added delivered status
+    'pending': `⏳ طلبك رقم ${orderNumber} في الانتظار\nنحن نستعد لتجهيزه!`,
+    'payment_confirmed': `💰 تم تأكيد دفع طلبك رقم ${orderNumber}\nجاري تحضيره الآن!`,
+    'in_progress': `☕ طلبك رقم ${orderNumber} قيد التحضير الآن\nقهوتك في الطريق!`,
+    'ready': `🎉 طلبك رقم ${orderNumber} جاهز للاستلام!\nاستمتع بقهوتك ☕`,
+    'completed': `✅ تم استلام طلبك رقم ${orderNumber}\nنتمنى أن تستمتع بقهوتك!`,
     'cancelled': `❌ تم إلغاء طلبك رقم ${orderNumber}\nنأسف للإزعاج`
   };
   return statusMessages[status] || `تم تحديث حالة طلبك رقم ${orderNumber} إلى: ${status}`;
@@ -648,8 +647,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
 
-      // Updated valid statuses based on the Arabic request
-      const validStatuses = ['pending', 'confirmed', 'paid', 'in_progress', 'ready', 'delivered', 'cancelled'];
+      // Valid statuses for order workflow
+      const validStatuses = ['pending', 'payment_confirmed', 'in_progress', 'ready', 'completed', 'cancelled'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
