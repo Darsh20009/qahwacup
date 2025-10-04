@@ -234,7 +234,6 @@ export default function EmployeeDashboard() {
                 onClick={() => setLocation("/employee/loyalty")}
                 data-testid="button-loyalty"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative flex flex-col items-center gap-3">
                   <div className="relative">
                     <Gift className="w-10 h-10" />
