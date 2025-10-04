@@ -14,6 +14,9 @@ interface OrderItemData {
   coffeeItemId: string;
   quantity: number;
   price: string;
+  nameAr?: string;
+  unitPrice?: string;
+  imageUrl?: string;
 }
 
 function generateCompletionWhatsAppLink(order: Order): string {
@@ -251,14 +254,31 @@ export default function EmployeeOrders() {
 
                             <div className="bg-[#2d1f1a] rounded-lg p-3 mb-4">
                               <p className="text-gray-400 text-sm mb-2">العناصر</p>
-                              <div className="space-y-1">
+                              <div className="space-y-2">
                                 {items.map((item, index) => (
-                                  <p key={index} className="text-white text-sm">
-                                    • {item.quantity}x (القهوة)
-                                  </p>
+                                  <div key={index} className="flex items-start gap-2">
+                                    <span className="text-amber-400">•</span>
+                                    <div className="flex-1">
+                                      <p className="text-white text-sm font-medium">
+                                        {item.nameAr || "مشروب"}
+                                      </p>
+                                      <p className="text-gray-400 text-xs">
+                                        {item.quantity} × {parseFloat(item.price || item.unitPrice || "0").toFixed(2)} ر.س
+                                      </p>
+                                    </div>
+                                  </div>
                                 ))}
                               </div>
                             </div>
+
+                            {order.customerNotes && (
+                              <div className="bg-amber-900/20 rounded-lg p-3 mb-4 border border-amber-500/20">
+                                <p className="text-amber-400 text-sm font-semibold mb-1">ملاحظات العميل:</p>
+                                <p className="text-white text-sm" data-testid={`text-customer-notes-${order.id}`}>
+                                  {order.customerNotes}
+                                </p>
+                              </div>
+                            )}
 
                             <div className="flex items-center justify-between border-t border-amber-500/20 pt-4">
                               <div className="text-right">

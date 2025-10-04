@@ -125,30 +125,48 @@ export default function MyOrders() {
                     {itemsArray.map((item: any, itemIndex: number) => (
                       <div
                         key={itemIndex}
-                        className="flex items-center gap-3 bg-stone-800/30 rounded-lg p-2"
+                        className="bg-stone-800/30 rounded-lg p-3"
                         data-testid={`item-${index}-${itemIndex}`}
                       >
-                        {item.imageUrl && (
-                          <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                            <img
-                              src={item.imageUrl}
-                              alt={item.nameAr}
-                              className="w-full h-full object-cover"
-                            />
+                        <div className="flex items-center gap-3">
+                          {item.imageUrl && (
+                            <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                              <img
+                                src={item.imageUrl}
+                                alt={item.nameAr}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <div className="text-amber-100 font-medium">{item.nameAr}</div>
+                            <div className="text-amber-200/60 text-sm">
+                              {item.quantity} × {parseFloat(item.unitPrice).toFixed(2)} ر.س
+                            </div>
                           </div>
-                        )}
-                        <div className="flex-1">
-                          <div className="text-amber-100 font-medium">{item.nameAr}</div>
-                          <div className="text-amber-200/60 text-sm">
-                            {item.quantity} × {parseFloat(item.unitPrice).toFixed(2)} ر.س
+                          <div className="text-amber-300 font-bold">
+                            {(item.quantity * parseFloat(item.unitPrice)).toFixed(2)} ر.س
                           </div>
-                        </div>
-                        <div className="text-amber-300 font-bold">
-                          {(item.quantity * parseFloat(item.unitPrice)).toFixed(2)} ر.س
                         </div>
                       </div>
                     ))}
                   </div>
+
+                  {/* Customer Notes */}
+                  {order.customerNotes && (
+                    <div className="mt-3 pt-3 border-t border-amber-900/20">
+                      <div className="bg-amber-900/10 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <div className="text-amber-400 text-sm font-semibold whitespace-nowrap">
+                            ملاحظات العميل:
+                          </div>
+                          <div className="text-amber-200/80 text-sm flex-1" data-testid={`text-customer-notes-${index}`}>
+                            {order.customerNotes}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             );
