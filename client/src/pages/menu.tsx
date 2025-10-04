@@ -9,6 +9,7 @@ import { useLocation } from "wouter";
 import { Coffee, ShoppingCart, Flame, Snowflake, Star, Filter, CreditCard, User } from "lucide-react";
 import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
+import CurrentOrderBanner from "@/components/current-order-banner";
 
 export default function MenuPage() {
   const { cartItems } = useCartStore();
@@ -86,6 +87,9 @@ export default function MenuPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Current Order Banner */}
+      <CurrentOrderBanner />
+      
       {/* Soft Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl animate-pulse"></div>

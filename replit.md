@@ -4,6 +4,16 @@
 
 # Recent Changes (October 2025)
 
+## نظام تتبع الطلبات الإبداعي (أكتوبر 2025)
+- **نظام تتبع مرئي متطور**: أضفنا نظام تتبع طلبات إبداعي يعرض مراحل الطلب بشكل بصري:
+  - 4 مراحل: تم الطلب → تم التأكيد → تحت التحضير → جاهز للاستلام
+  - تأثيرات بصرية متحركة وألوان مميزة لكل مرحلة
+  - شريط تقدم متحرك يظهر الحالة الحالية
+  - تحديث تلقائي كل 5 ثواني
+- **لوحة عرض سريعة**: إضافة بانر يظهر في الصفحة الرئيسية للعميل يعرض الطلب الحالي
+- **تحسين واجهة الطلبات**: صفحة طلباتي `/my-orders` تعرض الآن كل طلب مع نظام تتبع كامل
+- **إشعارات الحالة**: يتم تحديث حالة الطلب تلقائياً عند تغيير الموظف لها
+
 ## TypeScript Fixes & Type Safety Improvements
 - **CustomerProfile Extension**: Added optional `usedFreeDrinks` property to track free drinks usage across sessions
 - **Order Type Import**: Fixed missing `Order` type import in checkout page to resolve TypeScript errors
