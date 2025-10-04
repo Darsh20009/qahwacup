@@ -125,10 +125,6 @@ export default function EmployeeLogin() {
                 )}
               </Button>
             </form>
-
-            <div className="mt-4 text-center text-sm text-gray-400">
-              <p>مثال: اسم المستخدم: darwish - كلمة المرور: 2009</p>
-            </div>
           </CardContent>
         </Card>
 
