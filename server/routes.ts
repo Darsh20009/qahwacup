@@ -699,7 +699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const offsetNum = offset ? parseInt(offset as string) : undefined;
 
       const orders = await storage.getOrders(limitNum, offsetNum);
-      const coffeeItems = await storage.getAllCoffeeItems();
+      const coffeeItems = await storage.getCoffeeItems();
 
       // Enrich orders with coffee item details
       const enrichedOrders = orders.map(order => {
