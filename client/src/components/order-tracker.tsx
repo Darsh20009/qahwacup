@@ -22,7 +22,7 @@ const orderSteps = [
   { 
     id: "payment_confirmed", 
     label: "تأكيد الدفع", 
-    icon: CheckCircle, 
+    icon: CheckCircle2, 
     color: "text-orange-400", 
     bgColor: "bg-orange-900/30",
     description: "تم تأكيد الدفع أو التحويل"
@@ -46,7 +46,7 @@ const orderSteps = [
   { 
     id: "completed", 
     label: "مكتمل", 
-    icon: CheckCircle, 
+    icon: CheckCircle2, 
     color: "text-green-400", 
     bgColor: "bg-green-900/30",
     description: "تم استلام الطلب بنجاح"
