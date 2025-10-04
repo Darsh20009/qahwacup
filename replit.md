@@ -100,3 +100,19 @@ This application is configured to run in the Replit environment with the followi
 - `/server`: Express backend API
 - `/shared`: Shared types and schemas (Drizzle/Zod)
 - `/attached_assets`: Static assets including coffee images
+
+## تحديث قاعدة البيانات في Render
+
+عند نشر تحديثات جديدة على Render تحتوي على تغييرات في الـ schema:
+
+1. **افتح Shell في Render Dashboard**
+2. **نفذ الأمر**:
+   ```bash
+   npm run db:push
+   ```
+   أو إذا طلب تأكيد:
+   ```bash
+   npm run db:push -- --force
+   ```
+
+هذا سيضيف الأعمدة والجداول الجديدة بدون حذف البيانات الموجودة.
