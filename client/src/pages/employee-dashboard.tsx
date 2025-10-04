@@ -230,24 +230,6 @@ export default function EmployeeDashboard() {
 
               <Button
                 size="lg"
-                className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white relative overflow-hidden group"
-                onClick={() => setLocation("/employee/loyalty")}
-                data-testid="button-loyalty"
-              >
-                <div className="relative flex flex-col items-center gap-3">
-                  <div className="relative">
-                    <Gift className="w-10 h-10" />
-                    <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-amber-400 animate-pulse" />
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-lg">بطاقات الولاء</div>
-                    <div className="text-sm opacity-90">إصدار وإدارة البطاقات</div>
-                  </div>
-                </div>
-              </Button>
-
-              <Button
-                size="lg"
                 className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white"
                 onClick={() => setLocation("/employee/orders")}
                 data-testid="button-orders"
