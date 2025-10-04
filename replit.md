@@ -69,3 +69,34 @@ The application features a modern aesthetic with a dark background and gold acce
 ## Other Libraries
 - **qrcode**: QR code generation.
 - **html2canvas**: Used for client-side image generation (e.g., loyalty card download).
+
+# Replit Environment Setup
+
+## Development Environment
+This application is configured to run in the Replit environment with the following setup:
+
+### Database
+- **PostgreSQL Database**: Provisioned using Replit's built-in database service
+- **Environment Variables**: DATABASE_URL, PGPORT, PGUSER, PGPASSWORD, PGDATABASE, PGHOST
+- **Schema Management**: Uses `npm run db:push` to sync schema changes to the database
+
+### Workflow Configuration
+- **Workflow**: "Start application" runs `npm run dev`
+- **Port**: Server runs on port 5000 (0.0.0.0:5000)
+- **Output**: Webview interface for frontend preview
+- **Vite Configuration**: Already configured with `allowedHosts: true` to work with Replit's iframe proxy
+
+### Development Commands
+- `npm run dev`: Start development server (Express + Vite)
+- `npm run build`: Build frontend and backend for production
+- `npm run start`: Start production server
+- `npm run db:push`: Push database schema changes
+
+### Default Credentials
+- **Employee Login**: Username: `darwish`, Password: `2009`
+
+### Directory Structure
+- `/client`: React frontend application
+- `/server`: Express backend API
+- `/shared`: Shared types and schemas (Drizzle/Zod)
+- `/attached_assets`: Static assets including coffee images
