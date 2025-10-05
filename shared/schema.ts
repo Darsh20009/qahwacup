@@ -302,6 +302,44 @@ export interface LoyaltyTierInfo {
   icon: string;
 }
 
+// Ingredients Schema - المكونات
+export const ingredients = pgTable("ingredients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nameAr: text("name_ar").notNull(),
+  nameEn: text("name_en"),
+  isAvailable: integer("is_available").default(1).notNull(), // 0 = نفذ، 1 = متوفر
+  icon: text("icon"), // emoji or icon name
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Coffee Item Ingredients - ربط المشروبات بالمكونات
+export const coffeeItemIngredients = pgTable("coffee_item_ingredients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  coffeeItemId: varchar("coffee_item_id").references(() => coffeeItems.id).notNull(),
+  ingredientId: varchar("ingredient_id").references(() => ingredients.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Zod Schemas for Ingredients
+export const insertIngredientSchema = createInsertSchema(ingredients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCoffeeItemIngredientSchema = createInsertSchema(coffeeItemIngredients).omit({
+  id: true,
+  createdAt: true,
+});
+
+// TypeScript Types for Ingredients
+export type Ingredient = typeof ingredients.$inferSelect;
+export type InsertIngredient = z.infer<typeof insertIngredientSchema>;
+
+export type CoffeeItemIngredient = typeof coffeeItemIngredients.$inferSelect;
+export type InsertCoffeeItemIngredient = z.infer<typeof insertCoffeeItemIngredientSchema>;
+
 // Legacy User Schema (keeping for compatibility)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

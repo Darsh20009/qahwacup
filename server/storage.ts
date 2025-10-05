@@ -23,6 +23,10 @@ import {
   type InsertLoyaltyTransaction,
   type LoyaltyReward,
   type InsertLoyaltyReward,
+  type Ingredient,
+  type InsertIngredient,
+  type CoffeeItemIngredient,
+  type InsertCoffeeItemIngredient,
   coffeeItems,
   customers,
   employees,
@@ -34,7 +38,9 @@ import {
   loyaltyCards,
   cardCodes,
   loyaltyTransactions,
-  loyaltyRewards
+  loyaltyRewards,
+  ingredients,
+  coffeeItemIngredients
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
@@ -121,6 +127,15 @@ export interface IStorage {
   createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward>;
   getLoyaltyRewards(): Promise<LoyaltyReward[]>;
   getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined>;
+
+  // Ingredient methods
+  getIngredients(): Promise<any[]>;
+  createIngredient(ingredient: any): Promise<any>;
+  updateIngredientAvailability(id: string, isAvailable: number): Promise<any>;
+  getCoffeeItemIngredients(coffeeItemId: string): Promise<any[]>;
+  addCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<any>;
+  removeCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<void>;
+  getCoffeeItemsByIngredient(ingredientId: string): Promise<CoffeeItem[]>;
 }
 
 export class DBStorage implements IStorage {
@@ -520,6 +535,81 @@ export class DBStorage implements IStorage {
   async getLoyaltyReward(id: string): Promise<LoyaltyReward | undefined> {
     const result = await this.db.select().from(loyaltyRewards).where(eq(loyaltyRewards.id, id)).limit(1);
     return result[0];
+  }
+
+  // Ingredient methods
+  async getIngredients(): Promise<Ingredient[]> {
+    return await this.db.select().from(ingredients);
+  }
+
+  async createIngredient(ingredient: InsertIngredient): Promise<Ingredient> {
+    const [result] = await this.db.insert(ingredients).values(ingredient).returning();
+    return result;
+  }
+
+  async updateIngredientAvailability(id: string, isAvailable: number): Promise<Ingredient> {
+    const [result] = await this.db
+      .update(ingredients)
+      .set({ isAvailable, updatedAt: new Date() })
+      .where(eq(ingredients.id, id))
+      .returning();
+    return result;
+  }
+
+  async getCoffeeItemIngredients(coffeeItemId: string): Promise<Ingredient[]> {
+    const result = await this.db
+      .select({
+        id: ingredients.id,
+        nameAr: ingredients.nameAr,
+        nameEn: ingredients.nameEn,
+        isAvailable: ingredients.isAvailable,
+        icon: ingredients.icon,
+        createdAt: ingredients.createdAt,
+        updatedAt: ingredients.updatedAt
+      })
+      .from(coffeeItemIngredients)
+      .innerJoin(ingredients, eq(coffeeItemIngredients.ingredientId, ingredients.id))
+      .where(eq(coffeeItemIngredients.coffeeItemId, coffeeItemId));
+    return result;
+  }
+
+  async addCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<CoffeeItemIngredient> {
+    const [result] = await this.db
+      .insert(coffeeItemIngredients)
+      .values({ coffeeItemId, ingredientId })
+      .returning();
+    return result;
+  }
+
+  async removeCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<void> {
+    await this.db
+      .delete(coffeeItemIngredients)
+      .where(and(
+        eq(coffeeItemIngredients.coffeeItemId, coffeeItemId),
+        eq(coffeeItemIngredients.ingredientId, ingredientId)
+      ));
+  }
+
+  async getCoffeeItemsByIngredient(ingredientId: string): Promise<CoffeeItem[]> {
+    const result = await this.db
+      .select({
+        id: coffeeItems.id,
+        nameAr: coffeeItems.nameAr,
+        nameEn: coffeeItems.nameEn,
+        description: coffeeItems.description,
+        price: coffeeItems.price,
+        oldPrice: coffeeItems.oldPrice,
+        category: coffeeItems.category,
+        imageUrl: coffeeItems.imageUrl,
+        isAvailable: coffeeItems.isAvailable,
+        availabilityStatus: coffeeItems.availabilityStatus,
+        coffeeStrength: coffeeItems.coffeeStrength,
+        strengthLevel: coffeeItems.strengthLevel
+      })
+      .from(coffeeItemIngredients)
+      .innerJoin(coffeeItems, eq(coffeeItemIngredients.coffeeItemId, coffeeItems.id))
+      .where(eq(coffeeItemIngredients.ingredientId, ingredientId));
+    return result;
   }
 }
 
@@ -1092,6 +1182,77 @@ export class MemStorage implements IStorage {
     return Array.from(this.orders.values())
       .filter(order => order.customerId === customerId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Ingredient methods
+  private ingredientsMap: Map<string, Ingredient> = new Map();
+  private coffeeItemIngredientsMap: Map<string, CoffeeItemIngredient> = new Map();
+
+  async getIngredients(): Promise<Ingredient[]> {
+    return Array.from(this.ingredientsMap.values());
+  }
+
+  async createIngredient(ingredient: InsertIngredient): Promise<Ingredient> {
+    const id = randomUUID();
+    const newIngredient: Ingredient = {
+      ...ingredient,
+      id,
+      nameEn: ingredient.nameEn ?? null,
+      icon: ingredient.icon ?? null,
+      isAvailable: ingredient.isAvailable ?? 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.ingredientsMap.set(id, newIngredient);
+    return newIngredient;
+  }
+
+  async updateIngredientAvailability(id: string, isAvailable: number): Promise<Ingredient> {
+    const ingredient = this.ingredientsMap.get(id);
+    if (!ingredient) throw new Error("Ingredient not found");
+    
+    const updated = { ...ingredient, isAvailable, updatedAt: new Date() };
+    this.ingredientsMap.set(id, updated);
+    return updated;
+  }
+
+  async getCoffeeItemIngredients(coffeeItemId: string): Promise<Ingredient[]> {
+    const relations = Array.from(this.coffeeItemIngredientsMap.values())
+      .filter(r => r.coffeeItemId === coffeeItemId);
+    
+    return relations
+      .map(r => this.ingredientsMap.get(r.ingredientId))
+      .filter((ing): ing is Ingredient => ing !== undefined);
+  }
+
+  async addCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<CoffeeItemIngredient> {
+    const id = randomUUID();
+    const relation: CoffeeItemIngredient = {
+      id,
+      coffeeItemId,
+      ingredientId,
+      createdAt: new Date()
+    };
+    this.coffeeItemIngredientsMap.set(id, relation);
+    return relation;
+  }
+
+  async removeCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<void> {
+    const toRemove = Array.from(this.coffeeItemIngredientsMap.entries())
+      .find(([_, r]) => r.coffeeItemId === coffeeItemId && r.ingredientId === ingredientId);
+    
+    if (toRemove) {
+      this.coffeeItemIngredientsMap.delete(toRemove[0]);
+    }
+  }
+
+  async getCoffeeItemsByIngredient(ingredientId: string): Promise<CoffeeItem[]> {
+    const relations = Array.from(this.coffeeItemIngredientsMap.values())
+      .filter(r => r.ingredientId === ingredientId);
+    
+    return relations
+      .map(r => this.coffeeItems.get(r.coffeeItemId))
+      .filter((item): item is CoffeeItem => item !== undefined);
   }
 }
 

@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Coffee, ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getCoffeeImage } from "@/lib/coffee-images";
 import type { CoffeeItem, Employee } from "@shared/schema";
 
 export default function EmployeeMenuManagement() {
@@ -142,14 +143,15 @@ export default function EmployeeMenuManagement() {
                     data-testid={`item-${item.id}`}
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      {item.imageUrl && (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.nameAr}
-                          className="w-16 h-16 rounded-lg object-cover"
-                          data-testid={`img-${item.id}`}
-                        />
-                      )}
+                      <img
+                        src={getCoffeeImage(item.id)}
+                        alt={item.nameAr}
+                        className="w-16 h-16 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/default-coffee.png";
+                        }}
+                        data-testid={`img-${item.id}`}
+                      />
                       <div className="flex-1">
                         <h3 className="text-lg font-bold text-amber-500" data-testid={`text-name-${item.id}`}>
                           {item.nameAr}

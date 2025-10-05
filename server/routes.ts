@@ -1066,6 +1066,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // INGREDIENTS ROUTES
+
+  // Get all ingredients
+  app.get("/api/ingredients", async (req, res) => {
+    try {
+      const ingredients = await storage.getIngredients();
+      res.json(ingredients);
+    } catch (error) {
+      console.error("Error fetching ingredients:", error);
+      res.status(500).json({ error: "Failed to fetch ingredients" });
+    }
+  });
+
+  // Create ingredient
+  app.post("/api/ingredients", async (req, res) => {
+    try {
+      const { insertIngredientSchema } = await import("@shared/schema");
+      const validatedData = insertIngredientSchema.parse(req.body);
+      const ingredient = await storage.createIngredient(validatedData);
+      res.status(201).json(ingredient);
+    } catch (error) {
+      console.error("Error creating ingredient:", error);
+      res.status(500).json({ error: "Failed to create ingredient" });
+    }
+  });
+
+  // Update ingredient availability
+  app.patch("/api/ingredients/:id/availability", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isAvailable } = req.body;
+      const ingredient = await storage.updateIngredientAvailability(id, isAvailable);
+      res.json(ingredient);
+    } catch (error) {
+      console.error("Error updating ingredient:", error);
+      res.status(500).json({ error: "Failed to update ingredient" });
+    }
+  });
+
+  // Get ingredients for a coffee item
+  app.get("/api/coffee-items/:id/ingredients", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const ingredients = await storage.getCoffeeItemIngredients(id);
+      res.json(ingredients);
+    } catch (error) {
+      console.error("Error fetching coffee item ingredients:", error);
+      res.status(500).json({ error: "Failed to fetch ingredients" });
+    }
+  });
+
+  // Add ingredient to coffee item
+  app.post("/api/coffee-items/:id/ingredients", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { ingredientId } = req.body;
+      const result = await storage.addCoffeeItemIngredient(id, ingredientId);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error adding ingredient to coffee item:", error);
+      res.status(500).json({ error: "Failed to add ingredient" });
+    }
+  });
+
+  // Remove ingredient from coffee item
+  app.delete("/api/coffee-items/:id/ingredients/:ingredientId", async (req, res) => {
+    try {
+      const { id, ingredientId } = req.params;
+      await storage.removeCoffeeItemIngredient(id, ingredientId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing ingredient:", error);
+      res.status(500).json({ error: "Failed to remove ingredient" });
+    }
+  });
+
+  // Get coffee items affected by ingredient
+  app.get("/api/ingredients/:id/coffee-items", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const coffeeItems = await storage.getCoffeeItemsByIngredient(id);
+      res.json(coffeeItems);
+    } catch (error) {
+      console.error("Error fetching coffee items by ingredient:", error);
+      res.status(500).json({ error: "Failed to fetch coffee items" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
