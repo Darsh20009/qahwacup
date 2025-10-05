@@ -129,7 +129,7 @@ export default function OrderTracker({ order, compact = false }: OrderTrackerPro
         <div className="relative mb-8">
           <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-700 -translate-y-1/2" />
           <motion.div 
-            className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-blue-500 via-amber-500 to-purple-500 -translate-y-1/2"
+            className="absolute top-1/2 right-0 h-1 bg-gradient-to-l from-blue-500 via-amber-500 to-purple-500 -translate-y-1/2"
             initial={{ width: 0 }}
             animate={{ 
               width: `${(currentStepIndex / (orderSteps.length - 1)) * 100}%` 
@@ -137,7 +137,7 @@ export default function OrderTracker({ order, compact = false }: OrderTrackerPro
             transition={{ duration: 0.8, ease: "easeOut" }}
           />
 
-          <div className="relative flex justify-between">
+          <div className="relative flex justify-between flex-row-reverse">
             {orderSteps.map((step, index) => {
               const isActive = index === currentStepIndex;
               const isCompleted = index < currentStepIndex;
