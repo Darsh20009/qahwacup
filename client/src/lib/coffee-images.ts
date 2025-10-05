@@ -21,7 +21,8 @@ export const getCoffeeImage = (coffeeId: string): string => {
     "iced-condensed": "/images/iced-chocolate.png",
     "vanilla-cold-brew": "/images/vanilla-cold-brew.png",
     "coffee-day-cold": "/attached_assets/coffee-day-cold-new.png",
-    "turkish-coffee": "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png"
+    "turkish-coffee": "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png",
+    "french-press": "/attached_assets/Screenshot 2025-10-05 003844_1759666320914.png"
   };
   
   return imageMap[coffeeId] || "/images/default-coffee.png";
