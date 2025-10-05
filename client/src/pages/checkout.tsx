@@ -414,17 +414,17 @@ ${itemsWithPrices}
   // Success Page
   if (showSuccessPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
         {/* Floating Coffee Elements */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-20 w-16 h-16 bg-primary/20 rounded-full blur-xl animate-bounce" style={{animationDelay: '0s'}}></div>
-          <div className="absolute top-40 right-20 w-12 h-12 bg-secondary/25 rounded-full blur-lg animate-bounce" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-40 left-16 w-20 h-20 bg-accent/15 rounded-full blur-2xl animate-bounce" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-20 right-32 w-14 h-14 bg-primary/30 rounded-full blur-xl animate-bounce" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-20 left-20 w-16 h-16 bg-blue-200/20 rounded-full blur-xl animate-bounce" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-40 right-20 w-12 h-12 bg-indigo-200/25 rounded-full blur-lg animate-bounce" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-40 left-16 w-20 h-20 bg-slate-200/15 rounded-full blur-2xl animate-bounce" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-20 right-32 w-14 h-14 bg-blue-300/30 rounded-full blur-xl animate-bounce" style={{animationDelay: '1.5s'}}></div>
         </div>
 
         <div className="relative z-10 flex items-center justify-center min-h-screen p-8">
-          <Card className="max-w-2xl w-full bg-card/95 backdrop-blur-md border-2 border-primary/30 shadow-2xl">
+          <Card className="max-w-2xl w-full bg-white border-slate-200 shadow-2xl">
             <CardContent className="p-12 text-center">
               {/* Success Icon */}
               <div className="relative mb-8">
@@ -516,6 +516,16 @@ ${itemsWithPrices}
 
               {/* Action Buttons */}
               <div className="space-y-4">
+                <Button
+                  onClick={() => {
+                    window.location.href = '/tracking';
+                  }}
+                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground py-4 text-lg font-semibold"
+                >
+                  <Clock className="w-5 h-5 ml-2" />
+                  اذهب لتتبع الطلب
+                </Button>
+
                 <Button
                   onClick={handleShareWhatsApp}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-semibold"

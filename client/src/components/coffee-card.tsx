@@ -149,7 +149,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
             <Button
               onClick={handleAddToCart}
               size="sm"
-              disabled={item.isAvailable === 0 || (item.availabilityStatus && item.availabilityStatus !== 'available')}
+              disabled={item.isAvailable === 0 || Boolean(item.availabilityStatus && item.availabilityStatus !== 'available')}
               className={`bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-primary/30 rounded-full px-6 py-3 font-semibold btn-primary disabled:opacity-50 disabled:cursor-not-allowed ${
                 isAnimating ? 'add-to-cart-animation glow-effect' : ''
               }`}
