@@ -7,11 +7,13 @@ const getCoffeeImage = (coffeeId: string): string => {
     "espresso-double": "/images/espresso-double.png", 
     "americano": "/images/americano.png",
     "ristretto": "/images/ristretto.png",
+    "turkish-coffee": "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png",
     "cafe-latte": "/images/cafe-latte.png",
     "cappuccino": "/images/cappuccino.png",
     "vanilla-latte": "/images/vanilla-latte.png",
     "mocha": "/images/mocha.png",
     "con-panna": "/images/con-panna.png",
+    "french-press": "/attached_assets/Screenshot 2025-10-05 003844_1759666320914.png",
     "coffee-day-hot": "/images/golden-latte.png",
     "hot-tea": "/attached_assets/Screenshot 2025-09-19 161654_1758288116712.png",
     "ice-tea": "/attached_assets/Screenshot 2025-09-19 161645_1758288659656.png",
@@ -22,7 +24,8 @@ const getCoffeeImage = (coffeeId: string): string => {
     "iced-cappuccino": "/images/iced-cappuccino.png",
     "iced-condensed": "/images/iced-chocolate.png",
     "vanilla-cold-brew": "/images/vanilla-cold-brew.png",
-    "coffee-day-cold": "/images/signature-qahwa.png"
+    "coffee-day-cold": "/images/signature-qahwa.png",
+    "coffee-dessert-cup": "/attached_assets/Screenshot 2025-10-05 012338_1759666320915.png"
   };
   
   return imageMap[coffeeId] || "/images/default-coffee.png";
@@ -122,6 +125,19 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     coffeeStrength: "strong",
     strengthLevel: 11
   },
+  {
+    id: "turkish-coffee",
+    nameAr: "قهوة تركي",
+    nameEn: "Turkish Coffee",
+    description: "قهوة تركية تقليدية محضرة بطريقة عريقة، غنية بالنكهة والتراث",
+    price: "5.00",
+    oldPrice: null,
+    category: "basic",
+    imageUrl: getCoffeeImage("turkish-coffee"),
+    isAvailable: 1,
+    coffeeStrength: "medium",
+    strengthLevel: 6
+  },
   
   // Hot Coffee
   {
@@ -201,6 +217,19 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     isAvailable: 1,
     coffeeStrength: "classic",
     strengthLevel: null
+  },
+  {
+    id: "french-press",
+    nameAr: "قهوة فرنسي",
+    nameEn: "French Press Coffee",
+    description: "قهوة فرنسية فاخرة محضرة بطريقة الكبس الفرنسي، تمنحك نكهة غنية ومميزة",
+    price: "6.00",
+    oldPrice: null,
+    category: "hot",
+    imageUrl: getCoffeeImage("french-press"),
+    isAvailable: 1,
+    coffeeStrength: "medium",
+    strengthLevel: 6
   },
   {
     id: "hot-tea",
@@ -330,6 +359,21 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     oldPrice: "5.50",
     category: "cold",
     imageUrl: getCoffeeImage("coffee-day-cold"),
+    isAvailable: 1,
+    coffeeStrength: "classic",
+    strengthLevel: null
+  },
+  
+  // Desserts
+  {
+    id: "coffee-dessert-cup",
+    nameAr: "حلى قهوة كوب",
+    nameEn: "Coffee Dessert Cup",
+    description: "حلى قهوة فاخر في كوب، طبقات من الكريمة والقهوة والبسكويت المطحون، تجربة حلوة لا تُنسى",
+    price: "8.00",
+    oldPrice: null,
+    category: "desserts",
+    imageUrl: getCoffeeImage("coffee-dessert-cup"),
     isAvailable: 1,
     coffeeStrength: "classic",
     strengthLevel: null
