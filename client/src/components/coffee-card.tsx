@@ -104,7 +104,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
           {/* Floating Coffee Steam Effect */}
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-60 transition-opacity duration-500">
             <img 
-              src="/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png"
+              src="/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757428239748.png"
               alt="Coffee Cup"
               className="w-8 h-8 object-contain"
             />
