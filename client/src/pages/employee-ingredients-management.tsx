@@ -54,7 +54,7 @@ export default function EmployeeIngredientsManagement() {
 
   const updateAvailabilityMutation = useMutation({
     mutationFn: async ({ id, isAvailable }: { id: string; isAvailable: number }) => {
-      const response = await fetch(`/api/ingredients/${id}`, {
+      const response = await fetch(`/api/ingredients/${id}/availability`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isAvailable }),
@@ -62,11 +62,16 @@ export default function EmployeeIngredientsManagement() {
       if (!response.ok) throw new Error("Failed to update ingredient");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
+      
+      const affectedCount = data.affectedItems || 0;
       toast({
         title: "تم التحديث بنجاح",
-        description: "تم تحديث حالة توفر المكون",
+        description: affectedCount > 0 
+          ? `تم تحديث حالة توفر المكون وتأثر ${affectedCount} مشروب`
+          : "تم تحديث حالة توفر المكون",
       });
     },
     onError: () => {

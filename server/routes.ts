@@ -1097,8 +1097,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { isAvailable } = req.body;
+      
+      // Update ingredient availability
       const ingredient = await storage.updateIngredientAvailability(id, isAvailable);
-      res.json(ingredient);
+      
+      // Guard: Check if ingredient exists
+      if (!ingredient) {
+        return res.status(404).json({ error: "Ingredient not found" });
+      }
+      
+      // Get all coffee items that use this ingredient
+      const affectedCoffeeItems = await storage.getCoffeeItemsByIngredient(id);
+      
+      // Update availability of affected coffee items
+      for (const coffeeItem of affectedCoffeeItems) {
+        if (isAvailable === 0) {
+          // If ingredient is unavailable, mark all items using it as unavailable
+          await storage.updateCoffeeItemAvailability(coffeeItem.id, {
+            isAvailable: 0,
+            availabilityStatus: `نفذ ${ingredient.nameAr}`
+          });
+        } else {
+          // If ingredient is now available, check if all other ingredients are available
+          const itemIngredients = await storage.getCoffeeItemIngredients(coffeeItem.id);
+          const allIngredientsAvailable = itemIngredients.every(ing => ing.isAvailable === 1);
+          
+          if (allIngredientsAvailable) {
+            // All ingredients available, make the item available
+            await storage.updateCoffeeItemAvailability(coffeeItem.id, {
+              isAvailable: 1,
+              availabilityStatus: "متوفر"
+            });
+          }
+        }
+      }
+      
+      res.json({ 
+        ingredient, 
+        affectedItems: affectedCoffeeItems.length 
+      });
     } catch (error) {
       console.error("Error updating ingredient:", error);
       res.status(500).json({ error: "Failed to update ingredient" });
