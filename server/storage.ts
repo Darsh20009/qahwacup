@@ -160,6 +160,64 @@ export class DBStorage implements IStorage {
   }
 
   private async initializeCoffeeMenu() {
+    // Check if new items exist, if not add them
+    const newItemIds = ["turkish-coffee", "french-press", "coffee-dessert-cup"];
+    
+    for (const itemId of newItemIds) {
+      const existingItem = await this.db.select().from(coffeeItems).where(eq(coffeeItems.id, itemId)).limit(1);
+      
+      if (existingItem.length === 0) {
+        const newItems: any = {
+          "turkish-coffee": { 
+            id: "turkish-coffee", 
+            nameAr: "قهوة تركي", 
+            nameEn: "Turkish Coffee", 
+            description: "قهوة تركية تقليدية محضرة بطريقة عريقة، غنية بالنكهة والتراث", 
+            price: "5.00", 
+            oldPrice: null, 
+            category: "basic", 
+            imageUrl: "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png", 
+            isAvailable: 1, 
+            coffeeStrength: "medium", 
+            strengthLevel: 6,
+            availabilityStatus: "available"
+          },
+          "french-press": { 
+            id: "french-press", 
+            nameAr: "قهوة فرنسي", 
+            nameEn: "French Press Coffee", 
+            description: "قهوة فرنسية فاخرة محضرة بطريقة الكبس الفرنسي، تمنحك نكهة غنية ومميزة", 
+            price: "6.00", 
+            oldPrice: null, 
+            category: "hot", 
+            imageUrl: "/attached_assets/Screenshot 2025-10-05 003844_1759666320914.png", 
+            isAvailable: 1, 
+            coffeeStrength: "medium", 
+            strengthLevel: 6,
+            availabilityStatus: "available"
+          },
+          "coffee-dessert-cup": { 
+            id: "coffee-dessert-cup", 
+            nameAr: "حلى قهوة كوب", 
+            nameEn: "Coffee Dessert Cup", 
+            description: "حلى قهوة فاخر في كوب، طبقات من الكريمة والقهوة والبسكويت المطحون، تجربة حلوة لا تُنسى", 
+            price: "8.00", 
+            oldPrice: null, 
+            category: "desserts", 
+            imageUrl: "/attached_assets/Screenshot 2025-10-05 012338_1759666320915.png", 
+            isAvailable: 1, 
+            coffeeStrength: "classic", 
+            strengthLevel: null,
+            availabilityStatus: "available"
+          }
+        };
+        
+        await this.db.insert(coffeeItems).values(newItems[itemId]);
+        console.log(`✅ تمت إضافة المنتج الجديد: ${newItems[itemId].nameAr}`);
+      }
+    }
+
+    // Initialize full menu if database is empty
     const existingItems = await this.db.select().from(coffeeItems).limit(1);
     if (existingItems.length > 0) return;
 
