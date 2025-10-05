@@ -180,6 +180,15 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate transfer owner name for non-cash payments
+    if (selectedPaymentMethod !== 'cash' && selectedPaymentMethod !== 'qahwa-card' && !isSameAsCustomer && !transferOwnerName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "يرجى إدخال اسم صاحب التحويل",
+      });
+      return;
+    }
+
     // Check if using qahwa-card payment method (free drink)
     const isQahwaCardPayment = selectedPaymentMethod === 'qahwa-card';
 
@@ -264,16 +273,16 @@ export default function CheckoutPage() {
       items: orderItems,
       totalAmount: totalAmount.toFixed(2),
       paymentMethod: selectedPaymentMethod,
-      paymentDetails: transferOwnerName || null,
+      paymentDetails: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
         phoneNumber: customerPhone.trim() || undefined,
       },
-      customerId: activeCustomerId || null, // Include customer ID from context
+      customerId: activeCustomerId || null,
       customerNotes: customerNotes.trim() || null,
-      freeItemsDiscount: freeItemsDiscount.toFixed(2), // إضافة قيمة الخصم
-      usedFreeDrinks: usedFreeDrinks // عدد المشروبات المجانية المستخدمة
+      freeItemsDiscount: isQahwaCardPayment ? freeItemsDiscount.toFixed(2) : "0.00",
+      usedFreeDrinks: usedFreeDrinks
     };
 
     createOrderMutation.mutate(orderData);

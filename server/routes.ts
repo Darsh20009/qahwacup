@@ -516,17 +516,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Validate usedFreeDrinks
+      const validatedUsedFreeDrinks = typeof usedFreeDrinks === 'number' ? usedFreeDrinks : 0;
+      const validatedFreeItemsDiscount = freeItemsDiscount || "0.00";
+
       // If using qahwa-card payment method (free drinks), update loyalty card
-      if (paymentMethod === 'qahwa-card' && finalCustomerId && usedFreeDrinks > 0) {
+      if (paymentMethod === 'qahwa-card' && finalCustomerId && validatedUsedFreeDrinks > 0) {
         try {
           // Get customer's loyalty card
           const customer = await storage.getCustomer(finalCustomerId);
           if (customer?.phone) {
             const loyaltyCard = await storage.getLoyaltyCardByPhone(customer.phone);
             if (loyaltyCard) {
+              // Check if customer has enough free drinks
+              const availableFreeDrinks = loyaltyCard.freeCupsEarned - loyaltyCard.freeCupsRedeemed;
+              if (availableFreeDrinks < validatedUsedFreeDrinks) {
+                return res.status(400).json({ 
+                  error: `ليس لديك مشروبات مجانية كافية. المتاح: ${availableFreeDrinks}` 
+                });
+              }
+
               // Update freeCupsRedeemed
               await storage.updateLoyaltyCard(loyaltyCard.id, {
-                freeCupsRedeemed: loyaltyCard.freeCupsRedeemed + usedFreeDrinks,
+                freeCupsRedeemed: loyaltyCard.freeCupsRedeemed + validatedUsedFreeDrinks,
                 lastUsedAt: new Date()
               });
 
@@ -535,20 +547,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 cardId: loyaltyCard.id,
                 type: 'free_cup_redeemed',
                 pointsChange: 0,
-                discountAmount: freeItemsDiscount || "0.00",
+                discountAmount: validatedFreeItemsDiscount,
                 orderAmount: totalAmount,
-                description: `استخدام ${usedFreeDrinks} مشروب مجاني`,
+                description: `استخدام ${validatedUsedFreeDrinks} مشروب مجاني`,
                 employeeId: null
               });
             }
           }
         } catch (error) {
           console.error("Error updating loyalty card:", error);
-          // Don't fail the order if loyalty card update fails
+          return res.status(500).json({ error: "فشل في تحديث بطاقة الولاء" });
         }
       }
 
-      // Create order - ensure freeItemsDiscount is not included if column doesn't exist
+      // Create order
       const orderData: any = {
         customerId: finalCustomerId || null,
         totalAmount,
