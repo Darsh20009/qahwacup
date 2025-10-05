@@ -680,7 +680,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/orders/:id/status", async (req, res) => {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, cancellationReason } = req.body;
 
       // Valid statuses for order workflow
       const validStatuses = ['pending', 'payment_confirmed', 'in_progress', 'ready', 'completed', 'cancelled'];
@@ -688,7 +688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid status" });
       }
 
-      const updatedOrder = await storage.updateOrderStatus(id, status);
+      const updatedOrder = await storage.updateOrderStatus(id, status, cancellationReason);
 
       if (!updatedOrder) {
         return res.status(404).json({ error: "Order not found" });

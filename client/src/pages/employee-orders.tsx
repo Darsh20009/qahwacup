@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package } from "lucide-react";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
@@ -52,6 +54,9 @@ function generateCompletionWhatsAppLink(order: Order): string {
 export default function EmployeeOrders() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string>("");
+  const [cancellationReason, setCancellationReason] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,11 +74,11 @@ export default function EmployeeOrders() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: string; status: OrderStatus }) => {
+    mutationFn: async ({ orderId, status, cancellationReason }: { orderId: string; status: OrderStatus; cancellationReason?: string }) => {
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, cancellationReason }),
       });
       
       if (!response.ok) {
@@ -95,6 +100,11 @@ export default function EmployeeOrders() {
         const whatsappLink = generateCompletionWhatsAppLink(updatedOrder);
         window.open(whatsappLink, '_blank');
       }
+      
+      // Reset cancellation dialog
+      setCancelDialogOpen(false);
+      setSelectedOrderId("");
+      setCancellationReason("");
     },
     onError: () => {
       toast({
@@ -104,6 +114,31 @@ export default function EmployeeOrders() {
       });
     },
   });
+
+  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
+    if (newStatus === "cancelled") {
+      setSelectedOrderId(orderId);
+      setCancelDialogOpen(true);
+    } else {
+      updateStatusMutation.mutate({ orderId, status: newStatus });
+    }
+  };
+
+  const handleCancelConfirm = () => {
+    if (!cancellationReason.trim()) {
+      toast({
+        title: "تنبيه",
+        description: "يرجى إدخال سبب الإلغاء",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateStatusMutation.mutate({ 
+      orderId: selectedOrderId, 
+      status: "cancelled",
+      cancellationReason: cancellationReason.trim()
+    });
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -310,10 +345,7 @@ export default function EmployeeOrders() {
                               <div className="flex gap-2">
                                 <Select 
                                   value={order.status} 
-                                  onValueChange={(value) => updateStatusMutation.mutate({ 
-                                    orderId: order.id, 
-                                    status: value as OrderStatus 
-                                  })}
+                                  onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
                                 >
                                   <SelectTrigger 
                                     className="w-[180px] bg-[#2d1f1a] border-amber-500/30 text-white"
@@ -392,6 +424,42 @@ export default function EmployeeOrders() {
           </div>
         )}
       </div>
+
+      {/* Cancellation Reason Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-amber-500 text-right">سبب إلغاء الطلب</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="يرجى إدخال سبب إلغاء الطلب..."
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              className="bg-[#1a1410] border-amber-500/30 text-white text-right min-h-[100px]"
+              dir="rtl"
+            />
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCancelDialogOpen(false);
+                setCancellationReason("");
+              }}
+              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={handleCancelConfirm}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              تأكيد الإلغاء
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

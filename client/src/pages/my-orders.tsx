@@ -49,7 +49,7 @@ export default function MyOrders() {
       </div>
 
       <div className="max-w-4xl mx-auto p-4 relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between mb-6"
@@ -172,6 +172,24 @@ export default function MyOrders() {
 
                   {/* Order Tracker */}
                   <OrderTracker order={order} />
+
+                  {order.customerNotes && (
+                      <div className="bg-amber-900/20 rounded-lg p-3 mb-4 border border-amber-500/20">
+                        <p className="text-amber-400 text-sm font-semibold mb-1">ملاحظات العميل:</p>
+                        <p className="text-white text-sm" data-testid={`text-customer-notes-${order.id}`}>
+                          {order.customerNotes}
+                        </p>
+                      </div>
+                    )}
+
+                    {order.status === 'cancelled' && (order as any).cancellationReason && (
+                      <div className="bg-red-900/20 rounded-lg p-3 mb-4 border border-red-500/20">
+                        <p className="text-red-400 text-sm font-semibold mb-1">سبب الإلغاء:</p>
+                        <p className="text-white text-sm">
+                          {(order as any).cancellationReason}
+                        </p>
+                      </div>
+                    )}
                 </div>
               </motion.div>
             ))}

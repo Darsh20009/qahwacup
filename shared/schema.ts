@@ -64,6 +64,7 @@ export const orders = pgTable("orders", {
   customerId: varchar("customer_id").references(() => customers.id), // العميل المسجل
   employeeId: varchar("employee_id").references(() => employees.id), // الموظف الذي أنشأ الطلب
   customerNotes: text("customer_notes"), // ملاحظات العميل على الطلب
+  cancellationReason: text("cancellation_reason"), // سبب إلغاء الطلب
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -89,7 +89,7 @@ export interface IStorage {
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
   getOrderByNumber(orderNumber: string): Promise<Order | undefined>;
-  updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
+  updateOrderStatus(id: string, status: string, cancellationReason?: string): Promise<Order | undefined>;
   getOrders(limit?: number, offset?: number): Promise<Order[]>;
 
   // Order Item methods
@@ -411,8 +411,12 @@ export class DBStorage implements IStorage {
     return result[0];
   }
 
-  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
-    const result = await this.db.update(orders).set({ status }).where(eq(orders.id, id)).returning();
+  async updateOrderStatus(id: string, status: string, cancellationReason?: string): Promise<Order | undefined> {
+    const updates: any = { status };
+    if (status === 'cancelled' && cancellationReason) {
+      updates.cancellationReason = cancellationReason;
+    }
+    const result = await this.db.update(orders).set(updates).where(eq(orders.id, id)).returning();
     return result[0];
   }
 
@@ -949,11 +953,14 @@ export class MemStorage implements IStorage {
     return Array.from(this.orders.values()).find(order => order.orderNumber === orderNumber);
   }
 
-  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
+  async updateOrderStatus(id: string, status: string, cancellationReason?: string): Promise<Order | undefined> {
     const existing = this.orders.get(id);
     if (!existing) return undefined;
 
     const updated = { ...existing, status };
+    if (status === 'cancelled' && cancellationReason) {
+      updated.cancellationReason = cancellationReason;
+    }
     this.orders.set(id, updated);
     return updated;
   }
