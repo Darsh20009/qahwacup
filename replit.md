@@ -33,6 +33,21 @@
 - **Customer Notes Handling**: Fixed `customerNotes` field to ensure proper null handling (not undefined) in order creation
 - **Schema Typing**: Adjusted coffeeMenuData initialization to resolve strict type inference issues with Drizzle schema
 
+## Ingredient Management System (October 5, 2025)
+- **Database Schema**: Added two new tables:
+  - `ingredients`: Stores 17 ingredients (milk, coffee beans, chocolate, etc.) with availability tracking
+  - `coffeeItemIngredients`: Many-to-many relationship linking coffee items to their ingredients
+- **Employee Interface**: New ingredient management page at `/employee/ingredients`
+  - Creative card-based UI with ingredient icons
+  - Toggle availability with visual feedback
+  - Shows affected coffee items count when updating
+- **Automatic Availability Logic**: 
+  - When an ingredient becomes unavailable, all coffee items using it are automatically marked unavailable
+  - When an ingredient becomes available again, coffee items are re-enabled only if ALL their ingredients are available
+  - Status messages show which ingredient is out of stock (e.g., "نفذ الحليب")
+- **API Routes**: Complete CRUD operations for ingredients with automatic coffee item updates
+- **17 Base Ingredients**: حليب، حبوب البن، بن مطحون، شوكولاتة، حليب مكثف، فانيليا، كاكاو، كراميل، ثلج، ماء، شاي، نعناع، ليمون، ماتشا، كيك، كريمة، بسكويت
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -56,12 +71,14 @@ The backend is an Express.js application written in TypeScript, adhering to a RE
 - **Unified Hub Page**: Combines employee dashboard and menu view at `/0`.
 
 ## Database Schema
-The system uses eight main entities managed by PostgreSQL and Drizzle ORM:
-- **Coffee Items**: Product catalog.
+The system uses ten main entities managed by PostgreSQL and Drizzle ORM:
+- **Coffee Items**: Product catalog with availability tracking.
 - **Orders & Order Items**: Order tracking and detailed line items.
 - **Cart Items**: Session-based temporary storage.
 - **Employees**: Staff accounts with secure authentication.
 - **Loyalty Cards, Loyalty Transactions, Loyalty Rewards**: Comprehensive loyalty program management.
+- **Ingredients**: Inventory tracking for coffee shop ingredients.
+- **Coffee Item Ingredients**: Many-to-many relationship between coffee items and their required ingredients.
 
 ## UI/UX Decisions
 The application features a modern aesthetic with a dark background and gold accents, inspired by traditional Arabic coffee culture. It prioritizes an Arabic-first, right-to-left (RTL) layout. The loyalty card UI is inspired by Fuji Cafe's design, using amber/orange color schemes.
