@@ -345,6 +345,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update coffee item availability (for employees)
+  app.patch("/api/coffee-items/:id/availability", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isAvailable } = req.body;
+
+      if (typeof isAvailable !== 'number' || (isAvailable !== 0 && isAvailable !== 1)) {
+        return res.status(400).json({ error: "isAvailable must be 0 or 1" });
+      }
+
+      const item = await storage.getCoffeeItem(id);
+      if (!item) {
+        return res.status(404).json({ error: "Coffee item not found" });
+      }
+
+      const updatedItem = await storage.updateCoffeeItem(id, { isAvailable });
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Error updating coffee item availability:", error);
+      res.status(500).json({ error: "Failed to update coffee item availability" });
+    }
+  });
+
   // Get cart items for session - OPTIMIZED
   app.get("/api/cart/:sessionId", async (req, res) => {
     try {

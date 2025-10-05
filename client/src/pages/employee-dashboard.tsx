@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings } from "lucide-react";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
@@ -238,6 +238,19 @@ export default function EmployeeDashboard() {
                 <div className="text-center">
                   <div className="font-bold text-lg">إدارة الطلبات</div>
                   <div className="text-sm opacity-90">عرض وتحديث الطلبات</div>
+                </div>
+              </Button>
+
+              <Button
+                size="lg"
+                className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white"
+                onClick={() => setLocation("/employee/menu-management")}
+                data-testid="button-menu-management"
+              >
+                <Settings className="w-10 h-10" />
+                <div className="text-center">
+                  <div className="font-bold text-lg">إدارة المشروبات</div>
+                  <div className="text-sm opacity-90">تحديث حالة التوفر</div>
                 </div>
               </Button>
             </CardContent>
