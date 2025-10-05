@@ -86,15 +86,29 @@ export default function ProductDetails() {
               }}
               data-testid="img-product"
             />
-            {discount > 0 && (
-              <Badge 
-                variant="default" 
-                className="absolute top-4 left-4 bg-primary text-accent-foreground text-sm font-semibold px-3 py-1"
-                data-testid="badge-discount"
-              >
-                خصم {discount}%
-              </Badge>
-            )}
+            {/* Status and Discount Badges */}
+            <div className="flex gap-2 flex-wrap absolute top-4 left-4">
+              {item.oldPrice && (
+                <Badge className="bg-red-500 text-white" data-testid="badge-discount">
+                  خصم {Math.round(((parseFloat(item.oldPrice) - parseFloat(item.price)) / parseFloat(item.oldPrice)) * 100)}%
+                </Badge>
+              )}
+
+              {item.availabilityStatus && item.availabilityStatus !== 'available' && (
+                <Badge 
+                  className={
+                    item.availabilityStatus === 'out_of_stock' ? "bg-red-500" :
+                    item.availabilityStatus === 'coming_soon' ? "bg-blue-500" :
+                    "bg-orange-500"
+                  }
+                  data-testid="badge-availability"
+                >
+                  {item.availabilityStatus === 'out_of_stock' && "❌ نفذت الكمية"}
+                  {item.availabilityStatus === 'coming_soon' && "🔜 قريباً"}
+                  {item.availabilityStatus === 'temporarily_unavailable' && "⏸️ غير متوفر مؤقتاً"}
+                </Badge>
+              )}
+            </div>
           </div>
 
           {/* Product Info */}
@@ -160,6 +174,7 @@ export default function ProductDetails() {
                   variant="outline"
                   size="icon"
                   onClick={() => setQuantity(quantity + 1)}
+                  disabled={(item.isAvailable === 0 || (item.availabilityStatus && item.availabilityStatus !== 'available'))}
                   data-testid="button-increase-quantity"
                 >
                   <Plus className="w-4 h-4" />
@@ -181,11 +196,15 @@ export default function ProductDetails() {
             <Button
               onClick={handleAddToCart}
               size="lg"
-              className="w-full btn-primary text-accent-foreground py-6 text-lg font-semibold"
+              disabled={item.isAvailable === 0 || (item.availabilityStatus && item.availabilityStatus !== 'available')}
+              className="w-full btn-primary text-accent-foreground py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-add-to-cart"
             >
               <Plus className="w-5 h-5 ml-2" />
-              أضف للسلة ({quantity})
+              {item.availabilityStatus === 'out_of_stock' ? '❌ نفذت الكمية' :
+               item.availabilityStatus === 'coming_soon' ? '🔜 قريباً' :
+               item.availabilityStatus === 'temporarily_unavailable' ? '⏸️ غير متوفر مؤقتاً' :
+               'أضف للسلة'}
             </Button>
           </div>
         </div>

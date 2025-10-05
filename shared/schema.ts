@@ -14,6 +14,7 @@ export const coffeeItems = pgTable("coffee_items", {
   category: varchar("category", { length: 50 }).notNull(), // 'basic', 'hot', 'cold', 'specialty', 'desserts'
   imageUrl: text("image_url"),
   isAvailable: integer("is_available").default(1).notNull(),
+  availabilityStatus: varchar("availability_status", { length: 20 }).default("available"), // 'available', 'out_of_stock', 'coming_soon', 'temporarily_unavailable'
   // Coffee strength properties
   coffeeStrength: varchar("coffee_strength", { length: 20 }).default("classic"), // 'classic', 'mild', 'medium', 'strong'
   strengthLevel: integer("strength_level"), // 1-4 mild, 4-8 medium, 8-12 strong, null for classic

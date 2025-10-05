@@ -30,13 +30,13 @@ export default function EmployeeMenuManagement() {
   });
 
   const updateAvailabilityMutation = useMutation({
-    mutationFn: async ({ id, isAvailable }: { id: string; isAvailable: number }) => {
+    mutationFn: async ({ id, isAvailable, availabilityStatus }: { id: string; isAvailable?: number; availabilityStatus?: string }) => {
       const response = await fetch(`/api/coffee-items/${id}/availability`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ isAvailable }),
+        body: JSON.stringify({ isAvailable, availabilityStatus }),
       });
       
       if (!response.ok) {
@@ -64,6 +64,13 @@ export default function EmployeeMenuManagement() {
   const handleToggleAvailability = (item: CoffeeItem) => {
     const newAvailability = item.isAvailable === 1 ? 0 : 1;
     updateAvailabilityMutation.mutate({ id: item.id, isAvailable: newAvailability });
+  };
+
+  const handleStatusChange = (id: string, status: string) => {
+    updateAvailabilityMutation.mutate({ 
+      id, 
+      availabilityStatus: status 
+    });
   };
 
   const categoryNames = {
@@ -164,31 +171,55 @@ export default function EmployeeMenuManagement() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <div className="text-right">
+                      <div className="text-right flex flex-col gap-2">
                         <Badge
-                          className={item.isAvailable === 1 ? "bg-green-500" : "bg-red-500"}
+                          className={
+                            item.availabilityStatus === 'available' ? "bg-green-500" :
+                            item.availabilityStatus === 'out_of_stock' ? "bg-red-500" :
+                            item.availabilityStatus === 'coming_soon' ? "bg-blue-500" :
+                            "bg-orange-500"
+                          }
                           data-testid={`badge-status-${item.id}`}
                         >
-                          {item.isAvailable === 1 ? (
+                          {item.availabilityStatus === 'available' && (
                             <>
                               <CheckCircle className="w-4 h-4 ml-1" />
                               متوفر
                             </>
-                          ) : (
+                          )}
+                          {item.availabilityStatus === 'out_of_stock' && (
                             <>
                               <XCircle className="w-4 h-4 ml-1" />
-                              غير متوفر
+                              نفذت الكمية
+                            </>
+                          )}
+                          {item.availabilityStatus === 'coming_soon' && (
+                            <>
+                              <Coffee className="w-4 h-4 ml-1" />
+                              قريباً
+                            </>
+                          )}
+                          {item.availabilityStatus === 'temporarily_unavailable' && (
+                            <>
+                              <XCircle className="w-4 h-4 ml-1" />
+                              غير متوفر مؤقتاً
                             </>
                           )}
                         </Badge>
+                        
+                        <select
+                          value={item.availabilityStatus || 'available'}
+                          onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                          disabled={updateAvailabilityMutation.isPending}
+                          className="bg-[#1a1410] border border-amber-500/30 rounded-lg px-3 py-1 text-sm text-amber-500"
+                          data-testid={`select-status-${item.id}`}
+                        >
+                          <option value="available">✅ متوفر</option>
+                          <option value="out_of_stock">❌ نفذت الكمية</option>
+                          <option value="temporarily_unavailable">⏸️ غير متوفر مؤقتاً</option>
+                          <option value="coming_soon">🔜 قريباً</option>
+                        </select>
                       </div>
-                      <Switch
-                        checked={item.isAvailable === 1}
-                        onCheckedChange={() => handleToggleAvailability(item)}
-                        disabled={updateAvailabilityMutation.isPending}
-                        className="data-[state=checked]:bg-green-500"
-                        data-testid={`switch-${item.id}`}
-                      />
                     </div>
                   </div>
                 ))}

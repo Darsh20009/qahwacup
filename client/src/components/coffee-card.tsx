@@ -58,16 +58,33 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
             data-testid={`img-coffee-${item.id}`}
           />
 
-          {/* Elegant Discount Badge */}
-          {discount > 0 && (
-            <Badge 
-              variant="default" 
-              className="absolute top-3 left-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-bold px-3 py-1 rounded-full shadow-lg glow-effect"
-              data-testid={`badge-discount-${item.id}`}
-            >
-              خصم {discount}%
-            </Badge>
-          )}
+          {/* Status and Discount Badges */}
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {discount > 0 && (
+              <Badge 
+                variant="default" 
+                className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-bold px-3 py-1 rounded-full shadow-lg glow-effect"
+                data-testid={`badge-discount-${item.id}`}
+              >
+                خصم {discount}%
+              </Badge>
+            )}
+            
+            {item.availabilityStatus && item.availabilityStatus !== 'available' && (
+              <Badge 
+                className={
+                  item.availabilityStatus === 'out_of_stock' ? "bg-red-500" :
+                  item.availabilityStatus === 'coming_soon' ? "bg-blue-500" :
+                  "bg-orange-500"
+                }
+                data-testid={`badge-availability-${item.id}`}
+              >
+                {item.availabilityStatus === 'out_of_stock' && "نفذت الكمية"}
+                {item.availabilityStatus === 'coming_soon' && "قريباً"}
+                {item.availabilityStatus === 'temporarily_unavailable' && "غير متوفر مؤقتاً"}
+              </Badge>
+            )}
+          </div>
 
           {/* Elegant Quick View Button */}
           <Button
@@ -132,13 +149,17 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
             <Button
               onClick={handleAddToCart}
               size="sm"
-              className={`bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-primary/30 rounded-full px-6 py-3 font-semibold btn-primary ${
+              disabled={item.isAvailable === 0 || (item.availabilityStatus && item.availabilityStatus !== 'available')}
+              className={`bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-primary/30 rounded-full px-6 py-3 font-semibold btn-primary disabled:opacity-50 disabled:cursor-not-allowed ${
                 isAnimating ? 'add-to-cart-animation glow-effect' : ''
               }`}
               data-testid={`button-add-${item.id}`}
             >
               <Plus className="w-4 h-4 ml-1" />
-              {isAnimating ? '✨ تم الإضافة' : 'أضف للسلة'}
+              {item.availabilityStatus === 'out_of_stock' ? '❌ نفذ' :
+               item.availabilityStatus === 'coming_soon' ? '🔜 قريباً' :
+               item.availabilityStatus === 'temporarily_unavailable' ? '⏸️ غير متوفر' :
+               isAnimating ? '✨ تم الإضافة' : 'أضف للسلة'}
             </Button>
           </div>
         </div>

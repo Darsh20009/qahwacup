@@ -349,18 +349,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/coffee-items/:id/availability", async (req, res) => {
     try {
       const { id } = req.params;
-      const { isAvailable } = req.body;
-
-      if (typeof isAvailable !== 'number' || (isAvailable !== 0 && isAvailable !== 1)) {
-        return res.status(400).json({ error: "isAvailable must be 0 or 1" });
-      }
+      const { isAvailable, availabilityStatus } = req.body;
 
       const item = await storage.getCoffeeItem(id);
       if (!item) {
         return res.status(404).json({ error: "Coffee item not found" });
       }
 
-      const updatedItem = await storage.updateCoffeeItem(id, { isAvailable });
+      const updates: any = {};
+      
+      if (typeof isAvailable === 'number' && (isAvailable === 0 || isAvailable === 1)) {
+        updates.isAvailable = isAvailable;
+      }
+      
+      if (availabilityStatus) {
+        const validStatuses = ['available', 'out_of_stock', 'coming_soon', 'temporarily_unavailable'];
+        if (!validStatuses.includes(availabilityStatus)) {
+          return res.status(400).json({ error: "Invalid availability status" });
+        }
+        updates.availabilityStatus = availabilityStatus;
+        // Auto-update isAvailable based on status
+        updates.isAvailable = availabilityStatus === 'available' ? 1 : 0;
+      }
+
+      const updatedItem = await storage.updateCoffeeItem(id, updates);
       res.json(updatedItem);
     } catch (error) {
       console.error("Error updating coffee item availability:", error);
