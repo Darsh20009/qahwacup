@@ -108,15 +108,25 @@ export default function EmployeeMenuManagement() {
               <p className="text-gray-400 text-sm">تحديث حالة توفر المشروبات</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setLocation("/employee/dashboard")}
-            className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
-            data-testid="button-back"
-          >
-            <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/employee/ingredients")}
+              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+              data-testid="button-ingredients"
+            >
+              إدارة المكونات
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/employee/dashboard")}
+              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+              data-testid="button-back"
+            >
+              <ArrowRight className="w-4 h-4 ml-2" />
+              العودة للوحة التحكم
+            </Button>
+          </div>
         </div>
       </div>
 

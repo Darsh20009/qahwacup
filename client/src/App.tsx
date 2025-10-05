@@ -16,6 +16,7 @@ import EmployeeCashier from "@/pages/employee-cashier";
 import EmployeeOrders from "@/pages/employee-orders";
 import EmployeeLoyalty from "@/pages/employee-loyalty";
 import EmployeeMenuManagement from "@/pages/employee-menu-management";
+import EmployeeIngredientsManagement from "@/pages/employee-ingredients-management";
 import UnifiedHub from "@/pages/unified-hub";
 import MyCard from "@/pages/my-card";
 import CartModal from "@/components/cart-modal";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/employee/orders" component={EmployeeOrders} />
       <Route path="/employee/loyalty" component={EmployeeLoyalty} />
       <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
+      <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
       <Route component={SplashScreen} />
     </Switch>
   );
