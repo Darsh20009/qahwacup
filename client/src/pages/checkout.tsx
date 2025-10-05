@@ -572,7 +572,6 @@ ${itemsWithPrices}
         <div className="absolute bottom-32 right-16 w-24 h-24 bg-indigo-200/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
         <div className="absolute top-1/2 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
-
       <div className="relative z-10 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Clean Header */}
@@ -689,7 +688,7 @@ ${itemsWithPrices}
                         <div className="flex items-center justify-center mb-8">
                           <div className="relative">
                             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-blue-500 rounded-full opacity-20 blur animate-pulse"></div>
-                            <div className="relative bg-gradient-to-r from-primary to-blue-500 rounded-full p-4 text-white shadow-lg">
+                            <div className="relative from-primary to-blue-500 rounded-full p-4 text-white shadow-lg bg-[#23252f]">
                               <User className="w-8 h-8" />
                             </div>
                           </div>
