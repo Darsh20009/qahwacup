@@ -146,11 +146,11 @@ export class JsonStorage implements IStorage {
   private async initializeCoffeeMenu() {
     const items = this.readData<CoffeeItem>('coffeeItems');
     
-    // تحقق من وجود القائمة الأساسية أولاً
+    // تحقق من وجود القائمة الأساسية (المنتج المرجعي)
     const hasBasicMenu = items.find(item => item.id === 'espresso-single');
     
-    if (!hasBasicMenu && items.length === 0) {
-      // إنشاء القائمة الكاملة
+    if (!hasBasicMenu) {
+      // إنشاء القائمة الكاملة (21 منتج)
       const coffeeMenuData: CoffeeItem[] = [
         { id: "espresso-single", nameAr: "إسبريسو (شوت)", nameEn: "Espresso Single", description: "قهوة إسبريسو مركزة من حبوب عربية مختارة", price: "4.00", oldPrice: "5.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 10, availabilityStatus: "available" },
         { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 12, availabilityStatus: null },
