@@ -156,3 +156,32 @@ This application is configured to run in the Replit environment with the followi
    ```
 
 هذا سيضيف الأعمدة والجداول الجديدة بدون حذف البيانات الموجودة.
+
+## مشكلة قاعدة بيانات Neon عند النشر (أكتوبر 13، 2025)
+
+### المشكلة
+عند النشر على Render، ظهرت مشكلة:
+```
+error: The endpoint has been disabled. Enable it using Neon API and retry.
+```
+
+هذا يحدث مع الحسابات المجانية في Neon عندما تكون قاعدة البيانات غير نشطة لفترة طويلة.
+
+### الحل
+تم إنشاء **قاعدة بيانات Replit PostgreSQL المدمجة** كبديل موثوق:
+
+1. **قاعدة البيانات**: قاعدة بيانات Replit PostgreSQL (مدمجة)
+2. **متغير البيئة**: `DATABASE_URL` متوفر تلقائياً من Replit
+3. **للنشر على Render**:
+   - الخيار 1: استخدم `DATABASE_URL` من Replit في متغيرات البيئة على Render
+   - الخيار 2: أنشئ قاعدة بيانات PostgreSQL على Render نفسها
+   - الخيار 3: فعّل قاعدة بيانات Neon من لوحة التحكم (لكن قد تتعطل مرة أخرى)
+
+4. **الأوامر الضرورية بعد إعداد قاعدة البيانات**:
+   ```bash
+   npm run db:push
+   ```
+
+### ملاحظات
+- قاعدة بيانات Replit أكثر استقراراً وموثوقية للمشاريع المستضافة على Replit
+- التطبيق يتحقق تلقائياً من وجود `DATABASE_URL` ويستخدم DBStorage للاتصال بـ PostgreSQL

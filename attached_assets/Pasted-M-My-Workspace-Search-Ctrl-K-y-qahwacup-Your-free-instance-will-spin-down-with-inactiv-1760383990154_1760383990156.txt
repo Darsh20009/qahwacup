@@ -1,0 +1,533 @@
+M
+My Workspace
+
+Search
+Ctrl+
+K
+
+y
+qahwacup
+
+Your free instance will spin down with inactivity, which can delay requests by 50 seconds or more.
+Upgrade now
+
+All logs
+Search
+Search
+
+Live tail
+GMT+3
+
+Menu
+
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:10 PM [express] GET /api/customers/5e600e33-8fa9-4ba8-b251-86a01450bdf6/orders 500 in 25ms :: {…
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:15 PM [express] GET /api/coffee-items 500 in 19ms :: {"error":"Failed to fetch coffee items"}
+Error fetching cart items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCartItems (file:///opt/render/project/src/dist/index.js:574:12)
+    at async file:///opt/render/project/src/dist/index.js:1564:26 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:15 PM [express] GET /api/cart/session-1759325639225-ybyge1kuq 500 in 19ms :: {"error":"Failed t…
+Error fetching cart items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCartItems (file:///opt/render/project/src/dist/index.js:574:12)
+    at async file:///opt/render/project/src/dist/index.js:1564:26 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:16 PM [express] GET /api/cart/session-1759325639225-ybyge1kuq 500 in 20ms :: {"error":"Failed t…
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:16 PM [express] GET /api/coffee-items 500 in 19ms :: {"error":"Failed to fetch coffee items"}
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:18 PM [express] GET /api/coffee-items 500 in 21ms :: {"error":"Failed to fetch coffee items"}
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:19 PM [express] GET /api/coffee-items 500 in 17ms :: {"error":"Failed to fetch coffee items"}
+Error fetching orders: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getOrders (file:///opt/render/project/src/dist/index.js:564:12)
+    at async file:///opt/render/project/src/dist/index.js:1837:23 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:25 PM [express] GET /api/orders 500 in 18ms :: {"error":"Failed to fetch orders"}
+Error fetching orders: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getOrders (file:///opt/render/project/src/dist/index.js:564:12)
+    at async file:///opt/render/project/src/dist/index.js:1837:23 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:26 PM [express] GET /api/orders 500 in 18ms :: {"error":"Failed to fetch orders"}
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:31 PM [express] GET /api/coffee-items 500 in 16ms :: {"error":"Failed to fetch coffee items"}
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:17:32 PM [express] GET /api/coffee-items 500 in 19ms :: {"error":"Failed to fetch coffee items"}
+Error fetching cart items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCartItems (file:///opt/render/project/src/dist/index.js:574:12)
+    at async file:///opt/render/project/src/dist/index.js:1564:26 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+7:24:11 PM [express] GET /api/cart/session-1759178594747-yavsebg1b 500 in 25ms :: {"error":"Failed t…
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+Error fetching cart items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCartItems (file:///opt/render/project/src/dist/index.js:574:12)
+    at async file:///opt/render/project/src/dist/index.js:1564:26 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:24:13 PM [express] GET /api/cart/session-1759178594747-yavsebg1b 500 in 22ms :: {"error":"Failed t…
+     ==> Deploying...
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+✅ Using DBStorage - PostgreSQL database for persistent storage
+7:24:58 PM [express] serving on port 10000
+Error initializing database: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.initializeCoffeeMenu (file:///opt/render/project/src/dist/index.js:346:28)
+    at async DBStorage.initializeDatabase (file:///opt/render/project/src/dist/index.js:337:7) {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://qahwa.ma3k.online + 1 more domain
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Detected service running on port 10000
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Error fetching cart items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCartItems (file:///opt/render/project/src/dist/index.js:574:12)
+    at async file:///opt/render/project/src/dist/index.js:1564:26 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:30:53 PM [express] GET /api/cart/session-1759325639225-ybyge1kuq 500 in 33ms :: {"error":"Failed t…
+Error fetching cart items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCartItems (file:///opt/render/project/src/dist/index.js:574:12)
+    at async file:///opt/render/project/src/dist/index.js:1564:26 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:30:54 PM [express] GET /api/cart/session-1759325639225-ybyge1kuq 500 in 24ms :: {"error":"Failed t…
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:30:56 PM [express] GET /api/coffee-items 500 in 27ms :: {"error":"Failed to fetch coffee items"}
+Error fetching coffee items: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCoffeeItems (file:///opt/render/project/src/dist/index.js:520:12)
+    at async file:///opt/render/project/src/dist/index.js:1504:21 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:30:57 PM [express] GET /api/coffee-items 500 in 21ms :: {"error":"Failed to fetch coffee items"}
+Error fetching customer orders: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCustomerOrders (file:///opt/render/project/src/dist/index.js:517:12)
+    at async file:///opt/render/project/src/dist/index.js:1495:23 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:30:57 PM [express] GET /api/customers/5e600e33-8fa9-4ba8-b251-86a01450bdf6/orders 500 in 30ms :: {…
+Error fetching customer orders: error: The endpoint has been disabled. Enable it using Neon API and retry.
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DBStorage.getCustomerOrders (file:///opt/render/project/src/dist/index.js:517:12)
+    at async file:///opt/render/project/src/dist/index.js:1495:23 {
+  length: 88,
+  severity: 'ERROR',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+7:30:58 PM [express] GET /api/customers/5e600e33-8fa9-4ba8-b251-86a01450bdf6/orders 500 in 27ms :: {…
+Need better ways to work with logs? Try theRender CLI, Render MCP Server, or set up a log stream integration 
+
+0 services selected:
+
+Move
+
+Generate Blueprint
+
+Resume
+
+Suspend
+
