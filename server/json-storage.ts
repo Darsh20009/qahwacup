@@ -146,74 +146,36 @@ export class JsonStorage implements IStorage {
   private async initializeCoffeeMenu() {
     const items = this.readData<CoffeeItem>('coffeeItems');
     
-    const newItemIds = ["turkish-coffee", "french-press", "coffee-dessert-cup"];
+    // تحقق من وجود القائمة الأساسية أولاً
+    const hasBasicMenu = items.find(item => item.id === 'espresso-single');
     
-    for (const itemId of newItemIds) {
-      const exists = items.find(item => item.id === itemId);
-      
-      if (!exists) {
-        const newItems: Record<string, any> = {
-          "turkish-coffee": { 
-            id: "turkish-coffee", 
-            nameAr: "قهوة تركي", 
-            nameEn: "Turkish Coffee", 
-            description: "قهوة تركية تقليدية محضرة بطريقة عريقة، غنية بالنكهة والتراث", 
-            price: "5.00", 
-            oldPrice: null, 
-            category: "basic", 
-            imageUrl: "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png", 
-            isAvailable: 1, 
-            coffeeStrength: "medium", 
-            strengthLevel: 6,
-            availabilityStatus: "available"
-          },
-          "french-press": { 
-            id: "french-press", 
-            nameAr: "قهوة فرنسي", 
-            nameEn: "French Press Coffee", 
-            description: "قهوة فرنسية فاخرة محضرة بطريقة الكبس الفرنسي، تمنحك نكهة غنية ومميزة", 
-            price: "6.00", 
-            oldPrice: null, 
-            category: "hot", 
-            imageUrl: "/attached_assets/Screenshot 2025-10-05 003844_1759666320914.png", 
-            isAvailable: 1, 
-            coffeeStrength: "medium", 
-            strengthLevel: 6,
-            availabilityStatus: "available"
-          },
-          "coffee-dessert-cup": { 
-            id: "coffee-dessert-cup", 
-            nameAr: "حلى قهوة كوب", 
-            nameEn: "Coffee Dessert Cup", 
-            description: "حلى قهوة فاخر في كوب، طبقات من الكريمة والقهوة والبسكويت المطحون، تجربة حلوة لا تُنسى", 
-            price: "8.00", 
-            oldPrice: null, 
-            category: "desserts", 
-            imageUrl: "/attached_assets/Screenshot 2025-10-05 012338_1759666320915.png", 
-            isAvailable: 1, 
-            coffeeStrength: "classic", 
-            strengthLevel: null,
-            availabilityStatus: "available"
-          }
-        };
-        
-        items.push(newItems[itemId] as CoffeeItem);
-        this.log('CREATE', 'COFFEE_ITEM', itemId, { nameAr: newItems[itemId].nameAr });
-      }
-    }
-
-    if (items.length === 0) {
+    if (!hasBasicMenu && items.length === 0) {
+      // إنشاء القائمة الكاملة
       const coffeeMenuData: CoffeeItem[] = [
         { id: "espresso-single", nameAr: "إسبريسو (شوت)", nameEn: "Espresso Single", description: "قهوة إسبريسو مركزة من حبوب عربية مختارة", price: "4.00", oldPrice: "5.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 10, availabilityStatus: "available" },
         { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 12, availabilityStatus: null },
         { id: "americano", nameAr: "أمريكانو", nameEn: "Americano", description: "إسبريسو مخفف بالماء الساخن لطعم معتدل", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757426884660.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 3, availabilityStatus: null },
+        { id: "ristretto", nameAr: "ريستريتو", nameEn: "Ristretto", description: "إسبريسو مركز بنصف كمية الماء لطعم أقوى", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/ChatGPT Image Sep 9, 2025, 04_06_17 PM_1757428239748.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 11, availabilityStatus: null },
+        { id: "turkish-coffee", nameAr: "قهوة تركي", nameEn: "Turkish Coffee", description: "قهوة تركية تقليدية محضرة بطريقة عريقة، غنية بالنكهة والتراث", price: "5.00", oldPrice: null, category: "basic", imageUrl: "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png", isAvailable: 1, coffeeStrength: "medium", strengthLevel: 6, availabilityStatus: "available" },
         { id: "cafe-latte", nameAr: "كافيه لاتيه", nameEn: "Cafe Latte", description: "إسبريسو مع حليب مخفوق كريمي ورغوة ناعمة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/generated_images/Luxury_café_latte_drink_156cb225.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
         { id: "cappuccino", nameAr: "كابتشينو", nameEn: "Cappuccino", description: "مزيج متوازن من الإسبريسو والحليب والرغوة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191916_1757434923575.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
+        { id: "vanilla-latte", nameAr: "فانيلا لاتيه", nameEn: "Vanilla Latte", description: "لاتيه كلاسيكي مع نكهة الفانيلا الطبيعية", price: "6.00", oldPrice: "7.00", category: "hot", imageUrl: "/attached_assets/Elegant Coffee Culture Design_1757428233689.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
         { id: "mocha", nameAr: "موكا", nameEn: "Mocha", description: "مزيج رائع من القهوة والشوكولاتة والحليب", price: "7.00", oldPrice: "8.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191928_1757434923575.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 6, availabilityStatus: null },
+        { id: "con-panna", nameAr: "كافيه كون بانا", nameEn: "Cafe Con Panna", description: "إسبريسو مع كريمة مخفوقة طازجة", price: "5.00", oldPrice: "6.00", category: "hot", imageUrl: "/attached_assets/Screenshot 2025-09-09 191936_1757434923574.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 7, availabilityStatus: null },
+        { id: "french-press", nameAr: "قهوة فرنسي", nameEn: "French Press Coffee", description: "قهوة فرنسية فاخرة محضرة بطريقة الكبس الفرنسي، تمنحك نكهة غنية ومميزة", price: "6.00", oldPrice: null, category: "hot", imageUrl: "/attached_assets/Screenshot 2025-10-05 003844_1759666320914.png", isAvailable: 1, coffeeStrength: "medium", strengthLevel: 6, availabilityStatus: "available" },
+        { id: "hot-tea", nameAr: "شاي حار", nameEn: "Hot Tea", description: "شاي طبيعي مُحضر بعناية من أوراق الشاي المختارة، يُقدم ساخناً ومنعشاً لبداية يوم مثالية", price: "2.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161654_1758288116712.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
+        { id: "ice-tea", nameAr: "آيس تي", nameEn: "Ice Tea", description: "انتعاش لا يُقاوم مع مزيج مثالي من الشاي المنقوع ببرودة والطعم المميز", price: "3.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161645_1758288659656.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
+        { id: "iced-matcha-latte", nameAr: "آيس لاتيه ماتشا", nameEn: "Iced Matcha Latte", description: "إبداع ياباني ساحر يجمع بين نعومة الحليب المثلج وسحر الماتشا الأخضر النقي", price: "10.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161627_1758288688792.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
+        { id: "hot-matcha-latte", nameAr: "لاتيه ماتشا حار", nameEn: "Hot Matcha Latte", description: "دفء ساحر يلتقي مع نكهة الماتشا الاستثنائية في لحن متناغم من الكريمة والطعم الياباني الأصيل", price: "11.00", oldPrice: null, category: "specialty", imageUrl: "/attached_assets/Screenshot 2025-09-19 161637_1758288723420.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
         { id: "iced-latte", nameAr: "آيسد لاتيه", nameEn: "Iced Latte", description: "لاتيه منعش مع الثلج والحليب البارد", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/generated_images/Luxury_iced_coffee_drink_571860f5.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
+        { id: "iced-mocha", nameAr: "آيسد موكا", nameEn: "Iced Mocha", description: "موكا باردة مع الشوكولاتة والكريمة المخفوقة", price: "7.00", oldPrice: "8.00", category: "cold", imageUrl: "/attached_assets/generated_images/Luxury_iced_coffee_drink_571860f5.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 5, availabilityStatus: null },
+        { id: "iced-cappuccino", nameAr: "آيسد كابتشينو", nameEn: "Iced Cappuccino", description: "كابتشينو بارد مع رغوة الحليب المثلجة", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192012_1757434923573.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: null },
+        { id: "iced-condensed", nameAr: "قهوة مثلجة بالحليب المكثف", nameEn: "Iced Coffee with Condensed Milk", description: "قهوة باردة مع حليب مكثف حلو ولذيذ", price: "5.00", oldPrice: "6.00", category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192022_1757434929813.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 5, availabilityStatus: null },
+        { id: "vanilla-cold-brew", nameAr: "فانيلا كولد برو", nameEn: "Vanilla Cold Brew", description: "قهوة باردة منقوعة ببطء مع نكهة الفانيلا", price: "6.00", oldPrice: "7.00", category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192045_1757434923573.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 2, availabilityStatus: null },
+        { id: "coffee-dessert-cup", nameAr: "حلى قهوة كوب", nameEn: "Coffee Dessert Cup", description: "حلى قهوة فاخر في كوب، طبقات من الكريمة والقهوة والبسكويت المطحون", price: "8.00", oldPrice: null, category: "desserts", imageUrl: "/attached_assets/Screenshot 2025-10-05 012338_1759666320915.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: null, availabilityStatus: "available" },
       ];
       items.push(...coffeeMenuData);
-      this.log('CREATE', 'COFFEE_MENU', 'initial', { count: coffeeMenuData.length });
+      this.log('CREATE', 'COFFEE_MENU', 'full', { count: coffeeMenuData.length });
     }
 
     this.writeData('coffeeItems', items);
