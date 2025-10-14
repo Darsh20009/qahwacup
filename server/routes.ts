@@ -753,7 +753,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Enrich orders with coffee item details
       const enrichedOrders = orders.map(order => {
-        const items = (order.items as any[]).map(item => {
+        const orderItems = Array.isArray(order.items) ? order.items : [];
+        const items = orderItems.map((item: any) => {
           const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
           return {
             ...item,
