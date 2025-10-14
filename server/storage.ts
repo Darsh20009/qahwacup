@@ -1324,8 +1324,13 @@ export class MemStorage implements IStorage {
 // استيراد JsonStorage
 import { JsonStorage } from "./json-storage";
 
-// Create and export storage - يستخدم JsonStorage دائماً للاستقلالية الكاملة
-const storage: IStorage = new JsonStorage();
-console.log("✅ Using JsonStorage - نظام ملفات JSON المستقل مع تتبع ذكي للتغييرات");
+// Create and export storage - Use PostgreSQL database
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
+
+const storage: IStorage = new DBStorage(connectionString);
+console.log("✅ Using PostgreSQL Database - قاعدة بيانات PostgreSQL الداخلية");
 
 export { storage };
