@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coffee, Phone, User } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Coffee, Phone, User, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,9 +16,11 @@ export default function CustomerAuth() {
   const { toast } = useToast();
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"login" | "register">("login");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const cleanPhone = phone.replace(/\s/g, '').trim();
@@ -40,12 +43,21 @@ export default function CustomerAuth() {
       return;
     }
 
+    if (!password || password.length < 4) {
+      toast({
+        title: "خطأ",
+        description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await apiRequest("POST", "/api/customers/auth", {
+      const res = await apiRequest("POST", "/api/customers/login", {
         phone: cleanPhone,
-        name: name.trim() || undefined
+        password
       });
       
       const customer = await res.json();
@@ -53,15 +65,86 @@ export default function CustomerAuth() {
       
       toast({
         title: "مرحباً بك!",
-        description: name ? `أهلاً ${name}، تم تسجيل دخولك بنجاح` : "تم تسجيل دخولك بنجاح",
+        description: `أهلاً ${customer.name}، تم تسجيل دخولك بنجاح`,
       });
 
       navigate("/");
-    } catch (error) {
-      console.error("Authentication error:", error);
+    } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء تسجيل الدخول",
+        description: error.message || "رقم الهاتف أو كلمة المرور غير صحيحة",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const cleanPhone = phone.replace(/\s/g, '').trim();
+    
+    if (!cleanPhone || cleanPhone.length !== 9) {
+      toast({
+        title: "خطأ",
+        description: "يرجى إدخال رقم جوال مكون من 9 أرقام",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!cleanPhone.startsWith('5')) {
+      toast({
+        title: "خطأ",
+        description: "رقم الجوال يجب أن يبدأ بالرقم 5",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!name || name.trim().length < 2) {
+      toast({
+        title: "خطأ",
+        description: "الاسم يجب أن يكون على الأقل حرفين",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!password || password.length < 4) {
+      toast({
+        title: "خطأ",
+        description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await apiRequest("POST", "/api/customers/register", {
+        phone: cleanPhone,
+        name: name.trim(),
+        password
+      });
+      
+      const customer = await res.json();
+      setCustomer(customer);
+      
+      toast({
+        title: "مرحباً بك!",
+        description: `أهلاً ${customer.name}، تم إنشاء حسابك بنجاح`,
+      });
+
+      navigate("/");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast({
+        title: "خطأ",
+        description: error.message || "حدث خطأ أثناء إنشاء الحساب",
         variant: "destructive"
       });
     } finally {
@@ -75,6 +158,7 @@ export default function CustomerAuth() {
       style={{
         background: "linear-gradient(135deg, #1a1410 0%, #2d1810 50%, #1a1410 100%)",
       }}
+      dir="rtl"
     >
       <Card className="w-full max-w-md border-amber-900/30 bg-gradient-to-br from-stone-900/95 to-stone-950/95 backdrop-blur shadow-2xl">
         <CardHeader className="space-y-3 text-center pb-6">
@@ -92,79 +176,166 @@ export default function CustomerAuth() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-amber-100 flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                رقم الجوال
-              </Label>
-              <div className="relative">
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400/70 font-semibold">
-                  +966
-                </span>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="5xxxxxxxx"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="pr-16 bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
-                  dir="ltr"
-                  data-testid="input-phone"
-                  required
-                />
-              </div>
-              <p className="text-xs text-amber-200/50 mt-1">
-                ابدأ بـ 5 ثم باقي الأرقام (9 أرقام)
-              </p>
-            </div>
+          <Tabs value={mode} onValueChange={(v) => setMode(v as "login" | "register")} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-stone-800/50">
+              <TabsTrigger value="login" data-testid="tab-login">تسجيل دخول</TabsTrigger>
+              <TabsTrigger value="register" data-testid="tab-register">حساب جديد</TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-amber-100 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                الاسم (اختياري)
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="أدخل اسمك"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
-                data-testid="input-name"
-              />
-              <p className="text-xs text-amber-200/50 mt-1">
-                يساعدنا على تخصيص تجربتك
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-lg shadow-amber-900/50 transition-all duration-300 hover:scale-[1.02]"
-              data-testid="button-submit"
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>جارٍ التسجيل...</span>
+            <TabsContent value="login" className="space-y-5 mt-5">
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="login-phone" className="text-amber-100 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    رقم الجوال
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400/70 font-semibold">
+                      +966
+                    </span>
+                    <Input
+                      id="login-phone"
+                      type="tel"
+                      placeholder="5xxxxxxxx"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="pr-16 bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                      dir="ltr"
+                      data-testid="input-phone"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-amber-200/50 mt-1">
+                    ابدأ بـ 5 ثم باقي الأرقام (9 أرقام)
+                  </p>
                 </div>
-              ) : (
-                "تسجيل الدخول"
-              )}
-            </Button>
 
-            <div className="pt-4 text-center">
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="text-amber-300/70 hover:text-amber-200 transition-colors text-sm underline-offset-4 hover:underline"
-                data-testid="link-skip"
-              >
-                تخطي وتصفح القائمة
-              </button>
-            </div>
-          </form>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password" className="text-amber-100 flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    كلمة المرور
+                  </Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    placeholder="أدخل كلمة المرور"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                    data-testid="input-password"
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-lg shadow-amber-900/50 transition-all duration-300 hover:scale-[1.02]"
+                  data-testid="button-login"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>جارٍ تسجيل الدخول...</span>
+                    </div>
+                  ) : (
+                    "تسجيل الدخول"
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="register" className="space-y-5 mt-5">
+              <form onSubmit={handleRegister} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="register-name" className="text-amber-100 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    الاسم
+                  </Label>
+                  <Input
+                    id="register-name"
+                    type="text"
+                    placeholder="أدخل اسمك"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                    data-testid="input-name"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-phone" className="text-amber-100 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    رقم الجوال
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400/70 font-semibold">
+                      +966
+                    </span>
+                    <Input
+                      id="register-phone"
+                      type="tel"
+                      placeholder="5xxxxxxxx"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="pr-16 bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                      dir="ltr"
+                      data-testid="input-phone-register"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-amber-200/50 mt-1">
+                    ابدأ بـ 5 ثم باقي الأرقام (9 أرقام)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-password" className="text-amber-100 flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    كلمة المرور
+                  </Label>
+                  <Input
+                    id="register-password"
+                    type="password"
+                    placeholder="أدخل كلمة المرور (4 أحرف على الأقل)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                    data-testid="input-password-register"
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg shadow-green-900/50 transition-all duration-300 hover:scale-[1.02]"
+                  data-testid="button-register"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>جارٍ إنشاء الحساب...</span>
+                    </div>
+                  ) : (
+                    "إنشاء حساب"
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+
+          <div className="pt-6 text-center">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="text-amber-300/70 hover:text-amber-200 transition-colors text-sm underline-offset-4 hover:underline"
+              data-testid="link-skip"
+            >
+              تخطي وتصفح القائمة
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>
