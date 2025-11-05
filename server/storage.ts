@@ -27,6 +27,8 @@ import {
   type InsertIngredient,
   type CoffeeItemIngredient,
   type InsertCoffeeItemIngredient,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
   coffeeItems,
   customers,
   employees,
@@ -40,7 +42,8 @@ import {
   loyaltyTransactions,
   loyaltyRewards,
   ingredients,
-  coffeeItemIngredients
+  coffeeItemIngredients,
+  passwordResetTokens
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
@@ -74,10 +77,17 @@ export interface IStorage {
   // Customer methods
   getCustomer(id: string): Promise<Customer | undefined>;
   getCustomerByPhone(phone: string): Promise<Customer | undefined>;
+  getCustomerByEmail(email: string): Promise<Customer | undefined>;
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer | undefined>;
   getCustomerOrders(customerId: string): Promise<Order[]>;
   verifyCustomerPassword(phone: string, password: string): Promise<Customer | undefined>;
+  resetCustomerPassword(email: string, newPassword: string): Promise<boolean>;
+  
+  // Password Reset Token methods
+  createPasswordResetToken(email: string): Promise<{token: string, expiresAt: Date}>;
+  verifyPasswordResetToken(token: string): Promise<{valid: boolean, email?: string}>;
+  usePasswordResetToken(token: string): Promise<boolean>;
 
   // Coffee Item methods
   getCoffeeItems(): Promise<CoffeeItem[]>;
@@ -306,6 +316,12 @@ export class DBStorage implements IStorage {
     return result[0];
   }
 
+  async getCustomerByEmail(email: string): Promise<Customer | undefined> {
+    if (!email) return undefined;
+    const result = await this.db.select().from(customers).where(eq(customers.email, email)).limit(1);
+    return result[0];
+  }
+
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
     // Hash password before storing
     const hashedPassword = await bcrypt.hash(customer.password, 10);
@@ -324,6 +340,56 @@ export class DBStorage implements IStorage {
     if (!isPasswordValid) return undefined;
     
     return customer;
+  }
+
+  async resetCustomerPassword(email: string, newPassword: string): Promise<boolean> {
+    const customer = await this.getCustomerByEmail(email);
+    if (!customer) return false;
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.db.update(customers)
+      .set({ password: hashedPassword })
+      .where(eq(customers.email, email));
+    
+    return true;
+  }
+
+  async createPasswordResetToken(email: string): Promise<{token: string, expiresAt: Date}> {
+    const token = nanoid(32);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    
+    await this.db.insert(passwordResetTokens).values({
+      email,
+      token,
+      expiresAt,
+    });
+    
+    return { token, expiresAt };
+  }
+
+  async verifyPasswordResetToken(token: string): Promise<{valid: boolean, email?: string}> {
+    const result = await this.db.select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+    
+    if (!result[0]) return { valid: false };
+    
+    const resetToken = result[0];
+    
+    if (resetToken.used === 1) return { valid: false };
+    if (resetToken.expiresAt < new Date()) return { valid: false };
+    
+    return { valid: true, email: resetToken.email };
+  }
+
+  async usePasswordResetToken(token: string): Promise<boolean> {
+    const result = await this.db.update(passwordResetTokens)
+      .set({ used: 1 })
+      .where(eq(passwordResetTokens.token, token))
+      .returning();
+    
+    return result.length > 0;
   }
 
   async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | undefined> {
@@ -1192,6 +1258,13 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getCustomerByEmail(email: string): Promise<Customer | undefined> {
+    if (!email) return undefined;
+    return Array.from(this.customers.values()).find(
+      customer => customer.email === email
+    );
+  }
+
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     const id = randomUUID();
     // Hash password before storing
@@ -1214,6 +1287,30 @@ export class MemStorage implements IStorage {
     if (!isPasswordValid) return undefined;
     
     return customer;
+  }
+
+  async resetCustomerPassword(email: string, newPassword: string): Promise<boolean> {
+    const customer = await this.getCustomerByEmail(email);
+    if (!customer) return false;
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    customer.password = hashedPassword;
+    
+    return true;
+  }
+
+  async createPasswordResetToken(email: string): Promise<{token: string, expiresAt: Date}> {
+    const token = nanoid(32);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    return { token, expiresAt };
+  }
+
+  async verifyPasswordResetToken(token: string): Promise<{valid: boolean, email?: string}> {
+    return { valid: false };
+  }
+
+  async usePasswordResetToken(token: string): Promise<boolean> {
+    return false;
   }
 
   async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | undefined> {
