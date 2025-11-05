@@ -24,8 +24,19 @@ export const coffeeItems = pgTable("coffee_items", {
 export const customers = pgTable("customers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   phone: varchar("phone", { length: 20 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).unique(),
   name: text("name").notNull(), // الاسم إلزامي
   password: text("password").notNull(), // كلمة المرور إلزامية
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Password Reset Tokens Schema - رموز استعادة كلمة المرور
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email", { length: 255 }).notNull(),
+  token: varchar("token", { length: 100 }).notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: integer("used").default(0).notNull(), // 0 = not used, 1 = used
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -121,6 +132,12 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
 }).extend({
   password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف"),
   name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
+  email: z.string().email("البريد الإلكتروني غير صالح").optional(),
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({
@@ -150,6 +167,9 @@ export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 
 export type CartItem = typeof cartItems.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 
 // Payment Method Types
 export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card';

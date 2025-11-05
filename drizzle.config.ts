@@ -1,13 +1,12 @@
 import { defineConfig } from "drizzle-kit";
+import { parse } from "pg-connection-string";
 
-// Prefer Replit's internal database over external DATABASE_URL
 const useReplitDB = process.env.PGHOST && process.env.PGDATABASE;
 
 if (!useReplitDB && !process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL or Replit database, ensure the database is provisioned");
 }
 
-// For external databases (like Render), ensure we specify the schema
 const getDbCredentials = () => {
   if (useReplitDB) {
     return {
@@ -19,15 +18,15 @@ const getDbCredentials = () => {
       ssl: false,
     };
   } else {
-    // External database (e.g., Render, filess.io)
-    const url = process.env.DATABASE_URL!;
-    const urlWithOptions = url.includes('?') 
-      ? `${url}&options=-c%20search_path%3Dpublic`
-      : `${url}?options=-c%20search_path%3Dpublic`;
+    const parsed = parse(process.env.DATABASE_URL!);
     
     return {
-      url: urlWithOptions,
-      ssl: false, // filess.io doesn't support SSL
+      host: parsed.host!,
+      port: parseInt(parsed.port || "5432"),
+      user: parsed.user!,
+      password: parsed.password!,
+      database: parsed.database!,
+      ssl: false,
     };
   }
 };
@@ -40,4 +39,7 @@ export default defineConfig({
   schemaFilter: ["public"],
   verbose: true,
   strict: true,
+  migrations: {
+    schema: "public",
+  },
 });
