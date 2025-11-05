@@ -161,14 +161,19 @@ export class DBStorage implements IStorage {
   }
 
   private async initializeCoffeeMenu() {
-    // Check if any items exist in the database
-    const existingItems = await this.db.select().from(coffeeItems).limit(1);
-    if (existingItems.length > 0) {
-      // Menu is already initialized
+    // Check if database already has the full menu (24 items)
+    const existingItems = await this.db.select().from(coffeeItems);
+    if (existingItems.length === 24) {
+      // Full menu is already initialized
       return;
     }
 
-    // Only insert if database is completely empty
+    // If we have partial data, clear it and reinitialize
+    if (existingItems.length > 0 && existingItems.length < 24) {
+      await this.db.delete(coffeeItems);
+    }
+
+    // Only insert if database is empty or had partial data
     const coffeeMenuData: any[] = [
       { id: "espresso-single", nameAr: "إسبريسو (شوت)", nameEn: "Espresso Single", description: "قهوة إسبريسو مركزة من حبوب عربية مختارة", price: "4.00", oldPrice: "5.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 10, availabilityStatus: "available" },
       { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: "5.00", oldPrice: "6.00", category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 12 },

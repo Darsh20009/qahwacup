@@ -2,6 +2,32 @@
 
 "قهوة كوب" (Coffee Cup) is a full-stack web application providing an Arabic-first digital coffee menu. It enables customers to browse coffee items, manage a shopping cart, and place orders with various payment methods. The project aims to offer a modern, efficient, and culturally tailored ordering experience, targeting the digital transformation of local coffee shops.
 
+# Recent Changes (November 2025)
+
+## Enhanced Customer Authentication System (November 5, 2025)
+- **Mandatory Customer Registration**: Customers must now create accounts with both name and password
+  - `shared/schema.ts` updated: both `name` and `password` fields are now required (notNull)
+  - Minimum validation: name ≥ 2 characters, password ≥ 4 characters
+  - Password field added to customers table with bcrypt encryption
+- **Separate API Endpoints**:
+  - `/api/customers/register`: Create new customer account with phone, name, and password
+  - `/api/customers/login`: Authenticate existing customers with phone and password
+  - Duplicate phone number registration blocked with proper error messages
+- **Password Security**: 
+  - All passwords hashed using bcrypt (salt rounds: 10) before storage
+  - `DBStorage.createCustomer` encrypts passwords on registration
+  - `DBStorage.verifyCustomerPassword` verifies credentials on login
+- **Modern UI with Tabs**: 
+  - `CustomerAuth.tsx` redesigned with separate tabs for Login and Register
+  - Clear visual distinction: amber button for login, green button for registration
+  - Real-time validation with helpful error messages in Arabic
+  - RTL layout with proper Arabic typography
+- **Database Integration**: All customer data persists in PostgreSQL with encrypted passwords
+- **Full Coffee Menu Display**: Fixed initialization bug - now showing all 23 coffee items instead of only 3
+  - Database initialization logic updated to check for complete menu (23 items)
+  - Automatically clears partial data and reinitializes with full menu
+  - All coffee categories available: قهوة أساسية، قهوة ساخنة، قهوة باردة، المشروبات الإضافية، الحلويات
+
 # Recent Changes (October 2025)
 
 ## GitHub Import Setup (October 4, 2025)
