@@ -259,6 +259,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!customer) {
         // Create new customer
         customer = await storage.createCustomer({ phone: cleanPhone, name });
+        
+        // Create loyalty card for new customer
+        try {
+          const existingCard = await storage.getLoyaltyCardByPhone(cleanPhone);
+          if (!existingCard) {
+            await storage.createLoyaltyCard({ 
+              customerName: name || "عميل", 
+              phoneNumber: cleanPhone 
+            });
+          }
+        } catch (cardError) {
+          console.error("Error creating loyalty card for new customer:", cardError);
+          // Don't fail authentication if card creation fails
+        }
       } else if (name && customer.name !== name) {
         // Update name if provided and different
         customer = await storage.updateCustomer(customer.id, { name }) || customer;
