@@ -20,10 +20,21 @@ export default function CustomerAuth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!phone || phone.length < 10) {
+    const cleanPhone = phone.replace(/\s/g, '').trim();
+    
+    if (!cleanPhone || cleanPhone.length !== 9) {
       toast({
         title: "خطأ",
-        description: "يرجى إدخال رقم جوال صحيح",
+        description: "يرجى إدخال رقم جوال مكون من 9 أرقام",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!cleanPhone.startsWith('5')) {
+      toast({
+        title: "خطأ",
+        description: "رقم الجوال يجب أن يبدأ بالرقم 5",
         variant: "destructive"
       });
       return;
@@ -33,7 +44,7 @@ export default function CustomerAuth() {
 
     try {
       const res = await apiRequest("POST", "/api/customers/auth", {
-        phone: phone.replace(/\s/g, ''),
+        phone: cleanPhone,
         name: name.trim() || undefined
       });
       

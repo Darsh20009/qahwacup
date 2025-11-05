@@ -239,12 +239,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Phone number required" });
       }
 
+      // Validate phone format: must be 9 digits starting with 5
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      if (cleanPhone.length !== 9) {
+        return res.status(400).json({ error: "Phone number must be 9 digits" });
+      }
+
+      if (!cleanPhone.startsWith('5')) {
+        return res.status(400).json({ error: "Phone number must start with 5" });
+      }
+
+      if (!/^5\d{8}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: "Invalid phone number format" });
+      }
+
       // Try to find existing customer
-      let customer = await storage.getCustomerByPhone(phone);
+      let customer = await storage.getCustomerByPhone(cleanPhone);
 
       if (!customer) {
         // Create new customer
-        customer = await storage.createCustomer({ phone, name });
+        customer = await storage.createCustomer({ phone: cleanPhone, name });
       } else if (name && customer.name !== name) {
         // Update name if provided and different
         customer = await storage.updateCustomer(customer.id, { name }) || customer;
