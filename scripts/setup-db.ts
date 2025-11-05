@@ -10,7 +10,7 @@ async function setupDatabase() {
     return;
   }
 
-  console.log('Setting up database schema...');
+  console.log('Checking database connection...');
   
   const pool = new Pool({
     connectionString: DATABASE_URL,
@@ -18,13 +18,10 @@ async function setupDatabase() {
   });
 
   try {
-    await pool.query('CREATE SCHEMA IF NOT EXISTS public');
-    console.log('✅ Database schema "public" is ready');
-    
-    await pool.query('GRANT ALL ON SCHEMA public TO PUBLIC');
-    console.log('✅ Permissions granted');
+    await pool.query('SELECT 1');
+    console.log('✅ Database connection successful');
   } catch (error) {
-    console.error('Error setting up database:', error);
+    console.error('Error connecting to database:', error);
     process.exit(1);
   } finally {
     await pool.end();
