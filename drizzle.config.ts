@@ -7,19 +7,38 @@ if (!useReplitDB && !process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL or Replit database, ensure the database is provisioned");
 }
 
+// For external databases (like Render), ensure we specify the schema
+const getDbCredentials = () => {
+  if (useReplitDB) {
+    return {
+      host: process.env.PGHOST!,
+      port: parseInt(process.env.PGPORT || "5432"),
+      user: process.env.PGUSER!,
+      password: process.env.PGPASSWORD!,
+      database: process.env.PGDATABASE!,
+      ssl: false,
+    };
+  } else {
+    // External database (e.g., Render)
+    const url = process.env.DATABASE_URL!;
+    // Add schema parameter if not already present
+    const urlWithSchema = url.includes('?schema=') || url.includes('&schema=') 
+      ? url 
+      : url + (url.includes('?') ? '&' : '?') + 'schema=public';
+    
+    return {
+      url: urlWithSchema,
+      ssl: true, // Most external databases require SSL
+    };
+  }
+};
+
 export default defineConfig({
   out: "./migrations",
   schema: "./shared/schema.ts",
   dialect: "postgresql",
-  dbCredentials: useReplitDB ? {
-    host: process.env.PGHOST!,
-    port: parseInt(process.env.PGPORT || "5432"),
-    user: process.env.PGUSER!,
-    password: process.env.PGPASSWORD!,
-    database: process.env.PGDATABASE!,
-    ssl: false,
-  } : {
-    url: process.env.DATABASE_URL!,
-  },
+  dbCredentials: getDbCredentials(),
   schemaFilter: ["public"],
+  verbose: true,
+  strict: true,
 });

@@ -230,55 +230,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // CUSTOMER ROUTES
 
-  // Customer authentication (register or login with phone)
-  app.post("/api/customers/auth", async (req, res) => {
+  // Customer registration - إنشاء حساب جديد
+  app.post("/api/customers/register", async (req, res) => {
     try {
-      const { phone, name } = req.body;
+      const { phone, name, password } = req.body;
 
-      if (!phone) {
-        return res.status(400).json({ error: "Phone number required" });
+      if (!phone || !name || !password) {
+        return res.status(400).json({ error: "الهاتف والاسم وكلمة المرور مطلوبة" });
       }
 
       // Validate phone format: must be 9 digits starting with 5
       const cleanPhone = phone.trim().replace(/\s/g, '');
       if (cleanPhone.length !== 9) {
-        return res.status(400).json({ error: "Phone number must be 9 digits" });
+        return res.status(400).json({ error: "رقم الهاتف يجب أن يكون 9 أرقام" });
       }
 
       if (!cleanPhone.startsWith('5')) {
-        return res.status(400).json({ error: "Phone number must start with 5" });
+        return res.status(400).json({ error: "رقم الهاتف يجب أن يبدأ بـ 5" });
       }
 
+      if (!/^5\d{8}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
+      }
+
+      // Validate name
+      if (name.trim().length < 2) {
+        return res.status(400).json({ error: "الاسم يجب أن يكون على الأقل حرفين" });
+      }
+
+      // Validate password
+      if (password.length < 4) {
+        return res.status(400).json({ error: "كلمة المرور يجب أن تكون على الأقل 4 أحرف" });
+      }
+
+      // Check if customer already exists
+      const existingCustomer = await storage.getCustomerByPhone(cleanPhone);
+      if (existingCustomer) {
+        return res.status(400).json({ error: "رقم الهاتف مسجل مسبقاً" });
+      }
+
+      // Create new customer
+      const customer = await storage.createCustomer({ 
+        phone: cleanPhone, 
+        name: name.trim(),
+        password 
+      });
+
+      // Create loyalty card for new customer
+      try {
+        await storage.createLoyaltyCard({ 
+          customerName: name.trim(), 
+          phoneNumber: cleanPhone 
+        });
+      } catch (cardError) {
+        console.error("Error creating loyalty card for new customer:", cardError);
+        // Don't fail registration if card creation fails
+      }
+
+      // Don't send password back
+      const { password: _, ...customerData } = customer;
+      res.status(201).json(customerData);
+    } catch (error) {
+      console.error("Error during customer registration:", error);
+      res.status(500).json({ error: "فشل إنشاء الحساب" });
+    }
+  });
+
+  // Customer login - تسجيل دخول
+  app.post("/api/customers/login", async (req, res) => {
+    try {
+      const { phone, password } = req.body;
+
+      if (!phone || !password) {
+        return res.status(400).json({ error: "الهاتف وكلمة المرور مطلوبة" });
+      }
+
+      // Validate phone format
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      if (!/^5\d{8}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
+      }
+
+      // Verify customer credentials
+      const customer = await storage.verifyCustomerPassword(cleanPhone, password);
+
+      if (!customer) {
+        return res.status(401).json({ error: "رقم الهاتف أو كلمة المرور غير صحيحة" });
+      }
+
+      // Don't send password back
+      const { password: _, ...customerData } = customer;
+      res.json(customerData);
+    } catch (error) {
+      console.error("Error during customer login:", error);
+      res.status(500).json({ error: "فشل تسجيل الدخول" });
+    }
+  });
+
+  // Customer authentication (legacy - for backward compatibility)
+  app.post("/api/customers/auth", async (req, res) => {
+    try {
+      const { phone, name, password } = req.body;
+
+      if (!phone) {
+        return res.status(400).json({ error: "Phone number required" });
+      }
+
+      // Validate phone format
+      const cleanPhone = phone.trim().replace(/\s/g, '');
       if (!/^5\d{8}$/.test(cleanPhone)) {
         return res.status(400).json({ error: "Invalid phone number format" });
       }
 
-      // Try to find existing customer
-      let customer = await storage.getCustomerByPhone(cleanPhone);
-
-      if (!customer) {
-        // Create new customer
-        customer = await storage.createCustomer({ phone: cleanPhone, name });
-        
-        // Create loyalty card for new customer
-        try {
-          const existingCard = await storage.getLoyaltyCardByPhone(cleanPhone);
-          if (!existingCard) {
-            await storage.createLoyaltyCard({ 
-              customerName: name || "عميل", 
-              phoneNumber: cleanPhone 
-            });
-          }
-        } catch (cardError) {
-          console.error("Error creating loyalty card for new customer:", cardError);
-          // Don't fail authentication if card creation fails
+      // If password provided, try login first
+      if (password) {
+        const customer = await storage.verifyCustomerPassword(cleanPhone, password);
+        if (customer) {
+          const { password: _, ...customerData } = customer;
+          return res.json(customerData);
         }
-      } else if (name && customer.name !== name) {
-        // Update name if provided and different
-        customer = await storage.updateCustomer(customer.id, { name }) || customer;
+        return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      res.json(customer);
+      // Legacy behavior: get or create customer without password
+      let customer = await storage.getCustomerByPhone(cleanPhone);
+      if (customer) {
+        const { password: _, ...customerData } = customer;
+        return res.json(customerData);
+      }
+
+      // For new registrations, require password
+      return res.status(400).json({ error: "Please use /api/customers/register for new accounts" });
     } catch (error) {
       console.error("Error during customer auth:", error);
       res.status(500).json({ error: "Authentication failed" });
