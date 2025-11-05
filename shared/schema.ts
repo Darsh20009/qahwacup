@@ -24,7 +24,8 @@ export const coffeeItems = pgTable("coffee_items", {
 export const customers = pgTable("customers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   phone: varchar("phone", { length: 20 }).notNull().unique(),
-  name: text("name"),
+  name: text("name").notNull(), // الاسم إلزامي
+  password: text("password").notNull(), // كلمة المرور إلزامية
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -117,6 +118,9 @@ export const insertCartItemSchema = createInsertSchema(cartItems).omit({
 export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
   createdAt: true,
+}).extend({
+  password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف"),
+  name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
 });
 
 export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({

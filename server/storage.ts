@@ -77,6 +77,7 @@ export interface IStorage {
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer | undefined>;
   getCustomerOrders(customerId: string): Promise<Order[]>;
+  verifyCustomerPassword(phone: string, password: string): Promise<Customer | undefined>;
 
   // Coffee Item methods
   getCoffeeItems(): Promise<CoffeeItem[]>;
@@ -352,8 +353,23 @@ export class DBStorage implements IStorage {
   }
 
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const result = await this.db.insert(customers).values(customer).returning();
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(customer.password, 10);
+    const result = await this.db.insert(customers).values({
+      ...customer,
+      password: hashedPassword,
+    }).returning();
     return result[0];
+  }
+
+  async verifyCustomerPassword(phone: string, password: string): Promise<Customer | undefined> {
+    const customer = await this.getCustomerByPhone(phone);
+    if (!customer) return undefined;
+    
+    const isPasswordValid = await bcrypt.compare(password, customer.password);
+    if (!isPasswordValid) return undefined;
+    
+    return customer;
   }
 
   async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | undefined> {
@@ -1224,13 +1240,25 @@ export class MemStorage implements IStorage {
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     const id = randomUUID();
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(insertCustomer.password, 10);
     const customer: Customer = {
       ...insertCustomer,
       id,
-      name: insertCustomer.name ?? null,
+      password: hashedPassword,
       createdAt: new Date()
     };
     this.customers.set(id, customer);
+    return customer;
+  }
+
+  async verifyCustomerPassword(phone: string, password: string): Promise<Customer | undefined> {
+    const customer = await this.getCustomerByPhone(phone);
+    if (!customer) return undefined;
+    
+    const isPasswordValid = await bcrypt.compare(password, customer.password);
+    if (!isPasswordValid) return undefined;
+    
     return customer;
   }
 
