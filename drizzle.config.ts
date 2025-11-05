@@ -21,10 +21,10 @@ const getDbCredentials = () => {
   } else {
     // External database (e.g., Render)
     const url = process.env.DATABASE_URL!;
-    // Add schema parameter if not already present
-    const urlWithSchema = url.includes('?schema=') || url.includes('&schema=') 
+    // Add search_path for public schema if not already present
+    const urlWithSchema = url.includes('options=') 
       ? url 
-      : url + (url.includes('?') ? '&' : '?') + 'schema=public';
+      : url + (url.includes('?') ? '&' : '?') + 'options=-c%20search_path%3Dpublic';
     
     return {
       url: urlWithSchema,
