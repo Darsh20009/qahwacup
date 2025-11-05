@@ -1325,12 +1325,22 @@ export class MemStorage implements IStorage {
 import { JsonStorage } from "./json-storage";
 
 // Create and export storage - Use PostgreSQL database
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL environment variable is not set");
+// Prefer Replit's internal database over external DATABASE_URL
+const useReplitDB = process.env.PGHOST && process.env.PGDATABASE;
+let connectionString: string;
+
+if (useReplitDB) {
+  // Build connection string from Replit's internal database credentials
+  const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
+  connectionString = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT || 5432}/${PGDATABASE}?sslmode=disable`;
+  console.log("✅ Using Replit Internal PostgreSQL Database - قاعدة بيانات PostgreSQL الداخلية");
+} else if (process.env.DATABASE_URL) {
+  connectionString = process.env.DATABASE_URL;
+  console.log("✅ Using External PostgreSQL Database - قاعدة بيانات PostgreSQL خارجية");
+} else {
+  throw new Error("DATABASE_URL or Replit database environment variables are not set");
 }
 
 const storage: IStorage = new DBStorage(connectionString);
-console.log("✅ Using PostgreSQL Database - قاعدة بيانات PostgreSQL الداخلية");
 
 export { storage };
