@@ -14,9 +14,7 @@ async function setupDatabase() {
   
   const pool = new Pool({
     connectionString: DATABASE_URL,
-    ssl: DATABASE_URL.includes('filess.io') || DATABASE_URL.includes('render.com') 
-      ? { rejectUnauthorized: false } 
-      : false,
+    ssl: false, // filess.io doesn't support SSL
   });
 
   try {

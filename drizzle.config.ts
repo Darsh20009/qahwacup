@@ -19,16 +19,12 @@ const getDbCredentials = () => {
       ssl: false,
     };
   } else {
-    // External database (e.g., Render)
+    // External database (e.g., Render, filess.io)
     const url = process.env.DATABASE_URL!;
-    // Add search_path for public schema if not already present
-    const urlWithSchema = url.includes('options=') 
-      ? url 
-      : url + (url.includes('?') ? '&' : '?') + 'options=-c%20search_path%3Dpublic';
     
     return {
-      url: urlWithSchema,
-      ssl: true, // Most external databases require SSL
+      url: url,
+      ssl: false, // filess.io doesn't support SSL
     };
   }
 };
