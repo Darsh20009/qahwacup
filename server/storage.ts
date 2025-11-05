@@ -146,6 +146,8 @@ export class DBStorage implements IStorage {
   constructor(connectionString: string) {
     const pool = new Pool({
       connectionString,
+      ssl: connectionString.includes('filess.io') ? false : undefined,
+      options: '-c search_path=public',
     });
     this.db = drizzle(pool);
     this.initializeDatabase();

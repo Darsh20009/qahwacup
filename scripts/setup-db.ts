@@ -14,40 +14,21 @@ async function setupDatabase() {
   
   const pool = new Pool({
     connectionString: DATABASE_URL,
-    ssl: false, // filess.io doesn't support SSL
+    ssl: false,
+    options: '-c search_path=public',
   });
 
   try {
-    // Test connection
     await pool.query('SELECT 1');
     console.log('✅ Database connection successful');
     
-    // Check current search_path
     const searchPathResult = await pool.query('SHOW search_path');
     console.log('Current search_path:', searchPathResult.rows[0].search_path);
     
-    // Set default search_path for the current database
-    // Extract database name from URL
-    const dbMatch = DATABASE_URL.match(/\/([^/?]+)(?:\?|$)/);
-    const dbName = dbMatch ? dbMatch[1] : null;
-    
-    if (dbName) {
-      console.log(`Setting search_path for database: ${dbName}`);
-      await pool.query(`ALTER DATABASE "${dbName}" SET search_path = public`);
-      console.log('✅ Default search_path set to public');
-    } else {
-      console.log('⚠️  Could not extract database name, setting search_path for current session');
-      await pool.query('SET search_path = public');
-      console.log('✅ Session search_path set to public');
-    }
-    
-    // Verify search_path is set
-    const verifyResult = await pool.query('SHOW search_path');
-    console.log('Updated search_path:', verifyResult.rows[0].search_path);
+    console.log('✅ Database setup completed successfully');
     
   } catch (error: any) {
     console.error('Error setting up database:', error.message);
-    // Don't exit with error - allow build to continue
     console.log('⚠️  Continuing with build despite setup warning...');
   } finally {
     await pool.end();

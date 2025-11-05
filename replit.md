@@ -4,6 +4,21 @@
 
 # Recent Changes (November 2025)
 
+## إعداد قاعدة البيانات الخارجية للنشر على Render (نوفمبر 5, 2025)
+- **قاعدة بيانات Filess.io**: تم ربط التطبيق بقاعدة بيانات PostgreSQL خارجية
+  - Database URL: `postgresql://QAHWACUP_distantits:92e56d78c4ef08bcf6cafe7e07318058e6877173@ir9zip.h.filess.io:5432/QAHWACUP_distantits`
+- **إصلاح مشاكل Render Deployment**:
+  - **Problem 1**: كان السكريبت يحاول تنفيذ `ALTER DATABASE` والذي يتطلب صلاحيات المالك - تم إزالته
+  - **Problem 2**: كان drizzle-kit push يفشل بخطأ "no schema has been selected to create in" - تم إضافة `search_path=public`
+- **التعديلات التقنية**:
+  - `scripts/setup-db.ts`: تم تبسيط السكريبت وإزالة ALTER DATABASE، إضافة `options: '-c search_path=public'`
+  - `server/storage.ts`: إضافة `options: '-c search_path=public'` في Pool configuration
+  - `drizzle.config.ts`: إضافة search_path في URL للقاعدة الخارجية
+- **التوافق التلقائي**: الكود يتعرف تلقائياً على البيئة:
+  - في Replit: يستخدم قاعدة البيانات الداخلية (PGHOST, PGDATABASE)
+  - في Render: يستخدم DATABASE_URL للقاعدة الخارجية
+- **دليل النشر**: تم إنشاء ملف `RENDER_DEPLOYMENT.md` مع التعليمات الكاملة للنشر
+
 ## Enhanced Customer Authentication System (November 5, 2025)
 - **Mandatory Customer Registration**: Customers must now create accounts with both name and password
   - `shared/schema.ts` updated: both `name` and `password` fields are now required (notNull)

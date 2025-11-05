@@ -21,9 +21,12 @@ const getDbCredentials = () => {
   } else {
     // External database (e.g., Render, filess.io)
     const url = process.env.DATABASE_URL!;
+    const urlWithOptions = url.includes('?') 
+      ? `${url}&options=-c%20search_path%3Dpublic`
+      : `${url}?options=-c%20search_path%3Dpublic`;
     
     return {
-      url: url,
+      url: urlWithOptions,
       ssl: false, // filess.io doesn't support SSL
     };
   }
