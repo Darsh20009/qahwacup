@@ -327,6 +327,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Request password reset - طلب إعادة تعيين كلمة المرور
+  app.post("/api/customers/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "البريد الإلكتروني مطلوب" });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "صيغة البريد الإلكتروني غير صحيحة" });
+      }
+
+      // Check if customer exists
+      const customer = await storage.getCustomerByEmail(email);
+      
+      // Always return success to prevent email enumeration
+      // But only create token if customer exists
+      if (customer) {
+        const { token, expiresAt } = await storage.createPasswordResetToken(email);
+        
+        // TODO: Send email with reset token
+        // For now, log the token to console (development only)
+        console.log(`Password reset token for ${email}: ${token}`);
+        console.log(`Token expires at: ${expiresAt}`);
+        console.log(`Reset URL: /reset-password?token=${token}`);
+      }
+
+      res.json({ 
+        message: "إذا كان البريد الإلكتروني موجوداً، سيتم إرسال رابط إعادة تعيين كلمة المرور" 
+      });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      res.status(500).json({ error: "فشل طلب إعادة تعيين كلمة المرور" });
+    }
+  });
+
+  // Verify password reset token - التحقق من رمز إعادة التعيين
+  app.post("/api/customers/verify-reset-token", async (req, res) => {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        return res.status(400).json({ error: "الرمز مطلوب" });
+      }
+
+      const result = await storage.verifyPasswordResetToken(token);
+
+      if (!result.valid) {
+        return res.status(400).json({ error: "الرمز غير صالح أو منتهي الصلاحية" });
+      }
+
+      res.json({ valid: true, email: result.email });
+    } catch (error) {
+      console.error("Error verifying reset token:", error);
+      res.status(500).json({ error: "فشل التحقق من الرمز" });
+    }
+  });
+
+  // Reset password - إعادة تعيين كلمة المرور
+  app.post("/api/customers/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: "الرمز وكلمة المرور الجديدة مطلوبة" });
+      }
+
+      // Validate password
+      if (newPassword.length < 4) {
+        return res.status(400).json({ error: "كلمة المرور يجب أن تكون على الأقل 4 أحرف" });
+      }
+
+      // Verify token
+      const verification = await storage.verifyPasswordResetToken(token);
+      
+      if (!verification.valid || !verification.email) {
+        return res.status(400).json({ error: "الرمز غير صالح أو منتهي الصلاحية" });
+      }
+
+      // Reset password
+      const success = await storage.resetCustomerPassword(verification.email, newPassword);
+      
+      if (!success) {
+        return res.status(500).json({ error: "فشل إعادة تعيين كلمة المرور" });
+      }
+
+      // Mark token as used
+      await storage.usePasswordResetToken(token);
+
+      res.json({ message: "تم إعادة تعيين كلمة المرور بنجاح" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ error: "فشل إعادة تعيين كلمة المرور" });
+    }
+  });
+
   // Customer authentication (legacy - for backward compatibility)
   app.post("/api/customers/auth", async (req, res) => {
     try {

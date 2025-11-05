@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, Phone, User, Lock } from "lucide-react";
+import { Coffee, Phone, User, Lock, Mail } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,7 @@ export default function CustomerAuth() {
   const { toast } = useToast();
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -113,6 +114,15 @@ export default function CustomerAuth() {
       return;
     }
 
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({
+        title: "خطأ",
+        description: "صيغة البريد الإلكتروني غير صحيحة",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!password || password.length < 4) {
       toast({
         title: "خطأ",
@@ -128,6 +138,7 @@ export default function CustomerAuth() {
       const res = await apiRequest("POST", "/api/customers/register", {
         phone: cleanPhone,
         name: name.trim(),
+        email: email || undefined,
         password
       });
       
@@ -225,6 +236,14 @@ export default function CustomerAuth() {
                     data-testid="input-password"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    className="text-xs text-amber-400/80 hover:text-amber-300 transition-colors underline-offset-4 hover:underline"
+                    data-testid="link-forgot-password"
+                  >
+                    نسيت كلمة المرور؟
+                  </button>
                 </div>
 
                 <Button
@@ -287,6 +306,26 @@ export default function CustomerAuth() {
                   </div>
                   <p className="text-xs text-amber-200/50 mt-1">
                     ابدأ بـ 5 ثم باقي الأرقام (9 أرقام)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-email" className="text-amber-100 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    البريد الإلكتروني (اختياري)
+                  </Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                    data-testid="input-email"
+                    dir="ltr"
+                  />
+                  <p className="text-xs text-amber-200/50 mt-1">
+                    لاستعادة كلمة المرور إذا نسيتها
                   </p>
                 </div>
 
