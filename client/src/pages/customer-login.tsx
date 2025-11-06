@@ -121,13 +121,13 @@ export default function CustomerLogin() {
             </div>
 
             <div>
-              <Label htmlFor="phone" className="text-amber-100">رقم الجوال</Label>
+              <Label htmlFor="phone" className="text-amber-100">رقم الجوال (9 أرقام تبدأ بـ 5)</Label>
               <div className="relative">
                 <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="05xxxxxxxx"
+                  placeholder="5xxxxxxxx"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="bg-amber-950/30 border-amber-700/50 text-amber-50 placeholder:text-amber-300/50 pr-10"

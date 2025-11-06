@@ -363,13 +363,13 @@ export default function MyCard() {
 
                 <div>
                   <label className="block text-sm font-cairo font-semibold text-amber-900 mb-2">
-                    رقم الجوال
+                    رقم الجوال (9 أرقام تبدأ بـ 5)
                   </label>
                   <Input
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="05xxxxxxxx"
+                    placeholder="5xxxxxxxx"
                     className="text-right border-amber-300 focus:border-amber-500 bg-amber-50/50 focus:bg-white transition-all"
                     data-testid="input-phone-number"
                   />

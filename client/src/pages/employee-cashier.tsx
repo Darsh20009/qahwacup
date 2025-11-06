@@ -378,12 +378,12 @@ export default function EmployeeCashier() {
                       <div className="space-y-2">
                         <Label className="text-gray-300 text-right block">
                           <Phone className="w-4 h-4 inline ml-2" />
-                          رقم الجوال
+                          رقم الجوال (9 أرقام تبدأ بـ 5)
                         </Label>
                         <Input
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
-                          placeholder="05xxxxxxxx"
+                          placeholder="5xxxxxxxx"
                           className="bg-[#1a1410] border-amber-500/30 text-white text-right"
                           data-testid="input-customer-phone"
                         />

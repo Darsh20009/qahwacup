@@ -750,12 +750,12 @@ ${itemsWithPrices}
 
                         <div className="space-y-2">
                           <Label htmlFor="customer-phone" className="text-sm font-semibold text-slate-600">
-                            رقم الهاتف (اختياري)
+                            رقم الهاتف (9 أرقام تبدأ بـ 5 - اختياري)
                           </Label>
                           <Input
                             id="customer-phone"
                             type="tel"
-                            placeholder="05xxxxxxxx"
+                            placeholder="5xxxxxxxx"
                             value={customerPhone}
                             onChange={(e) => setCustomerPhone(e.target.value)}
                             className="text-right"

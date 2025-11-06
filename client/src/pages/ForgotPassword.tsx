@@ -238,7 +238,7 @@ export default function ForgotPassword() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="05xxxxxxxx"
+                  placeholder="5xxxxxxxx"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -247,7 +247,7 @@ export default function ForgotPassword() {
                   required
                 />
                 <p className="text-xs text-amber-200/50 mt-1">
-                  أدخل رقم الجوال المرتبط بالبريد: {verifiedEmail}
+                  أدخل رقم الجوال بدون الصفر (9 أرقام تبدأ بـ 5)
                 </p>
               </div>
 

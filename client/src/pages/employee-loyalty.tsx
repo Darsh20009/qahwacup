@@ -126,12 +126,12 @@ export default function EmployeeLoyalty() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone-number" className="text-slate-300">رقم الهاتف</Label>
+                    <Label htmlFor="phone-number" className="text-slate-300">رقم الهاتف (9 أرقام تبدأ بـ 5)</Label>
                     <Input
                       id="phone-number"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="05XXXXXXXX"
+                      placeholder="5xxxxxxxx"
                       className="bg-slate-800 border-slate-700 text-white"
                       data-testid="input-phone-number"
                     />

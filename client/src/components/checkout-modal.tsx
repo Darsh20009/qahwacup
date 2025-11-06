@@ -268,12 +268,12 @@ export default function CheckoutModal() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="customer-phone">رقم الهاتف</Label>
+                      <Label htmlFor="customer-phone">رقم الهاتف (9 أرقام تبدأ بـ 5)</Label>
                       <Input
                         id="customer-phone"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="05xxxxxxxx"
+                        placeholder="5xxxxxxxx"
                         className="text-right"
                         dir="ltr"
                       />
