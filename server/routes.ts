@@ -967,7 +967,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.status(201).json(order);
+      // Parse items from JSON string and serialize the order
+      const serializedOrder = serializeDoc(order);
+      if (serializedOrder.items && typeof serializedOrder.items === 'string') {
+        try {
+          serializedOrder.items = JSON.parse(serializedOrder.items);
+        } catch (e) {
+          console.error("Error parsing order items:", e);
+        }
+      }
+      
+      res.status(201).json(serializedOrder);
     } catch (error) {
       console.error("Error creating order:", error);
       res.status(500).json({ error: "Failed to create order" });
