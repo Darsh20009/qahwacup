@@ -5,15 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Coffee, ArrowRight, CheckCircle, XCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Coffee, ArrowRight, CheckCircle, XCircle, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getCoffeeImage } from "@/lib/coffee-images";
+import { nanoid } from "nanoid";
 import type { CoffeeItem, Employee } from "@shared/schema";
 
 export default function EmployeeMenuManagement() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -28,6 +35,28 @@ export default function EmployeeMenuManagement() {
 
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
     queryKey: ["/api/coffee-items"],
+  });
+
+  const createItemMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/coffee-items", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "تم إضافة المشروب",
+        description: "تم إضافة المشروب بنجاح إلى القائمة",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "فشل إضافة المشروب",
+        description: error.message || "حدث خطأ أثناء إضافة المشروب",
+      });
+    },
   });
 
   const updateAvailabilityMutation = useMutation({
@@ -74,6 +103,26 @@ export default function EmployeeMenuManagement() {
     });
   };
 
+  const handleSubmitNewItem = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const itemData = {
+      id: nanoid(10),
+      nameAr: formData.get("nameAr") as string,
+      nameEn: formData.get("nameEn") as string || undefined,
+      description: formData.get("description") as string,
+      price: parseFloat(formData.get("price") as string),
+      oldPrice: formData.get("oldPrice") ? parseFloat(formData.get("oldPrice") as string) : undefined,
+      category: formData.get("category") as string,
+      imageUrl: formData.get("imageUrl") as string || undefined,
+      isAvailable: 1,
+      availabilityStatus: "available",
+    };
+
+    createItemMutation.mutate(itemData);
+  };
+
   const categoryNames = {
     basic: "قهوة أساسية",
     hot: "قهوة ساخنة",
@@ -109,6 +158,135 @@ export default function EmployeeMenuManagement() {
             </div>
           </div>
           <div className="flex gap-3">
+            {employee?.role === "manager" && (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800"
+                    data-testid="button-add-item"
+                  >
+                    <Plus className="w-4 h-4 ml-2" />
+                    إضافة مشروب جديد
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#2d1f1a] border-amber-500/20 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-amber-500">إضافة مشروب جديد</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmitNewItem} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="nameAr" className="text-gray-300">الاسم بالعربية *</Label>
+                        <Input
+                          id="nameAr"
+                          name="nameAr"
+                          required
+                          className="bg-[#1a1410] border-amber-500/30 text-white"
+                          data-testid="input-name-ar"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="nameEn" className="text-gray-300">الاسم بالإنجليزية</Label>
+                        <Input
+                          id="nameEn"
+                          name="nameEn"
+                          className="bg-[#1a1410] border-amber-500/30 text-white"
+                          data-testid="input-name-en"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="description" className="text-gray-300">الوصف *</Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        required
+                        className="bg-[#1a1410] border-amber-500/30 text-white"
+                        data-testid="input-description"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="category" className="text-gray-300">القسم *</Label>
+                        <Select name="category" required>
+                          <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-category">
+                            <SelectValue placeholder="اختر القسم" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+                            <SelectItem value="basic">قهوة أساسية</SelectItem>
+                            <SelectItem value="hot">قهوة ساخنة</SelectItem>
+                            <SelectItem value="cold">قهوة باردة</SelectItem>
+                            <SelectItem value="specialty">مشروبات إضافية</SelectItem>
+                            <SelectItem value="desserts">الحلويات</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="price" className="text-gray-300">السعر (ريال) *</Label>
+                        <Input
+                          id="price"
+                          name="price"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          className="bg-[#1a1410] border-amber-500/30 text-white"
+                          data-testid="input-price"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="oldPrice" className="text-gray-300">السعر القديم (ريال)</Label>
+                        <Input
+                          id="oldPrice"
+                          name="oldPrice"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="bg-[#1a1410] border-amber-500/30 text-white"
+                          data-testid="input-old-price"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="imageUrl" className="text-gray-300">رابط الصورة</Label>
+                        <Input
+                          id="imageUrl"
+                          name="imageUrl"
+                          type="url"
+                          placeholder="https://example.com/image.jpg"
+                          className="bg-[#1a1410] border-amber-500/30 text-white"
+                          data-testid="input-image-url"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsAddDialogOpen(false)}
+                        className="border-gray-600 text-gray-300"
+                        data-testid="button-cancel"
+                      >
+                        إلغاء
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={createItemMutation.isPending}
+                        className="bg-gradient-to-r from-green-500 to-green-700"
+                        data-testid="button-submit"
+                      >
+                        {createItemMutation.isPending ? "جاري الإضافة..." : "إضافة المشروب"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
             <Button
               variant="outline"
               onClick={() => setLocation("/employee/ingredients")}

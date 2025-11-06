@@ -21,16 +21,8 @@ export default function EmployeeDashboard() {
       const emp = JSON.parse(storedEmployee);
       setEmployee(emp);
       
-      // Generate QR code with employee info
-      const employeeData = {
-        id: emp.id,
-        username: emp.username,
-        fullName: emp.fullName,
-        role: emp.role,
-        title: emp.title
-      };
-      
-      QRCode.toDataURL(JSON.stringify(employeeData), {
+      // Generate QR code with website URL
+      QRCode.toDataURL('https://qahwa.ma3k.online', {
         width: 200,
         margin: 1,
         color: {
@@ -151,45 +143,84 @@ export default function EmployeeDashboard() {
 
             <TabsContent value="card">
               <div className="space-y-4">
-                {/* Employee Card - Downloadable */}
-                <div ref={cardRef} className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-2 border-amber-500/30 rounded-xl overflow-hidden" data-testid="employee-card">
-                  {/* Card Header */}
-                  <div className="h-20 bg-gradient-to-r from-amber-500 to-amber-700 flex items-center justify-center relative">
-                    <Coffee className="w-8 h-8 text-white absolute left-4" />
-                    <div className="text-center">
-                      <h3 className="text-white font-bold text-xl">قهوة كوب</h3>
-                      <p className="text-white/90 text-sm">بطاقة موظف</p>
+                {/* Employee Card - Front */}
+                <div ref={cardRef} className="space-y-4">
+                  <div className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-2 border-amber-500/30 rounded-xl overflow-hidden" data-testid="employee-card-front">
+                    {/* Card Header */}
+                    <div className="h-20 bg-gradient-to-r from-amber-500 to-amber-700 flex items-center justify-center relative">
+                      <Coffee className="w-8 h-8 text-white absolute left-4" />
+                      <div className="text-center">
+                        <h3 className="text-white font-bold text-xl">قهوة كوب</h3>
+                        <p className="text-white/90 text-sm">بطاقة موظف</p>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-6 space-y-4">
+                      {/* Employee Info */}
+                      <div className="text-center space-y-2">
+                        {employee.imageUrl ? (
+                          <img
+                            src={employee.imageUrl}
+                            alt={employee.fullName}
+                            className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-amber-500/30"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center mx-auto">
+                            <User className="w-12 h-12 text-white" />
+                          </div>
+                        )}
+                        <h3 className="text-amber-500 font-bold text-xl">{employee.fullName}</h3>
+                        <Badge className={`${roleColor} text-white`}>
+                          {employee.jobTitle || roleArabic}
+                        </Badge>
+                      </div>
+
+                      {/* Employee Details */}
+                      <div className="bg-[#1a1410] rounded-lg p-3 space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">الوظيفة:</span>
+                          <span className="text-amber-500">{employee.jobTitle}</span>
+                        </div>
+                        {employee.shiftTime && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-400">وقت الدوام:</span>
+                            <span className="text-amber-500">{employee.shiftTime}</span>
+                          </div>
+                        )}
+                        {employee.commissionPercentage !== undefined && employee.commissionPercentage > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-400">نسبة العمولة:</span>
+                            <span className="text-green-500 font-bold">{employee.commissionPercentage}%</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center pt-2 border-t border-amber-500/20">
+                          <span className="text-gray-400">اسم المستخدم:</span>
+                          <span className="text-amber-500 font-mono">{employee.username}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Card Body */}
-                  <div className="p-6 space-y-4">
-                    {/* Employee Info */}
-                    <div className="text-center space-y-2">
-                      <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center mx-auto">
-                        <User className="w-8 h-8 text-white" />
+                  {/* Employee Card - Back (QR Code) */}
+                  <div className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-2 border-amber-500/30 rounded-xl overflow-hidden" data-testid="employee-card-back">
+                    <div className="p-6 space-y-4">
+                      <div className="text-center">
+                        <h4 className="text-amber-500 font-bold text-lg mb-2">امسح للوصول للموقع</h4>
+                        <p className="text-gray-400 text-sm">Scan to visit our website</p>
                       </div>
-                      <h3 className="text-amber-500 font-bold text-xl">{employee.fullName}</h3>
-                      <Badge className={`${roleColor} text-white`}>
-                        {roleArabic}
-                      </Badge>
-                      {employee.title && (
-                        <p className="text-gray-300 text-sm">{employee.title}</p>
-                      )}
-                    </div>
+                      
+                      {/* QR Code */}
+                      <div className="flex justify-center bg-white p-4 rounded-lg">
+                        {qrCodeUrl && (
+                          <img src={qrCodeUrl} alt="Website QR Code" className="w-48 h-48" data-testid="img-qr-code" />
+                        )}
+                      </div>
 
-                    {/* QR Code */}
-                    <div className="flex justify-center">
-                      {qrCodeUrl && (
-                        <img src={qrCodeUrl} alt="Employee QR Code" className="w-40 h-40" data-testid="img-qr-code" />
-                      )}
-                    </div>
-
-                    {/* Employee Details */}
-                    <div className="bg-[#1a1410] rounded-lg p-3 text-center space-y-1">
-                      <p className="text-gray-400 text-sm">اسم المستخدم</p>
-                      <p className="text-amber-500 font-mono font-bold">{employee.username}</p>
-                      <p className="text-gray-400 text-xs mt-2">ID: {employee.id?.slice(0, 12) || 'غير متوفر'}</p>
+                      <div className="text-center">
+                        <p className="text-amber-500 font-bold text-lg">qahwa.ma3k.online</p>
+                        <p className="text-gray-400 text-xs mt-2">ID: {employee.id?.slice(0, 12) || 'غير متوفر'}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -253,6 +284,21 @@ export default function EmployeeDashboard() {
                   <div className="text-sm opacity-90">تحديث حالة التوفر</div>
                 </div>
               </Button>
+
+              {employee.role === "manager" && (
+                <Button
+                  size="lg"
+                  className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white md:col-span-3"
+                  onClick={() => setLocation("/manager/employees")}
+                  data-testid="button-manager-employees"
+                >
+                  <User className="w-10 h-10" />
+                  <div className="text-center">
+                    <div className="font-bold text-lg">إدارة الموظفين</div>
+                    <div className="text-sm opacity-90">إضافة وتعديل الموظفين</div>
+                  </div>
+                </Button>
+              )}
             </CardContent>
           </Card>
 

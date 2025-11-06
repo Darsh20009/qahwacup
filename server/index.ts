@@ -3,6 +3,7 @@ import path from "path";
 import mongoose from "mongoose";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 const MONGODB_URI = process.env.qahwa_MONGODB_URI || process.env.MONGODB_URI || "";
 
@@ -12,9 +13,32 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
+async function initializeDefaultManager() {
+  try {
+    const managerExists = await storage.getEmployeeByUsername("darwish");
+    
+    if (!managerExists) {
+      console.log("📝 Creating default manager account...");
+      await storage.createEmployee({
+        username: "darwish",
+        password: "2009",
+        fullName: "المدير",
+        role: "manager",
+        phone: "0000000000",
+        jobTitle: "مدير",
+        isActivated: 1,
+      });
+      console.log("✅ Default manager account created (username: darwish)");
+    }
+  } catch (error) {
+    console.error("❌ Error creating default manager:", error);
+  }
+}
+
 mongoose.connect(MONGODB_URI)
-  .then(() => {
+  .then(async () => {
     console.log("✅ MongoDB connected successfully");
+    await initializeDefaultManager();
   })
   .catch((error) => {
     console.error("❌ MongoDB connection error:", error);

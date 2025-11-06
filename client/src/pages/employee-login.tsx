@@ -124,6 +124,19 @@ export default function EmployeeLogin() {
                   "دخول"
                 )}
               </Button>
+
+              <div className="pt-4 border-t border-amber-500/20">
+                <p className="text-sm text-gray-400 text-center mb-2">موظف جديد؟</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setLocation("/employee/activate")}
+                  className="w-full border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                  data-testid="button-activate"
+                >
+                  تفعيل حساب جديد
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

@@ -695,6 +695,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new coffee item (manager only)
+  app.post("/api/coffee-items", async (req, res) => {
+    try {
+      const { insertCoffeeItemSchema } = await import("@shared/schema");
+      const validatedData = insertCoffeeItemSchema.parse(req.body);
+
+      const item = await storage.createCoffeeItem(validatedData);
+      res.status(201).json(serializeDoc(item));
+    } catch (error) {
+      console.error("Error creating coffee item:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error.issues });
+      }
+      res.status(500).json({ error: "Failed to create coffee item" });
+    }
+  });
+
   // Get coffee items by category
   app.get("/api/coffee-items/category/:category", async (req, res) => {
     try {

@@ -79,6 +79,7 @@ export interface IEmployee extends Document {
   jobTitle: string;
   imageUrl?: string;
   shiftTime?: string;
+  commissionPercentage?: number;
   isActivated: number;
   createdAt: Date;
   updatedAt: Date;
@@ -94,6 +95,7 @@ const EmployeeSchema = new Schema<IEmployee>({
   jobTitle: { type: String, required: true },
   imageUrl: { type: String },
   shiftTime: { type: String },
+  commissionPercentage: { type: Number, default: 0 },
   isActivated: { type: Number, default: 0, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -374,6 +376,7 @@ export const insertEmployeeSchema = z.object({
   jobTitle: z.string(),
   imageUrl: z.string().optional(),
   shiftTime: z.string().optional(),
+  commissionPercentage: z.number().optional(),
   isActivated: z.number().optional(),
 });
 

@@ -28,6 +28,8 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import CopyCard from "@/pages/CopyCard";
 import MyOrdersPage from "@/pages/my-orders";
+import ManagerEmployees from "@/pages/manager-employees";
+import EmployeeActivation from "@/pages/employee-activation";
 
 function Router() {
   return (
@@ -47,12 +49,14 @@ function Router() {
       <Route path="/product/:id" component={ProductDetails} />
       <Route path="/employee/gateway" component={EmployeeGateway} />
       <Route path="/employee/login" component={EmployeeLogin} />
+      <Route path="/employee/activate" component={EmployeeActivation} />
       <Route path="/employee/dashboard" component={EmployeeDashboard} />
       <Route path="/employee/cashier" component={EmployeeCashier} />
       <Route path="/employee/orders" component={EmployeeOrders} />
       <Route path="/employee/loyalty" component={EmployeeLoyalty} />
       <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
       <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
+      <Route path="/manager/employees" component={ManagerEmployees} />
       <Route component={SplashScreen} />
     </Switch>
   );
