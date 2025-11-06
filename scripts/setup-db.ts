@@ -26,7 +26,12 @@ async function setupDatabase() {
     await pool.query('CREATE SCHEMA IF NOT EXISTS public');
     console.log('✅ Public schema ensured');
     
-    await pool.query('SET search_path TO public');
+    await pool.query('CREATE EXTENSION IF NOT EXISTS "pgcrypto"');
+    console.log('✅ pgcrypto extension ensured (for gen_random_uuid)');
+    
+    await pool.query('ALTER DATABASE CURRENT SET search_path TO public');
+    console.log('✅ search_path set to public');
+    
     const searchPathResult = await pool.query('SHOW search_path');
     console.log('Current search_path:', searchPathResult.rows[0].search_path);
     

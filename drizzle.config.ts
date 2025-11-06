@@ -27,7 +27,7 @@ const getDbCredentials = () => {
       user: parsed.user!,
       password: parsed.password!,
       database: parsed.database!,
-      ssl: isFilessDB ? false : undefined,
+      ssl: isFilessDB ? false : { rejectUnauthorized: false },
     };
   }
 };
