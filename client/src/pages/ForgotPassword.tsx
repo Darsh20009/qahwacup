@@ -66,10 +66,11 @@ export default function ForgotPassword() {
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!phone || phone.trim().length < 10) {
+    const cleanPhone = phone.trim().replace(/\s/g, '');
+    if (!cleanPhone || !/^5\d{8}$/.test(cleanPhone)) {
       toast({
         title: "خطأ",
-        description: "رقم الجوال غير صحيح",
+        description: "رقم الجوال يجب أن يبدأ بـ 5 ويتكون من 9 أرقام (مثال: 512345678)",
         variant: "destructive"
       });
       return;
@@ -80,7 +81,7 @@ export default function ForgotPassword() {
     try {
       const response = await apiRequest("POST", "/api/customers/verify-phone-email", { 
         email: verifiedEmail, 
-        phone: phone.trim() 
+        phone: cleanPhone 
       });
       const data = await response.json();
       
@@ -132,10 +133,11 @@ export default function ForgotPassword() {
 
     setLoading(true);
 
+    const cleanPhone = phone.trim().replace(/\s/g, '');
     try {
       await apiRequest("POST", "/api/customers/reset-password-direct", {
         email: verifiedEmail,
-        phone: phone.trim(),
+        phone: cleanPhone,
         newPassword
       });
       
