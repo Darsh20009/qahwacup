@@ -71,20 +71,32 @@ export const PasswordResetTokenModel = mongoose.model<IPasswordResetToken>("Pass
 
 export interface IEmployee extends Document {
   username: string;
-  password: string;
+  password?: string;
   fullName: string;
   role: string;
   title?: string;
+  phone: string;
+  jobTitle: string;
+  imageUrl?: string;
+  shiftTime?: string;
+  isActivated: number;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const EmployeeSchema = new Schema<IEmployee>({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: { type: String },
   fullName: { type: String, required: true },
   role: { type: String, required: true },
   title: { type: String },
+  phone: { type: String, required: true, unique: true },
+  jobTitle: { type: String, required: true },
+  imageUrl: { type: String },
+  shiftTime: { type: String },
+  isActivated: { type: Number, default: 0, required: true },
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export const EmployeeModel = mongoose.model<IEmployee>("Employee", EmployeeSchema);
@@ -354,10 +366,15 @@ export const insertCoffeeItemSchema = z.object({
 
 export const insertEmployeeSchema = z.object({
   username: z.string(),
-  password: z.string(),
+  password: z.string().optional(),
   fullName: z.string(),
   role: z.string(),
   title: z.string().optional(),
+  phone: z.string(),
+  jobTitle: z.string(),
+  imageUrl: z.string().optional(),
+  shiftTime: z.string().optional(),
+  isActivated: z.number().optional(),
 });
 
 export const insertOrderSchema = z.object({
@@ -513,6 +530,7 @@ export interface PaymentMethodInfo {
 }
 
 export type EmployeeRole = 'manager' | 'cashier';
+export type JobTitle = 'كاشير' | 'محاسب' | 'بائع' | 'عارض';
 
 export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
 
