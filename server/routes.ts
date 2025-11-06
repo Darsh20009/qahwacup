@@ -4,6 +4,18 @@ import { storage } from "./storage";
 import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
+// Helper function to serialize MongoDB documents
+function serializeDoc(doc: any): any {
+  if (!doc) return null;
+  const obj = doc.toObject ? doc.toObject() : doc;
+  if (obj._id) {
+    obj.id = obj._id.toString();
+    delete obj._id;
+  }
+  delete obj.__v;
+  return obj;
+}
+
 // Helper function to send WhatsApp notification
 function getOrderStatusMessage(status: string, orderNumber: string): string {
   const statusMessages: Record<string, string> = {
@@ -300,8 +312,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail registration if card creation fails
       }
 
-      // Don't send password back
-      const { password: _, ...customerData } = customer;
+      // Serialize and don't send password back
+      const serialized = serializeDoc(customer);
+      const { password: _, ...customerData } = serialized;
       res.status(201).json(customerData);
     } catch (error) {
       console.error("Error during customer registration:", error);
@@ -344,8 +357,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "رقم الهاتف/البريد الإلكتروني أو كلمة المرور غير صحيحة" });
       }
 
-      // Don't send password back
-      const { password: _, ...customerData } = customer;
+      // Serialize and don't send password back
+      const serialized = serializeDoc(customer);
+      const { password: _, ...customerData } = serialized;
       res.json(customerData);
     } catch (error) {
       console.error("Error during customer login:", error);
@@ -625,7 +639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/coffee-items", async (req, res) => {
     try {
       const items = await storage.getCoffeeItems();
-      res.json(items);
+      res.json(items.map(serializeDoc));
     } catch (error) {
       console.error("Error fetching coffee items:", error);
       res.status(500).json({ error: "Failed to fetch coffee items" });
@@ -706,13 +720,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all coffee items once instead of multiple queries
       const allCoffeeItems = await storage.getCoffeeItems();
-      const coffeeItemsMap = new Map(allCoffeeItems.map(item => [item.id, item]));
+      const coffeeItemsMap = new Map(allCoffeeItems.map(item => [item.id, serializeDoc(item)]));
 
       // Enrich cart items with coffee details efficiently
-      const enrichedItems = cartItems.map((cartItem) => ({
-        ...cartItem,
-        coffeeItem: coffeeItemsMap.get(cartItem.coffeeItemId)
-      })).filter(item => item.coffeeItem); // Filter out items where coffee doesn't exist
+      const enrichedItems = cartItems.map((cartItem) => {
+        const serializedCart = serializeDoc(cartItem);
+        return {
+          ...serializedCart,
+          coffeeItem: coffeeItemsMap.get(cartItem.coffeeItemId)
+        };
+      }).filter(item => item.coffeeItem); // Filter out items where coffee doesn't exist
 
       res.json(enrichedItems);
     } catch (error) {
