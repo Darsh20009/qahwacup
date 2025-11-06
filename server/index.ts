@@ -1,7 +1,25 @@
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
+import mongoose from "mongoose";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+
+const MONGODB_URI = process.env.qahwa_MONGODB_URI || process.env.MONGODB_URI || "";
+
+if (!MONGODB_URI) {
+  console.error("❌ ERROR: MONGODB_URI environment variable is not set");
+  console.log("Please set qahwa_MONGODB_URI or MONGODB_URI in your environment");
+  process.exit(1);
+}
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log("✅ MongoDB connected successfully");
+  })
+  .catch((error) => {
+    console.error("❌ MongoDB connection error:", error);
+    process.exit(1);
+  });
 
 const app = express();
 app.use(express.json());

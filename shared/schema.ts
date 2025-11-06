@@ -1,177 +1,507 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import mongoose, { Schema, Document, Model } from "mongoose";
 import { z } from "zod";
 
-// Coffee Items Schema
-export const coffeeItems = pgTable("coffee_items", {
-  id: varchar("id").primaryKey(),
-  nameAr: text("name_ar").notNull(),
-  nameEn: text("name_en"),
-  description: text("description").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  oldPrice: decimal("old_price", { precision: 10, scale: 2 }),
-  category: varchar("category", { length: 50 }).notNull(), // 'basic', 'hot', 'cold', 'specialty', 'desserts'
-  imageUrl: text("image_url"),
-  isAvailable: integer("is_available").default(1).notNull(),
-  availabilityStatus: varchar("availability_status", { length: 20 }).default("available"), // 'available', 'out_of_stock', 'coming_soon', 'temporarily_unavailable'
-  // Coffee strength properties
-  coffeeStrength: varchar("coffee_strength", { length: 20 }).default("classic"), // 'classic', 'mild', 'medium', 'strong'
-  strengthLevel: integer("strength_level"), // 1-4 mild, 4-8 medium, 8-12 strong, null for classic
+export interface ICoffeeItem extends Document {
+  id: string;
+  nameAr: string;
+  nameEn?: string;
+  description: string;
+  price: number;
+  oldPrice?: number;
+  category: string;
+  imageUrl?: string;
+  isAvailable: number;
+  availabilityStatus?: string;
+  coffeeStrength?: string;
+  strengthLevel?: number;
+}
+
+const CoffeeItemSchema = new Schema<ICoffeeItem>({
+  id: { type: String, required: true, unique: true },
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  oldPrice: { type: Number },
+  category: { type: String, required: true },
+  imageUrl: { type: String },
+  isAvailable: { type: Number, default: 1, required: true },
+  availabilityStatus: { type: String, default: "available" },
+  coffeeStrength: { type: String, default: "classic" },
+  strengthLevel: { type: Number },
 });
 
-// Customers Schema - العملاء
-export const customers = pgTable("customers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  phone: varchar("phone", { length: 20 }).notNull().unique(),
-  email: varchar("email", { length: 255 }).unique(),
-  name: text("name").notNull(), // الاسم إلزامي
-  password: text("password").notNull(), // كلمة المرور إلزامية
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const CoffeeItemModel = mongoose.model<ICoffeeItem>("CoffeeItem", CoffeeItemSchema);
+
+export interface ICustomer extends Document {
+  phone: string;
+  email?: string;
+  name: string;
+  password: string;
+  createdAt: Date;
+}
+
+const CustomerSchema = new Schema<ICustomer>({
+  phone: { type: String, required: true, unique: true },
+  email: { type: String, unique: true, sparse: true },
+  name: { type: String, required: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Password Reset Tokens Schema - رموز استعادة كلمة المرور
-export const passwordResetTokens = pgTable("password_reset_tokens", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email", { length: 255 }).notNull(),
-  token: varchar("token", { length: 100 }).notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
-  used: integer("used").default(0).notNull(), // 0 = not used, 1 = used
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const CustomerModel = mongoose.model<ICustomer>("Customer", CustomerSchema);
+
+export interface IPasswordResetToken extends Document {
+  email: string;
+  token: string;
+  expiresAt: Date;
+  used: number;
+  createdAt: Date;
+}
+
+const PasswordResetTokenSchema = new Schema<IPasswordResetToken>({
+  email: { type: String, required: true },
+  token: { type: String, required: true, unique: true },
+  expiresAt: { type: Date, required: true },
+  used: { type: Number, default: 0, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Employees Schema
-export const employees = pgTable("employees", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: varchar("username", { length: 50 }).notNull().unique(),
-  password: text("password").notNull(),
-  fullName: text("full_name").notNull(),
-  role: varchar("role", { length: 20 }).notNull(), // 'manager', 'cashier'
-  title: text("title"), // اللقب أو البرستيج
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const PasswordResetTokenModel = mongoose.model<IPasswordResetToken>("PasswordResetToken", PasswordResetTokenSchema);
+
+export interface IEmployee extends Document {
+  username: string;
+  password: string;
+  fullName: string;
+  role: string;
+  title?: string;
+  createdAt: Date;
+}
+
+const EmployeeSchema = new Schema<IEmployee>({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  fullName: { type: String, required: true },
+  role: { type: String, required: true },
+  title: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Discount Codes Schema - كودات الخصم
-export const discountCodes = pgTable("discount_codes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  code: varchar("code", { length: 20 }).notNull().unique(),
-  discountPercentage: integer("discount_percentage").notNull(), // 5, 10, 15, etc.
-  reason: text("reason").notNull(), // سبب الخصم
-  employeeId: varchar("employee_id").references(() => employees.id).notNull(), // الموظف الذي أنشأ الكود
-  isActive: integer("is_active").default(1).notNull(), // 0 = inactive, 1 = active
-  usageCount: integer("usage_count").default(0).notNull(), // عدد مرات الاستخدام
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const EmployeeModel = mongoose.model<IEmployee>("Employee", EmployeeSchema);
+
+export interface IDiscountCode extends Document {
+  code: string;
+  discountPercentage: number;
+  reason: string;
+  employeeId: string;
+  isActive: number;
+  usageCount: number;
+  createdAt: Date;
+}
+
+const DiscountCodeSchema = new Schema<IDiscountCode>({
+  code: { type: String, required: true, unique: true },
+  discountPercentage: { type: Number, required: true },
+  reason: { type: String, required: true },
+  employeeId: { type: String, required: true },
+  isActive: { type: Number, default: 1, required: true },
+  usageCount: { type: Number, default: 0, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Orders Schema
-export const orders = pgTable("orders", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderNumber: varchar("order_number", { length: 20 }).notNull().unique(),
-  items: jsonb("items").notNull(), // Array of order items
-  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
-  paymentMethod: varchar("payment_method", { length: 50 }).notNull(),
-  paymentDetails: text("payment_details"),
-  status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending', 'confirmed', 'completed', 'cancelled'
-  customerInfo: jsonb("customer_info"), // Customer details: {name, phone} - legacy field
-  customerId: varchar("customer_id").references(() => customers.id), // العميل المسجل
-  employeeId: varchar("employee_id").references(() => employees.id), // الموظف الذي أنشأ الطلب
-  customerNotes: text("customer_notes"), // ملاحظات العميل على الطلب
-  cancellationReason: text("cancellation_reason"), // سبب إلغاء الطلب
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+export const DiscountCodeModel = mongoose.model<IDiscountCode>("DiscountCode", DiscountCodeSchema);
+
+export interface IOrder extends Document {
+  orderNumber: string;
+  items: any;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentDetails?: string;
+  status: string;
+  customerInfo?: any;
+  customerId?: string;
+  employeeId?: string;
+  customerNotes?: string;
+  cancellationReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const OrderSchema = new Schema<IOrder>({
+  orderNumber: { type: String, required: true, unique: true },
+  items: { type: Schema.Types.Mixed, required: true },
+  totalAmount: { type: Number, required: true },
+  paymentMethod: { type: String, required: true },
+  paymentDetails: { type: String },
+  status: { type: String, default: "pending", required: true },
+  customerInfo: { type: Schema.Types.Mixed },
+  customerId: { type: String },
+  employeeId: { type: String },
+  customerNotes: { type: String },
+  cancellationReason: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
-// Order Items Schema (for detailed tracking)
-export const orderItems = pgTable("order_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").references(() => orders.id).notNull(),
-  coffeeItemId: varchar("coffee_item_id").references(() => coffeeItems.id).notNull(),
-  quantity: integer("quantity").notNull(),
-  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
-  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+export const OrderModel = mongoose.model<IOrder>("Order", OrderSchema);
+
+export interface IOrderItem extends Document {
+  orderId: string;
+  coffeeItemId: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+const OrderItemSchema = new Schema<IOrderItem>({
+  orderId: { type: String, required: true },
+  coffeeItemId: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  unitPrice: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
 });
 
-// Cart Items Schema (for session storage)
-export const cartItems = pgTable("cart_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").notNull(), // Browser session identifier
-  coffeeItemId: varchar("coffee_item_id").references(() => coffeeItems.id).notNull(),
-  quantity: integer("quantity").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const OrderItemModel = mongoose.model<IOrderItem>("OrderItem", OrderItemSchema);
+
+export interface ICartItem extends Document {
+  sessionId: string;
+  coffeeItemId: string;
+  quantity: number;
+  createdAt: Date;
+}
+
+const CartItemSchema = new Schema<ICartItem>({
+  sessionId: { type: String, required: true },
+  coffeeItemId: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Zod Schemas for validation
-export const insertCoffeeItemSchema = createInsertSchema(coffeeItems).omit({
-  id: true,
+export const CartItemModel = mongoose.model<ICartItem>("CartItem", CartItemSchema);
+
+export interface ILoyaltyCard extends Document {
+  customerName?: string;
+  phoneNumber: string;
+  qrToken: string;
+  cardNumber: string;
+  stamps: number;
+  freeCupsEarned: number;
+  freeCupsRedeemed: number;
+  points: number;
+  tier: string;
+  totalSpent: number;
+  discountCount: number;
+  status: string;
+  lastUsedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const LoyaltyCardSchema = new Schema<ILoyaltyCard>({
+  customerName: { type: String },
+  phoneNumber: { type: String, required: true },
+  qrToken: { type: String, required: true, unique: true },
+  cardNumber: { type: String, required: true, unique: true },
+  stamps: { type: Number, default: 0, required: true },
+  freeCupsEarned: { type: Number, default: 0, required: true },
+  freeCupsRedeemed: { type: Number, default: 0, required: true },
+  points: { type: Number, default: 0, required: true },
+  tier: { type: String, default: "bronze", required: true },
+  totalSpent: { type: Number, default: 0, required: true },
+  discountCount: { type: Number, default: 0, required: true },
+  status: { type: String, default: "active", required: true },
+  lastUsedAt: { type: Date },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
-export const insertEmployeeSchema = createInsertSchema(employees).omit({
-  id: true,
-  createdAt: true,
+export const LoyaltyCardModel = mongoose.model<ILoyaltyCard>("LoyaltyCard", LoyaltyCardSchema);
+
+export interface ICardCode extends Document {
+  code: string;
+  issuedForOrderId: string;
+  drinkName: string;
+  isRedeemed: number;
+  redeemedAt?: Date;
+  redeemedByCardId?: string;
+  createdAt: Date;
+}
+
+const CardCodeSchema = new Schema<ICardCode>({
+  code: { type: String, required: true, unique: true },
+  issuedForOrderId: { type: String, required: true },
+  drinkName: { type: String, required: true },
+  isRedeemed: { type: Number, default: 0, required: true },
+  redeemedAt: { type: Date },
+  redeemedByCardId: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({
-  id: true,
-  orderNumber: true,
-  createdAt: true,
-  updatedAt: true,
+export const CardCodeModel = mongoose.model<ICardCode>("CardCode", CardCodeSchema);
+
+export interface ILoyaltyTransaction extends Document {
+  cardId: string;
+  orderId?: string;
+  type: string;
+  pointsChange: number;
+  discountAmount?: number;
+  orderAmount?: number;
+  description?: string;
+  employeeId?: string;
+  createdAt: Date;
+}
+
+const LoyaltyTransactionSchema = new Schema<ILoyaltyTransaction>({
+  cardId: { type: String, required: true },
+  orderId: { type: String },
+  type: { type: String, required: true },
+  pointsChange: { type: Number, required: true },
+  discountAmount: { type: Number },
+  orderAmount: { type: Number },
+  description: { type: String },
+  employeeId: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
-export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
-  id: true,
+export const LoyaltyTransactionModel = mongoose.model<ILoyaltyTransaction>("LoyaltyTransaction", LoyaltyTransactionSchema);
+
+export interface ILoyaltyReward extends Document {
+  nameAr: string;
+  nameEn?: string;
+  description: string;
+  pointsCost: number;
+  discountPercentage?: number;
+  discountAmount?: number;
+  tier?: string;
+  isActive: number;
+  createdAt: Date;
+}
+
+const LoyaltyRewardSchema = new Schema<ILoyaltyReward>({
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  description: { type: String, required: true },
+  pointsCost: { type: Number, required: true },
+  discountPercentage: { type: Number },
+  discountAmount: { type: Number },
+  tier: { type: String },
+  isActive: { type: Number, default: 1, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-export const insertCartItemSchema = createInsertSchema(cartItems).omit({
-  id: true,
-  createdAt: true,
+export const LoyaltyRewardModel = mongoose.model<ILoyaltyReward>("LoyaltyReward", LoyaltyRewardSchema);
+
+export interface IIngredient extends Document {
+  nameAr: string;
+  nameEn?: string;
+  isAvailable: number;
+  icon?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const IngredientSchema = new Schema<IIngredient>({
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  isAvailable: { type: Number, default: 1, required: true },
+  icon: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
-export const insertCustomerSchema = createInsertSchema(customers).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف"),
-  name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
+export const IngredientModel = mongoose.model<IIngredient>("Ingredient", IngredientSchema);
+
+export interface ICoffeeItemIngredient extends Document {
+  coffeeItemId: string;
+  ingredientId: string;
+  createdAt: Date;
+}
+
+const CoffeeItemIngredientSchema = new Schema<ICoffeeItemIngredient>({
+  coffeeItemId: { type: String, required: true },
+  ingredientId: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+export const CoffeeItemIngredientModel = mongoose.model<ICoffeeItemIngredient>("CoffeeItemIngredient", CoffeeItemIngredientSchema);
+
+export interface IUser extends Document {
+  username: string;
+  password: string;
+}
+
+const UserSchema = new Schema<IUser>({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+});
+
+export const UserModel = mongoose.model<IUser>("User", UserSchema);
+
+export const insertCoffeeItemSchema = z.object({
+  id: z.string(),
+  nameAr: z.string(),
+  nameEn: z.string().optional(),
+  description: z.string(),
+  price: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  oldPrice: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val).optional(),
+  category: z.string(),
+  imageUrl: z.string().optional(),
+  isAvailable: z.number().optional(),
+  availabilityStatus: z.string().optional(),
+  coffeeStrength: z.string().optional(),
+  strengthLevel: z.number().optional(),
+});
+
+export const insertEmployeeSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+  fullName: z.string(),
+  role: z.string(),
+  title: z.string().optional(),
+});
+
+export const insertOrderSchema = z.object({
+  items: z.any(),
+  totalAmount: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  paymentMethod: z.string(),
+  paymentDetails: z.string().optional(),
+  status: z.string().optional(),
+  customerInfo: z.any().optional(),
+  customerId: z.string().optional(),
+  employeeId: z.string().optional(),
+  customerNotes: z.string().optional(),
+  cancellationReason: z.string().optional(),
+});
+
+export const insertOrderItemSchema = z.object({
+  orderId: z.string(),
+  coffeeItemId: z.string(),
+  quantity: z.number(),
+  unitPrice: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+  totalPrice: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
+});
+
+export const insertCartItemSchema = z.object({
+  sessionId: z.string(),
+  coffeeItemId: z.string(),
+  quantity: z.number(),
+});
+
+export const insertCustomerSchema = z.object({
+  phone: z.string(),
   email: z.string().email("البريد الإلكتروني غير صالح").optional(),
+  name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
+  password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف"),
 });
 
-export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
-  id: true,
-  createdAt: true,
+export const insertPasswordResetTokenSchema = z.object({
+  email: z.string(),
+  token: z.string(),
+  expiresAt: z.date(),
 });
 
-export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({
-  id: true,
-  usageCount: true,
-  createdAt: true,
+export const insertDiscountCodeSchema = z.object({
+  code: z.string(),
+  discountPercentage: z.number(),
+  reason: z.string(),
+  employeeId: z.string(),
+  isActive: z.number().optional(),
 });
 
-// TypeScript Types
-export type CoffeeItem = typeof coffeeItems.$inferSelect;
+export const insertLoyaltyCardSchema = z.object({
+  customerName: z.string().optional(),
+  phoneNumber: z.string(),
+});
+
+export const insertCardCodeSchema = z.object({
+  issuedForOrderId: z.string(),
+  drinkName: z.string(),
+});
+
+export const insertLoyaltyTransactionSchema = z.object({
+  cardId: z.string(),
+  orderId: z.string().optional(),
+  type: z.string(),
+  pointsChange: z.number(),
+  discountAmount: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val).optional(),
+  orderAmount: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val).optional(),
+  description: z.string().optional(),
+  employeeId: z.string().optional(),
+});
+
+export const insertLoyaltyRewardSchema = z.object({
+  nameAr: z.string(),
+  nameEn: z.string().optional(),
+  description: z.string(),
+  pointsCost: z.number(),
+  discountPercentage: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val).optional(),
+  discountAmount: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val).optional(),
+  tier: z.string().optional(),
+  isActive: z.number().optional(),
+});
+
+export const insertIngredientSchema = z.object({
+  nameAr: z.string(),
+  nameEn: z.string().optional(),
+  isAvailable: z.number().optional(),
+  icon: z.string().optional(),
+});
+
+export const insertCoffeeItemIngredientSchema = z.object({
+  coffeeItemId: z.string(),
+  ingredientId: z.string(),
+});
+
+export const insertUserSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
+export type CoffeeItem = ICoffeeItem;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
 
-export type Customer = typeof customers.$inferSelect;
+export type Customer = ICustomer;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 
-export type Employee = typeof employees.$inferSelect;
+export type Employee = IEmployee;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 
-export type DiscountCode = typeof discountCodes.$inferSelect;
+export type DiscountCode = IDiscountCode;
 export type InsertDiscountCode = z.infer<typeof insertDiscountCodeSchema>;
 
-export type Order = typeof orders.$inferSelect;
+export type Order = IOrder;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
-export type OrderItem = typeof orderItems.$inferSelect;
+export type OrderItem = IOrderItem;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 
-export type CartItem = typeof cartItems.$inferSelect;
+export type CartItem = ICartItem;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 
-export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type PasswordResetToken = IPasswordResetToken;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 
-// Payment Method Types
+export type LoyaltyCard = ILoyaltyCard;
+export type InsertLoyaltyCard = z.infer<typeof insertLoyaltyCardSchema>;
+
+export type CardCode = ICardCode;
+export type InsertCardCode = z.infer<typeof insertCardCodeSchema>;
+
+export type LoyaltyTransaction = ILoyaltyTransaction;
+export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;
+
+export type LoyaltyReward = ILoyaltyReward;
+export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
+
+export type Ingredient = IIngredient;
+export type InsertIngredient = z.infer<typeof insertIngredientSchema>;
+
+export type CoffeeItemIngredient = ICoffeeItemIngredient;
+export type InsertCoffeeItemIngredient = z.infer<typeof insertCoffeeItemIngredientSchema>;
+
+export type User = IUser;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
 export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card';
 
 export interface PaymentMethodInfo {
@@ -182,16 +512,12 @@ export interface PaymentMethodInfo {
   icon: string;
 }
 
-// Employee Role Types
 export type EmployeeRole = 'manager' | 'cashier';
 
-// Order Status Types
 export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
 
-// Coffee Categories
 export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty' | 'desserts';
 
-// Coffee Strength Types
 export type CoffeeStrength = 'classic' | 'mild' | 'medium' | 'strong';
 
 export interface CoffeeStrengthInfo {
@@ -204,117 +530,6 @@ export interface CoffeeStrengthInfo {
   icon: string;
 }
 
-// Loyalty Cards Schema - بطاقات الولاء
-export const loyaltyCards = pgTable("loyalty_cards", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerName: text("customer_name"), // اختياري الآن
-  phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
-  qrToken: varchar("qr_token", { length: 100 }).notNull().unique(), // Unique QR code token
-  cardNumber: varchar("card_number", { length: 20 }).notNull().unique(), // رقم البطاقة للعرض
-  stamps: integer("stamps").default(0).notNull(), // الأختام (0-6، بعد 6 يحصل على كوب مجاني)
-  freeCupsEarned: integer("free_cups_earned").default(0).notNull(), // عدد الأكواب المجانية المكتسبة
-  freeCupsRedeemed: integer("free_cups_redeemed").default(0).notNull(), // عدد الأكواب المجانية المستخدمة
-  points: integer("points").default(0).notNull(), // نقاط الولاء
-  tier: varchar("tier", { length: 20 }).default("bronze").notNull(), // 'bronze', 'silver', 'gold', 'platinum'
-  totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0").notNull(),
-  discountCount: integer("discount_count").default(0).notNull(), // عدد مرات استخدام الخصم
-  status: varchar("status", { length: 20 }).default("active").notNull(), // 'active', 'suspended', 'expired'
-  lastUsedAt: timestamp("last_used_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Card Codes Schema - أكواد للاستخدام الواحد (كود لكل مشروب)
-export const cardCodes = pgTable("card_codes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  code: varchar("code", { length: 12 }).notNull().unique(), // الكود الفريد للاستخدام مرة واحدة
-  issuedForOrderId: varchar("issued_for_order_id").references(() => orders.id).notNull(), // الطلب الذي أصدر هذا الكود
-  drinkName: text("drink_name").notNull(), // اسم المشروب
-  isRedeemed: integer("is_redeemed").default(0).notNull(), // 0 = لم يستخدم، 1 = مستخدم
-  redeemedAt: timestamp("redeemed_at"),
-  redeemedByCardId: varchar("redeemed_by_card_id").references(() => loyaltyCards.id), // البطاقة التي استخدمت الكود
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Loyalty Transactions Schema - سجل معاملات النقاط
-export const loyaltyTransactions = pgTable("loyalty_transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  cardId: varchar("card_id").references(() => loyaltyCards.id).notNull(),
-  orderId: varchar("order_id").references(() => orders.id),
-  type: varchar("type", { length: 20 }).notNull(), // 'earn', 'redeem', 'discount_applied', 'bonus'
-  pointsChange: integer("points_change").notNull(), // موجب للكسب، سالب للاستخدام
-  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }),
-  orderAmount: decimal("order_amount", { precision: 10, scale: 2 }),
-  description: text("description"),
-  employeeId: varchar("employee_id").references(() => employees.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Loyalty Rewards Master Data - جوائز الولاء
-export const loyaltyRewards = pgTable("loyalty_rewards", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nameAr: text("name_ar").notNull(),
-  nameEn: text("name_en"),
-  description: text("description").notNull(),
-  pointsCost: integer("points_cost").notNull(),
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }),
-  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }),
-  tier: varchar("tier", { length: 20 }), // null = available to all tiers
-  isActive: integer("is_active").default(1).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Zod Schemas for Loyalty
-export const insertLoyaltyCardSchema = createInsertSchema(loyaltyCards).omit({
-  id: true,
-  qrToken: true,
-  cardNumber: true,
-  stamps: true,
-  freeCupsEarned: true,
-  freeCupsRedeemed: true,
-  points: true,
-  totalSpent: true,
-  discountCount: true,
-  tier: true,
-  status: true,
-  lastUsedAt: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCardCodeSchema = createInsertSchema(cardCodes).omit({
-  id: true,
-  code: true,
-  isRedeemed: true,
-  redeemedAt: true,
-  redeemedByCardId: true,
-  createdAt: true,
-});
-
-export const insertLoyaltyTransactionSchema = createInsertSchema(loyaltyTransactions).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards).omit({
-  id: true,
-  createdAt: true,
-});
-
-// TypeScript Types for Loyalty
-export type LoyaltyCard = typeof loyaltyCards.$inferSelect;
-export type InsertLoyaltyCard = z.infer<typeof insertLoyaltyCardSchema>;
-
-export type CardCode = typeof cardCodes.$inferSelect;
-export type InsertCardCode = z.infer<typeof insertCardCodeSchema>;
-
-export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
-export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;
-
-export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
-export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
-
-// Loyalty Tier Types
 export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum';
 
 export interface LoyaltyTierInfo {
@@ -326,56 +541,3 @@ export interface LoyaltyTierInfo {
   color: string;
   icon: string;
 }
-
-// Ingredients Schema - المكونات
-export const ingredients = pgTable("ingredients", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nameAr: text("name_ar").notNull(),
-  nameEn: text("name_en"),
-  isAvailable: integer("is_available").default(1).notNull(), // 0 = نفذ، 1 = متوفر
-  icon: text("icon"), // emoji or icon name
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Coffee Item Ingredients - ربط المشروبات بالمكونات
-export const coffeeItemIngredients = pgTable("coffee_item_ingredients", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  coffeeItemId: varchar("coffee_item_id").references(() => coffeeItems.id).notNull(),
-  ingredientId: varchar("ingredient_id").references(() => ingredients.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Zod Schemas for Ingredients
-export const insertIngredientSchema = createInsertSchema(ingredients).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCoffeeItemIngredientSchema = createInsertSchema(coffeeItemIngredients).omit({
-  id: true,
-  createdAt: true,
-});
-
-// TypeScript Types for Ingredients
-export type Ingredient = typeof ingredients.$inferSelect;
-export type InsertIngredient = z.infer<typeof insertIngredientSchema>;
-
-export type CoffeeItemIngredient = typeof coffeeItemIngredients.$inferSelect;
-export type InsertCoffeeItemIngredient = z.infer<typeof insertCoffeeItemIngredientSchema>;
-
-// Legacy User Schema (keeping for compatibility)
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
