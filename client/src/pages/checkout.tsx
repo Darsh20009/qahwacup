@@ -225,7 +225,9 @@ export default function CheckoutPage() {
       Object.entries(selectedFreeItems).forEach(([itemId, quantity]) => {
         const item = cartItems.find(ci => ci.coffeeItemId === itemId);
         if (item && quantity > 0) {
-          const itemPrice = parseFloat(item.coffeeItem?.price || "0");
+          const itemPrice = typeof item.coffeeItem?.price === 'number'
+            ? item.coffeeItem.price
+            : parseFloat(String(item.coffeeItem?.price || 0));
           freeItemsDiscount += itemPrice * quantity;
         }
       });
@@ -238,7 +240,9 @@ export default function CheckoutPage() {
     const orderItems = cartItems.map(item => ({
       coffeeItemId: item.coffeeItemId,
       quantity: item.quantity,
-      price: item.coffeeItem?.price || "0",
+      price: typeof item.coffeeItem?.price === 'number' 
+        ? String(item.coffeeItem.price) 
+        : String(item.coffeeItem?.price || "0"),
       name: item.coffeeItem?.nameAr || "",
     }));
 

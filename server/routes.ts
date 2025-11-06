@@ -452,6 +452,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if email exists - التحقق من وجود البريد الإلكتروني
+  app.post("/api/customers/check-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "البريد الإلكتروني مطلوب" });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "صيغة البريد الإلكتروني غير صحيحة" });
+      }
+
+      const customer = await storage.getCustomerByEmail(email);
+      res.json({ exists: !!customer });
+    } catch (error) {
+      console.error("Error checking email:", error);
+      res.status(500).json({ error: "فشل التحقق من البريد الإلكتروني" });
+    }
+  });
+
+  // Verify phone matches email - التحقق من تطابق رقم الجوال مع البريد
+  app.post("/api/customers/verify-phone-email", async (req, res) => {
+    try {
+      const { email, phone } = req.body;
+
+      if (!email || !phone) {
+        return res.status(400).json({ error: "البريد الإلكتروني ورقم الجوال مطلوبان" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      const customer = await storage.getCustomerByEmail(email);
+
+      if (!customer) {
+        return res.json({ valid: false });
+      }
+
+      const valid = customer.phone === cleanPhone;
+      res.json({ valid });
+    } catch (error) {
+      console.error("Error verifying phone-email match:", error);
+      res.status(500).json({ error: "فشل التحقق من البيانات" });
+    }
+  });
+
+  // Reset password directly with email and phone - إعادة تعيين كلمة المرور مباشرة
+  app.post("/api/customers/reset-password-direct", async (req, res) => {
+    try {
+      const { email, phone, newPassword } = req.body;
+
+      if (!email || !phone || !newPassword) {
+        return res.status(400).json({ error: "جميع الحقول مطلوبة" });
+      }
+
+      if (newPassword.length < 4) {
+        return res.status(400).json({ error: "كلمة المرور يجب أن تكون على الأقل 4 أحرف" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      const customer = await storage.getCustomerByEmail(email);
+
+      if (!customer || customer.phone !== cleanPhone) {
+        return res.status(400).json({ error: "البيانات غير صحيحة" });
+      }
+
+      const success = await storage.resetCustomerPassword(email, newPassword);
+      
+      if (!success) {
+        return res.status(500).json({ error: "فشل إعادة تعيين كلمة المرور" });
+      }
+
+      res.json({ message: "تم إعادة تعيين كلمة المرور بنجاح" });
+    } catch (error) {
+      console.error("Error resetting password directly:", error);
+      res.status(500).json({ error: "فشل إعادة تعيين كلمة المرور" });
+    }
+  });
+
   // Customer authentication (legacy - for backward compatibility)
   app.post("/api/customers/auth", async (req, res) => {
     try {

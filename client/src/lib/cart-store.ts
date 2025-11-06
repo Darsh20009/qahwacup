@@ -149,7 +149,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Computed values
   const getTotalPrice = (): number => {
     return cartItems.reduce((total, item) => {
-      const price = parseFloat(item.coffeeItem?.price || "0");
+      const price = typeof item.coffeeItem?.price === 'number' 
+        ? item.coffeeItem.price 
+        : parseFloat(String(item.coffeeItem?.price || 0));
       return total + (price * item.quantity);
     }, 0);
   };
