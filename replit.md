@@ -4,20 +4,30 @@
 
 # Recent Changes (November 2025)
 
-## إعداد قاعدة البيانات الخارجية للنشر على Render (نوفمبر 5, 2025)
-- **قاعدة بيانات Filess.io**: تم ربط التطبيق بقاعدة بيانات PostgreSQL خارجية
-  - Database URL: `postgresql://QAHWACUP_distantits:92e56d78c4ef08bcf6cafe7e07318058e6877173@ir9zip.h.filess.io:5432/QAHWACUP_distantits`
-- **إصلاح مشاكل Render Deployment**:
-  - **Problem 1**: كان السكريبت يحاول تنفيذ `ALTER DATABASE` والذي يتطلب صلاحيات المالك - تم إزالته
-  - **Problem 2**: كان drizzle-kit push يفشل بخطأ "no schema has been selected to create in" - تم إضافة `search_path=public`
-- **التعديلات التقنية**:
-  - `scripts/setup-db.ts`: تم تبسيط السكريبت وإزالة ALTER DATABASE، إضافة `options: '-c search_path=public'`
-  - `server/storage.ts`: إضافة `options: '-c search_path=public'` في Pool configuration
-  - `drizzle.config.ts`: إضافة search_path في URL للقاعدة الخارجية
-- **التوافق التلقائي**: الكود يتعرف تلقائياً على البيئة:
-  - في Replit: يستخدم قاعدة البيانات الداخلية (PGHOST, PGDATABASE)
-  - في Render: يستخدم DATABASE_URL للقاعدة الخارجية
-- **دليل النشر**: تم إنشاء ملف `RENDER_DEPLOYMENT.md` مع التعليمات الكاملة للنشر
+## Complete Migration from PostgreSQL to MongoDB (November 6, 2025)
+- **Database Migration**: Successfully migrated the entire application from PostgreSQL (Drizzle ORM) to MongoDB (Mongoose)
+  - **MongoDB Atlas Connection**: Using MongoDB Atlas cloud database
+  - **Connection String**: Stored securely in `qahwa_MONGODB_URI` environment variable
+  - **Connection URL**: `mongodb+srv://Vercel-Admin-qahwa:x90QpnUhb5PqfaVK@qahwa.ink6nxz.mongodb.net/`
+- **Schema Migration**: Converted all 14 database schemas from Drizzle to Mongoose
+  - All models now use Mongoose schemas with full type safety
+  - Zod validators maintained for insert operations
+  - String-based IDs (MongoDB ObjectId) replacing numeric IDs
+- **Storage Layer**: Complete rewrite of `server/storage.ts` (~1400 lines)
+  - All CRUD operations reimplemented using Mongoose
+  - Automatic database initialization with seed data
+  - Demo employee (username: 'darwish', password: '2009')
+  - Full coffee menu (24 items) automatically seeded
+- **Cleanup**: Removed all PostgreSQL artifacts
+  - Removed packages: `drizzle-orm`, `drizzle-kit`, `@neondatabase/serverless`, `pg`
+  - Deleted files: `drizzle.config.ts`, `scripts/setup-db.ts`, `migrations/`, `run-migration.ts`
+  - Removed dev dependencies: `@types/connect-pg-simple`
+  - Updated build scripts: removed `db:push`, `db:setup`, `postbuild` scripts
+- **Production Ready**: Application fully tested and approved for deployment
+  - All features working with MongoDB
+  - Frontend displaying correctly with Arabic RTL layout
+  - Backend API endpoints operational
+  - Database connection established successfully
 
 ## Enhanced Customer Authentication System (November 5, 2025)
 - **Mandatory Customer Registration**: Customers must now create accounts with both name and password
@@ -99,7 +109,7 @@ Preferred communication style: Simple, everyday language.
 The frontend is a React 18 application built with TypeScript. It uses Wouter for routing, React Context API for state management (especially for the cart), Shadcn/ui and Radix UI for accessible components, and Tailwind CSS for styling with an Arabic-focused theme. React Hook Form with Zod handles form validation, and TanStack Query manages server state.
 
 ## Backend Architecture
-The backend is an Express.js application written in TypeScript, adhering to a RESTful API pattern. It utilizes PostgreSQL with Drizzle ORM for type-safe data persistence. The architecture is modular, separating routes, storage logic, and server configurations.
+The backend is an Express.js application written in TypeScript, adhering to a RESTful API pattern. It utilizes MongoDB with Mongoose for type-safe data persistence. The architecture is modular, separating routes, storage logic, and server configurations.
 
 ## Key Features
 - **Multi-language Support**: Arabic-first with RTL layout and English fallbacks.
@@ -112,14 +122,17 @@ The backend is an Express.js application written in TypeScript, adhering to a RE
 - **Unified Hub Page**: Combines employee dashboard and menu view at `/0`.
 
 ## Database Schema
-The system uses ten main entities managed by PostgreSQL and Drizzle ORM:
-- **Coffee Items**: Product catalog with availability tracking.
-- **Orders & Order Items**: Order tracking and detailed line items.
-- **Cart Items**: Session-based temporary storage.
-- **Employees**: Staff accounts with secure authentication.
-- **Loyalty Cards, Loyalty Transactions, Loyalty Rewards**: Comprehensive loyalty program management.
-- **Ingredients**: Inventory tracking for coffee shop ingredients.
-- **Coffee Item Ingredients**: Many-to-many relationship between coffee items and their required ingredients.
+The system uses 14 main collections managed by MongoDB and Mongoose:
+- **Coffee Items**: Product catalog with availability tracking (24 items seeded automatically)
+- **Orders & Order Items**: Order tracking and detailed line items
+- **Cart Items**: Session-based temporary storage
+- **Employees**: Staff accounts with secure authentication (demo: darwish/2009)
+- **Customers**: Customer accounts with encrypted passwords
+- **Loyalty Cards, Card Codes, Loyalty Transactions, Loyalty Rewards**: Comprehensive loyalty program management
+- **Ingredients**: Inventory tracking for coffee shop ingredients (17 items)
+- **Coffee Item Ingredients**: Many-to-many relationship between coffee items and their required ingredients
+- **Password Reset Tokens**: Secure password recovery system
+- **Users**: General user management
 
 ## UI/UX Decisions
 The application features a modern aesthetic with a dark background and gold accents, inspired by traditional Arabic coffee culture. It prioritizes an Arabic-first, right-to-left (RTL) layout. The loyalty card UI is inspired by Fuji Cafe's design, using amber/orange color schemes.
@@ -127,10 +140,9 @@ The application features a modern aesthetic with a dark background and gold acce
 # External Dependencies
 
 ## Core Framework & Data
-- **@neondatabase/serverless**: PostgreSQL serverless driver.
-- **drizzle-orm**: Type-safe ORM for PostgreSQL.
-- **@tanstack/react-query**: Server state management and caching.
-- **wouter**: Lightweight React router.
+- **mongoose**: MongoDB ODM with schema validation
+- **@tanstack/react-query**: Server state management and caching
+- **wouter**: Lightweight React router
 
 ## UI and Styling
 - **@radix-ui/***: Accessible UI primitives.
@@ -144,8 +156,6 @@ The application features a modern aesthetic with a dark background and gold acce
 ## Security
 - **bcryptjs**: Password hashing library.
 
-## Database Tools
-- **drizzle-kit**: Database migration and schema management.
 
 ## Other Libraries
 - **qrcode**: QR code generation.
@@ -157,9 +167,10 @@ The application features a modern aesthetic with a dark background and gold acce
 This application is configured to run in the Replit environment with the following setup:
 
 ### Database
-- **PostgreSQL Database**: Provisioned using Replit's built-in database service
-- **Environment Variables**: DATABASE_URL, PGPORT, PGUSER, PGPASSWORD, PGDATABASE, PGHOST
-- **Schema Management**: Uses `npm run db:push` to sync schema changes to the database
+- **MongoDB Atlas**: Cloud-hosted MongoDB database
+- **Environment Variable**: `qahwa_MONGODB_URI` (stored securely in Replit Secrets)
+- **Connection URL**: `mongodb+srv://Vercel-Admin-qahwa:x90QpnUhb5PqfaVK@qahwa.ink6nxz.mongodb.net/`
+- **Automatic Initialization**: Database automatically seeds demo data on first run
 
 ### Workflow Configuration
 - **Workflow**: "Start application" runs `npm run dev`
@@ -171,7 +182,7 @@ This application is configured to run in the Replit environment with the followi
 - `npm run dev`: Start development server (Express + Vite)
 - `npm run build`: Build frontend and backend for production
 - `npm run start`: Start production server
-- `npm run db:push`: Push database schema changes
+- `npm run check`: Run TypeScript type checking
 
 ### Default Credentials
 - **Employee Login**: Username: `darwish`, Password: `2009`
@@ -179,50 +190,17 @@ This application is configured to run in the Replit environment with the followi
 ### Directory Structure
 - `/client`: React frontend application
 - `/server`: Express backend API
-- `/shared`: Shared types and schemas (Drizzle/Zod)
+- `/shared`: Shared types and schemas (Mongoose/Zod)
 - `/attached_assets`: Static assets including coffee images
 
-## تحديث قاعدة البيانات في Render
+## Deployment Notes
 
-عند نشر تحديثات جديدة على Render تحتوي على تغييرات في الـ schema:
+### MongoDB Atlas Connection
+- The application uses MongoDB Atlas for the database
+- Set the `qahwa_MONGODB_URI` environment variable in your deployment platform
+- Connection string format: `mongodb+srv://username:password@cluster.mongodb.net/`
+- The database automatically initializes with seed data on first connection
 
-1. **افتح Shell في Render Dashboard**
-2. **نفذ الأمر**:
-   ```bash
-   npm run db:push
-   ```
-   أو إذا طلب تأكيد:
-   ```bash
-   npm run db:push -- --force
-   ```
-
-هذا سيضيف الأعمدة والجداول الجديدة بدون حذف البيانات الموجودة.
-
-## مشكلة قاعدة بيانات Neon عند النشر (أكتوبر 13، 2025)
-
-### المشكلة
-عند النشر على Render، ظهرت مشكلة:
-```
-error: The endpoint has been disabled. Enable it using Neon API and retry.
-```
-
-هذا يحدث مع الحسابات المجانية في Neon عندما تكون قاعدة البيانات غير نشطة لفترة طويلة.
-
-### الحل
-تم إنشاء **قاعدة بيانات Replit PostgreSQL المدمجة** كبديل موثوق:
-
-1. **قاعدة البيانات**: قاعدة بيانات Replit PostgreSQL (مدمجة)
-2. **متغير البيئة**: `DATABASE_URL` متوفر تلقائياً من Replit
-3. **للنشر على Render**:
-   - الخيار 1: استخدم `DATABASE_URL` من Replit في متغيرات البيئة على Render
-   - الخيار 2: أنشئ قاعدة بيانات PostgreSQL على Render نفسها
-   - الخيار 3: فعّل قاعدة بيانات Neon من لوحة التحكم (لكن قد تتعطل مرة أخرى)
-
-4. **الأوامر الضرورية بعد إعداد قاعدة البيانات**:
-   ```bash
-   npm run db:push
-   ```
-
-### ملاحظات
-- قاعدة بيانات Replit أكثر استقراراً وموثوقية للمشاريع المستضافة على Replit
-- التطبيق يتحقق تلقائياً من وجود `DATABASE_URL` ويستخدم DBStorage للاتصال بـ PostgreSQL
+### Environment Variables Required for Deployment
+- `qahwa_MONGODB_URI`: MongoDB connection string
+- `NODE_ENV`: Set to "production" for production builds
