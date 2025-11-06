@@ -61,8 +61,10 @@ export default function EmployeeCashier() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [isCheckingCustomer, setIsCheckingCustomer] = useState(false);
   
   const { toast } = useToast();
 
@@ -74,6 +76,43 @@ export default function EmployeeCashier() {
       setLocation("/employee/gateway");
     }
   }, [setLocation]);
+
+  // Check for existing customer when phone number is entered
+  useEffect(() => {
+    const checkCustomer = async () => {
+      if (customerPhone.length === 9 && customerPhone.startsWith('5')) {
+        setIsCheckingCustomer(true);
+        try {
+          const response = await fetch(`/api/customers/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: customerPhone })
+          });
+          
+          if (response.ok) {
+            const customer = await response.json();
+            setCustomerName(customer.name);
+            setCustomerId(customer.id);
+            toast({
+              title: "عميل مسجل ✓",
+              description: `مرحباً ${customer.name}! سيتم إضافة أختام الولاء تلقائياً`,
+              className: "bg-green-600 text-white",
+            });
+          } else {
+            setCustomerId(null);
+          }
+        } catch (error) {
+          console.error('Error checking customer:', error);
+          setCustomerId(null);
+        } finally {
+          setIsCheckingCustomer(false);
+        }
+      }
+    };
+
+    const debounceTimer = setTimeout(checkCustomer, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [customerPhone, toast]);
 
   const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
     queryKey: ["/api/coffee-items"],
@@ -132,6 +171,7 @@ export default function EmployeeCashier() {
     setOrderItems([]);
     setCustomerName("");
     setCustomerPhone("");
+    setCustomerId(null);
     setTableNumber("");
     setPaymentMethod("cash");
   };
@@ -202,8 +242,9 @@ export default function EmployeeCashier() {
       paymentMethod,
       customerInfo: {
         customerName: customerName,
-        customerPhone: customerPhone
+        phoneNumber: customerPhone
       },
+      customerId: customerId || undefined,
       employeeId: employee?.id,
       tableNumber: tableNumber || undefined,
       status: "in_progress"

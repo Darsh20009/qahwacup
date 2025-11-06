@@ -634,6 +634,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all customers (for admin/manager dashboard)
+  app.get("/api/customers", async (req, res) => {
+    try {
+      const customers = await storage.getCustomers();
+      const serializedCustomers = customers.map(customer => {
+        const { password, ...customerData } = customer.toObject ? customer.toObject() : customer;
+        return serializeDoc(customerData);
+      });
+      res.json(serializedCustomers);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ error: "Failed to fetch customers" });
+    }
+  });
+
   // Get customer by ID
   app.get("/api/customers/:id", async (req, res) => {
     try {

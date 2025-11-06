@@ -48,7 +48,7 @@ export default function ManagerDashboard() {
   });
 
   const { data: customers = [] } = useQuery<Customer[]>({
-    queryKey: ["/api/admin/customers"],
+    queryKey: ["/api/customers"],
   });
 
   const { data: orders = [] } = useQuery<Order[]>({
