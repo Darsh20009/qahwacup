@@ -1157,7 +1157,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Enrich orders with coffee item details
       const enrichedOrders = orders.map(order => {
-        const orderItems = Array.isArray(order.items) ? order.items : [];
+        const serializedOrder = serializeDoc(order);
+        
+        // Parse items if they're stored as JSON string
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            console.error("Error parsing order items:", e);
+            orderItems = [];
+          }
+        }
+        
+        // Ensure orderItems is an array
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
         const items = orderItems.map((item: any) => {
           const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
           return {
@@ -1172,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         return {
-          ...order,
+          ...serializedOrder,
           items
         };
       });
