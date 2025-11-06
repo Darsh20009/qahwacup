@@ -141,7 +141,7 @@ export default function EmployeeDashboard() {
                     )}
                     
                     <div className="text-center text-gray-400 text-sm">
-                      <p>معرف الموظف: {employee.id.slice(0, 8)}</p>
+                      <p>معرف الموظف: {employee.id?.slice(0, 8) || 'غير متوفر'}</p>
                       <p className="mt-1">اسم المستخدم: {employee.username}</p>
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export default function EmployeeDashboard() {
                     <div className="bg-[#1a1410] rounded-lg p-3 text-center space-y-1">
                       <p className="text-gray-400 text-sm">اسم المستخدم</p>
                       <p className="text-amber-500 font-mono font-bold">{employee.username}</p>
-                      <p className="text-gray-400 text-xs mt-2">ID: {employee.id.slice(0, 12)}</p>
+                      <p className="text-gray-400 text-xs mt-2">ID: {employee.id?.slice(0, 12) || 'غير متوفر'}</p>
                     </div>
                   </div>
                 </div>
