@@ -55,7 +55,10 @@ export interface IStorage {
 
   getEmployee(id: string): Promise<Employee | undefined>;
   getEmployeeByUsername(username: string): Promise<Employee | undefined>;
+  getEmployeeByPhone(phone: string): Promise<Employee | undefined>;
   createEmployee(employee: InsertEmployee): Promise<Employee>;
+  updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | undefined>;
+  activateEmployee(phone: string, fullName: string, password: string): Promise<Employee | undefined>;
   getEmployees(): Promise<Employee[]>;
 
   createDiscountCode(discountCode: InsertDiscountCode): Promise<DiscountCode>;
@@ -196,6 +199,9 @@ export class DBStorage implements IStorage {
       fullName: 'يوسف درويش',
       role: 'manager',
       title: 'مدير المقهى',
+      phone: '500000000',
+      jobTitle: 'محاسب',
+      isActivated: 1,
     });
   }
 
@@ -228,13 +234,46 @@ export class DBStorage implements IStorage {
     return employee || undefined;
   }
 
+  async getEmployeeByPhone(phone: string): Promise<Employee | undefined> {
+    const employee = await EmployeeModel.findOne({ phone });
+    return employee || undefined;
+  }
+
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
-    const hashedPassword = await bcrypt.hash(insertEmployee.password, 10);
-    const newEmployee = await EmployeeModel.create({
-      ...insertEmployee,
-      password: hashedPassword,
-    });
-    return newEmployee;
+    if (insertEmployee.password) {
+      const hashedPassword = await bcrypt.hash(insertEmployee.password, 10);
+      const newEmployee = await EmployeeModel.create({
+        ...insertEmployee,
+        password: hashedPassword,
+      });
+      return newEmployee;
+    } else {
+      const newEmployee = await EmployeeModel.create({
+        ...insertEmployee,
+      });
+      return newEmployee;
+    }
+  }
+
+  async updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | undefined> {
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
+    }
+    updates.updatedAt = new Date();
+    const employee = await EmployeeModel.findByIdAndUpdate(id, updates, { new: true });
+    return employee || undefined;
+  }
+
+  async activateEmployee(phone: string, fullName: string, password: string): Promise<Employee | undefined> {
+    const employee = await EmployeeModel.findOne({ phone, fullName, isActivated: 0 });
+    if (!employee) return undefined;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    employee.password = hashedPassword;
+    employee.isActivated = 1;
+    employee.updatedAt = new Date();
+    await employee.save();
+    return employee;
   }
 
   async getEmployees(): Promise<Employee[]> {
