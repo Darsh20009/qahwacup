@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const employee = await storage.getEmployeeByUsername(username);
 
-      if (!employee) {
+      if (!employee || !employee.password) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
