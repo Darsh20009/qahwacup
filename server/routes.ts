@@ -129,6 +129,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update employee
+  app.put("/api/employees/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const updatedEmployee = await storage.updateEmployee(id, updates);
+
+      if (!updatedEmployee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Don't send password back
+      const { password: _, ...employeeData } = updatedEmployee;
+      res.json(employeeData);
+    } catch (error) {
+      console.error("Error updating employee:", error);
+      res.status(500).json({ error: "Failed to update employee" });
+    }
+  });
+
+  // Activate employee account
+  app.post("/api/employees/activate", async (req, res) => {
+    try {
+      const { phone, fullName, password } = req.body;
+
+      if (!phone || !fullName || !password) {
+        return res.status(400).json({ error: "رقم الهاتف والاسم وكلمة المرور مطلوبة" });
+      }
+
+      const employee = await storage.activateEmployee(phone, fullName, password);
+
+      if (!employee) {
+        return res.status(404).json({ error: "الموظف غير موجود أو تم تفعيله مسبقاً" });
+      }
+
+      // Don't send password back
+      const { password: _, ...employeeData } = employee;
+      res.json(employeeData);
+    } catch (error) {
+      console.error("Error activating employee:", error);
+      res.status(500).json({ error: "Failed to activate employee" });
+    }
+  });
+
   // DISCOUNT CODE ROUTES
 
   // Create discount code
