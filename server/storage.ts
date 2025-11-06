@@ -251,13 +251,33 @@ export class DBStorage implements IStorage {
   }
 
   async getEmployeeByUsername(username: string): Promise<Employee | undefined> {
-    const employee = await EmployeeModel.findOne({ username });
-    return employee || undefined;
+    const employee = await EmployeeModel.findOne({ username }).lean();
+    if (!employee) return undefined;
+    
+    // Convert _id to id
+    const result: any = {
+      ...employee,
+      id: employee._id.toString(),
+    };
+    delete result._id;
+    delete result.__v;
+    
+    return result;
   }
 
   async getEmployeeByPhone(phone: string): Promise<Employee | undefined> {
-    const employee = await EmployeeModel.findOne({ phone });
-    return employee || undefined;
+    const employee = await EmployeeModel.findOne({ phone }).lean();
+    if (!employee) return undefined;
+    
+    // Convert _id to id
+    const result: any = {
+      ...employee,
+      id: employee._id.toString(),
+    };
+    delete result._id;
+    delete result.__v;
+    
+    return result;
   }
 
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
