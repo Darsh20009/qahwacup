@@ -5,11 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Coffee, Users, ShoppingBag, TrendingUp, DollarSign, 
   Package, MapPin, Layers, ArrowLeft, Calendar,
-  UserCheck, Receipt, BarChart3
+  UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity
 } from "lucide-react";
+import { 
+  AreaChart, Area, BarChart as RechartsBar, Bar, 
+  PieChart, Pie, Cell, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
+  ResponsiveContainer 
+} from "recharts";
 import type { Employee, Order, Customer } from "@shared/schema";
 
 interface EmployeeWithStats extends Employee {
@@ -20,6 +27,7 @@ interface EmployeeWithStats extends Employee {
 export default function ManagerDashboard() {
   const [, setLocation] = useLocation();
   const [manager, setManager] = useState<Employee | null>(null);
+  const [dateFilter, setDateFilter] = useState<"today" | "week" | "month" | "all">("all");
 
   useEffect(() => {
     const storedEmployee = localStorage.getItem("currentEmployee");
@@ -60,22 +68,137 @@ export default function ManagerDashboard() {
     return null;
   }
 
-  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+  // Filter orders based on date range
+  const getFilteredOrders = () => {
+    const now = new Date();
+    return orders.filter(order => {
+      // Handle missing or invalid createdAt
+      if (!order.createdAt) return dateFilter === "all";
+      
+      const orderDate = new Date(order.createdAt);
+      // Validate date
+      if (isNaN(orderDate.getTime())) return dateFilter === "all";
+      
+      switch (dateFilter) {
+        case "today":
+          return orderDate.toDateString() === now.toDateString();
+        case "week":
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return orderDate >= weekAgo;
+        case "month":
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return orderDate >= monthAgo;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredOrders = getFilteredOrders();
+  const totalRevenue = filteredOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+  const completedOrders = filteredOrders.filter(o => o.status === "completed");
+  const completedRevenue = completedOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+  
+  // Get today's orders using validated date logic
   const todayOrders = orders.filter(o => {
+    if (!o.createdAt) return false;
     const orderDate = new Date(o.createdAt);
+    if (isNaN(orderDate.getTime())) return false;
     const today = new Date();
     return orderDate.toDateString() === today.toDateString();
   });
   const todayRevenue = todayOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
 
   const employeesWithStats: EmployeeWithStats[] = employees.map(emp => {
-    const empOrders = orders.filter(o => o.employeeId === emp._id?.toString());
+    const empOrders = filteredOrders.filter(o => o.employeeId === emp._id?.toString());
     return {
       ...emp,
       orderCount: empOrders.length,
       totalSales: empOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0),
     };
   });
+
+  // Prepare chart data
+  const dailyRevenueData = (() => {
+    const days: Record<string, number> = {};
+    filteredOrders.forEach(order => {
+      if (!order.createdAt) return;
+      const orderDate = new Date(order.createdAt);
+      if (isNaN(orderDate.getTime())) return;
+      
+      const dateStr = orderDate.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
+      days[dateStr] = (days[dateStr] || 0) + Number(order.totalAmount || 0);
+    });
+    return Object.entries(days).map(([date, revenue]) => ({
+      date,
+      revenue: Number(revenue.toFixed(2))
+    })).slice(-14); // Last 14 days
+  })();
+
+  const paymentMethodsData = (() => {
+    const methods: Record<string, number> = {};
+    filteredOrders.forEach(order => {
+      methods[order.paymentMethod] = (methods[order.paymentMethod] || 0) + 1;
+    });
+    return Object.entries(methods).map(([name, value]) => ({
+      name: name === 'cash' ? 'نقدي' : name,
+      value
+    }));
+  })();
+
+  const topItemsData = (() => {
+    const items: Record<string, { count: number; revenue: number }> = {};
+    filteredOrders.forEach(order => {
+      const orderItems = Array.isArray(order.items) ? order.items : [];
+      orderItems.forEach((item: any) => {
+        const name = item.coffeeItem?.nameAr || item.nameAr || 'مشروب';
+        if (!items[name]) {
+          items[name] = { count: 0, revenue: 0 };
+        }
+        items[name].count += item.quantity || 0;
+        items[name].revenue += (item.quantity || 0) * Number(item.price || item.coffeeItem?.price || 0);
+      });
+    });
+    return Object.entries(items)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        revenue: Number(data.revenue.toFixed(2))
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  })();
+
+  const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6', '#f97316'];
+  
+  const growthRate = (() => {
+    if (dateFilter === "today" || dateFilter === "all") return 0;
+    const now = new Date();
+    const periodStart = dateFilter === "week" ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) :
+                       dateFilter === "month" ? new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) : null;
+    if (!periodStart) return 0;
+    
+    const periodOrders = orders.filter(o => {
+      if (!o.createdAt) return false;
+      const date = new Date(o.createdAt);
+      return !isNaN(date.getTime()) && date >= periodStart;
+    });
+    
+    const prevPeriodEnd = periodStart;
+    const prevPeriodStart = dateFilter === "week" ? new Date(periodStart.getTime() - 7 * 24 * 60 * 60 * 1000) :
+                            new Date(periodStart.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const prevPeriodOrders = orders.filter(o => {
+      if (!o.createdAt) return false;
+      const date = new Date(o.createdAt);
+      return !isNaN(date.getTime()) && date >= prevPeriodStart && date < prevPeriodEnd;
+    });
+    
+    const currentRevenue = periodOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+    const previousRevenue = prevPeriodOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+    
+    if (previousRevenue === 0) return currentRevenue > 0 ? 100 : 0;
+    return Number((((currentRevenue - previousRevenue) / previousRevenue) * 100).toFixed(1));
+  })();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] p-4" dir="rtl">
@@ -111,8 +234,31 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
+        {/* Date Filter */}
+        <Card className="bg-[#2d1f1a] border-amber-500/20 mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-amber-500" />
+                <span className="text-gray-300">فلترة التقارير:</span>
+              </div>
+              <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
+                <SelectTrigger className="w-[200px] bg-[#1a1410] border-amber-500/30 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">اليوم</SelectItem>
+                  <SelectItem value="week">آخر أسبوع</SelectItem>
+                  <SelectItem value="month">آخر شهر</SelectItem>
+                  <SelectItem value="all">كل الفترة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:border-blue-500/40 transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -125,20 +271,20 @@ export default function ManagerDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:border-green-500/40 transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4" />
-                إجمالي الطلبات
+                الطلبات ({dateFilter === "all" ? "كل الفترة" : dateFilter === "today" ? "اليوم" : dateFilter === "week" ? "أسبوع" : "شهر"})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-400">{orders.length}</div>
-              <p className="text-xs text-gray-500 mt-1">طلب كلي</p>
+              <div className="text-3xl font-bold text-green-400">{filteredOrders.length}</div>
+              <p className="text-xs text-gray-500 mt-1">{completedOrders.length} مكتمل</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
+          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20 hover:border-amber-500/40 transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
@@ -148,19 +294,33 @@ export default function ManagerDashboard() {
             <CardContent>
               <div className="text-3xl font-bold text-amber-400">{totalRevenue.toFixed(2)}</div>
               <p className="text-xs text-gray-500 mt-1">ريال سعودي</p>
+              {growthRate !== 0 && (
+                <div className="flex items-center gap-1 mt-2">
+                  {growthRate > 0 ? (
+                    <TrendingUp className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-xs font-semibold ${growthRate > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {growthRate > 0 ? '+' : ''}{growthRate}%
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:border-purple-500/40 transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                مبيعات اليوم
+                <Activity className="w-4 h-4" />
+                متوسط الطلب
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-400">{todayRevenue.toFixed(2)}</div>
-              <p className="text-xs text-gray-500 mt-1">{todayOrders.length} طلب اليوم</p>
+              <div className="text-3xl font-bold text-purple-400">
+                {filteredOrders.length > 0 ? (totalRevenue / filteredOrders.length).toFixed(2) : '0.00'}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">ريال سعودي</p>
             </CardContent>
           </Card>
         </div>
@@ -410,58 +570,183 @@ export default function ManagerDashboard() {
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4">
+            {/* Revenue Trend Chart */}
             <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20">
               <CardHeader>
-                <CardTitle className="text-amber-500">التقارير والإحصائيات</CardTitle>
-                <CardDescription className="text-gray-400">
-                  تقارير المبيعات والأداء
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-amber-500">مخطط المبيعات اليومية</CardTitle>
+                    <CardDescription className="text-gray-400">
+                      تطور المبيعات خلال الفترة المحددة
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" className="border-amber-500/50 text-amber-500">
+                    <Download className="w-4 h-4 ml-2" />
+                    تصدير
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="bg-stone-800/30 border-amber-500/10">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-gray-200">المبيعات الشهرية</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-amber-400">
-                        {totalRevenue.toFixed(2)} ر.س
-                      </div>
-                      <p className="text-sm text-gray-500 mt-2">إجمالي المبيعات لجميع الأشهر</p>
-                    </CardContent>
-                  </Card>
+                {dailyRevenueData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={dailyRevenueData}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                      <XAxis dataKey="date" stroke="#888" />
+                      <YAxis stroke="#888" />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#1a1410', border: '1px solid #f59e0b' }}
+                        labelStyle={{ color: '#f59e0b' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#f59e0b" 
+                        fillOpacity={1} 
+                        fill="url(#colorRevenue)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-gray-500 py-12">لا توجد بيانات للعرض</p>
+                )}
+              </CardContent>
+            </Card>
 
-                  <Card className="bg-stone-800/30 border-amber-500/10">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-gray-200">متوسط قيمة الطلب</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-green-400">
-                        {orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : '0.00'} ر.س
-                      </div>
-                      <p className="text-sm text-gray-500 mt-2">متوسط قيمة كل طلب</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-lg">
-                  <h4 className="font-semibold text-amber-400 mb-3">طرق الدفع الأكثر استخداماً</h4>
-                  <div className="space-y-2">
-                    {Object.entries(
-                      orders.reduce((acc, order) => {
-                        acc[order.paymentMethod] = (acc[order.paymentMethod] || 0) + 1;
-                        return acc;
-                      }, {} as Record<string, number>)
-                    ).map(([method, count]) => (
-                      <div key={method} className="flex justify-between items-center">
-                        <span className="text-gray-300">{method === 'cash' ? 'نقدي' : method}</span>
-                        <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-400">
-                          {count} طلب
-                        </Badge>
+            {/* Top Products and Payment Methods */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Top Selling Items */}
+              <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20">
+                <CardHeader>
+                  <CardTitle className="text-amber-500">أكثر المنتجات مبيعاً</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    أعلى 10 منتجات من حيث الإيرادات
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {topItemsData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <RechartsBar data={topItemsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                        <XAxis dataKey="name" stroke="#888" angle={-45} textAnchor="end" height={100} />
+                        <YAxis stroke="#888" />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#1a1410', border: '1px solid #f59e0b' }}
+                          labelStyle={{ color: '#f59e0b' }}
+                        />
+                        <Bar dataKey="revenue" fill="#f59e0b" />
+                      </RechartsBar>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-center text-gray-500 py-12">لا توجد بيانات للعرض</p>
+                  )}
+                  
+                  {/* Top items list */}
+                  <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+                    {topItemsData.slice(0, 5).map((item, index) => (
+                      <div key={index} className="flex justify-between items-center p-2 bg-stone-800/30 rounded">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-amber-500">{index + 1}</Badge>
+                          <span className="text-gray-300">{item.name}</span>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-amber-400 font-semibold">{item.revenue.toFixed(2)} ر.س</p>
+                          <p className="text-xs text-gray-500">{item.count} مبيعات</p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* Payment Methods Distribution */}
+              <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20">
+                <CardHeader>
+                  <CardTitle className="text-amber-500">توزيع طرق الدفع</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    نسب استخدام وسائل الدفع المختلفة
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {paymentMethodsData.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={paymentMethodsData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {paymentMethodsData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ backgroundColor: '#1a1410', border: '1px solid #f59e0b' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      
+                      {/* Payment methods legend */}
+                      <div className="mt-4 space-y-2">
+                        {paymentMethodsData.map((method, index) => (
+                          <div key={index} className="flex justify-between items-center p-2 bg-stone-800/30 rounded">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-4 h-4 rounded" 
+                                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                              />
+                              <span className="text-gray-300">{method.name}</span>
+                            </div>
+                            <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-400">
+                              {method.value} طلب
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-center text-gray-500 py-12">لا توجد بيانات للعرض</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Employee Performance */}
+            <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20">
+              <CardHeader>
+                <CardTitle className="text-amber-500">أداء الموظفين</CardTitle>
+                <CardDescription className="text-gray-400">
+                  مبيعات كل موظف خلال الفترة المحددة
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employeesWithStats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsBar data={employeesWithStats}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                      <XAxis dataKey="fullName" stroke="#888" />
+                      <YAxis stroke="#888" />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#1a1410', border: '1px solid #f59e0b' }}
+                        labelStyle={{ color: '#f59e0b' }}
+                      />
+                      <Legend />
+                      <Bar dataKey="orderCount" fill="#3b82f6" name="عدد الطلبات" />
+                      <Bar dataKey="totalSales" fill="#10b981" name="إجمالي المبيعات" />
+                    </RechartsBar>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-gray-500 py-12">لا توجد بيانات للعرض</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package } from "lucide-react";
+import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw } from "lucide-react";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
 
 interface OrderItemData {
@@ -57,6 +58,11 @@ export default function EmployeeOrders() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string>("");
   const [cancellationReason, setCancellationReason] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const previousOrderIdsRef = useRef<Set<string>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -70,8 +76,47 @@ export default function EmployeeOrders() {
 
   const { data: orders = [], isLoading, refetch } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
   });
+
+  // Helper to get normalized order ID
+  const getOrderId = (order: Order) => order.id?.toString() || order._id?.toString() || '';
+
+  // Detect new orders by comparing order IDs
+  useEffect(() => {
+    if (orders.length > 0) {
+      const currentOrderIds = new Set(orders.map(getOrderId).filter(Boolean));
+      
+      // Find truly new orders (IDs that weren't in previous set)
+      const newOrderIds = [...currentOrderIds].filter(id => !previousOrderIdsRef.current.has(id));
+      
+      if (newOrderIds.length > 0 && previousOrderIdsRef.current.size > 0) {
+        setNewOrdersCount(newOrderIds.length);
+        
+        // Play notification sound
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWm98OihUBAKVKXh8bllHgU3ktjy0H4yBSp+zPLaizsKGGS58OylUhELTqPi8bRgGgU1j9ny04c6ByaByvDdjkMKGWOz7O+rWBYLUJ7i8bJcGQQyj9fyz4k8Byp4yPDejUQKF2Gy7O+sWBYLVqXi8LNaFwU0kNjy0ok6BSd1xfDdjEMMF2Cz7fCsWRcLUZ3h8K1XFgQyjdfyzoY4BSJvwO/eiD4MFVyx7fCuWRcLU53h8LBYFQMviM');
+          audio.volume = 0.5;
+          audio.play().catch(() => {});
+        } catch (err) {
+          console.log('Notification sound failed');
+        }
+        
+        // Show toast notification
+        toast({
+          title: "طلب جديد! 🔔",
+          description: `لديك ${newOrderIds.length} طلب ${newOrderIds.length === 1 ? 'جديد' : 'جديدة'}`,
+          className: "bg-green-600 text-white border-green-700",
+        });
+        
+        // Clear notification count after 5 seconds
+        setTimeout(() => setNewOrdersCount(0), 5000);
+      }
+      
+      // Update the ref with current order IDs
+      previousOrderIdsRef.current = currentOrderIds;
+    }
+  }, [orders, toast]);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status, cancellationReason }: { orderId: string; status: OrderStatus; cancellationReason?: string }) => {
@@ -194,46 +239,149 @@ export default function EmployeeOrders() {
     return null;
   }
 
-  const activeOrders = orders.filter(order => 
+  // Apply filters
+  const filteredOrders = orders.filter(order => {
+    // Status filter
+    if (statusFilter !== "all") {
+      if (statusFilter === "active") {
+        if (!["pending", "payment_confirmed", "in_progress", "ready"].includes(order.status)) {
+          return false;
+        }
+      } else if (statusFilter === "completed_cancelled") {
+        if (!["completed", "cancelled"].includes(order.status)) {
+          return false;
+        }
+      } else if (order.status !== statusFilter) {
+        return false;
+      }
+    }
+    
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const customerInfo = order.customerInfo as any;
+      const orderNumber = order.orderNumber.toLowerCase();
+      const customerName = (customerInfo?.name || "").toLowerCase();
+      const customerPhone = (customerInfo?.phone || "").toLowerCase();
+      
+      return orderNumber.includes(query) || 
+             customerName.includes(query) || 
+             customerPhone.includes(query);
+    }
+    
+    return true;
+  });
+
+  const activeOrders = filteredOrders.filter(order => 
     order.status === "pending" || order.status === "payment_confirmed" || order.status === "in_progress" || order.status === "ready"
   );
   
-  const completedOrders = orders.filter(order => 
+  const completedOrders = filteredOrders.filter(order => 
     order.status === "completed" || order.status === "cancelled"
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
-              <Coffee className="w-6 h-6 text-white" />
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center relative">
+                <Coffee className="w-6 h-6 text-white" />
+                {newOrdersCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center animate-bounce">
+                    <span className="text-white text-xs font-bold">{newOrdersCount}</span>
+                  </div>
+                )}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-amber-500 flex items-center gap-2">
+                  إدارة الطلبات
+                  {newOrdersCount > 0 && <BellRing className="w-5 h-5 text-red-500 animate-pulse" />}
+                </h1>
+                <p className="text-gray-400 text-sm">الموظف: {employee.fullName}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-amber-500">إدارة الطلبات</h1>
-              <p className="text-gray-400 text-sm">الموظف: {employee.fullName}</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => refetch()}
+                className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+                data-testid="button-refresh"
+              >
+                <RefreshCw className="w-4 h-4 ml-2" />
+                تحديث
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/employee/dashboard")}
+                className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+                data-testid="button-back-dashboard"
+              >
+                <ArrowRight className="w-4 h-4 ml-2" />
+                العودة
+              </Button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => refetch()}
-              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
-              data-testid="button-refresh"
-            >
-              تحديث
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setLocation("/employee/dashboard")}
-              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
-              data-testid="button-back-dashboard"
-            >
-              <ArrowRight className="w-4 h-4 ml-2" />
-              العودة
-            </Button>
-          </div>
+
+          {/* Filters */}
+          <Card className="bg-[#2d1f1a] border-amber-500/20">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Input
+                    placeholder="بحث برقم الطلب، اسم العميل، أو رقم الجوال..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-[#1a1410] border-amber-500/30 text-white pr-10 text-right"
+                    dir="rtl"
+                    data-testid="input-search"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Filter className="text-amber-500 w-5 h-5" />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-filter">
+                      <SelectValue placeholder="فلترة حسب الحالة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">جميع الطلبات</SelectItem>
+                      <SelectItem value="active">الطلبات النشطة</SelectItem>
+                      <SelectItem value="pending">في الانتظار</SelectItem>
+                      <SelectItem value="payment_confirmed">تم تأكيد الدفع</SelectItem>
+                      <SelectItem value="in_progress">قيد التحضير</SelectItem>
+                      <SelectItem value="ready">جاهز للاستلام</SelectItem>
+                      <SelectItem value="completed_cancelled">المكتملة والملغاة</SelectItem>
+                      <SelectItem value="completed">مكتملة</SelectItem>
+                      <SelectItem value="cancelled">ملغاة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Stats Summary */}
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="bg-[#1a1410] rounded-lg p-2 text-center">
+                  <p className="text-amber-500 text-lg font-bold">{filteredOrders.length}</p>
+                  <p className="text-gray-400 text-xs">إجمالي</p>
+                </div>
+                <div className="bg-[#1a1410] rounded-lg p-2 text-center">
+                  <p className="text-yellow-500 text-lg font-bold">{filteredOrders.filter(o => o.status === "pending").length}</p>
+                  <p className="text-gray-400 text-xs">جديد</p>
+                </div>
+                <div className="bg-[#1a1410] rounded-lg p-2 text-center">
+                  <p className="text-blue-500 text-lg font-bold">{filteredOrders.filter(o => o.status === "in_progress").length}</p>
+                  <p className="text-gray-400 text-xs">قيد التحضير</p>
+                </div>
+                <div className="bg-[#1a1410] rounded-lg p-2 text-center">
+                  <p className="text-purple-500 text-lg font-bold">{filteredOrders.filter(o => o.status === "ready").length}</p>
+                  <p className="text-gray-400 text-xs">جاهز</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {isLoading ? (
