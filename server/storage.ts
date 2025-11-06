@@ -29,6 +29,10 @@ import {
   type InsertCoffeeItemIngredient,
   type PasswordResetToken,
   type InsertPasswordResetToken,
+  type Branch,
+  type InsertBranch,
+  type Category,
+  type InsertCategory,
   CoffeeItemModel,
   CustomerModel,
   EmployeeModel,
@@ -44,6 +48,8 @@ import {
   IngredientModel,
   CoffeeItemIngredientModel,
   PasswordResetTokenModel,
+  BranchModel,
+  CategoryModel,
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -131,6 +137,21 @@ export interface IStorage {
   addCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<any>;
   removeCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<void>;
   getCoffeeItemsByIngredient(ingredientId: string): Promise<CoffeeItem[]>;
+
+  getBranches(): Promise<Branch[]>;
+  getBranch(id: string): Promise<Branch | undefined>;
+  createBranch(branch: InsertBranch): Promise<Branch>;
+  updateBranch(id: string, updates: Partial<Branch>): Promise<Branch | undefined>;
+  deleteBranch(id: string): Promise<boolean>;
+
+  getCategories(): Promise<Category[]>;
+  getCategory(id: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, updates: Partial<Category>): Promise<Category | undefined>;
+  deleteCategory(id: string): Promise<boolean>;
+  
+  getCustomers(): Promise<Customer[]>;
+  getOrdersByEmployee(employeeId: string): Promise<Order[]>;
 }
 
 export class DBStorage implements IStorage {

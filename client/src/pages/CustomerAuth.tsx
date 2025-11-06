@@ -179,7 +179,7 @@ export default function CustomerAuth() {
 
         <CardContent>
           <Tabs value={mode} onValueChange={(v) => setMode(v as "login" | "register")} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-stone-800/50">
+            <TabsList className="h-10 items-center justify-center rounded-md p-1 grid w-full grid-cols-2 bg-stone-800/50 text-[#d37107]">
               <TabsTrigger value="login" data-testid="tab-login">تسجيل دخول</TabsTrigger>
               <TabsTrigger value="register" data-testid="tab-register">حساب جديد</TabsTrigger>
             </TabsList>

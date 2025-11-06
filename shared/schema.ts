@@ -135,6 +135,8 @@ export interface IOrder extends Document {
   customerInfo?: any;
   customerId?: string;
   employeeId?: string;
+  branchId?: string;
+  tableNumber?: string;
   customerNotes?: string;
   cancellationReason?: string;
   createdAt: Date;
@@ -151,6 +153,8 @@ const OrderSchema = new Schema<IOrder>({
   customerInfo: { type: Schema.Types.Mixed },
   customerId: { type: String },
   employeeId: { type: String },
+  branchId: { type: String },
+  tableNumber: { type: String },
   customerNotes: { type: String },
   cancellationReason: { type: String },
   createdAt: { type: Date, default: Date.now },
@@ -339,6 +343,56 @@ const CoffeeItemIngredientSchema = new Schema<ICoffeeItemIngredient>({
 
 export const CoffeeItemIngredientModel = mongoose.model<ICoffeeItemIngredient>("CoffeeItemIngredient", CoffeeItemIngredientSchema);
 
+export interface IBranch extends Document {
+  nameAr: string;
+  nameEn?: string;
+  address: string;
+  phone: string;
+  city: string;
+  isActive: number;
+  managerName?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const BranchSchema = new Schema<IBranch>({
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  address: { type: String, required: true },
+  phone: { type: String, required: true },
+  city: { type: String, required: true },
+  isActive: { type: Number, default: 1, required: true },
+  managerName: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const BranchModel = mongoose.model<IBranch>("Branch", BranchSchema);
+
+export interface ICategory extends Document {
+  nameAr: string;
+  nameEn?: string;
+  description?: string;
+  icon?: string;
+  sortOrder?: number;
+  isActive: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const CategorySchema = new Schema<ICategory>({
+  nameAr: { type: String, required: true, unique: true },
+  nameEn: { type: String },
+  description: { type: String },
+  icon: { type: String },
+  sortOrder: { type: Number, default: 0 },
+  isActive: { type: Number, default: 1, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const CategoryModel = mongoose.model<ICategory>("Category", CategorySchema);
+
 export interface IUser extends Document {
   username: string;
   password: string;
@@ -389,6 +443,8 @@ export const insertOrderSchema = z.object({
   customerInfo: z.any().optional(),
   customerId: z.string().optional(),
   employeeId: z.string().optional(),
+  branchId: z.string().optional(),
+  tableNumber: z.string().optional(),
   customerNotes: z.string().optional(),
   cancellationReason: z.string().optional(),
 });
@@ -477,6 +533,25 @@ export const insertUserSchema = z.object({
   password: z.string(),
 });
 
+export const insertBranchSchema = z.object({
+  nameAr: z.string().min(2, "اسم الفرع مطلوب"),
+  nameEn: z.string().optional(),
+  address: z.string().min(5, "العنوان مطلوب"),
+  phone: z.string().min(9, "رقم الهاتف مطلوب"),
+  city: z.string().min(2, "المدينة مطلوبة"),
+  isActive: z.number().optional(),
+  managerName: z.string().optional(),
+});
+
+export const insertCategorySchema = z.object({
+  nameAr: z.string().min(2, "اسم الفئة مطلوب"),
+  nameEn: z.string().optional(),
+  description: z.string().optional(),
+  icon: z.string().optional(),
+  sortOrder: z.number().optional(),
+  isActive: z.number().optional(),
+});
+
 export type CoffeeItem = ICoffeeItem;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
 
@@ -521,6 +596,12 @@ export type InsertCoffeeItemIngredient = z.infer<typeof insertCoffeeItemIngredie
 
 export type User = IUser;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Branch = IBranch;
+export type InsertBranch = z.infer<typeof insertBranchSchema>;
+
+export type Category = ICategory;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card';
 
