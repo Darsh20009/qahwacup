@@ -1753,6 +1753,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TEMPORARY: Reset manager password
+  app.post("/api/reset-manager", async (req, res) => {
+    try {
+      const manager = await storage.getEmployeeByUsername("manager");
+      if (manager && manager._id) {
+        const hashedPassword = await bcrypt.hash("2030", 10);
+        await storage.updateEmployee(manager._id.toString(), { password: hashedPassword });
+        console.log("✅ Manager password reset successfully");
+        res.json({ message: "Manager password reset successfully" });
+      } else {
+        res.status(404).json({ error: "Manager not found" });
+      }
+    } catch (error) {
+      console.error("Error resetting manager password:", error);
+      res.status(500).json({ error: "Failed to reset password" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
