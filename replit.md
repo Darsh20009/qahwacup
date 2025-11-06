@@ -18,7 +18,22 @@ The backend is an Express.js application written in TypeScript, following a REST
 - **Digital Menu & Ordering**: Browse coffee items, manage a cart, and place orders with multiple payment options (Cash, STC Pay, Alinma Pay, Ur Pay, Barq, Bank Transfer). Optional table number input for dine-in orders.
 - **Customer Authentication**: Mandatory customer registration and login with bcrypt-encrypted passwords.
 - **Order Tracking System**: Visual order tracking with four stages (Ordered, Confirmed, Preparing, Ready for Pickup) and real-time updates.
-- **Manager Dashboard**: Comprehensive interface for managers at `/manager/dashboard` with multi-tab access (Overview, Customers, Employees, Orders, Branches, Analytics). Includes access control for managers only, real-time statistics, revenue analytics, and management of customers, employees, orders, and branches.
+- **Real-time Order Management for Cashiers**: 
+  - Auto-refresh every 3 seconds using polling
+  - Audio and visual notifications for new orders with animated bell badge
+  - Advanced search by order number, customer name, or phone
+  - Multi-level status filtering (all, active, pending, payment_confirmed, in_progress, ready, completed, cancelled)
+  - Live statistics dashboard showing order counts by status
+  - Intelligent new order detection using ID-based tracking (handles both `id` and `_id` fields)
+- **Advanced Manager Dashboard**: 
+  - Date range filtering (today, week, month, all time)
+  - Enhanced KPI cards with growth rate indicators
+  - Daily revenue trend visualization using area charts (Recharts)
+  - Top-selling products bar chart with detailed revenue breakdown
+  - Payment methods distribution pie chart with percentages
+  - Employee performance comparison charts (order count & sales)
+  - All analytics respect selected date filters with proper timestamp validation
+  - Comprehensive tabs for Customers, Employees, Orders, Branches, and Analytics
 - **Ingredient Management**: System to track 17 ingredients with availability, automatically affecting coffee item availability.
 - **Employee Management System**: Secure authentication, cashier interface, and employee dashboard.
 - **Customer Loyalty Program**: Web-based "My Card" system with stamp collection (7 stamps = 1 free coffee), QR code generation, card retrieval, and QR scanner integration for cashier.
@@ -60,6 +75,29 @@ The system uses 14 main collections managed by MongoDB and Mongoose for:
 ## Security
 - **bcryptjs**: Password hashing library.
 
+## Data Visualization
+- **recharts**: React charts library for rendering area, bar, pie, and line charts.
+
 ## Other Libraries
 - **qrcode**: QR code generation.
 - **html2canvas**: Used for client-side image generation.
+
+# Recent Changes (November 2025)
+
+## Enhanced Employee Orders Page
+- **Real-time Updates**: Implemented 3-second polling for automatic order refresh
+- **New Order Notifications**: Audio and visual alerts with animated bell badge when new orders arrive
+- **Advanced Search**: Search by order number, customer name, or phone number
+- **Multi-level Filtering**: Status filters including all, active, pending, payment_confirmed, in_progress, ready, completed, cancelled
+- **Live Statistics**: Dashboard showing order counts by status with auto-update
+- **Robust ID Handling**: Normalized order ID detection supporting both `id` and `_id` fields
+
+## Advanced Manager Dashboard Analytics
+- **Date Range Filters**: Filter all analytics by today, week, month, or all time
+- **Growth Rate Indicators**: Display revenue growth percentage compared to previous period
+- **Revenue Trend Chart**: Area chart showing daily revenue over time
+- **Top Products Analysis**: Bar chart and list of best-selling products with revenue breakdown
+- **Payment Methods Distribution**: Pie chart showing payment method usage percentages
+- **Employee Performance**: Comparison charts for order count and sales per employee
+- **Data Validation**: All charts and metrics handle missing or invalid timestamps gracefully
+- **Consistent Metrics**: All KPI cards respect selected date filter with validated data
