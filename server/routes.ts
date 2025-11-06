@@ -8,10 +8,14 @@ import bcrypt from "bcryptjs";
 function serializeDoc(doc: any): any {
   if (!doc) return null;
   const obj = doc.toObject ? doc.toObject() : doc;
-  if (obj._id) {
+  
+  // Only set id from _id if there's no existing id field
+  if (obj._id && !obj.id) {
     obj.id = obj._id.toString();
-    delete obj._id;
   }
+  
+  // Always clean up MongoDB internal fields
+  delete obj._id;
   delete obj.__v;
   return obj;
 }
@@ -750,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const cartItem = await storage.addToCart(validatedData);
-      res.status(201).json(cartItem);
+      res.status(201).json(serializeDoc(cartItem));
     } catch (error) {
       console.error("Error adding item to cart:", error);
       if (error instanceof Error && 'issues' in error) {
@@ -775,7 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Cart item not found" });
       }
 
-      res.json(updatedItem || { message: "Item removed from cart" });
+      res.json(updatedItem ? serializeDoc(updatedItem) : { message: "Item removed from cart" });
     } catch (error) {
       console.error("Error updating cart item quantity:", error);
       res.status(500).json({ error: "Failed to update cart item quantity" });
