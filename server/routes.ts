@@ -690,7 +690,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const orders = await storage.getCustomerOrders(id);
-      res.json(orders);
+      
+      // Process orders to ensure items is always an array
+      const processedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        // Parse items if they're stored as JSON string
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            console.error("Error parsing order items:", e);
+            orderItems = [];
+          }
+        }
+        
+        // Ensure orderItems is an array
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        return {
+          ...serializedOrder,
+          items: orderItems
+        };
+      });
+      
+      res.json(processedOrders);
     } catch (error) {
       console.error("Error fetching customer orders:", error);
       res.status(500).json({ error: "Failed to fetch orders" });

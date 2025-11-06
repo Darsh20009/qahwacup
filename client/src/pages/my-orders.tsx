@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { ArrowRight, Coffee } from "lucide-react";
 import { motion } from "framer-motion";
 import OrderTracker from "@/components/order-tracker";
 import type { Order as OrderType } from "@shared/schema";
+import { useCustomer } from "@/contexts/CustomerContext";
 
 interface OrderDisplay extends OrderType {
   items: any[];
@@ -14,25 +14,8 @@ interface OrderDisplay extends OrderType {
 
 export default function MyOrders() {
   const [, setLocation] = useLocation();
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [customerId, setCustomerId] = useState("");
-
-  useEffect(() => {
-    const savedCard = localStorage.getItem("qahwa-loyalty-card");
-    if (savedCard) {
-      try {
-        const cardData = JSON.parse(savedCard);
-        setPhoneNumber(cardData.phoneNumber);
-      } catch (error) {
-        console.error("Error loading card:", error);
-      }
-    }
-
-    const savedCustomerId = localStorage.getItem("customer-id");
-    if (savedCustomerId) {
-      setCustomerId(savedCustomerId);
-    }
-  }, []);
+  const { customer } = useCustomer();
+  const customerId = customer?._id || customer?.id;
 
   const { data: orders = [], isLoading, refetch } = useQuery<OrderDisplay[]>({
     queryKey: ["/api/customers", customerId, "orders"],
@@ -151,7 +134,7 @@ export default function MyOrders() {
                       </div>
                       <div className="text-left">
                         <span className="text-2xl font-bold text-amber-900 font-cairo">
-                          {parseFloat(order.totalAmount).toFixed(2)} ريال
+                          {Number(order.totalAmount).toFixed(2)} ريال
                         </span>
                       </div>
                     </div>
