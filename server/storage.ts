@@ -189,18 +189,18 @@ export class DBStorage implements IStorage {
   }
 
   private async initializeDemoEmployee() {
-    const existing = await EmployeeModel.findOne({ username: 'darwish' });
+    const existing = await EmployeeModel.findOne({ username: 'manager' });
     if (existing) return;
 
-    const hashedPassword = bcrypt.hashSync('2009', 10);
+    const hashedPassword = bcrypt.hashSync('2030', 10);
     await EmployeeModel.create({
-      username: 'darwish',
+      username: 'manager',
       password: hashedPassword,
-      fullName: 'يوسف درويش',
+      fullName: 'المدير',
       role: 'manager',
       title: 'مدير المقهى',
       phone: '500000000',
-      jobTitle: 'محاسب',
+      jobTitle: 'مدير',
       isActivated: 1,
     });
   }

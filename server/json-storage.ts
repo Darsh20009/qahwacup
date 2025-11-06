@@ -183,21 +183,21 @@ export class JsonStorage implements IStorage {
 
   private async initializeDemoEmployee() {
     const employees = this.readData<Employee>('employees');
-    const exists = employees.find(emp => emp.username === 'darwish');
+    const exists = employees.find(emp => emp.username === 'manager');
     
     if (!exists) {
-      const hashedPassword = bcrypt.hashSync('2009', 10);
+      const hashedPassword = bcrypt.hashSync('2030', 10);
       const demoEmployee: Employee = {
         id: 'demo-employee-1',
-        username: 'darwish',
+        username: 'manager',
         password: hashedPassword,
-        fullName: 'يوسف درويش',
+        fullName: 'المدير',
         role: 'manager',
         title: 'مدير المقهى',
       };
       employees.push(demoEmployee);
       this.writeData('employees', employees);
-      this.log('CREATE', 'EMPLOYEE', 'demo-employee-1', { username: 'darwish', role: 'manager' });
+      this.log('CREATE', 'EMPLOYEE', 'demo-employee-1', { username: 'manager', role: 'manager' });
     }
   }
 

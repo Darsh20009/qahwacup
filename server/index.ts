@@ -15,20 +15,20 @@ if (!MONGODB_URI) {
 
 async function initializeDefaultManager() {
   try {
-    const managerExists = await storage.getEmployeeByUsername("darwish");
+    const managerExists = await storage.getEmployeeByUsername("manager");
     
     if (!managerExists) {
       console.log("📝 Creating default manager account...");
       await storage.createEmployee({
-        username: "darwish",
-        password: "2009",
+        username: "manager",
+        password: "2030",
         fullName: "المدير",
         role: "manager",
         phone: "0000000000",
         jobTitle: "مدير",
         isActivated: 1,
       });
-      console.log("✅ Default manager account created (username: darwish)");
+      console.log("✅ Default manager account created (username: manager)");
     }
   } catch (error) {
     console.error("❌ Error creating default manager:", error);
