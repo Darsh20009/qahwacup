@@ -12,16 +12,21 @@ async function setupDatabase() {
 
   console.log('Setting up database for external deployment...');
   
+  const isFilessDB = DATABASE_URL.includes('filess.io');
+  
   const pool = new Pool({
     connectionString: DATABASE_URL,
-    ssl: false,
-    options: '-c search_path=public',
+    ssl: isFilessDB ? false : undefined,
   });
 
   try {
     await pool.query('SELECT 1');
     console.log('✅ Database connection successful');
     
+    await pool.query('CREATE SCHEMA IF NOT EXISTS public');
+    console.log('✅ Public schema ensured');
+    
+    await pool.query('SET search_path TO public');
     const searchPathResult = await pool.query('SHOW search_path');
     console.log('Current search_path:', searchPathResult.rows[0].search_path);
     

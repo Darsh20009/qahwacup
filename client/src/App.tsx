@@ -24,6 +24,8 @@ import CheckoutModal from "@/components/checkout-modal";
 import { CartProvider, useCartStore } from "@/lib/cart-store";
 import { CustomerProvider } from "@/contexts/CustomerContext";
 import CustomerAuth from "@/pages/CustomerAuth";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import CopyCard from "@/pages/CopyCard";
 import MyOrdersPage from "@/pages/my-orders";
 
@@ -33,6 +35,8 @@ function Router() {
       <Route path="/" component={SplashScreen} />
       <Route path="/0" component={UnifiedHub} />
       <Route path="/auth" component={CustomerAuth} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/copy-card" component={CopyCard} />
       <Route path="/my-orders" component={MyOrdersPage} />
       <Route path="/menu" component={MenuPage} />

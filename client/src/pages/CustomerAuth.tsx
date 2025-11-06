@@ -14,7 +14,7 @@ export default function CustomerAuth() {
   const [, navigate] = useLocation();
   const { setCustomer } = useCustomer();
   const { toast } = useToast();
-  const [phone, setPhone] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,21 +24,12 @@ export default function CustomerAuth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const cleanPhone = phone.replace(/\s/g, '').trim();
+    const cleanIdentifier = identifier.replace(/\s/g, '').trim();
     
-    if (!cleanPhone || cleanPhone.length !== 9) {
+    if (!cleanIdentifier) {
       toast({
         title: "خطأ",
-        description: "يرجى إدخال رقم جوال مكون من 9 أرقام",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!cleanPhone.startsWith('5')) {
-      toast({
-        title: "خطأ",
-        description: "رقم الجوال يجب أن يبدأ بالرقم 5",
+        description: "يرجى إدخال رقم الجوال أو البريد الإلكتروني",
         variant: "destructive"
       });
       return;
@@ -57,7 +48,7 @@ export default function CustomerAuth() {
 
     try {
       const res = await apiRequest("POST", "/api/customers/login", {
-        phone: cleanPhone,
+        identifier: cleanIdentifier,
         password
       });
       
@@ -74,7 +65,7 @@ export default function CustomerAuth() {
       console.error("Login error:", error);
       toast({
         title: "خطأ",
-        description: error.message || "رقم الهاتف أو كلمة المرور غير صحيحة",
+        description: error.message || "رقم الهاتف/البريد الإلكتروني أو كلمة المرور غير صحيحة",
         variant: "destructive"
       });
     } finally {
@@ -85,7 +76,7 @@ export default function CustomerAuth() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const cleanPhone = phone.replace(/\s/g, '').trim();
+    const cleanPhone = identifier.replace(/\s/g, '').trim();
     
     if (!cleanPhone || cleanPhone.length !== 9) {
       toast({
@@ -114,10 +105,10 @@ export default function CustomerAuth() {
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast({
         title: "خطأ",
-        description: "صيغة البريد الإلكتروني غير صحيحة",
+        description: "البريد الإلكتروني مطلوب وصيغته غير صحيحة",
         variant: "destructive"
       });
       return;
@@ -138,7 +129,7 @@ export default function CustomerAuth() {
       const res = await apiRequest("POST", "/api/customers/register", {
         phone: cleanPhone,
         name: name.trim(),
-        email: email || undefined,
+        email: email.trim(),
         password
       });
       
@@ -196,28 +187,23 @@ export default function CustomerAuth() {
             <TabsContent value="login" className="space-y-5 mt-5">
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="login-phone" className="text-amber-100 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    رقم الجوال
+                  <Label htmlFor="login-identifier" className="text-amber-100 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    رقم الجوال أو البريد الإلكتروني
                   </Label>
-                  <div className="relative">
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400/70 font-semibold">
-                      +966
-                    </span>
-                    <Input
-                      id="login-phone"
-                      type="tel"
-                      placeholder="5xxxxxxxx"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="pr-16 bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
-                      dir="ltr"
-                      data-testid="input-phone"
-                      required
-                    />
-                  </div>
+                  <Input
+                    id="login-identifier"
+                    type="text"
+                    placeholder="5xxxxxxxx أو email@example.com"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+                    dir="ltr"
+                    data-testid="input-identifier"
+                    required
+                  />
                   <p className="text-xs text-amber-200/50 mt-1">
-                    ابدأ بـ 5 ثم باقي الأرقام (9 أرقام)
+                    يمكنك تسجيل الدخول بالجوال (9 أرقام يبدأ بـ 5) أو البريد الإلكتروني
                   </p>
                 </div>
 
@@ -296,8 +282,8 @@ export default function CustomerAuth() {
                       id="register-phone"
                       type="tel"
                       placeholder="5xxxxxxxx"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
                       className="pr-16 bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
                       dir="ltr"
                       data-testid="input-phone-register"
@@ -312,7 +298,7 @@ export default function CustomerAuth() {
                 <div className="space-y-2">
                   <Label htmlFor="register-email" className="text-amber-100 flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    البريد الإلكتروني (اختياري)
+                    البريد الإلكتروني
                   </Label>
                   <Input
                     id="register-email"
@@ -323,9 +309,10 @@ export default function CustomerAuth() {
                     className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
                     data-testid="input-email"
                     dir="ltr"
+                    required
                   />
                   <p className="text-xs text-amber-200/50 mt-1">
-                    لاستعادة كلمة المرور إذا نسيتها
+                    مطلوب لاستعادة كلمة المرور إذا نسيتها
                   </p>
                 </div>
 

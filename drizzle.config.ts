@@ -19,6 +19,7 @@ const getDbCredentials = () => {
     };
   } else {
     const parsed = parse(process.env.DATABASE_URL!);
+    const isFilessDB = process.env.DATABASE_URL!.includes('filess.io');
     
     return {
       host: parsed.host!,
@@ -26,7 +27,7 @@ const getDbCredentials = () => {
       user: parsed.user!,
       password: parsed.password!,
       database: parsed.database!,
-      ssl: false,
+      ssl: isFilessDB ? false : undefined,
     };
   }
 };
@@ -39,7 +40,4 @@ export default defineConfig({
   schemaFilter: ["public"],
   verbose: true,
   strict: true,
-  migrations: {
-    schema: "public",
-  },
 });

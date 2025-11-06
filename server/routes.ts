@@ -233,10 +233,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer registration - إنشاء حساب جديد
   app.post("/api/customers/register", async (req, res) => {
     try {
-      const { phone, name, password } = req.body;
+      const { phone, email, name, password } = req.body;
 
-      if (!phone || !name || !password) {
-        return res.status(400).json({ error: "الهاتف والاسم وكلمة المرور مطلوبة" });
+      if (!phone || !email || !name || !password) {
+        return res.status(400).json({ error: "الهاتف والبريد الإلكتروني والاسم وكلمة المرور مطلوبة" });
       }
 
       // Validate phone format: must be 9 digits starting with 5
@@ -253,6 +253,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
       }
 
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "صيغة البريد الإلكتروني غير صحيحة" });
+      }
+
       // Validate name
       if (name.trim().length < 2) {
         return res.status(400).json({ error: "الاسم يجب أن يكون على الأقل حرفين" });
@@ -263,15 +269,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "كلمة المرور يجب أن تكون على الأقل 4 أحرف" });
       }
 
-      // Check if customer already exists
-      const existingCustomer = await storage.getCustomerByPhone(cleanPhone);
-      if (existingCustomer) {
+      // Check if customer already exists with this phone
+      const existingCustomerByPhone = await storage.getCustomerByPhone(cleanPhone);
+      if (existingCustomerByPhone) {
         return res.status(400).json({ error: "رقم الهاتف مسجل مسبقاً" });
+      }
+
+      // Check if customer already exists with this email
+      const existingCustomerByEmail = await storage.getCustomerByEmail(email);
+      if (existingCustomerByEmail) {
+        return res.status(400).json({ error: "البريد الإلكتروني مسجل مسبقاً" });
       }
 
       // Create new customer
       const customer = await storage.createCustomer({ 
         phone: cleanPhone, 
+        email: email.trim(),
         name: name.trim(),
         password 
       });
@@ -299,23 +312,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer login - تسجيل دخول
   app.post("/api/customers/login", async (req, res) => {
     try {
-      const { phone, password } = req.body;
+      const { identifier, password } = req.body;
 
-      if (!phone || !password) {
-        return res.status(400).json({ error: "الهاتف وكلمة المرور مطلوبة" });
+      if (!identifier || !password) {
+        return res.status(400).json({ error: "رقم الهاتف أو البريد الإلكتروني وكلمة المرور مطلوبة" });
       }
 
-      // Validate phone format
-      const cleanPhone = phone.trim().replace(/\s/g, '');
-      if (!/^5\d{8}$/.test(cleanPhone)) {
-        return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
-      }
+      const cleanIdentifier = identifier.trim().replace(/\s/g, '');
+      let customer;
 
-      // Verify customer credentials
-      const customer = await storage.verifyCustomerPassword(cleanPhone, password);
+      // Check if identifier is email or phone
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(cleanIdentifier)) {
+        // Login with email - get customer and verify password
+        const customerByEmail = await storage.getCustomerByEmail(cleanIdentifier);
+        if (customerByEmail && customerByEmail.password) {
+          const isPasswordValid = await bcrypt.compare(password, customerByEmail.password);
+          if (isPasswordValid) {
+            customer = customerByEmail;
+          }
+        }
+      } else {
+        // Login with phone
+        if (!/^5\d{8}$/.test(cleanIdentifier)) {
+          return res.status(400).json({ error: "صيغة رقم الهاتف أو البريد الإلكتروني غير صحيحة" });
+        }
+        customer = await storage.verifyCustomerPassword(cleanIdentifier, password);
+      }
 
       if (!customer) {
-        return res.status(401).json({ error: "رقم الهاتف أو كلمة المرور غير صحيحة" });
+        return res.status(401).json({ error: "رقم الهاتف/البريد الإلكتروني أو كلمة المرور غير صحيحة" });
       }
 
       // Don't send password back
