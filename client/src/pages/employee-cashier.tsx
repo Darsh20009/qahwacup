@@ -223,7 +223,7 @@ export default function EmployeeCashier() {
       return;
     }
 
-    if (!customerName.trim() || !customerPhone.trim()) {
+    if (!(customerName || '').trim() || !(customerPhone || '').trim()) {
       toast({
         title: "خطأ",
         description: "يرجى إدخال بيانات العميل",
