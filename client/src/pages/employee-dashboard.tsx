@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3 } from "lucide-react";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
@@ -286,18 +286,33 @@ export default function EmployeeDashboard() {
               </Button>
 
               {employee.role === "manager" && (
-                <Button
-                  size="lg"
-                  className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white md:col-span-3"
-                  onClick={() => setLocation("/manager/employees")}
-                  data-testid="button-manager-employees"
-                >
-                  <User className="w-10 h-10" />
-                  <div className="text-center">
-                    <div className="font-bold text-lg">إدارة الموظفين</div>
-                    <div className="text-sm opacity-90">إضافة وتعديل الموظفين</div>
-                  </div>
-                </Button>
+                <>
+                  <Button
+                    size="lg"
+                    className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
+                    onClick={() => setLocation("/manager/dashboard")}
+                    data-testid="button-manager-dashboard"
+                  >
+                    <BarChart3 className="w-10 h-10" />
+                    <div className="text-center">
+                      <div className="font-bold text-lg">لوحة التحكم</div>
+                      <div className="text-sm opacity-90">إحصائيات شاملة</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    size="lg"
+                    className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white md:col-span-2"
+                    onClick={() => setLocation("/manager/employees")}
+                    data-testid="button-manager-employees"
+                  >
+                    <User className="w-10 h-10" />
+                    <div className="text-center">
+                      <div className="font-bold text-lg">إدارة الموظفين</div>
+                      <div className="text-sm opacity-90">إضافة وتعديل الموظفين</div>
+                    </div>
+                  </Button>
+                </>
               )}
             </CardContent>
           </Card>

@@ -61,6 +61,7 @@ export default function EmployeeCashier() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   
   const { toast } = useToast();
@@ -131,6 +132,7 @@ export default function EmployeeCashier() {
     setOrderItems([]);
     setCustomerName("");
     setCustomerPhone("");
+    setTableNumber("");
     setPaymentMethod("cash");
   };
 
@@ -203,6 +205,7 @@ export default function EmployeeCashier() {
         customerPhone: customerPhone
       },
       employeeId: employee?.id,
+      tableNumber: tableNumber || undefined,
       status: "in_progress"
     };
 
@@ -386,6 +389,20 @@ export default function EmployeeCashier() {
                           placeholder="5xxxxxxxx"
                           className="bg-[#1a1410] border-amber-500/30 text-white text-right"
                           data-testid="input-customer-phone"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-gray-300 text-right block">
+                          <Coffee className="w-4 h-4 inline ml-2" />
+                          رقم الطاولة (اختياري)
+                        </Label>
+                        <Input
+                          value={tableNumber}
+                          onChange={(e) => setTableNumber(e.target.value)}
+                          placeholder="مثال: 5 أو A3"
+                          className="bg-[#1a1410] border-amber-500/30 text-white text-right"
+                          data-testid="input-table-number"
                         />
                       </div>
 

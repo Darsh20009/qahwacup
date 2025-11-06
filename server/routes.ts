@@ -1607,6 +1607,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // BRANCH MANAGEMENT ROUTES
+  app.get("/api/branches", async (req, res) => {
+    try {
+      const branches = await storage.getBranches();
+      res.json(branches);
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      res.status(500).json({ error: "Failed to fetch branches" });
+    }
+  });
+
+  app.get("/api/branches/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const branch = await storage.getBranch(id);
+      if (!branch) {
+        return res.status(404).json({ error: "Branch not found" });
+      }
+      res.json(branch);
+    } catch (error) {
+      console.error("Error fetching branch:", error);
+      res.status(500).json({ error: "Failed to fetch branch" });
+    }
+  });
+
+  app.post("/api/branches", async (req, res) => {
+    try {
+      const { insertBranchSchema } = await import("@shared/schema");
+      const validatedData = insertBranchSchema.parse(req.body);
+      const branch = await storage.createBranch(validatedData);
+      res.status(201).json(branch);
+    } catch (error) {
+      console.error("Error creating branch:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error.issues });
+      }
+      res.status(500).json({ error: "Failed to create branch" });
+    }
+  });
+
+  app.put("/api/branches/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const branch = await storage.updateBranch(id, req.body);
+      if (!branch) {
+        return res.status(404).json({ error: "Branch not found" });
+      }
+      res.json(branch);
+    } catch (error) {
+      console.error("Error updating branch:", error);
+      res.status(500).json({ error: "Failed to update branch" });
+    }
+  });
+
+  app.delete("/api/branches/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteBranch(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Branch not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting branch:", error);
+      res.status(500).json({ error: "Failed to delete branch" });
+    }
+  });
+
+  // CATEGORY MANAGEMENT ROUTES
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const { insertCategorySchema } = await import("@shared/schema");
+      const validatedData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating category:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error.issues });
+      }
+      res.status(500).json({ error: "Failed to create category" });
+    }
+  });
+
+  app.put("/api/categories/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const category = await storage.updateCategory(id, req.body);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating category:", error);
+      res.status(500).json({ error: "Failed to update category" });
+    }
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteCategory(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ error: "Failed to delete category" });
+    }
+  });
+
+  // CUSTOMER MANAGEMENT ROUTES (for manager dashboard)
+  app.get("/api/admin/customers", async (req, res) => {
+    try {
+      const customers = await storage.getCustomers();
+      const customersWithoutPasswords = customers.map(({ password: _, ...customer }) => customer);
+      res.json(customersWithoutPasswords);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ error: "Failed to fetch customers" });
+    }
+  });
+
+  // Get orders by employee (for manager to see each cashier's orders)
+  app.get("/api/admin/orders/employee/:employeeId", async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const orders = await storage.getOrdersByEmployee(employeeId);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching employee orders:", error);
+      res.status(500).json({ error: "Failed to fetch employee orders" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

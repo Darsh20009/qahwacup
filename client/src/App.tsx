@@ -30,6 +30,7 @@ import CopyCard from "@/pages/CopyCard";
 import MyOrdersPage from "@/pages/my-orders";
 import ManagerEmployees from "@/pages/manager-employees";
 import EmployeeActivation from "@/pages/employee-activation";
+import ManagerDashboard from "@/pages/manager-dashboard";
 
 function Router() {
   return (
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
       <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
       <Route path="/manager/employees" component={ManagerEmployees} />
+      <Route path="/manager/dashboard" component={ManagerDashboard} />
       <Route component={SplashScreen} />
     </Switch>
   );

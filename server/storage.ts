@@ -707,6 +707,70 @@ export class DBStorage implements IStorage {
     const coffeeItemIds = links.map(link => link.coffeeItemId);
     return await CoffeeItemModel.find({ id: { $in: coffeeItemIds } });
   }
+
+  async getBranches(): Promise<Branch[]> {
+    return await BranchModel.find().sort({ createdAt: -1 });
+  }
+
+  async getBranch(id: string): Promise<Branch | undefined> {
+    const branch = await BranchModel.findById(id);
+    return branch || undefined;
+  }
+
+  async createBranch(branch: InsertBranch): Promise<Branch> {
+    const newBranch = await BranchModel.create(branch);
+    return newBranch;
+  }
+
+  async updateBranch(id: string, updates: Partial<Branch>): Promise<Branch | undefined> {
+    const updated = await BranchModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async deleteBranch(id: string): Promise<boolean> {
+    const result = await BranchModel.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async getCategories(): Promise<Category[]> {
+    return await CategoryModel.find().sort({ sortOrder: 1, nameAr: 1 });
+  }
+
+  async getCategory(id: string): Promise<Category | undefined> {
+    const category = await CategoryModel.findById(id);
+    return category || undefined;
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const newCategory = await CategoryModel.create(category);
+    return newCategory;
+  }
+
+  async updateCategory(id: string, updates: Partial<Category>): Promise<Category | undefined> {
+    const updated = await CategoryModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async deleteCategory(id: string): Promise<boolean> {
+    const result = await CategoryModel.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async getCustomers(): Promise<Customer[]> {
+    return await CustomerModel.find().sort({ createdAt: -1 });
+  }
+
+  async getOrdersByEmployee(employeeId: string): Promise<Order[]> {
+    return await OrderModel.find({ employeeId }).sort({ createdAt: -1 });
+  }
 }
 
 export const storage = new DBStorage();
