@@ -6,11 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development npx tsx server/index.ts",
     "build": "npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "postbuild": "npx tsx scripts/setup-db.ts && npx drizzle-kit push --force",
     "start": "NODE_ENV=production node dist/index.js",
-    "check": "npx tsc",
-    "db:push": "npx drizzle-kit push --force",
-    "db:setup": "npx tsx scripts/setup-db.ts && npx drizzle-kit push --force"
+    "check": "npx tsc"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -86,7 +83,6 @@
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.1.3",
-    "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "4.17.21",
     "@types/express-session": "^1.18.0",
     "@types/node": "20.16.11",

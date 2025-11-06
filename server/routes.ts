@@ -785,7 +785,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 discountAmount: validatedFreeItemsDiscount,
                 orderAmount: totalAmount,
                 description: `استخدام ${validatedUsedFreeDrinks} مشروب مجاني`,
-                employeeId: null
               });
             }
           }
@@ -835,7 +834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await storage.updateLoyaltyCard(loyaltyCard.id, {
                 stamps: remainingStamps,
                 freeCupsEarned: loyaltyCard.freeCupsEarned + freeCupsToEarn,
-                totalSpent: (parseFloat(loyaltyCard.totalSpent) + parseFloat(totalAmount)).toFixed(2),
+                totalSpent: parseFloat(loyaltyCard.totalSpent.toString()) + parseFloat(totalAmount.toString()),
                 lastUsedAt: new Date()
               });
 
@@ -844,10 +843,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 cardId: loyaltyCard.id,
                 type: 'stamps_earned',
                 pointsChange: stampsToAdd,
-                discountAmount: "0.00",
+                discountAmount: 0,
                 orderAmount: totalAmount,
                 description: `اكتسبت ${stampsToAdd} ختم من الطلب`,
-                employeeId: null
               });
 
               // Create transaction for free cups earned
@@ -856,10 +854,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   cardId: loyaltyCard.id,
                   type: 'free_cup_earned',
                   pointsChange: 0,
-                  discountAmount: "0.00",
+                  discountAmount: 0,
                   orderAmount: totalAmount,
                   description: `اكتسبت ${freeCupsToEarn} قهوة مجانية!`,
-                  employeeId: null
                 });
               }
             }
@@ -1139,7 +1136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update card - increment discount count and update last used
       await storage.updateLoyaltyCard(card.id, {
         discountCount: card.discountCount + 1,
-        totalSpent: (parseFloat(card.totalSpent) + finalAmount).toFixed(2),
+        totalSpent: parseFloat(card.totalSpent.toString()) + finalAmount,
         lastUsedAt: new Date()
       });
 
@@ -1148,10 +1145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cardId: card.id,
         type: 'discount_applied',
         pointsChange: 0,
-        discountAmount: discountAmount.toFixed(2),
-        orderAmount: orderAmount,
+        discountAmount: discountAmount,
+        orderAmount: parseFloat(orderAmount.toString()),
         description: `خصم ${discountPercentage}% على الطلب`,
-        employeeId: employeeId || null
+        employeeId: employeeId || undefined
       });
 
       res.json({
@@ -1360,7 +1357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const coffeeItem of affectedCoffeeItems) {
         if (isAvailable === 0) {
           // If ingredient is unavailable, mark all items using it as unavailable
-          await storage.updateCoffeeItemAvailability(coffeeItem.id, {
+          await storage.updateCoffeeItem(coffeeItem.id, {
             isAvailable: 0,
             availabilityStatus: `نفذ ${ingredient.nameAr}`
           });
@@ -1371,7 +1368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (allIngredientsAvailable) {
             // All ingredients available, make the item available
-            await storage.updateCoffeeItemAvailability(coffeeItem.id, {
+            await storage.updateCoffeeItem(coffeeItem.id, {
               isAvailable: 1,
               availabilityStatus: "متوفر"
             });
