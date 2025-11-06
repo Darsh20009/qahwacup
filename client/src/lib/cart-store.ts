@@ -149,10 +149,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Computed values
   const getTotalPrice = (): number => {
     return cartItems.reduce((total, item) => {
-      const price = typeof item.coffeeItem?.price === 'number' 
-        ? item.coffeeItem.price 
-        : parseFloat(String(item.coffeeItem?.price || 0));
-      return total + (price * item.quantity);
+      if (!item.coffeeItem?.price) return total;
+      
+      // Handle MongoDB Decimal128 and other formats
+      let price = 0;
+      if (typeof item.coffeeItem.price === 'number') {
+        price = item.coffeeItem.price;
+      } else if (typeof item.coffeeItem.price === 'string') {
+        price = parseFloat(item.coffeeItem.price);
+      } else if (item.coffeeItem.price && typeof item.coffeeItem.price === 'object' && '$numberDecimal' in item.coffeeItem.price) {
+        // Handle MongoDB Decimal128 format
+        price = parseFloat((item.coffeeItem.price as any).$numberDecimal);
+      } else {
+        price = parseFloat(String(item.coffeeItem.price));
+      }
+      
+      return total + (isNaN(price) ? 0 : price * item.quantity);
     }, 0);
   };
 

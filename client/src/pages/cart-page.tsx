@@ -86,7 +86,7 @@ export default function CartPage() {
                 <ShoppingCart className="w-8 h-8 ml-3" />
                 العناصر المختارة
               </h2>
-              
+
               {cartItems.map((item, index) => (
                 <Card 
                   key={item.coffeeItemId} 
@@ -127,11 +127,11 @@ export default function CartPage() {
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
-                          
+
                           <span className="text-amber-800 font-bold text-lg w-12 text-center">
                             {item.quantity}
                           </span>
-                          
+
                           <Button
                             size="sm"
                             variant="ghost"
@@ -174,7 +174,7 @@ export default function CartPage() {
                       {cartItems.reduce((sum, item) => sum + item.quantity, 0)} قطعة
                     </Badge>
                   </div>
-                  
+
                   <div className="border-t border-amber-200 pt-6">
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold text-amber-800">المجموع الكلي:</span>
