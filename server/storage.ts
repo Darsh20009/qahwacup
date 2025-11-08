@@ -98,6 +98,7 @@ export interface IStorage {
   getOrder(id: string): Promise<Order | undefined>;
   getOrderByNumber(orderNumber: string): Promise<Order | undefined>;
   updateOrderStatus(id: string, status: string, cancellationReason?: string): Promise<Order | undefined>;
+  updateOrderCarPickup(id: string, carPickup: any): Promise<Order | undefined>;
   getOrders(limit?: number, offset?: number): Promise<Order[]>;
 
   createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
@@ -486,6 +487,15 @@ export class DBStorage implements IStorage {
       updates.cancellationReason = cancellationReason;
     }
     const updated = await OrderModel.findByIdAndUpdate(id, updates, { new: true });
+    return updated || undefined;
+  }
+
+  async updateOrderCarPickup(id: string, carPickup: any): Promise<Order | undefined> {
+    const updated = await OrderModel.findByIdAndUpdate(
+      id,
+      { carPickup, updatedAt: new Date() },
+      { new: true }
+    );
     return updated || undefined;
   }
 

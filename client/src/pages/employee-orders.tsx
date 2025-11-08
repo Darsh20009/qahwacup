@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw } from "lucide-react";
+import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car } from "lucide-react";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
 
 interface OrderItemData {
@@ -104,7 +104,7 @@ export default function EmployeeOrders() {
         
         // Show toast notification
         toast({
-          title: "طلب جديد! 🔔",
+          title: "طلب جديد",
           description: `لديك ${newOrderIds.length} طلب ${newOrderIds.length === 1 ? 'جديد' : 'جديدة'}`,
           className: "bg-green-600 text-white border-green-700",
         });
@@ -479,6 +479,27 @@ export default function EmployeeOrders() {
                                 <p className="text-white text-sm" data-testid={`text-customer-notes-${order.id}`}>
                                   {order.customerNotes}
                                 </p>
+                              </div>
+                            )}
+
+                            {/* Car Pickup Info */}
+                            {order.status === 'ready' && order.carPickup && (
+                              <div className="bg-purple-900/20 rounded-lg p-3 mb-4 border border-purple-500/20">
+                                <div className="flex items-start gap-2">
+                                  <Car className="w-5 h-5 text-purple-400 mt-0.5" />
+                                  <div className="flex-1">
+                                    <p className="text-purple-400 text-sm font-semibold mb-2">معلومات السيارة - استلام من المركبة</p>
+                                    <div className="space-y-1">
+                                      <p className="text-white text-sm">
+                                        <span className="text-gray-400">النوع:</span> {order.carPickup.carType}
+                                      </p>
+                                      <p className="text-white text-sm">
+                                        <span className="text-gray-400">اللون:</span> {order.carPickup.carColor}
+                                      </p>
+                                    </div>
+                                    <p className="text-xs text-purple-300 mt-2">يرجى توصيل الطلب للعميل في السيارة</p>
+                                  </div>
+                                </div>
                               </div>
                             )}
 

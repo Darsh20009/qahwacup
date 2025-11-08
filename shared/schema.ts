@@ -38,6 +38,9 @@ export interface ICustomer extends Document {
   email?: string;
   name: string;
   password: string;
+  carType?: string;
+  carColor?: string;
+  saveCarInfo?: number;
   createdAt: Date;
 }
 
@@ -46,6 +49,9 @@ const CustomerSchema = new Schema<ICustomer>({
   email: { type: String, unique: true, sparse: true },
   name: { type: String, required: true },
   password: { type: String, required: true },
+  carType: { type: String },
+  carColor: { type: String },
+  saveCarInfo: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -139,6 +145,7 @@ export interface IOrder extends Document {
   tableNumber?: string;
   customerNotes?: string;
   cancellationReason?: string;
+  carPickup?: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -157,6 +164,7 @@ const OrderSchema = new Schema<IOrder>({
   tableNumber: { type: String },
   customerNotes: { type: String },
   cancellationReason: { type: String },
+  carPickup: { type: Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -447,6 +455,7 @@ export const insertOrderSchema = z.object({
   tableNumber: z.string().optional(),
   customerNotes: z.string().optional(),
   cancellationReason: z.string().optional(),
+  carPickup: z.any().optional(),
 });
 
 export const insertOrderItemSchema = z.object({
@@ -468,6 +477,9 @@ export const insertCustomerSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح").optional(),
   name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
   password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف"),
+  carType: z.string().optional(),
+  carColor: z.string().optional(),
+  saveCarInfo: z.number().optional(),
 });
 
 export const insertPasswordResetTokenSchema = z.object({

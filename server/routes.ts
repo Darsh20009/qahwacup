@@ -670,15 +670,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/customers/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { name } = req.body;
+      const { name, carType, carColor, saveCarInfo } = req.body;
 
-      const customer = await storage.updateCustomer(id, { name });
+      const updates: any = {};
+      if (name !== undefined) updates.name = name;
+      if (carType !== undefined) updates.carType = carType;
+      if (carColor !== undefined) updates.carColor = carColor;
+      if (saveCarInfo !== undefined) updates.saveCarInfo = saveCarInfo;
+
+      const customer = await storage.updateCustomer(id, updates);
 
       if (!customer) {
         return res.status(404).json({ error: "Customer not found" });
       }
 
-      res.json(customer);
+      res.json(serializeDoc(customer));
     } catch (error) {
       console.error("Error updating customer:", error);
       res.status(500).json({ error: "Failed to update customer" });
@@ -1131,6 +1137,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching order by number:", error);
       res.status(500).json({ error: "Failed to fetch order" });
+    }
+  });
+
+  // Update order car pickup info
+  app.post("/api/orders/:id/car-pickup", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { carType, carColor } = req.body;
+
+      if (!carType || !carColor) {
+        return res.status(400).json({ error: "Car type and color are required" });
+      }
+
+      const order = await storage.getOrder(id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      const carPickup = { carType, carColor };
+      const updatedOrder = await storage.updateOrderCarPickup(id, carPickup);
+
+      if (!updatedOrder) {
+        return res.status(404).json({ error: "Failed to update order" });
+      }
+
+      res.json(serializeDoc(updatedOrder));
+    } catch (error) {
+      console.error("Error updating car pickup info:", error);
+      res.status(500).json({ error: "Failed to update car pickup info" });
     }
   });
 

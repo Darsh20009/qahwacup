@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, Coffee } from "lucide-react";
 import { motion } from "framer-motion";
 import OrderTracker from "@/components/order-tracker";
+import { ReceiptInvoice } from "@/components/receipt-invoice";
+import { CarPickupForm } from "@/components/car-pickup-form";
 import type { Order as OrderType } from "@shared/schema";
 import { useCustomer } from "@/contexts/CustomerContext";
 
@@ -155,6 +157,16 @@ export default function MyOrders() {
 
                   {/* Order Tracker */}
                   <OrderTracker order={order} />
+
+                  {/* Car Pickup Form - Show when order is ready */}
+                  {order.status === 'ready' && (
+                    <CarPickupForm order={order} customer={customer} />
+                  )}
+
+                  {/* PDF Invoice Button */}
+                  {(order.status === 'ready' || order.status === 'completed') && (
+                    <ReceiptInvoice order={order} />
+                  )}
 
                   {order.customerNotes && (
                       <div className="bg-amber-900/20 rounded-lg p-3 mb-4 border border-amber-500/20">
