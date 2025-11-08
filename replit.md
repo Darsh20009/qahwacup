@@ -40,6 +40,8 @@ The backend is an Express.js application written in TypeScript, following a REST
 - **WhatsApp Integration**: Automated invoices and order status notifications.
 - **Multi-language Support**: Arabic-first with RTL layout.
 - **Unified Hub Page**: Combines employee dashboard and menu view at `/0`.
+- **Car Pickup System**: Drive-through/curbside pickup with vehicle information (type, color) for seamless order delivery.
+- **Digital PDF Receipts**: Branded PDF invoices ("فاتورة استلام") with Qahwa Cup logo and complete order details.
 
 ## Database Schema
 The system uses 14 main collections managed by MongoDB and Mongoose for:
@@ -81,6 +83,7 @@ The system uses 14 main collections managed by MongoDB and Mongoose for:
 ## Other Libraries
 - **qrcode**: QR code generation.
 - **html2canvas**: Used for client-side image generation.
+- **jspdf**: PDF generation for digital receipts and invoices.
 
 # Recent Changes (November 2025)
 
@@ -101,3 +104,28 @@ The system uses 14 main collections managed by MongoDB and Mongoose for:
 - **Employee Performance**: Comparison charts for order count and sales per employee
 - **Data Validation**: All charts and metrics handle missing or invalid timestamps gracefully
 - **Consistent Metrics**: All KPI cards respect selected date filter with validated data
+
+## Car Pickup & Digital Receipts (November 8, 2025)
+- **Customer Car Pickup Flow**:
+  - Car information form appears when order status changes to "ready"
+  - Captures vehicle type and color for easy identification
+  - Optional: Save car details to customer profile for future orders
+  - Automatic fallback to saved car info if previously saved
+- **Digital PDF Invoice**:
+  - Branded PDF with Qahwa Cup logo and Arabic branding
+  - Complete order details: items, quantities, prices, total
+  - Customer information and order number
+  - Downloadable as "فاتورة استلام" (Receipt Invoice)
+  - Available for orders in "ready" or "completed" status
+- **Employee Interface**:
+  - Car information displayed prominently for "ready" orders
+  - Visual indicators (purple badge) for curbside pickup orders
+  - Clear instructions to deliver order to customer's vehicle
+- **Database Schema Updates**:
+  - Added `carInfo` to Customer model (carType, carColor)
+  - Added `carPickup` to Order model (carType, carColor)
+  - New API endpoints: `/api/orders/:id/car-pickup` and PATCH `/api/customers/:id`
+- **Technical Implementation**:
+  - Uses jsPDF and html2canvas for PDF generation
+  - Car information persisted in both Customer and Order collections
+  - Seamless integration with existing order tracking workflow
