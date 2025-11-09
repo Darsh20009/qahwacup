@@ -326,7 +326,11 @@ export class DBStorage implements IStorage {
   }
 
   async createDiscountCode(insertDiscountCode: InsertDiscountCode): Promise<DiscountCode> {
-    const newCode = await DiscountCodeModel.create(insertDiscountCode);
+    const normalizedCode = {
+      ...insertDiscountCode,
+      code: insertDiscountCode.code.trim().toLowerCase()
+    };
+    const newCode = await DiscountCodeModel.create(normalizedCode);
     return newCode;
   }
 
@@ -336,7 +340,9 @@ export class DBStorage implements IStorage {
   }
 
   async getDiscountCodeByCode(code: string): Promise<DiscountCode | undefined> {
-    const discountCode = await DiscountCodeModel.findOne({ code });
+    const discountCode = await DiscountCodeModel.findOne({ 
+      code: { $regex: new RegExp(`^${code.trim()}$`, 'i') }
+    });
     return discountCode || undefined;
   }
 
