@@ -62,6 +62,18 @@ export default function EmployeeIngredientsManagement() {
       if (!response.ok) throw new Error("Failed to update ingredient");
       return response.json();
     },
+    onMutate: async ({ id, isAvailable }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/ingredients"] });
+      const previousIngredients = queryClient.getQueryData(["/api/ingredients"]);
+      
+      queryClient.setQueryData(["/api/ingredients"], (old: any) =>
+        old?.map((ing: any) =>
+          ing.id === id ? { ...ing, isAvailable } : ing
+        )
+      );
+      
+      return { previousIngredients };
+    },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
       queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
@@ -74,7 +86,10 @@ export default function EmployeeIngredientsManagement() {
           : "تم تحديث حالة توفر المكون",
       });
     },
-    onError: () => {
+    onError: (error, variables, context: any) => {
+      if (context?.previousIngredients) {
+        queryClient.setQueryData(["/api/ingredients"], context.previousIngredients);
+      }
       toast({
         title: "خطأ",
         description: "فشل تحديث حالة توفر المكون",

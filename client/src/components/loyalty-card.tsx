@@ -49,78 +49,75 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
     canvas.width = 800;
     canvas.height = 500;
 
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#0f172a');
-    gradient.addColorStop(0.5, '#1e293b');
-    gradient.addColorStop(1, '#92400e');
-    ctx.fillStyle = gradient;
+    // Background - Cream/Beige color like the attached image
+    ctx.fillStyle = '#d4b896';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Decorative circles
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+    // Draw coffee cup icon placeholder (simple cup shape)
+    ctx.fillStyle = '#6b4423';
     ctx.beginPath();
-    ctx.arc(100, 100, 150, 0, Math.PI * 2);
+    ctx.arc(400, 120, 40, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillRect(390, 140, 20, 30);
     ctx.beginPath();
-    ctx.arc(700, 400, 120, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.arc(420, 150, 12, 0, Math.PI);
+    ctx.stroke();
 
-    // Title
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 48px Cairo, Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText('قهوة كوب', 750, 80);
+    // Coffee steam decorative lines
+    ctx.strokeStyle = '#8b6f47';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(380 + i * 20, 80);
+      ctx.quadraticCurveTo(385 + i * 20, 70, 380 + i * 20, 60);
+      ctx.stroke();
+    }
 
-    // Subtitle
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '24px Cairo, Arial';
-    ctx.fillText('بطاقة الولاء', 750, 120);
-
-    // Customer name
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px Cairo, Arial';
-    ctx.fillText(card.customerName, 750, 200);
-
-    // Phone
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = '24px Arial';
-    ctx.fillText(card.phoneNumber, 750, 240);
-
-    // Tier badge
-    const tierColors: Record<string, string> = {
-      bronze: '#CD7F32',
-      silver: '#C0C0C0',
-      gold: '#FFD700',
-      platinum: '#E5E4E2'
-    };
-    ctx.fillStyle = tierColors[card.tier] || '#CD7F32';
-    ctx.fillRect(550, 280, 200, 50);
-    ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 28px Cairo, Arial';
+    // Title - Arabic
+    ctx.fillStyle = '#6b4423';
+    ctx.font = 'bold 56px Cairo, Arial';
     ctx.textAlign = 'center';
+    ctx.fillText('قهوة كوب', 400, 220);
+
+    // Subtitle - English
+    ctx.font = '32px Georgia, serif';
+    ctx.fillText('QahwaCup', 400, 260);
+
+    // Owner info
+    ctx.font = 'bold 28px Cairo, Arial';
+    ctx.fillText('يوسف درويش', 400, 310);
+    
+    ctx.font = '20px Cairo, Arial';
+    ctx.fillText('صاحب المشروع', 400, 340);
+
+    // Customer info section
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(50, 370, 700, 100);
+    
+    ctx.fillStyle = '#6b4423';
+    ctx.font = 'bold 24px Cairo, Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText(card.customerName, 730, 405);
+    
+    ctx.font = '18px Arial';
+    ctx.fillText(card.phoneNumber, 730, 435);
+    
     const tierNames: Record<string, string> = {
       bronze: 'برونزي',
       silver: 'فضي',
       gold: 'ذهبي',
       platinum: 'بلاتيني'
     };
-    ctx.fillText(tierNames[card.tier] || 'برونزي', 650, 315);
-
-    // Stats
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 20px Cairo, Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText(`${card.discountCount} مرة استخدام`, 750, 380);
-    ctx.fillText(`${card.totalSpent} ر.س إجمالي`, 750, 420);
+    ctx.font = '16px Cairo, Arial';
+    ctx.fillText(`المستوى: ${tierNames[card.tier] || 'برونزي'}`, 730, 460);
 
     // QR Code
     if (qrDataUrl) {
       const qrImage = new Image();
       qrImage.onload = () => {
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(40, 220, 240, 240);
-        ctx.drawImage(qrImage, 50, 230, 220, 220);
+        ctx.fillRect(60, 380, 80, 80);
+        ctx.drawImage(qrImage, 65, 385, 70, 70);
 
         // Download
         const link = document.createElement('a');

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift } from "lucide-react";
+import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone } from "lucide-react";
 import QRScanner from "@/components/qr-scanner";
+import { ReceiptPrint } from "@/components/receipt-print";
 import type { Employee, CoffeeItem, PaymentMethod, LoyaltyCard } from "@shared/schema";
 
 interface OrderItem {
@@ -65,6 +66,11 @@ export default function EmployeeCashier() {
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [isCheckingCustomer, setIsCheckingCustomer] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number, reason: string} | null>(null);
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
+  const [lastOrder, setLastOrder] = useState<any>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
   
   const { toast } = useToast();
 
@@ -139,6 +145,24 @@ export default function EmployeeCashier() {
                              paymentMethod === "ur" ? "Ur Pay" :
                              paymentMethod === "barq" ? "Barq" : "تحويل بنكي";
       
+      setLastOrder({
+        orderNumber: order.orderNumber,
+        customerName,
+        customerPhone,
+        items: orderItems,
+        subtotal: calculateSubtotal().toFixed(2),
+        discount: appliedDiscount ? {
+          code: appliedDiscount.code,
+          percentage: appliedDiscount.percentage,
+          amount: calculateDiscount().toFixed(2)
+        } : undefined,
+        total: order.totalAmount,
+        paymentMethod: paymentMethodAr,
+        employeeName: employee?.fullName || "",
+        tableNumber: tableNumber || undefined,
+        date: new Date().toLocaleString('ar-SA')
+      });
+      
       const whatsappData: WhatsAppMessageData = {
         phone: customerPhone,
         orderNumber: order.orderNumber,
@@ -174,6 +198,8 @@ export default function EmployeeCashier() {
     setCustomerId(null);
     setTableNumber("");
     setPaymentMethod("cash");
+    setDiscountCode("");
+    setAppliedDiscount(null);
   };
 
   const addToOrder = (coffeeItem: CoffeeItem) => {
@@ -206,11 +232,100 @@ export default function EmployeeCashier() {
     setOrderItems(orderItems.filter(item => item.coffeeItem.id !== coffeeItemId));
   };
 
-  const calculateTotal = () => {
-    const total = orderItems.reduce((sum, item) => {
+  const calculateSubtotal = () => {
+    return orderItems.reduce((sum, item) => {
       return sum + (parseFloat(item.coffeeItem.price) * item.quantity);
     }, 0);
-    return total.toFixed(2);
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedDiscount) return 0;
+    const subtotal = calculateSubtotal();
+    return (subtotal * appliedDiscount.percentage) / 100;
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    return (subtotal - discount).toFixed(2);
+  };
+
+  const validateDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      toast({
+        title: "خطأ",
+        description: "يرجى إدخال كود الخصم",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsValidatingDiscount(true);
+    try {
+      const response = await fetch('/api/discount-codes/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: discountCode })
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        toast({
+          title: "خطأ",
+          description: "فشل قراءة استجابة الخادم",
+          variant: "destructive",
+        });
+        setIsValidatingDiscount(false);
+        return;
+      }
+
+      if (!response.ok || !data.valid) {
+        toast({
+          title: "كود خصم غير صالح",
+          description: data.error || "الكود المدخل غير صحيح أو منتهي الصلاحية",
+          variant: "destructive",
+        });
+        setAppliedDiscount(null);
+        setIsValidatingDiscount(false);
+        return;
+      }
+
+      setAppliedDiscount({
+        code: data.code,
+        percentage: data.discountPercentage,
+        reason: data.reason
+      });
+
+      toast({
+        title: "تم تطبيق الخصم بنجاح",
+        description: `${data.reason} - ${data.discountPercentage}%`,
+        className: "bg-green-600 text-white",
+      });
+    } catch (error) {
+      console.error('Error validating discount code:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل التحقق من كود الخصم",
+        variant: "destructive",
+      });
+    } finally {
+      setIsValidatingDiscount(false);
+    }
+  };
+
+  const removeDiscount = () => {
+    setDiscountCode("");
+    setAppliedDiscount(null);
+    toast({
+      title: "تم إزالة الخصم",
+      description: "تم إلغاء الخصم من الطلب",
+    });
+  };
+
+  const handlePrintReceipt = () => {
+    window.print();
   };
 
   const handleSubmitOrder = () => {
@@ -270,15 +385,37 @@ export default function EmployeeCashier() {
               <p className="text-gray-400 text-sm">الموظف: {employee.fullName}</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setLocation("/employee/dashboard")}
-            className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
-            data-testid="button-back-dashboard"
-          >
-            <ArrowRight className="w-4 h-4 ml-2" />
-            العودة
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2">
+              <div className="flex items-center gap-2">
+                <MonitorSmartphone className="w-4 h-4 text-gray-400" />
+                <span className="text-xs text-gray-400">POS:</span>
+                <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">
+                  غير متصل
+                </Badge>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">سيتم دعم أجهزة نقاط البيع قريباً</p>
+            </div>
+            {lastOrder && (
+              <Button
+                onClick={handlePrintReceipt}
+                className="bg-blue-600 hover:bg-blue-700"
+                data-testid="button-print-receipt"
+              >
+                <Printer className="w-4 h-4 ml-2" />
+                طباعة الفاتورة
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/employee/dashboard")}
+              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+              data-testid="button-back-dashboard"
+            >
+              <ArrowRight className="w-4 h-4 ml-2" />
+              العودة
+            </Button>
+          </div>
         </div>
 
 
@@ -465,15 +602,82 @@ export default function EmployeeCashier() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-gray-300 text-right block">
+                          <Gift className="w-4 h-4 inline ml-2" />
+                          كود الخصم (اختياري)
+                        </Label>
+                        {!appliedDiscount ? (
+                          <div className="flex gap-2">
+                            <Input
+                              value={discountCode}
+                              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                              placeholder="أدخل كود الخصم"
+                              className="bg-[#1a1410] border-amber-500/30 text-white text-right flex-1"
+                              data-testid="input-discount-code"
+                            />
+                            <Button
+                              onClick={validateDiscountCode}
+                              disabled={isValidatingDiscount || !discountCode.trim()}
+                              className="bg-green-600 hover:bg-green-700"
+                              data-testid="button-apply-discount"
+                            >
+                              {isValidatingDiscount ? "جاري التحقق..." : "تطبيق"}
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="text-right">
+                                <p className="text-green-400 font-bold" data-testid="text-applied-discount-code">{appliedDiscount.code}</p>
+                                <p className="text-xs text-gray-400">{appliedDiscount.reason}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-green-600">-{appliedDiscount.percentage}%</Badge>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={removeDiscount}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  data-testid="button-remove-discount"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <Separator className="bg-amber-500/20" />
 
-                    <div className="flex justify-between items-center text-lg font-bold">
-                      <span className="text-amber-500">الإجمالي:</span>
-                      <span className="text-amber-500" data-testid="text-total">
-                        {calculateTotal()} ريال
-                      </span>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-400">المجموع الفرعي:</span>
+                        <span className="text-gray-300" data-testid="text-subtotal">
+                          {calculateSubtotal().toFixed(2)} ريال
+                        </span>
+                      </div>
+                      
+                      {appliedDiscount && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-green-400">الخصم ({appliedDiscount.percentage}%):</span>
+                          <span className="text-green-400" data-testid="text-discount-amount">
+                            -{calculateDiscount().toFixed(2)} ريال
+                          </span>
+                        </div>
+                      )}
+
+                      <Separator className="bg-amber-500/10" />
+                      
+                      <div className="flex justify-between items-center text-lg font-bold">
+                        <span className="text-amber-500">الإجمالي:</span>
+                        <span className="text-amber-500" data-testid="text-total">
+                          {calculateTotal()} ريال
+                        </span>
+                      </div>
                     </div>
 
                     <Button
@@ -493,6 +697,22 @@ export default function EmployeeCashier() {
         </div>
       </div>
 
+      {lastOrder && (
+        <ReceiptPrint
+          ref={receiptRef}
+          orderNumber={lastOrder.orderNumber}
+          customerName={lastOrder.customerName}
+          customerPhone={lastOrder.customerPhone}
+          items={lastOrder.items}
+          subtotal={lastOrder.subtotal}
+          discount={lastOrder.discount}
+          total={lastOrder.total}
+          paymentMethod={lastOrder.paymentMethod}
+          employeeName={lastOrder.employeeName}
+          tableNumber={lastOrder.tableNumber}
+          date={lastOrder.date}
+        />
+      )}
     </div>
   );
 }

@@ -1700,7 +1700,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ingredients", async (req, res) => {
     try {
       const ingredients = await storage.getIngredients();
-      res.json(ingredients);
+      const serialized = ingredients.map(serializeDoc);
+      res.json(serialized);
     } catch (error) {
       console.error("Error fetching ingredients:", error);
       res.status(500).json({ error: "Failed to fetch ingredients" });
