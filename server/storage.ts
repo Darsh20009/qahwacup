@@ -172,15 +172,6 @@ export class DBStorage implements IStorage {
   }
 
   private async initializeCoffeeMenu() {
-    const existingItems = await CoffeeItemModel.find();
-    if (existingItems.length === 24) {
-      return;
-    }
-
-    if (existingItems.length > 0 && existingItems.length < 24) {
-      await CoffeeItemModel.deleteMany({});
-    }
-
     const coffeeMenuData = [
       { id: "espresso-single", nameAr: "إسبريسو (شوت)", nameEn: "Espresso Single", description: "قهوة إسبريسو مركزة من حبوب عربية مختارة", price: 4.00, oldPrice: 5.00, category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 10, availabilityStatus: "available" },
       { id: "espresso-double", nameAr: "إسبريسو (دبل شوت)", nameEn: "Espresso Double", description: "قهوة إسبريسو مضاعفة للباحثين عن النكهة القوية", price: 5.00, oldPrice: 6.00, category: "basic", imageUrl: "/attached_assets/generated_images/Luxury_espresso_shot_coffee_d4560626.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 12 },
@@ -203,9 +194,21 @@ export class DBStorage implements IStorage {
       { id: "iced-cappuccino", nameAr: "آيسد كابتشينو", nameEn: "Iced Cappuccino", description: "كابتشينو بارد مع رغوة الحليب المثلجة", price: 6.00, oldPrice: 7.00, category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192012_1757434923573.png", isAvailable: 1, coffeeStrength: "classic" },
       { id: "iced-condensed", nameAr: "قهوة مثلجة بالحليب المكثف", nameEn: "Iced Coffee with Condensed Milk", description: "قهوة باردة مع حليب مكثف حلو ولذيذ", price: 5.00, oldPrice: 6.00, category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192022_1757434929813.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 5 },
       { id: "vanilla-cold-brew", nameAr: "فانيلا كولد برو", nameEn: "Vanilla Cold Brew", description: "قهوة باردة منقوعة ببطء مع نكهة الفانيلا", price: 6.00, oldPrice: 7.00, category: "cold", imageUrl: "/attached_assets/Screenshot 2025-09-09 192045_1757434923573.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 2 },
+      { id: "cold-brew", nameAr: "كولد برو", nameEn: "Cold Brew", description: "قهوة باردة منقوعة ببطء على مدى 12 ساعة، نكهة غنية وناعمة", price: 4.95, oldPrice: 5.50, category: "cold", imageUrl: "/attached_assets/coffee-day-cold-new.png", isAvailable: 1, coffeeStrength: "classic", strengthLevel: 2 },
       { id: "coffee-day-cold", nameAr: "قهوة اليوم (بارد)", nameEn: "Coffee of the Day Cold", description: "تشكيلة مختارة يومياً من القهوة الباردة المنعشة", price: 4.95, oldPrice: 5.50, category: "cold", imageUrl: "/attached_assets/coffee-day-cold-new.png", isAvailable: 1, coffeeStrength: "classic" },
       { id: "coffee-dessert-cup", nameAr: "حلى قهوة كوب", nameEn: "Coffee Dessert Cup", description: "حلى قهوة فاخر في كوب، طبقات من الكريمة والقهوة والبسكويت المطحون، تجربة حلوة لا تُنسى", price: 8.00, category: "desserts", imageUrl: "/attached_assets/Screenshot 2025-10-05 012338_1759666320915.png", isAvailable: 1, coffeeStrength: "classic" },
     ];
+
+    const existingItems = await CoffeeItemModel.find();
+    const expectedCount = coffeeMenuData.length;
+    
+    if (existingItems.length === expectedCount) {
+      return;
+    }
+
+    if (existingItems.length > 0 && existingItems.length < expectedCount) {
+      await CoffeeItemModel.deleteMany({});
+    }
 
     await CoffeeItemModel.insertMany(coffeeMenuData);
   }

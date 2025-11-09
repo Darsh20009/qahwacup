@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import type { Order } from "@shared/schema";
 import logoImage from "../assets/qahwa-cup-logo.png";
 
@@ -128,9 +128,15 @@ export function ReceiptInvoice({ order, variant = "button" }: ReceiptInvoiceProp
     }
   };
 
+  const printReceipt = () => {
+    window.print();
+  };
+
   const getPaymentMethodName = (method: string) => {
     const methods: Record<string, string> = {
       'cash': 'نقداً',
+      'pos': 'جهاز نقاط البيع',
+      'delivery': 'الدفع عند التوصيل',
       'stc': 'STC Pay',
       'alinma': 'الإنماء باي',
       'ur': 'يور باي',
@@ -146,14 +152,25 @@ export function ReceiptInvoice({ order, variant = "button" }: ReceiptInvoiceProp
   }
 
   return (
-    <Button
-      onClick={generatePDF}
-      variant="outline"
-      className="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300"
-      data-testid="button-download-invoice"
-    >
-      <Download className="ml-2 h-4 w-4" />
-      تحميل فاتورة الاستلام PDF
-    </Button>
+    <div className="flex gap-2 w-full">
+      <Button
+        onClick={printReceipt}
+        variant="default"
+        className="flex-1 bg-primary hover:bg-primary/90"
+        data-testid="button-print-invoice"
+      >
+        <Printer className="ml-2 h-4 w-4" />
+        طباعة الفاتورة
+      </Button>
+      <Button
+        onClick={generatePDF}
+        variant="outline"
+        className="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300"
+        data-testid="button-download-invoice"
+      >
+        <Download className="ml-2 h-4 w-4" />
+        تحميل PDF
+      </Button>
+    </div>
   );
 }

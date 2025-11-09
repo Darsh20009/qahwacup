@@ -146,6 +146,8 @@ export interface IOrder extends Document {
   customerNotes?: string;
   cancellationReason?: string;
   carPickup?: any;
+  discountCode?: string;
+  discountPercentage?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -165,6 +167,8 @@ const OrderSchema = new Schema<IOrder>({
   customerNotes: { type: String },
   cancellationReason: { type: String },
   carPickup: { type: Schema.Types.Mixed },
+  discountCode: { type: String },
+  discountPercentage: { type: Number },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

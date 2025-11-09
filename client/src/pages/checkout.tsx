@@ -32,6 +32,9 @@ export default function CheckoutPage() {
   const [isRegisteredCustomer, setIsRegisteredCustomer] = useState(false);
   const [selectedFreeItems, setSelectedFreeItems] = useState<{[key: string]: number}>({});
   const [customerNotes, setCustomerNotes] = useState("");
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number} | null>(null);
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
   const { customer } = useCustomer();
 
   // Calculate total drinks from all orders
@@ -163,6 +166,49 @@ export default function CheckoutPage() {
     },
   });
 
+  const handleValidateDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast({
+        variant: "destructive",
+        title: "يرجى إدخال كود الخصم",
+      });
+      return;
+    }
+
+    setIsValidatingDiscount(true);
+    try {
+      const response = await fetch(`/api/discount-codes/validate?code=${encodeURIComponent(discountCode.trim())}`);
+      const data = await response.json();
+      
+      if (response.ok && data.isValid) {
+        setAppliedDiscount({
+          code: discountCode.trim(),
+          percentage: data.discountPercentage
+        });
+        toast({
+          title: "تم تطبيق الخصم بنجاح",
+          description: `خصم ${data.discountPercentage}% على إجمالي الطلب`,
+        });
+      } else {
+        setAppliedDiscount(null);
+        toast({
+          variant: "destructive",
+          title: "كود خصم غير صحيح",
+          description: data.error || "الكود غير موجود أو منتهي الصلاحية",
+        });
+      }
+    } catch (error) {
+      setAppliedDiscount(null);
+      toast({
+        variant: "destructive",
+        title: "خطأ في التحقق من الكود",
+        description: "حاول مرة أخرى لاحقاً",
+      });
+    } finally {
+      setIsValidatingDiscount(false);
+    }
+  };
+
   const handleProceedPayment = async () => {
     if (!selectedPaymentMethod) {
       toast({
@@ -215,9 +261,15 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Calculate total amount considering free drinks
+    // Calculate total amount considering free drinks and discount codes
     let totalAmount = getTotalPrice();
     let freeItemsDiscount = 0; // Initialize freeItemsDiscount
+    
+    // Apply discount code if available
+    if (appliedDiscount && !useFreeDrink && !isQahwaCardPayment) {
+      const discountAmount = totalAmount * (appliedDiscount.percentage / 100);
+      totalAmount = totalAmount - discountAmount;
+    }
 
     // If using qahwa-card, calculate based on selected free items
     if (isQahwaCardPayment) {
@@ -278,6 +330,8 @@ export default function CheckoutPage() {
       totalAmount: totalAmount.toFixed(2),
       paymentMethod: selectedPaymentMethod,
       paymentDetails: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
+      discountCode: appliedDiscount?.code,
+      discountPercentage: appliedDiscount?.percentage,
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
@@ -648,6 +702,62 @@ ${itemsWithPrices}
                     ))}
                   </div>
 
+                  {/* Discount Code Section */}
+                  {!useFreeDrink && selectedPaymentMethod !== 'qahwa-card' && (
+                    <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-xl border-2 border-amber-200 dark:border-amber-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Gift className="w-5 h-5 text-amber-600" />
+                        <h3 className="font-bold text-amber-900 dark:text-amber-100">كود الخصم</h3>
+                      </div>
+                      {appliedDiscount ? (
+                        <div className="flex items-center justify-between bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            <span className="font-bold text-green-800 dark:text-green-200">
+                              {appliedDiscount.code} - خصم {appliedDiscount.percentage}%
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAppliedDiscount(null);
+                              setDiscountCode("");
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                            data-testid="button-remove-discount"
+                          >
+                            إزالة
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            value={discountCode}
+                            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                            placeholder="أدخل كود الخصم"
+                            className="flex-1"
+                            data-testid="input-discount-code"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleValidateDiscount();
+                              }
+                            }}
+                          />
+                          <Button
+                            onClick={handleValidateDiscount}
+                            disabled={isValidatingDiscount || !discountCode.trim()}
+                            className="bg-amber-600 hover:bg-amber-700"
+                            data-testid="button-apply-discount"
+                          >
+                            {isValidatingDiscount ? "جاري التحقق..." : "تطبيق"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className={`bg-gradient-to-r ${useFreeDrink ? 'from-green-500 to-emerald-600' : 'from-primary to-secondary'} text-primary-foreground rounded-xl p-6 shadow-lg relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                     <div className="relative z-10">
@@ -668,10 +778,24 @@ ${itemsWithPrices}
                             </>
                           ) : (
                             <>
-                              <span className="text-3xl font-bold block" data-testid="text-summary-total">
-                                {getTotalPrice().toFixed(2)} ريال
-                              </span>
-                              <span className="text-sm opacity-90">شامل جميع العناصر ☕</span>
+                              {appliedDiscount ? (
+                                <>
+                                  <span className="text-sm opacity-90 line-through block">
+                                    {getTotalPrice().toFixed(2)} ريال
+                                  </span>
+                                  <span className="text-3xl font-bold block text-green-300" data-testid="text-summary-total">
+                                    {(getTotalPrice() * (1 - appliedDiscount.percentage / 100)).toFixed(2)} ريال
+                                  </span>
+                                  <span className="text-sm opacity-90">بعد خصم {appliedDiscount.percentage}% 🎉</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-3xl font-bold block" data-testid="text-summary-total">
+                                    {getTotalPrice().toFixed(2)} ريال
+                                  </span>
+                                  <span className="text-sm opacity-90">شامل جميع العناصر ☕</span>
+                                </>
+                              )}
                             </>
                           )}
                         </div>

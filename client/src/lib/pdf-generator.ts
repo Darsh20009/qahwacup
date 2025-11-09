@@ -45,20 +45,26 @@ export const generatePDF = async (
   // Get payment method details
   const paymentMethodNames: Record<PaymentMethod, string> = {
     cash: 'الدفع نقداً',
+    pos: 'جهاز نقاط البيع (POS)',
+    delivery: 'الدفع عند التوصيل',
     stc: 'STC Pay',
     alinma: 'Alinma Pay',
     ur: 'Ur Pay',
     barq: 'Barq',
-    rajhi: 'بنك الراجحي'
+    rajhi: 'بنك الراجحي',
+    'qahwa-card': 'بطاقة كوبي (مجاني)'
   };
 
   const paymentDetails: Record<PaymentMethod, string> = {
     cash: 'الدفع عند الاستلام',
+    pos: 'الدفع عبر جهاز POS',
+    delivery: 'ادفع عند استلام الطلب',
     stc: '+966532441566',
     alinma: '+966532441566',
     ur: '+966532441566',
     barq: '+966532441566',
-    rajhi: '+966532441566'
+    rajhi: 'SA78 8000 0539 6080 1942 4738',
+    'qahwa-card': 'مشروب مجاني من بطاقة الولاء'
   };
 
   content.innerHTML = `

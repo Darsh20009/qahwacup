@@ -1029,7 +1029,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create order
   app.post("/api/orders", async (req, res) => {
     try {
-      const { items, totalAmount, paymentMethod, paymentDetails, customerInfo, customerId, customerNotes, freeItemsDiscount, usedFreeDrinks } = req.body;
+      const { items, totalAmount, paymentMethod, paymentDetails, customerInfo, customerId, customerNotes, freeItemsDiscount, usedFreeDrinks, discountCode, discountPercentage } = req.body;
 
       // Validate required fields
       if (!items || !Array.isArray(items) || items.length === 0) {
@@ -1105,6 +1105,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Validate and increment discount code usage if provided
+      if (discountCode && discountPercentage) {
+        try {
+          const discountCodeDoc = await storage.getDiscountCodeByCode(discountCode);
+          if (discountCodeDoc && discountCodeDoc.isActive === 1 && discountCodeDoc.discountPercentage === discountPercentage) {
+            // Increment usage counter
+            await storage.incrementDiscountCodeUsage(discountCodeDoc.id);
+          }
+        } catch (error) {
+          console.error("Error processing discount code:", error);
+          // Continue with order creation even if discount tracking fails
+        }
+      }
+
       // Create order
       const orderData: any = {
         customerId: finalCustomerId || null,
@@ -1113,6 +1127,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentDetails,
         customerInfo,
         customerNotes,
+        discountCode: discountCode || null,
+        discountPercentage: discountPercentage || null,
         items: JSON.stringify(items)
       };
 
@@ -1386,10 +1402,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const paymentMethods = [
         { id: 'cash', nameAr: 'الدفع نقداً', nameEn: 'Cash Payment', details: 'ادفع عند الاستلام', icon: 'fas fa-money-bill-wave' },
+        { id: 'pos', nameAr: 'جهاز نقاط البيع (POS)', nameEn: 'POS Device', details: 'الدفع عبر جهاز POS', icon: 'fas fa-credit-card' },
+        { id: 'delivery', nameAr: 'الدفع عند التوصيل', nameEn: 'Cash on Delivery', details: 'ادفع عند استلام الطلب', icon: 'fas fa-truck' },
+        { id: 'stc', nameAr: 'STC Pay', nameEn: 'STC Pay', details: '0532441566', icon: 'fas fa-mobile-alt' },
         { id: 'alinma', nameAr: 'Alinma Pay', nameEn: 'Alinma Pay', details: '0532441566', icon: 'fas fa-credit-card' },
         { id: 'ur', nameAr: 'Ur Pay', nameEn: 'Ur Pay', details: '0532441566', icon: 'fas fa-university' },
         { id: 'barq', nameAr: 'Barq', nameEn: 'Barq', details: '0532441566', icon: 'fas fa-bolt' },
-        { id: 'bank', nameAr: 'بنك الراجحي', nameEn: 'Al Rajhi Bank', details: 'SA78 8000 0539 6080 1942 4738', icon: 'fas fa-building-columns' },
+        { id: 'rajhi', nameAr: 'بنك الراجحي', nameEn: 'Al Rajhi Bank', details: 'SA78 8000 0539 6080 1942 4738', icon: 'fas fa-building-columns' },
       ];
 
       // Add qahwa-card at the beginning if customer has free drinks

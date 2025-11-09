@@ -20,6 +20,18 @@ export default function ProductDetails() {
     enabled: !!params?.id,
   });
 
+  const { data: ingredientsData = [] } = useQuery<Array<{ingredient: any}>>({
+    queryKey: ["/api/coffee-items", params?.id, "ingredients"],
+    queryFn: async () => {
+      const response = await fetch(`/api/coffee-items/${params?.id}/ingredients`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!params?.id,
+  });
+  
+  const ingredients = ingredientsData.map(item => item.ingredient).filter(Boolean);
+
   const handleAddToCart = () => {
     if (item) {
       addToCart(item.id, quantity);
@@ -134,6 +146,26 @@ export default function ProductDetails() {
               {item.category === 'hot' && 'قهوة ساخنة'}
               {item.category === 'cold' && 'قهوة باردة'}
             </Badge>
+
+            {/* Ingredients Section */}
+            {ingredients.length > 0 && (
+              <div className="space-y-3" data-testid="section-ingredients">
+                <h3 className="text-lg font-semibold text-foreground">المكونات</h3>
+                <div className="flex flex-wrap gap-2">
+                  {ingredients.map((ing: any, index: number) => (
+                    <Badge 
+                      key={ing.id || index}
+                      variant="secondary"
+                      className={`${ing.isAvailable === 0 ? 'opacity-50 line-through' : ''}`}
+                      data-testid={`badge-ingredient-${ing.id || index}`}
+                    >
+                      {ing.nameAr}
+                      {ing.isAvailable === 0 && ' (غير متوفر)'}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Price */}
             <div className="space-y-2" data-testid="section-pricing">
