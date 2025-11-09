@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Coffee, Users, ShoppingBag, TrendingUp, DollarSign, 
   Package, MapPin, Layers, ArrowLeft, Calendar,
-  UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity
+  UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus
 } from "lucide-react";
 import { 
   AreaChart, Area, BarChart as RechartsBar, Bar, 
@@ -28,6 +33,16 @@ export default function ManagerDashboard() {
   const [, setLocation] = useLocation();
   const [manager, setManager] = useState<Employee | null>(null);
   const [dateFilter, setDateFilter] = useState<"today" | "week" | "month" | "all">("all");
+  const [isAddBranchOpen, setIsAddBranchOpen] = useState(false);
+  const [branchForm, setBranchForm] = useState({
+    nameAr: "",
+    nameEn: "",
+    address: "",
+    phone: "",
+    city: "",
+    managerName: "",
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     const storedEmployee = localStorage.getItem("currentEmployee");
@@ -55,13 +70,68 @@ export default function ManagerDashboard() {
     queryKey: ["/api/orders"],
   });
 
-  const { data: branches = [] } = useQuery({
+  const { data: branches = [] } = useQuery<any[]>({
     queryKey: ["/api/branches"],
+  });
+
+  const createBranchMutation = useMutation({
+    mutationFn: async (branchData: typeof branchForm) => {
+      const response = await fetch("/api/branches", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...branchData,
+          isActive: 1,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create branch");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
+      setIsAddBranchOpen(false);
+      setBranchForm({
+        nameAr: "",
+        nameEn: "",
+        address: "",
+        phone: "",
+        city: "",
+        managerName: "",
+      });
+      toast({
+        title: "تم إضافة الفرع بنجاح",
+        description: "تم إضافة الفرع الجديد إلى النظام",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إضافة الفرع",
+        description: error.message || "حدث خطأ أثناء إضافة الفرع",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleLogout = () => {
     localStorage.removeItem("currentEmployee");
     setLocation("/employee/gateway");
+  };
+
+  const handleCreateBranch = () => {
+    if (!branchForm.nameAr || !branchForm.address || !branchForm.city || !branchForm.phone) {
+      toast({
+        title: "بيانات ناقصة",
+        description: "الرجاء إدخال جميع البيانات المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+    createBranchMutation.mutate(branchForm);
   };
 
   if (!manager) {
@@ -110,12 +180,16 @@ export default function ManagerDashboard() {
   const todayRevenue = todayOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
 
   const employeesWithStats: EmployeeWithStats[] = employees.map(emp => {
-    const empOrders = filteredOrders.filter(o => o.employeeId === emp._id?.toString());
+    const empOrders = filteredOrders.filter(o => 
+      o.employeeId === emp._id?.toString() || 
+      (o as any).employee?.id === emp._id?.toString() ||
+      (o as any).assignedEmployeeId === emp._id?.toString()
+    );
     return {
       ...emp,
       orderCount: empOrders.length,
       totalSales: empOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0),
-    };
+    } as EmployeeWithStats;
   });
 
   // Prepare chart data
@@ -410,9 +484,9 @@ export default function ManagerDashboard() {
                 <div className="space-y-3">
                   {employeesWithStats.map((emp) => (
                     <div
-                      key={emp._id}
+                      key={(emp as any)._id?.toString() || emp.id}
                       className="flex items-center justify-between p-4 bg-stone-800/30 rounded-lg border border-amber-500/10 hover:border-amber-500/30 transition-colors"
-                      data-testid={`employee-${emp._id}`}
+                      data-testid={`employee-${(emp as any)._id || emp.id}`}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
@@ -530,13 +604,105 @@ export default function ManagerDashboard() {
                       إدارة فروع المقهى
                     </CardDescription>
                   </div>
-                  <Button 
-                    className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800"
-                    data-testid="button-add-branch"
-                  >
-                    <Package className="w-4 h-4 ml-2" />
-                    إضافة فرع
-                  </Button>
+                  <Dialog open={isAddBranchOpen} onOpenChange={setIsAddBranchOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800"
+                        data-testid="button-add-branch"
+                      >
+                        <Plus className="w-4 h-4 ml-2" />
+                        إضافة فرع
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-white sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle className="text-amber-500 text-xl">إضافة فرع جديد</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="nameAr" className="text-gray-300">اسم الفرع (عربي) *</Label>
+                          <Input
+                            id="nameAr"
+                            value={branchForm.nameAr}
+                            onChange={(e) => setBranchForm({ ...branchForm, nameAr: e.target.value })}
+                            className="bg-[#1a1410] border-amber-500/30 text-white"
+                            placeholder="مثال: فرع الرياض"
+                            data-testid="input-branch-name-ar"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="nameEn" className="text-gray-300">اسم الفرع (إنجليزي)</Label>
+                          <Input
+                            id="nameEn"
+                            value={branchForm.nameEn}
+                            onChange={(e) => setBranchForm({ ...branchForm, nameEn: e.target.value })}
+                            className="bg-[#1a1410] border-amber-500/30 text-white"
+                            placeholder="Example: Riyadh Branch"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="address" className="text-gray-300">العنوان *</Label>
+                          <Input
+                            id="address"
+                            value={branchForm.address}
+                            onChange={(e) => setBranchForm({ ...branchForm, address: e.target.value })}
+                            className="bg-[#1a1410] border-amber-500/30 text-white"
+                            placeholder="مثال: شارع الملك فهد"
+                            data-testid="input-branch-address"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="city" className="text-gray-300">المدينة *</Label>
+                          <Input
+                            id="city"
+                            value={branchForm.city}
+                            onChange={(e) => setBranchForm({ ...branchForm, city: e.target.value })}
+                            className="bg-[#1a1410] border-amber-500/30 text-white"
+                            placeholder="مثال: الرياض"
+                            data-testid="input-branch-city"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="phone" className="text-gray-300">رقم الهاتف *</Label>
+                          <Input
+                            id="phone"
+                            value={branchForm.phone}
+                            onChange={(e) => setBranchForm({ ...branchForm, phone: e.target.value })}
+                            className="bg-[#1a1410] border-amber-500/30 text-white"
+                            placeholder="مثال: 0501234567"
+                            data-testid="input-branch-phone"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="managerName" className="text-gray-300">اسم المدير</Label>
+                          <Input
+                            id="managerName"
+                            value={branchForm.managerName}
+                            onChange={(e) => setBranchForm({ ...branchForm, managerName: e.target.value })}
+                            className="bg-[#1a1410] border-amber-500/30 text-white"
+                            placeholder="مثال: أحمد محمد"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsAddBranchOpen(false)}
+                          className="border-gray-500/50 text-gray-300"
+                        >
+                          إلغاء
+                        </Button>
+                        <Button
+                          onClick={handleCreateBranch}
+                          disabled={createBranchMutation.isPending}
+                          className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800"
+                          data-testid="button-submit-branch"
+                        >
+                          {createBranchMutation.isPending ? "جاري الإضافة..." : "إضافة الفرع"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardHeader>
               <CardContent>
