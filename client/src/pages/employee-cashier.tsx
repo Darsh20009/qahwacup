@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,7 @@ function generateWhatsAppLink(data: WhatsAppMessageData): string {
 📝 رقم الطلب: ${data.orderNumber}
 
 🛍️ تفاصيل الطلب:
-${data.items.map(item => `• ${item.coffeeItem.nameAr} × ${item.quantity} - ${(parseFloat(item.coffeeItem.price) * item.quantity).toFixed(2)} ريال`).join('\n')}
+${data.items.map(item => `• ${item.coffeeItem.nameAr} × ${item.quantity} - ${(Number(item.coffeeItem.price) * item.quantity).toFixed(2)} ريال`).join('\n')}
 
 💰 الإجمالي: ${data.total} ريال
 💳 طريقة الدفع: ${data.paymentMethod}
@@ -138,7 +139,7 @@ export default function EmployeeCashier() {
       
       return response.json();
     },
-    onSuccess: (order) => {
+    onSuccess: async (order) => {
       const paymentMethodAr = paymentMethod === "cash" ? "نقدي" : 
                              paymentMethod === "stc" ? "STC Pay" :
                              paymentMethod === "alinma" ? "Alinma Pay" :
@@ -176,9 +177,13 @@ export default function EmployeeCashier() {
       window.open(whatsappLink, '_blank');
       
       toast({
-        title: "تم إنشاء الطلب بنجاح",
+        title: "✅ تم إنشاء الطلب بنجاح",
         description: `رقم الطلب: ${order.orderNumber}`,
+        className: "bg-green-600 text-white",
       });
+      
+      // تحديث قائمة الطلبات في صفحة الطلبات
+      await queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       
       resetForm();
     },
@@ -234,7 +239,7 @@ export default function EmployeeCashier() {
 
   const calculateSubtotal = () => {
     return orderItems.reduce((sum, item) => {
-      return sum + (parseFloat(item.coffeeItem.price) * item.quantity);
+      return sum + (Number(item.coffeeItem.price) * item.quantity);
     }, 0);
   };
 
@@ -385,25 +390,25 @@ export default function EmployeeCashier() {
               <p className="text-gray-400 text-sm">الموظف: {employee.fullName}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2 hover-elevate">
               <div className="flex items-center gap-2">
                 <MonitorSmartphone className="w-4 h-4 text-gray-400" />
-                <span className="text-xs text-gray-400">POS:</span>
+                <span className="text-xs text-gray-400">جهاز POS:</span>
                 <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">
                   غير متصل
                 </Badge>
               </div>
-              <p className="text-xs text-gray-500 mt-1">سيتم دعم أجهزة نقاط البيع قريباً</p>
+              <p className="text-xs text-gray-500 mt-1">خيار "POS" متاح في طرق الدفع</p>
             </div>
             {lastOrder && (
               <Button
                 onClick={handlePrintReceipt}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 shadow-lg"
                 data-testid="button-print-receipt"
               >
                 <Printer className="w-4 h-4 ml-2" />
-                طباعة الفاتورة
+                طباعة الفاتورة 🖨️
               </Button>
             )}
             <Button
@@ -446,7 +451,7 @@ export default function EmployeeCashier() {
                           </div>
                           <div className="flex items-center justify-between mt-3">
                             <Badge variant="outline" className="border-amber-500/30 text-amber-500">
-                              {parseFloat(item.price).toFixed(2)} ريال
+                              {Number(item.price).toFixed(2)} ريال
                             </Badge>
                             <Button
                               size="sm"
@@ -494,7 +499,7 @@ export default function EmployeeCashier() {
                                 </h4>
                               </div>
                               <p className="text-gray-400 text-xs">
-                                {parseFloat(item.coffeeItem.price).toFixed(2)} ريال
+                                {Number(item.coffeeItem.price).toFixed(2)} ريال
                               </p>
                             </div>
                             <Button
@@ -532,7 +537,7 @@ export default function EmployeeCashier() {
                               </Button>
                             </div>
                             <span className="font-bold text-amber-500">
-                              {(parseFloat(item.coffeeItem.price) * item.quantity).toFixed(2)} ريال
+                              {(Number(item.coffeeItem.price) * item.quantity).toFixed(2)} ريال
                             </span>
                           </div>
                         </div>
@@ -593,48 +598,65 @@ export default function EmployeeCashier() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="cash">نقدي</SelectItem>
-                            <SelectItem value="stc">STC Pay</SelectItem>
-                            <SelectItem value="alinma">Alinma Pay</SelectItem>
-                            <SelectItem value="ur">Ur Pay</SelectItem>
-                            <SelectItem value="barq">Barq</SelectItem>
-                            <SelectItem value="rajhi">تحويل بنك الراجحي</SelectItem>
+                            <SelectItem value="cash">💵 نقدي</SelectItem>
+                            <SelectItem value="pos">💳 جهاز نقاط البيع (POS)</SelectItem>
+                            <SelectItem value="stc">📱 STC Pay</SelectItem>
+                            <SelectItem value="alinma">🏦 Alinma Pay</SelectItem>
+                            <SelectItem value="ur">🔷 Ur Pay</SelectItem>
+                            <SelectItem value="barq">⚡ Barq</SelectItem>
+                            <SelectItem value="rajhi">🏛️ تحويل بنك الراجحي</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-gray-300 text-right block">
-                          <Gift className="w-4 h-4 inline ml-2" />
-                          كود الخصم (اختياري)
+                      <div className="space-y-2 bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-500/20">
+                        <Label className="text-gray-300 text-right block flex items-center justify-end gap-2">
+                          <span className="text-green-400">💳 كود الخصم (اختياري)</span>
+                          <Gift className="w-5 h-5 text-green-400" />
                         </Label>
+                        <p className="text-xs text-gray-400 text-right mb-2">
+                          هل لديك كود خصم؟ أدخله هنا للحصول على تخفيض فوري
+                        </p>
                         {!appliedDiscount ? (
                           <div className="flex gap-2">
                             <Input
                               value={discountCode}
                               onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                              placeholder="أدخل كود الخصم"
-                              className="bg-[#1a1410] border-amber-500/30 text-white text-right flex-1"
+                              placeholder="مثال: WELCOME10"
+                              className="bg-[#1a1410] border-green-500/30 text-white text-right flex-1 focus:border-green-500"
                               data-testid="input-discount-code"
                             />
                             <Button
                               onClick={validateDiscountCode}
                               disabled={isValidatingDiscount || !discountCode.trim()}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-green-600 hover:bg-green-700 min-w-[100px]"
                               data-testid="button-apply-discount"
                             >
-                              {isValidatingDiscount ? "جاري التحقق..." : "تطبيق"}
+                              {isValidatingDiscount ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
+                                  جاري التحقق
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="w-4 h-4 ml-2" />
+                                  تطبيق
+                                </>
+                              )}
                             </Button>
                           </div>
                         ) : (
-                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3">
+                          <div className="bg-green-500/20 border-2 border-green-500/50 rounded-lg p-4 animate-pulse-slow">
                             <div className="flex items-center justify-between">
-                              <div className="text-right">
-                                <p className="text-green-400 font-bold" data-testid="text-applied-discount-code">{appliedDiscount.code}</p>
-                                <p className="text-xs text-gray-400">{appliedDiscount.reason}</p>
+                              <div className="text-right flex-1">
+                                <div className="flex items-center gap-2 justify-end mb-1">
+                                  <p className="text-green-400 font-bold text-lg" data-testid="text-applied-discount-code">{appliedDiscount.code}</p>
+                                  <Check className="w-5 h-5 text-green-400" />
+                                </div>
+                                <p className="text-sm text-green-300">{appliedDiscount.reason}</p>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Badge className="bg-green-600">-{appliedDiscount.percentage}%</Badge>
+                              <div className="flex items-center gap-2 mr-4">
+                                <Badge className="bg-green-600 text-white text-base px-3 py-1">-{appliedDiscount.percentage}%</Badge>
                                 <Button
                                   size="sm"
                                   variant="ghost"

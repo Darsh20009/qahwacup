@@ -500,18 +500,28 @@ export default function MyCard() {
               className="relative"
               data-testid="loyalty-card-display"
             >
-              <div className="bg-gradient-to-br from-white via-amber-50/30 to-orange-50/30 rounded-3xl shadow-2xl overflow-hidden border-4 border-amber-300/50 backdrop-blur-sm">
+              <div className="bg-[#F5E6D3] rounded-3xl shadow-2xl overflow-hidden border-4 border-[#8B5A3C]/20 backdrop-blur-sm">
                 {/* رأس البطاقة */}
-                <div className="relative bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 p-6 text-center overflow-hidden">
-                  <motion.div
-                    animate={{ x: ["0%", "100%"] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  />
-                  <h1 className="text-4xl font-amiri font-bold text-white mb-2 relative z-10 drop-shadow-lg" data-testid="text-card-header">
-                    بطاقتي ☕ قهوة كوب
+                <div className="relative bg-[#F5E6D3] p-8 text-center overflow-hidden">
+                  {/* شعار فنجان القهوة */}
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src="/qahwa-cup-logo.png" 
+                      alt="قهوة كوب" 
+                      className="w-32 h-32 object-contain"
+                    />
+                  </div>
+                  
+                  <h1 className="text-4xl font-bold text-[#6B4423] mb-2 relative z-10" data-testid="text-card-header" style={{fontFamily: 'Cairo, sans-serif'}}>
+                    قهوة كوب
                   </h1>
-                  <div className="text-2xl font-bold text-amber-100 font-cairo tracking-wider relative z-10" data-testid="text-card-number">
+                  <p className="text-2xl font-semibold text-[#6B4423] mb-3 relative z-10" style={{fontFamily: 'Arial, sans-serif'}}>
+                    QahwaCup
+                  </p>
+                  <p className="text-sm text-[#8B5A3C] relative z-10" style={{fontFamily: 'Cairo, sans-serif'}}>
+                    يوسف درويش - صاحب المشروع
+                  </p>
+                  <div className="text-xl font-bold text-[#6B4423] font-cairo mt-4 relative z-10" data-testid="text-card-number">
                     {card?.cardNumber}
                   </div>
                 </div>
@@ -524,8 +534,9 @@ export default function MyCard() {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 200 }}
-                      className="text-4xl font-amiri font-bold bg-gradient-to-r from-amber-800 to-orange-700 bg-clip-text text-transparent"
+                      className="text-4xl font-bold text-[#6B4423]"
                       data-testid="text-stamps-progress"
+                      style={{fontFamily: 'Cairo, sans-serif'}}
                     >
                       ختم {filledStamps}/{totalStamps}
                     </motion.div>
@@ -554,8 +565,8 @@ export default function MyCard() {
                           transition={{ delay: index * 0.1, type: "spring" }}
                           className={`aspect-square rounded-2xl flex items-center justify-center relative transform transition-all duration-300 ${
                             isFilled
-                              ? "bg-gradient-to-br from-amber-400 via-orange-500 to-amber-500 border-4 border-amber-600 shadow-2xl hover:scale-105"
-                              : "bg-gradient-to-br from-gray-50 to-gray-100 border-4 border-dashed border-gray-300 hover:border-amber-300"
+                              ? "bg-gradient-to-br from-[#A0522D] via-[#8B4513] to-[#6B4423] border-4 border-[#6B4423] shadow-2xl hover:scale-105"
+                              : "bg-gradient-to-br from-gray-50 to-gray-100 border-4 border-dashed border-[#8B5A3C]/30 hover:border-[#8B5A3C]/50"
                           }`}
                           data-testid={`stamp-slot-${index}`}
                         >
