@@ -615,7 +615,7 @@ export type InsertBranch = z.infer<typeof insertBranchSchema>;
 export type Category = ICategory;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
-export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card';
+export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
 
 export interface PaymentMethodInfo {
   id: PaymentMethod;

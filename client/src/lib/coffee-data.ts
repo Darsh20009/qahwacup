@@ -24,6 +24,7 @@ const getCoffeeImage = (coffeeId: string): string => {
     "iced-cappuccino": "/images/iced-cappuccino.png",
     "iced-condensed": "/images/iced-chocolate.png",
     "vanilla-cold-brew": "/images/vanilla-cold-brew.png",
+    "cold-brew": "/images/signature-qahwa.png",
     "coffee-day-cold": "/images/signature-qahwa.png",
     "coffee-dessert-cup": "/attached_assets/Screenshot 2025-10-05 012338_1759666320915.png"
   };
@@ -349,6 +350,19 @@ export const defaultCoffeeMenu: CoffeeItem[] = [
     isAvailable: 1,
     coffeeStrength: "mild",
     strengthLevel: 2
+  },
+  {
+    id: "cold-brew",
+    nameAr: "كولد برو",
+    nameEn: "Cold Brew",
+    description: "قهوة باردة منقوعة ببطء لمدة 12 ساعة، نكهة ناعمة وغنية بطعم القهوة الأصيلة",
+    price: "4.95",
+    oldPrice: "5.50",
+    category: "cold",
+    imageUrl: getCoffeeImage("cold-brew"),
+    isAvailable: 1,
+    coffeeStrength: "classic",
+    strengthLevel: null
   },
   {
     id: "coffee-day-cold",

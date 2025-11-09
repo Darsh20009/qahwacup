@@ -16,6 +16,9 @@ if (!MONGODB_URI) {
 mongoose.connect(MONGODB_URI)
   .then(async () => {
     console.log("✅ MongoDB connected successfully");
+    
+    const { runSeeds } = await import("./seed");
+    await runSeeds();
   })
   .catch((error) => {
     console.error("❌ MongoDB connection error:", error);

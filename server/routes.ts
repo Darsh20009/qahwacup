@@ -289,6 +289,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Validate discount code and return discount info
+  app.post("/api/discount-codes/validate", async (req, res) => {
+    try {
+      const { code } = req.body;
+
+      if (!code) {
+        return res.status(400).json({ error: "Discount code is required" });
+      }
+
+      const discountCode = await storage.getDiscountCodeByCode(code.trim());
+
+      if (!discountCode) {
+        return res.status(404).json({ 
+          valid: false,
+          error: "كود الخصم غير موجود"
+        });
+      }
+
+      if (discountCode.isActive === 0) {
+        return res.status(400).json({ 
+          valid: false,
+          error: "كود الخصم غير فعال"
+        });
+      }
+
+      res.json({
+        valid: true,
+        code: discountCode.code,
+        discountPercentage: discountCode.discountPercentage,
+        reason: discountCode.reason,
+        id: discountCode._id
+      });
+    } catch (error) {
+      console.error("Error validating discount code:", error);
+      res.status(500).json({ error: "Failed to validate discount code" });
+    }
+  });
+
+  // SALES REPORTS ROUTES
+
+  // Get sales report for a specific period
+  app.get("/api/reports/sales", async (req, res) => {
+    try {
+      const { period, startDate, endDate, branchId } = req.query;
+      
+      const now = new Date();
+      let start: Date;
+      let end: Date = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      if (startDate && endDate) {
+        start = new Date(startDate as string);
+        end = new Date(endDate as string);
+      } else if (period === 'daily') {
+        start = new Date(now.setHours(0, 0, 0, 0));
+      } else if (period === 'weekly') {
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (period === 'monthly') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+      } else {
+        start = new Date(now.setHours(0, 0, 0, 0));
+      }
+
+      const { OrderModel } = await import("@shared/schema");
+      
+      const matchQuery: any = {
+        createdAt: { $gte: start, $lte: end },
+        status: { $in: ['completed', 'payment_confirmed'] }
+      };
+
+      if (branchId) {
+        matchQuery.branchId = branchId;
+      }
+
+      const salesData = await OrderModel.aggregate([
+        { $match: matchQuery },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalRevenue: { $sum: "$totalAmount" },
+            orders: { $push: "$$ROOT" }
+          }
+        }
+      ]);
+
+      const result = salesData[0] || { totalOrders: 0, totalRevenue: 0, orders: [] };
+
+      res.json({
+        period: period || 'custom',
+        startDate: start,
+        endDate: end,
+        totalOrders: result.totalOrders,
+        totalRevenue: result.totalRevenue,
+        orders: result.orders
+      });
+    } catch (error) {
+      console.error("Error generating sales report:", error);
+      res.status(500).json({ error: "Failed to generate sales report" });
+    }
+  });
+
   // CUSTOMER ROUTES
 
   // Customer registration - إنشاء حساب جديد
