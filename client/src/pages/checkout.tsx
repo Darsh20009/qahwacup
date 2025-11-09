@@ -177,10 +177,16 @@ export default function CheckoutPage() {
 
     setIsValidatingDiscount(true);
     try {
-      const response = await fetch(`/api/discount-codes/validate?code=${encodeURIComponent(discountCode.trim())}`);
+      const response = await fetch('/api/discount-codes/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: discountCode.trim() }),
+      });
       const data = await response.json();
       
-      if (response.ok && data.isValid) {
+      if (response.ok && data.valid) {
         setAppliedDiscount({
           code: discountCode.trim(),
           percentage: data.discountPercentage

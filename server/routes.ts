@@ -1402,8 +1402,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const paymentMethods = [
         { id: 'cash', nameAr: 'الدفع نقداً', nameEn: 'Cash Payment', details: 'ادفع عند الاستلام', icon: 'fas fa-money-bill-wave' },
-        { id: 'pos', nameAr: 'جهاز نقاط البيع (POS)', nameEn: 'POS Device', details: 'الدفع عبر جهاز POS', icon: 'fas fa-credit-card' },
-        { id: 'delivery', nameAr: 'الدفع عند التوصيل', nameEn: 'Cash on Delivery', details: 'ادفع عند استلام الطلب', icon: 'fas fa-truck' },
         { id: 'stc', nameAr: 'STC Pay', nameEn: 'STC Pay', details: '0532441566', icon: 'fas fa-mobile-alt' },
         { id: 'alinma', nameAr: 'Alinma Pay', nameEn: 'Alinma Pay', details: '0532441566', icon: 'fas fa-credit-card' },
         { id: 'ur', nameAr: 'Ur Pay', nameEn: 'Ur Pay', details: '0532441566', icon: 'fas fa-university' },
