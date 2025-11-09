@@ -548,43 +548,47 @@ export default function ManagerDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {employeesWithStats.map((emp) => (
-                    <div
-                      key={(emp as any)._id?.toString() || emp.id}
-                      className="flex items-center justify-between p-4 bg-stone-800/30 rounded-lg border border-amber-500/10 hover:border-amber-500/30 transition-colors"
-                      data-testid={`employee-${(emp as any)._id || emp.id}`}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          {emp.imageUrl ? (
-                            <img 
-                              src={emp.imageUrl} 
-                              alt={emp.fullName}
-                              className="w-12 h-12 rounded-full object-cover border-2 border-amber-500/30"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
-                              <UserCheck className="w-6 h-6 text-white" />
+                  {employeesWithStats.length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">لا يوجد موظفين مسجلين</p>
+                  ) : (
+                    employeesWithStats.map((emp) => (
+                      <div
+                        key={emp._id?.toString() || emp.id || Math.random()}
+                        className="flex items-center justify-between p-4 bg-stone-800/30 rounded-lg border border-amber-500/10 hover:border-amber-500/30 transition-colors"
+                        data-testid={`employee-${emp._id || emp.id}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            {emp.imageUrl ? (
+                              <img 
+                                src={emp.imageUrl} 
+                                alt={emp.fullName}
+                                className="w-12 h-12 rounded-full object-cover border-2 border-amber-500/30"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
+                                <UserCheck className="w-6 h-6 text-white" />
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-semibold text-gray-200">{emp.fullName}</h3>
+                              <p className="text-sm text-gray-400">{emp.jobTitle} - {emp.role === 'manager' ? 'مدير' : 'كاشير'}</p>
+                              <p className="text-xs text-gray-500">{emp.phone}</p>
                             </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-gray-200">{emp.fullName}</h3>
-                            <p className="text-sm text-gray-400">{emp.jobTitle} - {emp.role === 'manager' ? 'مدير' : 'كاشير'}</p>
-                            <p className="text-xs text-gray-500">{emp.phone}</p>
+                          </div>
+                        </div>
+                        <div className="text-left space-y-1">
+                          <Badge variant="outline" className={emp.role === 'manager' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-green-500/10 border-green-500/30 text-green-400'}>
+                            {emp.role === 'manager' ? 'مدير' : 'كاشير'}
+                          </Badge>
+                          <div className="text-sm text-gray-400">
+                            <p>{emp.orderCount || 0} طلب</p>
+                            <p className="text-amber-400 font-semibold">{(emp.totalSales || 0).toFixed(2)} ر.س</p>
                           </div>
                         </div>
                       </div>
-                      <div className="text-left space-y-1">
-                        <Badge variant="outline" className={emp.role === 'manager' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-green-500/10 border-green-500/30 text-green-400'}>
-                          {emp.role === 'manager' ? 'مدير' : 'كاشير'}
-                        </Badge>
-                        <div className="text-sm text-gray-400">
-                          <p>{emp.orderCount || 0} طلب</p>
-                          <p className="text-amber-400 font-semibold">{(emp.totalSales || 0).toFixed(2)} ر.س</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
