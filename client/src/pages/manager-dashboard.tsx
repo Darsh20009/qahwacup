@@ -16,6 +16,7 @@ import {
   Package, MapPin, Layers, ArrowLeft, Calendar,
   UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { 
   AreaChart, Area, BarChart as RechartsBar, Bar, 
   PieChart, Pie, Cell, LineChart, Line,
@@ -132,6 +133,71 @@ export default function ManagerDashboard() {
       return;
     }
     createBranchMutation.mutate(branchForm);
+  };
+
+  const handleExportData = () => {
+    try {
+      // Prepare data for export
+      const ordersData = filteredOrders.map(order => {
+        const employee = employees.find(e => e._id === order.employeeId);
+        return {
+          'رقم الطلب': order.orderNumber,
+          'التاريخ': order.createdAt ? new Date(order.createdAt).toLocaleString('ar-SA') : '',
+          'اسم العميل': order.customerInfo?.name || '',
+          'رقم الجوال': order.customerInfo?.phone || '',
+          'رقم الطاولة': order.tableNumber || '',
+          'الحالة': order.status,
+          'طريقة الدفع': order.paymentMethod === 'cash' ? 'نقدي' : order.paymentMethod,
+          'الكاشير': employee?.fullName || '',
+          'الإجمالي': Number(order.totalAmount).toFixed(2),
+        };
+      });
+
+      const topItemsExport = topItemsData.map(item => ({
+        'المنتج': item.name,
+        'عدد المبيعات': item.count,
+        'الإيرادات': item.revenue.toFixed(2),
+      }));
+
+      const employeesExport = employeesWithStats.map(emp => ({
+        'الاسم': emp.fullName,
+        'الوظيفة': emp.jobTitle,
+        'الدور': emp.role === 'manager' ? 'مدير' : 'كاشير',
+        'رقم الجوال': emp.phone,
+        'عدد الطلبات': emp.orderCount || 0,
+        'إجمالي المبيعات': (emp.totalSales || 0).toFixed(2),
+      }));
+
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Add sheets
+      const wsOrders = XLSX.utils.json_to_sheet(ordersData);
+      const wsTopItems = XLSX.utils.json_to_sheet(topItemsExport);
+      const wsEmployees = XLSX.utils.json_to_sheet(employeesExport);
+      
+      XLSX.utils.book_append_sheet(wb, wsOrders, 'الطلبات');
+      XLSX.utils.book_append_sheet(wb, wsTopItems, 'أكثر المنتجات مبيعاً');
+      XLSX.utils.book_append_sheet(wb, wsEmployees, 'الموظفين');
+
+      // Generate file name with date
+      const dateStr = new Date().toLocaleDateString('ar-SA').replace(/\//g, '-');
+      const fileName = `تقرير-المبيعات-${dateStr}.xlsx`;
+
+      // Save file
+      XLSX.writeFile(wb, fileName);
+
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تصدير البيانات إلى ملف Excel",
+      });
+    } catch (error) {
+      toast({
+        title: "خطأ في التصدير",
+        description: "حدث خطأ أثناء تصدير البيانات",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!manager) {
@@ -746,7 +812,12 @@ export default function ManagerDashboard() {
                       تطور المبيعات خلال الفترة المحددة
                     </CardDescription>
                   </div>
-                  <Button variant="outline" className="border-amber-500/50 text-amber-500">
+                  <Button 
+                    variant="outline" 
+                    className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+                    onClick={handleExportData}
+                    data-testid="button-export-data"
+                  >
                     <Download className="w-4 h-4 ml-2" />
                     تصدير
                   </Button>
