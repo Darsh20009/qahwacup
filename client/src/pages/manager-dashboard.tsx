@@ -246,11 +246,11 @@ export default function ManagerDashboard() {
   const todayRevenue = todayOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
 
   const employeesWithStats: EmployeeWithStats[] = employees.map(emp => {
-    const empOrders = filteredOrders.filter(o => 
-      o.employeeId === emp._id?.toString() || 
-      (o as any).employee?.id === emp._id?.toString() ||
-      (o as any).assignedEmployeeId === emp._id?.toString()
-    );
+    const empId = emp._id?.toString() || emp.id?.toString();
+    const empOrders = filteredOrders.filter(o => {
+      const orderEmpId = o.employeeId?.toString();
+      return orderEmpId === empId;
+    });
     return {
       ...emp,
       orderCount: empOrders.length,
