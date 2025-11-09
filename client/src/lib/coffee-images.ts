@@ -20,6 +20,7 @@ export const getCoffeeImage = (coffeeId: string): string => {
     "iced-cappuccino": "/images/iced-cappuccino.png",
     "iced-condensed": "/images/iced-chocolate.png",
     "vanilla-cold-brew": "/images/vanilla-cold-brew.png",
+    "cold-brew": "/attached_assets/Screenshot 2025-09-09 192140_1757443887277.png",
     "coffee-day-cold": "/attached_assets/coffee-day-cold-new.png",
     "turkish-coffee": "/attached_assets/Screenshot 2025-10-05 003822_1759666311817.png",
     "french-press": "/attached_assets/Screenshot 2025-10-05 003844_1759666320914.png",
