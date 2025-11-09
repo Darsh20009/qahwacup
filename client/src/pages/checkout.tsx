@@ -650,39 +650,39 @@ ${itemsWithPrices}
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50" data-testid="page-checkout">
       {/* Soft Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl animate-pulse"></div>
         <div className="absolute bottom-32 right-16 w-24 h-24 bg-indigo-200/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
         <div className="absolute top-1/2 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-lg animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
-      <div className="relative z-10 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 py-6 md:py-12">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           {/* Clean Header */}
-          <div className="text-center mb-12">
-            <h1 className="font-amiri text-4xl font-bold text-slate-700 mb-4">
+          <div className="text-center mb-6 md:mb-12">
+            <h1 className="font-amiri text-2xl sm:text-3xl md:text-4xl font-bold text-slate-700 mb-2 md:mb-4">
               إتمام عملية الدفع
             </h1>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-slate-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed px-4">
               اختر طريقة الدفع المفضلة لديك واستمتع بتجربة قهوة لا تُنسى
             </p>
-            <div className="mt-6 flex items-center justify-center space-x-2">
-              <div className="w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
-              <Coffee className="w-6 h-6 text-primary animate-bounce" />
-              <div className="w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
+            <div className="mt-4 md:mt-6 flex items-center justify-center space-x-2">
+              <div className="w-6 md:w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
+              <Coffee className="w-5 md:w-6 h-5 md:h-6 text-primary animate-bounce" />
+              <div className="w-6 md:w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {/* Modern Order Summary Card */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 order-2 lg:order-1">
               <Card className="bg-white border-slate-200 shadow-lg">
-                <CardHeader className="bg-slate-100 rounded-t-lg">
-                  <CardTitle className="font-amiri text-xl font-bold flex items-center text-slate-700">
-                    <Coffee className="w-5 h-5 ml-2" />
+                <CardHeader className="bg-slate-100 rounded-t-lg p-4 md:p-6">
+                  <CardTitle className="font-amiri text-lg md:text-xl font-bold flex items-center text-slate-700">
+                    <Coffee className="w-4 md:w-5 h-4 md:h-5 ml-2" />
                     ملخص طلبك
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6" data-testid="section-order-summary">
+                <CardContent className="p-4 md:p-6" data-testid="section-order-summary">
                   <div className="space-y-4 mb-6">
                     {cartItems.map((item, index) => (
                       <div
@@ -710,10 +710,10 @@ ${itemsWithPrices}
 
                   {/* Discount Code Section */}
                   {!useFreeDrink && selectedPaymentMethod !== 'qahwa-card' && (
-                    <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-xl border-2 border-amber-200 dark:border-amber-800">
+                    <div className="mb-3 md:mb-4 p-3 md:p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg md:rounded-xl border-2 border-amber-200 dark:border-amber-800">
                       <div className="flex items-center gap-2 mb-2">
-                        <Gift className="w-5 h-5 text-amber-600" />
-                        <h3 className="font-bold text-amber-900 dark:text-amber-100">كود الخصم</h3>
+                        <Gift className="w-4 md:w-5 h-4 md:h-5 text-amber-600" />
+                        <h3 className="font-bold text-sm md:text-base text-amber-900 dark:text-amber-100">كود الخصم</h3>
                       </div>
                       {appliedDiscount ? (
                         <div className="flex items-center justify-between bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
@@ -819,15 +819,15 @@ ${itemsWithPrices}
             </div>
 
             {/* Modern Payment Section */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 order-1 lg:order-2">
               <Card className="bg-white border-slate-200 shadow-lg">
-                <CardHeader className="bg-slate-100 rounded-t-lg">
-                  <CardTitle className="flex items-center font-amiri text-xl font-bold text-slate-700" data-testid="text-checkout-title">
-                    <CreditCard className="w-5 h-5 ml-2" />
+                <CardHeader className="bg-slate-100 rounded-t-lg p-4 md:p-6">
+                  <CardTitle className="flex items-center font-amiri text-lg md:text-xl font-bold text-slate-700" data-testid="text-checkout-title">
+                    <CreditCard className="w-4 md:w-5 h-4 md:h-5 ml-2" />
                     اختر طريقة الدفع
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-8 space-y-8">
+                <CardContent className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8">
 
                   {/* Customer Information - Creative Popup Style */}
                   <div className="space-y-6" data-testid="section-customer-info">
@@ -836,26 +836,26 @@ ${itemsWithPrices}
                       <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
 
                       {/* Main popup container */}
-                      <div className="relative bg-gradient-to-br from-white/95 via-blue-50/80 to-slate-50/90 backdrop-blur-sm rounded-2xl p-8 border-2 border-primary/20 shadow-2xl transform transition-all duration-500 hover:scale-[1.01] hover:shadow-3xl">
+                      <div className="relative bg-gradient-to-br from-white/95 via-blue-50/80 to-slate-50/90 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 border-2 border-primary/20 shadow-2xl transform transition-all duration-500 hover:scale-[1.01] hover:shadow-3xl">
                         {/* Header with floating animation */}
-                        <div className="flex items-center justify-center mb-8">
+                        <div className="flex items-center justify-center mb-4 md:mb-6 lg:mb-8">
                           <div className="relative">
                             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-blue-500 rounded-full opacity-20 blur animate-pulse"></div>
-                            <div className="relative from-primary to-blue-500 rounded-full p-4 text-white shadow-lg bg-[#23252f]">
-                              <User className="w-8 h-8" />
+                            <div className="relative from-primary to-blue-500 rounded-full p-3 md:p-4 text-white shadow-lg bg-[#23252f]">
+                              <User className="w-6 md:w-8 h-6 md:h-8" />
                             </div>
                           </div>
                         </div>
 
-                        <h4 className="font-amiri text-2xl font-bold text-center mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                        <h4 className="font-amiri text-xl md:text-2xl font-bold text-center mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                           معلومات العميل
                         </h4>
                         {isRegisteredCustomer ? (
-                          <p className="text-center text-green-600 mb-8 text-sm bg-green-50 py-2 px-4 rounded-lg">
+                          <p className="text-center text-green-600 mb-4 md:mb-6 lg:mb-8 text-sm bg-green-50 py-2 px-4 rounded-lg">
                             ✓ مرحباً {customerName} - حسابك مسجل لدينا
                           </p>
                         ) : (
-                          <p className="text-center text-slate-600 mb-8 text-sm">
+                          <p className="text-center text-slate-600 mb-4 md:mb-6 lg:mb-8 text-sm">
                             ✨ أدخل بياناتك للمتابعة مع تجربة قهوة رائعة
                           </p>
                         )}
