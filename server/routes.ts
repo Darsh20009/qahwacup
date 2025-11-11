@@ -1234,26 +1234,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get order by number
+  // Get order by number - for public tracking
   app.get("/api/orders/number/:orderNumber", async (req, res) => {
     try {
       const { orderNumber } = req.params;
       const order = await storage.getOrderByNumber(orderNumber);
 
       if (!order) {
-        return res.status(404).json({ error: "Order not found" });
+        return res.status(404).json({ error: "الطلب غير موجود" });
       }
 
-      // Get order items
-      const orderItems = await storage.getOrderItems(order.id);
+      // Serialize and parse items
+      const serializedOrder = serializeDoc(order);
+      if (serializedOrder.items && typeof serializedOrder.items === 'string') {
+        try {
+          serializedOrder.items = JSON.parse(serializedOrder.items);
+        } catch (e) {
+          console.error("Error parsing order items:", e);
+          serializedOrder.items = [];
+        }
+      }
 
-      res.json({
-        ...order,
-        orderItems
-      });
+      res.json(serializedOrder);
     } catch (error) {
       console.error("Error fetching order by number:", error);
-      res.status(500).json({ error: "Failed to fetch order" });
+      res.status(500).json({ error: "فشل في جلب معلومات الطلب" });
     }
   });
 

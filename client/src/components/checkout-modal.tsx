@@ -8,13 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "./payment-methods";
 import { generatePDF } from "@/lib/pdf-generator";
-import { CreditCard, FileText, MessageCircle, Check, ArrowRight, Coffee, ShoppingCart, Wallet, Star, Phone } from "lucide-react";
+import { CreditCard, FileText, MessageCircle, Check, ArrowRight, Coffee, ShoppingCart, Wallet, Star, Phone, Truck, Store, MapPin, Upload, User } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 
-type CheckoutStep = 'review' | 'payment' | 'confirmation' | 'success';
+type CheckoutStep = 'review' | 'delivery' | 'payment' | 'confirmation' | 'success';
+type DeliveryType = 'pickup' | 'delivery' | null;
 
 export default function CheckoutModal() {
   const {
@@ -35,9 +38,24 @@ export default function CheckoutModal() {
   const [customerName, setCustomerName] = useState(customer?.name || "");
   const [customerPhone, setCustomerPhone] = useState(customer?.phone || "");
 
+  // Delivery/Pickup state
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
+  
+  // Receipt upload state
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+
   const { data: paymentMethods = [] } = useQuery<PaymentMethodInfo[]>({
     queryKey: ["/api/payment-methods"],
     enabled: isCheckoutOpen, // Only fetch when modal is open
+  });
+
+  const { data: branches = [] } = useQuery({
+    queryKey: ["/api/branches"],
+    enabled: isCheckoutOpen && deliveryType === 'pickup',
   });
 
   const createOrderMutation = useMutation({
@@ -62,11 +80,71 @@ export default function CheckoutModal() {
     },
   });
 
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          variant: "destructive",
+          title: "الملف كبير جداً",
+          description: "يرجى اختيار صورة أقل من 5 ميجابايت",
+        });
+        return;
+      }
+      
+      setReceiptFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReceiptPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleProceedDelivery = () => {
+    if (!deliveryType) {
+      toast({
+        variant: "destructive",
+        title: "يرجى اختيار طريقة الاستلام",
+      });
+      return;
+    }
+
+    if (deliveryType === 'pickup' && !selectedBranch) {
+      toast({
+        variant: "destructive",
+        title: "يرجى اختيار الفرع",
+      });
+      return;
+    }
+
+    if (deliveryType === 'delivery' && !deliveryAddress.trim()) {
+      toast({
+        variant: "destructive",
+        title: "يرجى إدخال عنوان التوصيل",
+      });
+      return;
+    }
+
+    setCurrentStep('payment');
+  };
+
   const handleProceedPayment = () => {
     if (!selectedPaymentMethod) {
       toast({
         variant: "destructive",
         title: "يرجى اختيار طريقة الدفع",
+      });
+      return;
+    }
+
+    // Check if receipt is required for this payment method
+    const selectedMethodInfo = paymentMethods.find(m => m.id === selectedPaymentMethod);
+    if (selectedMethodInfo?.requiresReceipt && !receiptFile) {
+      toast({
+        variant: "destructive",
+        title: "يرجى رفع إيصال الدفع",
+        description: "هذه الطريقة تتطلب إرفاق إيصال الدفع",
       });
       return;
     }
@@ -100,6 +178,13 @@ export default function CheckoutModal() {
         name: finalCustomerName,
         phone: finalCustomerPhone,
       },
+      // Delivery information
+      deliveryType: deliveryType,
+      branchId: deliveryType === 'pickup' ? selectedBranch : null,
+      deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+      deliveryNotes: deliveryNotes || null,
+      // Receipt (if uploaded, convert to base64)
+      paymentReceiptUrl: receiptPreview || null,
     };
 
     createOrderMutation.mutate(orderData);
@@ -159,6 +244,12 @@ export default function CheckoutModal() {
     setCurrentStep('review');
     setOrderDetails(null);
     setSelectedPaymentMethod(null);
+    setDeliveryType(null);
+    setSelectedBranch("");
+    setDeliveryAddress("");
+    setDeliveryNotes("");
+    setReceiptFile(null);
+    setReceiptPreview(null);
     // Reset form fields on close if customer is not logged in
     if (!customer) {
       setCustomerName("");
@@ -173,6 +264,7 @@ export default function CheckoutModal() {
 
   const steps = [
     { id: 'review', title: 'مراجعة الطلب', icon: ShoppingCart },
+    { id: 'delivery', title: 'طريقة الاستلام', icon: Truck },
     { id: 'payment', title: 'طريقة الدفع', icon: Wallet },
     { id: 'confirmation', title: 'تأكيد الدفع', icon: Check },
     { id: 'success', title: 'تم بنجاح', icon: Star },
@@ -313,13 +405,147 @@ export default function CheckoutModal() {
               </div>
 
               <Button
-                onClick={() => setCurrentStep('payment')}
+                onClick={() => setCurrentStep('delivery')}
                 size="lg"
                 className="w-full btn-primary text-accent-foreground py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <ArrowRight className="w-5 h-5 ml-2" />
-                متابعة للدفع
+                متابعة
               </Button>
+            </div>
+          )}
+
+          {currentStep === 'delivery' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-10 duration-500">
+              <div className="bg-card/50 rounded-xl p-6 border border-primary/20">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                  <Truck className="w-5 h-5 ml-2" />
+                  اختر طريقة الاستلام
+                </h3>
+
+                <RadioGroup value={deliveryType || ""} onValueChange={(value) => setDeliveryType(value as DeliveryType)}>
+                  <div className="space-y-3">
+                    {/* Pickup Option */}
+                    <div className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                      deliveryType === 'pickup' 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:border-primary/50'
+                    }`} onClick={() => setDeliveryType('pickup')}>
+                      <div className="flex items-center space-x-3 space-x-reverse">
+                        <RadioGroupItem value="pickup" id="pickup" />
+                        <Label htmlFor="pickup" className="flex-1 cursor-pointer">
+                          <div className="flex items-center space-x-2 space-x-reverse">
+                            <Store className="w-5 h-5 text-primary" />
+                            <div>
+                              <div className="font-semibold">استلام من الفرع</div>
+                              <div className="text-sm text-muted-foreground">احصل على طلبك من أقرب فرع</div>
+                            </div>
+                          </div>
+                        </Label>
+                      </div>
+
+                      {/* Branch Selection */}
+                      {deliveryType === 'pickup' && (
+                        <div className="mt-4 space-y-2 animate-in slide-in-from-top-10 duration-300">
+                          <Label>اختر الفرع</Label>
+                          <select
+                            value={selectedBranch}
+                            onChange={(e) => setSelectedBranch(e.target.value)}
+                            className="w-full p-3 rounded-lg border border-border bg-background text-foreground"
+                          >
+                            <option value="">-- اختر فرعاً --</option>
+                            {branches.map((branch: any) => (
+                              <option key={branch.id} value={branch.id}>
+                                {branch.nameAr} - {branch.location}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Delivery Option */}
+                    <div className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                      deliveryType === 'delivery' 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:border-primary/50'
+                    }`} onClick={() => setDeliveryType('delivery')}>
+                      <div className="flex items-center space-x-3 space-x-reverse">
+                        <RadioGroupItem value="delivery" id="delivery" />
+                        <Label htmlFor="delivery" className="flex-1 cursor-pointer">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              <Truck className="w-5 h-5 text-primary" />
+                              <div>
+                                <div className="font-semibold">توصيل للمنزل</div>
+                                <div className="text-sm text-muted-foreground">داخل حدود البديعة فقط</div>
+                              </div>
+                            </div>
+                            <div className="text-primary font-bold">15 ريال</div>
+                          </div>
+                        </Label>
+                      </div>
+
+                      {/* Address Input */}
+                      {deliveryType === 'delivery' && (
+                        <div className="mt-4 space-y-3 animate-in slide-in-from-top-10 duration-300">
+                          <div>
+                            <Label htmlFor="delivery-address" className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              عنوان التوصيل
+                            </Label>
+                            <Textarea
+                              id="delivery-address"
+                              value={deliveryAddress}
+                              onChange={(e) => setDeliveryAddress(e.target.value)}
+                              placeholder="أدخل عنوان التوصيل بالتفصيل (الحي، الشارع، رقم المبنى)"
+                              className="mt-2 min-h-[100px]"
+                              dir="rtl"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="delivery-notes">ملاحظات إضافية (اختياري)</Label>
+                            <Input
+                              id="delivery-notes"
+                              value={deliveryNotes}
+                              onChange={(e) => setDeliveryNotes(e.target.value)}
+                              placeholder="مثال: بجوار المسجد، بوابة خلفية"
+                              className="mt-2"
+                              dir="rtl"
+                            />
+                          </div>
+
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                            <p className="font-semibold mb-1">⚠️ تنبيه مهم</p>
+                            <p>التوصيل متاح فقط داخل حدود البديعة. سيتم التحقق من العنوان قبل تأكيد الطلب.</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="flex space-x-3 space-x-reverse">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep('review')}
+                  size="lg"
+                  className="flex-1 py-3"
+                >
+                  رجوع
+                </Button>
+                <Button
+                  onClick={handleProceedDelivery}
+                  disabled={!deliveryType}
+                  size="lg"
+                  className="flex-1 btn-primary text-accent-foreground py-3 text-lg font-semibold"
+                >
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                  متابعة للدفع
+                </Button>
+              </div>
             </div>
           )}
 
@@ -336,12 +562,69 @@ export default function CheckoutModal() {
                   selectedMethod={selectedPaymentMethod}
                   onSelectMethod={setSelectedPaymentMethod}
                 />
+
+                {/* Receipt Upload Section */}
+                {selectedPaymentMethod && paymentMethods.find(m => m.id === selectedPaymentMethod)?.requiresReceipt && (
+                  <div className="mt-6 p-4 bg-card/50 rounded-lg border border-primary/20 animate-in slide-in-from-bottom-10 duration-300">
+                    <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-primary" />
+                      رفع إيصال الدفع
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      يرجى رفع صورة واضحة لإيصال الدفع لإتمام الطلب
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <Label htmlFor="receipt-upload" className="cursor-pointer">
+                        <div className="border-2 border-dashed border-primary/50 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                          {receiptPreview ? (
+                            <div className="space-y-3">
+                              <img 
+                                src={receiptPreview} 
+                                alt="معاينة الإيصال" 
+                                className="max-h-48 mx-auto rounded-lg"
+                              />
+                              <p className="text-sm text-muted-foreground">
+                                {receiptFile?.name}
+                              </p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setReceiptFile(null);
+                                  setReceiptPreview(null);
+                                }}
+                              >
+                                تغيير الصورة
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <Upload className="w-12 h-12 mx-auto mb-3 text-primary" />
+                              <p className="text-sm font-medium">اضغط لرفع صورة الإيصال</p>
+                              <p className="text-xs text-muted-foreground mt-1">PNG, JPG حتى 5MB</p>
+                            </>
+                          )}
+                        </div>
+                        <Input
+                          id="receipt-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReceiptUpload}
+                          className="hidden"
+                        />
+                      </Label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-3 space-x-reverse">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentStep('review')}
+                  onClick={() => setCurrentStep('delivery')}
                   size="lg"
                   className="flex-1 py-3"
                 >
