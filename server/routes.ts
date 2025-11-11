@@ -1990,6 +1990,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/delivery-zones", async (req, res) => {
+    try {
+      const zones = await storage.getDeliveryZones();
+      res.json(zones);
+    } catch (error) {
+      console.error("Error fetching delivery zones:", error);
+      res.status(500).json({ error: "Failed to fetch delivery zones" });
+    }
+  });
+
+  app.get("/api/delivery-zones/:id", async (req, res) => {
+    try {
+      const zone = await storage.getDeliveryZone(req.params.id);
+      if (!zone) {
+        return res.status(404).json({ error: "Delivery zone not found" });
+      }
+      res.json(zone);
+    } catch (error) {
+      console.error("Error fetching delivery zone:", error);
+      res.status(500).json({ error: "Failed to fetch delivery zone" });
+    }
+  });
+
+  app.post("/api/delivery-zones/validate", async (req, res) => {
+    try {
+      const { lat, lng } = req.body;
+      if (!lat || !lng) {
+        return res.status(400).json({ error: "Latitude and longitude required" });
+      }
+
+      const zones = await storage.getDeliveryZones();
+      const { getDeliveryZoneForPoint } = await import("./utils/geo");
+      
+      const mappedZones = zones.map(z => ({
+        coordinates: z.coordinates,
+        nameAr: z.nameAr,
+        deliveryFee: z.deliveryFee,
+        _id: z._id?.toString() || z.id || ''
+      }));
+      
+      const result = getDeliveryZoneForPoint({ lat, lng }, mappedZones);
+      
+      if (!result) {
+        return res.json({ 
+          isInZone: false, 
+          message: "عذراً، هذا الموقع خارج نطاق التوصيل. نوصل فقط إلى البديعة وظهرة البديعة" 
+        });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error validating delivery zone:", error);
+      res.status(500).json({ error: "Failed to validate delivery zone" });
+    }
+  });
+
+  app.get("/api/drivers", async (req, res) => {
+    try {
+      const drivers = await storage.getAvailableDrivers();
+      const driversWithoutPasswords = drivers.map(({ password: _, ...driver }) => driver);
+      res.json(driversWithoutPasswords);
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+      res.status(500).json({ error: "Failed to fetch drivers" });
+    }
+  });
+
+  app.patch("/api/drivers/:id/availability", async (req, res) => {
+    try {
+      const { isAvailable } = req.body;
+      const driver = await storage.updateDriverAvailability(req.params.id, isAvailable);
+      if (!driver) {
+        return res.status(404).json({ error: "Driver not found" });
+      }
+      const { password: _, ...driverData } = driver;
+      res.json(driverData);
+    } catch (error) {
+      console.error("Error updating driver availability:", error);
+      res.status(500).json({ error: "Failed to update driver availability" });
+    }
+  });
+
+  app.patch("/api/drivers/:id/location", async (req, res) => {
+    try {
+      const { lat, lng } = req.body;
+      if (!lat || !lng) {
+        return res.status(400).json({ error: "Latitude and longitude required" });
+      }
+      
+      const driver = await storage.updateDriverLocation(req.params.id, { lat, lng });
+      if (!driver) {
+        return res.status(404).json({ error: "Driver not found" });
+      }
+      const { password: _, ...driverData } = driver;
+      res.json(driverData);
+    } catch (error) {
+      console.error("Error updating driver location:", error);
+      res.status(500).json({ error: "Failed to update driver location" });
+    }
+  });
+
+  app.patch("/api/orders/:id/assign-driver", async (req, res) => {
+    try {
+      const { driverId } = req.body;
+      if (!driverId) {
+        return res.status(400).json({ error: "Driver ID required" });
+      }
+
+      const order = await storage.assignDriverToOrder(req.params.id, driverId);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Error assigning driver:", error);
+      res.status(500).json({ error: "Failed to assign driver" });
+    }
+  });
+
+  app.patch("/api/orders/:id/start-delivery", async (req, res) => {
+    try {
+      const order = await storage.startDelivery(req.params.id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Error starting delivery:", error);
+      res.status(500).json({ error: "Failed to start delivery" });
+    }
+  });
+
+  app.patch("/api/orders/:id/complete-delivery", async (req, res) => {
+    try {
+      const order = await storage.completeDelivery(req.params.id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Error completing delivery:", error);
+      res.status(500).json({ error: "Failed to complete delivery" });
+    }
+  });
+
+  app.get("/api/delivery/active-orders", async (req, res) => {
+    try {
+      const orders = await storage.getActiveDeliveryOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching active delivery orders:", error);
+      res.status(500).json({ error: "Failed to fetch active delivery orders" });
+    }
+  });
+
+  app.get("/api/drivers/:id/orders", async (req, res) => {
+    try {
+      const orders = await storage.getDriverActiveOrders(req.params.id);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching driver orders:", error);
+      res.status(500).json({ error: "Failed to fetch driver orders" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
