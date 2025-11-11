@@ -1,3 +1,4 @@
+
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { z } from "zod";
 
@@ -137,6 +138,7 @@ export interface IOrder extends Document {
   totalAmount: number;
   paymentMethod: string;
   paymentDetails?: string;
+  paymentReceiptUrl?: string;
   status: string;
   customerInfo?: any;
   customerId?: string;
@@ -148,6 +150,12 @@ export interface IOrder extends Document {
   carPickup?: any;
   discountCode?: string;
   discountPercentage?: number;
+  deliveryType?: 'pickup' | 'delivery';
+  deliveryAddress?: any;
+  deliveryFee?: number;
+  driverId?: string;
+  driverLocation?: any;
+  estimatedDeliveryTime?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -158,6 +166,7 @@ const OrderSchema = new Schema<IOrder>({
   totalAmount: { type: Number, required: true },
   paymentMethod: { type: String, required: true },
   paymentDetails: { type: String },
+  paymentReceiptUrl: { type: String },
   status: { type: String, default: "pending", required: true },
   customerInfo: { type: Schema.Types.Mixed },
   customerId: { type: String },
@@ -169,6 +178,12 @@ const OrderSchema = new Schema<IOrder>({
   carPickup: { type: Schema.Types.Mixed },
   discountCode: { type: String },
   discountPercentage: { type: Number },
+  deliveryType: { type: String, enum: ['pickup', 'delivery'] },
+  deliveryAddress: { type: Schema.Types.Mixed },
+  deliveryFee: { type: Number, default: 0 },
+  driverId: { type: String },
+  driverLocation: { type: Schema.Types.Mixed },
+  estimatedDeliveryTime: { type: Date },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -361,6 +376,10 @@ export interface IBranch extends Document {
   address: string;
   phone: string;
   city: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
   isActive: number;
   managerName?: string;
   createdAt: Date;
@@ -373,6 +392,10 @@ const BranchSchema = new Schema<IBranch>({
   address: { type: String, required: true },
   phone: { type: String, required: true },
   city: { type: String, required: true },
+  location: {
+    latitude: { type: Number },
+    longitude: { type: Number }
+  },
   isActive: { type: Number, default: 1, required: true },
   managerName: { type: String },
   createdAt: { type: Date, default: Date.now },
@@ -451,6 +474,7 @@ export const insertOrderSchema = z.object({
   totalAmount: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
   paymentMethod: z.string(),
   paymentDetails: z.string().optional(),
+  paymentReceiptUrl: z.string().optional(),
   status: z.string().optional(),
   customerInfo: z.any().optional(),
   customerId: z.string().optional(),
@@ -460,6 +484,10 @@ export const insertOrderSchema = z.object({
   customerNotes: z.string().optional(),
   cancellationReason: z.string().optional(),
   carPickup: z.any().optional(),
+  deliveryType: z.enum(['pickup', 'delivery']).optional(),
+  deliveryAddress: z.any().optional(),
+  deliveryFee: z.number().optional(),
+  driverId: z.string().optional(),
 });
 
 export const insertOrderItemSchema = z.object({
@@ -555,6 +583,10 @@ export const insertBranchSchema = z.object({
   address: z.string().min(5, "العنوان مطلوب"),
   phone: z.string().min(9, "رقم الهاتف مطلوب"),
   city: z.string().min(2, "المدينة مطلوبة"),
+  location: z.object({
+    latitude: z.number(),
+    longitude: z.number()
+  }).optional(),
   isActive: z.number().optional(),
   managerName: z.string().optional(),
 });
@@ -627,12 +659,13 @@ export interface PaymentMethodInfo {
   nameEn: string;
   details: string;
   icon: string;
+  requiresReceipt?: boolean;
 }
 
-export type EmployeeRole = 'manager' | 'cashier';
-export type JobTitle = 'كاشير' | 'محاسب' | 'بائع' | 'عارض';
+export type EmployeeRole = 'manager' | 'cashier' | 'driver';
+export type JobTitle = 'كاشير' | 'محاسب' | 'بائع' | 'عارض' | 'سائق';
 
-export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
 
 export type CoffeeCategory = 'basic' | 'hot' | 'cold' | 'specialty' | 'desserts';
 

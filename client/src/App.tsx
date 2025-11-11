@@ -9,6 +9,7 @@ import ProductDetails from "@/pages/product-details";
 import MenuView from "@/pages/menu-view";
 import CartPage from "@/pages/cart-page";
 import CheckoutPage from "@/pages/checkout";
+import OrderTrackingPage from "@/pages/tracking";
 import EmployeeGateway from "@/pages/employee-gateway";
 import EmployeeLogin from "@/pages/employee-login";
 import EmployeeDashboard from "@/pages/employee-dashboard";
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/my-card" component={MyCard} />
       <Route path="/cart" component={CartPage} />
       <Route path="/checkout" component={CheckoutPage} />
+      <Route path="/tracking" component={OrderTrackingPage} />
       <Route path="/product/:id" component={ProductDetails} />
       <Route path="/employee/gateway" component={EmployeeGateway} />
       <Route path="/employee/login" component={EmployeeLogin} />
