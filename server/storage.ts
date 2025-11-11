@@ -33,6 +33,8 @@ import {
   type InsertBranch,
   type Category,
   type InsertCategory,
+  type DeliveryZone,
+  type InsertDeliveryZone,
   CoffeeItemModel,
   CustomerModel,
   EmployeeModel,
@@ -50,6 +52,7 @@ import {
   PasswordResetTokenModel,
   BranchModel,
   CategoryModel,
+  DeliveryZoneModel,
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -153,6 +156,23 @@ export interface IStorage {
   
   getCustomers(): Promise<Customer[]>;
   getOrdersByEmployee(employeeId: string): Promise<Order[]>;
+
+  getDeliveryZones(): Promise<DeliveryZone[]>;
+  getDeliveryZone(id: string): Promise<DeliveryZone | undefined>;
+  createDeliveryZone(zone: InsertDeliveryZone): Promise<DeliveryZone>;
+  updateDeliveryZone(id: string, updates: Partial<DeliveryZone>): Promise<DeliveryZone | undefined>;
+  deleteDeliveryZone(id: string): Promise<boolean>;
+
+  getAvailableDrivers(): Promise<Employee[]>;
+  updateDriverAvailability(id: string, isAvailable: number): Promise<Employee | undefined>;
+  updateDriverLocation(id: string, location: {lat: number, lng: number}): Promise<Employee | undefined>;
+
+  assignDriverToOrder(orderId: string, driverId: string): Promise<Order | undefined>;
+  updateOrderDeliveryStatus(orderId: string, status: string): Promise<Order | undefined>;
+  startDelivery(orderId: string): Promise<Order | undefined>;
+  completeDelivery(orderId: string): Promise<Order | undefined>;
+  getActiveDeliveryOrders(): Promise<Order[]>;
+  getDriverActiveOrders(driverId: string): Promise<Order[]>;
 }
 
 export class DBStorage implements IStorage {
@@ -809,6 +829,131 @@ export class DBStorage implements IStorage {
 
   async getOrdersByEmployee(employeeId: string): Promise<Order[]> {
     return await OrderModel.find({ employeeId }).sort({ createdAt: -1 });
+  }
+
+  async getDeliveryZones(): Promise<DeliveryZone[]> {
+    return await DeliveryZoneModel.find({ isActive: 1 }).sort({ nameAr: 1 });
+  }
+
+  async getDeliveryZone(id: string): Promise<DeliveryZone | undefined> {
+    const zone = await DeliveryZoneModel.findById(id);
+    return zone || undefined;
+  }
+
+  async createDeliveryZone(zone: InsertDeliveryZone): Promise<DeliveryZone> {
+    const newZone = await DeliveryZoneModel.create(zone);
+    return newZone;
+  }
+
+  async updateDeliveryZone(id: string, updates: Partial<DeliveryZone>): Promise<DeliveryZone | undefined> {
+    const updated = await DeliveryZoneModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async deleteDeliveryZone(id: string): Promise<boolean> {
+    const result = await DeliveryZoneModel.findByIdAndUpdate(
+      id,
+      { isActive: 0, updatedAt: new Date() },
+      { new: true }
+    );
+    return !!result;
+  }
+
+  async getAvailableDrivers(): Promise<Employee[]> {
+    return await EmployeeModel.find({ 
+      role: 'driver', 
+      isActivated: 1,
+      isAvailableForDelivery: 1 
+    });
+  }
+
+  async updateDriverAvailability(id: string, isAvailable: number): Promise<Employee | undefined> {
+    const updated = await EmployeeModel.findByIdAndUpdate(
+      id,
+      { isAvailableForDelivery: isAvailable, updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async updateDriverLocation(id: string, location: {lat: number, lng: number}): Promise<Employee | undefined> {
+    const updated = await EmployeeModel.findByIdAndUpdate(
+      id,
+      { 
+        currentLocation: { 
+          lat: location.lat, 
+          lng: location.lng, 
+          updatedAt: new Date() 
+        },
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async assignDriverToOrder(orderId: string, driverId: string): Promise<Order | undefined> {
+    const updated = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { driverId, deliveryStatus: 'assigned', updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async updateOrderDeliveryStatus(orderId: string, status: string): Promise<Order | undefined> {
+    const updated = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { deliveryStatus: status, updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async startDelivery(orderId: string): Promise<Order | undefined> {
+    const updated = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { 
+        deliveryStatus: 'out_for_delivery',
+        deliveryStartedAt: new Date(),
+        status: 'out_for_delivery',
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async completeDelivery(orderId: string): Promise<Order | undefined> {
+    const updated = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { 
+        deliveryStatus: 'delivered',
+        deliveredAt: new Date(),
+        status: 'completed',
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async getActiveDeliveryOrders(): Promise<Order[]> {
+    return await OrderModel.find({
+      deliveryType: 'delivery',
+      status: { $in: ['pending', 'payment_confirmed', 'in_progress', 'ready', 'out_for_delivery'] }
+    }).sort({ createdAt: -1 });
+  }
+
+  async getDriverActiveOrders(driverId: string): Promise<Order[]> {
+    return await OrderModel.find({
+      driverId,
+      deliveryStatus: { $in: ['assigned', 'out_for_delivery'] }
+    }).sort({ createdAt: -1 });
   }
 }
 

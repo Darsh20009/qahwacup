@@ -88,6 +88,16 @@ export interface IEmployee extends Document {
   shiftTime?: string;
   commissionPercentage?: number;
   isActivated: number;
+  vehicleType?: string;
+  vehiclePlateNumber?: string;
+  vehicleColor?: string;
+  licenseNumber?: string;
+  isAvailableForDelivery?: number;
+  currentLocation?: {
+    lat: number;
+    lng: number;
+    updatedAt: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -104,6 +114,16 @@ const EmployeeSchema = new Schema<IEmployee>({
   shiftTime: { type: String },
   commissionPercentage: { type: Number, default: 0 },
   isActivated: { type: Number, default: 0, required: true },
+  vehicleType: { type: String },
+  vehiclePlateNumber: { type: String },
+  vehicleColor: { type: String },
+  licenseNumber: { type: String },
+  isAvailableForDelivery: { type: Number, default: 0 },
+  currentLocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+    updatedAt: { type: Date }
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -151,11 +171,24 @@ export interface IOrder extends Document {
   discountCode?: string;
   discountPercentage?: number;
   deliveryType?: 'pickup' | 'delivery';
-  deliveryAddress?: any;
+  deliveryAddress?: {
+    fullAddress?: string;
+    lat: number;
+    lng: number;
+    zone?: string;
+    isInDeliveryZone?: boolean;
+  };
   deliveryFee?: number;
   driverId?: string;
-  driverLocation?: any;
+  driverLocation?: {
+    lat: number;
+    lng: number;
+    updatedAt: Date;
+  };
+  deliveryStatus?: string;
+  deliveryStartedAt?: Date;
   estimatedDeliveryTime?: Date;
+  deliveredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -179,11 +212,24 @@ const OrderSchema = new Schema<IOrder>({
   discountCode: { type: String },
   discountPercentage: { type: Number },
   deliveryType: { type: String, enum: ['pickup', 'delivery'] },
-  deliveryAddress: { type: Schema.Types.Mixed },
+  deliveryAddress: {
+    fullAddress: { type: String },
+    lat: { type: Number },
+    lng: { type: Number },
+    zone: { type: String },
+    isInDeliveryZone: { type: Boolean }
+  },
   deliveryFee: { type: Number, default: 0 },
   driverId: { type: String },
-  driverLocation: { type: Schema.Types.Mixed },
+  driverLocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+    updatedAt: { type: Date }
+  },
+  deliveryStatus: { type: String },
+  deliveryStartedAt: { type: Date },
   estimatedDeliveryTime: { type: Date },
+  deliveredAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -440,6 +486,31 @@ const UserSchema = new Schema<IUser>({
 
 export const UserModel = mongoose.model<IUser>("User", UserSchema);
 
+export interface IDeliveryZone extends Document {
+  nameAr: string;
+  nameEn?: string;
+  coordinates: Array<{lat: number; lng: number}>;
+  deliveryFee: number;
+  isActive: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const DeliveryZoneSchema = new Schema<IDeliveryZone>({
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  coordinates: [{
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true }
+  }],
+  deliveryFee: { type: Number, required: true, default: 10 },
+  isActive: { type: Number, default: 1, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const DeliveryZoneModel = mongoose.model<IDeliveryZone>("DeliveryZone", DeliveryZoneSchema);
+
 export const insertCoffeeItemSchema = z.object({
   id: z.string(),
   nameAr: z.string(),
@@ -467,6 +538,16 @@ export const insertEmployeeSchema = z.object({
   shiftTime: z.string().optional(),
   commissionPercentage: z.number().optional(),
   isActivated: z.number().optional(),
+  vehicleType: z.string().optional(),
+  vehiclePlateNumber: z.string().optional(),
+  vehicleColor: z.string().optional(),
+  licenseNumber: z.string().optional(),
+  isAvailableForDelivery: z.number().optional(),
+  currentLocation: z.object({
+    lat: z.number(),
+    lng: z.number(),
+    updatedAt: z.date().optional(),
+  }).optional(),
 });
 
 export const insertOrderSchema = z.object({
@@ -485,9 +566,41 @@ export const insertOrderSchema = z.object({
   cancellationReason: z.string().optional(),
   carPickup: z.any().optional(),
   deliveryType: z.enum(['pickup', 'delivery']).optional(),
-  deliveryAddress: z.any().optional(),
+  deliveryAddress: z.object({
+    fullAddress: z.string().optional(),
+    lat: z.number(),
+    lng: z.number(),
+    zone: z.string().optional(),
+    isInDeliveryZone: z.boolean().optional(),
+  }).optional(),
   deliveryFee: z.number().optional(),
   driverId: z.string().optional(),
+  driverLocation: z.object({
+    lat: z.number(),
+    lng: z.number(),
+    updatedAt: z.date().optional(),
+  }).optional(),
+  deliveryStatus: z.string().optional(),
+  deliveryStartedAt: z.date().optional(),
+  estimatedDeliveryTime: z.date().optional(),
+  deliveredAt: z.date().optional(),
+}).refine((data) => {
+  const requiresReceipt = ['alinma', 'ur', 'barq', 'rajhi'].includes(data.paymentMethod);
+  if (requiresReceipt && !data.paymentReceiptUrl) {
+    return false;
+  }
+  return true;
+}, {
+  message: "إيصال الدفع مطلوب لطرق الدفع الإلكترونية",
+  path: ["paymentReceiptUrl"],
+}).refine((data) => {
+  if (data.deliveryType === 'delivery' && !data.deliveryAddress) {
+    return false;
+  }
+  return true;
+}, {
+  message: "عنوان التوصيل مطلوب لطلبات التوصيل",
+  path: ["deliveryAddress"],
 });
 
 export const insertOrderItemSchema = z.object({
@@ -600,6 +713,17 @@ export const insertCategorySchema = z.object({
   isActive: z.number().optional(),
 });
 
+export const insertDeliveryZoneSchema = z.object({
+  nameAr: z.string().min(2, "اسم المنطقة مطلوب"),
+  nameEn: z.string().optional(),
+  coordinates: z.array(z.object({
+    lat: z.number(),
+    lng: z.number()
+  })).min(3, "يجب تحديد على الأقل 3 نقاط لرسم المنطقة"),
+  deliveryFee: z.number().default(10),
+  isActive: z.number().optional(),
+});
+
 export type CoffeeItem = ICoffeeItem;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
 
@@ -650,6 +774,9 @@ export type InsertBranch = z.infer<typeof insertBranchSchema>;
 
 export type Category = ICategory;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
+
+export type DeliveryZone = IDeliveryZone;
+export type InsertDeliveryZone = z.infer<typeof insertDeliveryZoneSchema>;
 
 export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
 
