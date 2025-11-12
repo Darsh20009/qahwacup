@@ -1,24 +1,24 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Customer, LoyaltyCard } from "@/types";
+import type { ICustomer, ILoyaltyCard } from "@shared/schema";
 
 interface SearchCustomerProps {
   setSearchPhone: (phone: string) => void;
+  searchPhone: string;
 }
 
-const SearchCustomer: React.FC<SearchCustomerProps> = ({ setSearchPhone }) => {
-  const [phoneNumber, setPhoneNumber] = React.useState("");
+const SearchCustomer: React.FC<SearchCustomerProps> = ({ setSearchPhone, searchPhone }) => {
+  const [phoneNumber, setPhoneNumber] = useState("");
 
-  const { data: loyaltyCard, isLoading: isLoadingCard, error: cardError } = useQuery<LoyaltyCard>({
+  const { data: loyaltyCard, isLoading: isLoadingCard, error: cardError } = useQuery<ILoyaltyCard>({
     queryKey: [`/api/loyalty/cards/phone/${searchPhone}`],
     enabled: !!searchPhone && searchPhone.length === 9,
   });
 
-  const { data: customers = [] } = useQuery<Customer[]>({
+  const { data: customers = [] } = useQuery<ICustomer[]>({
     queryKey: ["/api/customers"],
     enabled: false,
   });
