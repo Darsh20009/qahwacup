@@ -15,6 +15,7 @@ export interface ICoffeeItem extends Document {
   availabilityStatus?: string;
   coffeeStrength?: string;
   strengthLevel?: number;
+  isNewProduct?: number;
 }
 
 const CoffeeItemSchema = new Schema<ICoffeeItem>({
@@ -30,6 +31,7 @@ const CoffeeItemSchema = new Schema<ICoffeeItem>({
   availabilityStatus: { type: String, default: "available" },
   coffeeStrength: { type: String, default: "classic" },
   strengthLevel: { type: Number },
+  isNewProduct: { type: Number, default: 0 },
 });
 
 export const CoffeeItemModel = mongoose.model<ICoffeeItem>("CoffeeItem", CoffeeItemSchema);
@@ -524,6 +526,7 @@ export const insertCoffeeItemSchema = z.object({
   availabilityStatus: z.string().optional(),
   coffeeStrength: z.string().optional(),
   strengthLevel: z.number().optional(),
+  isNewProduct: z.number().optional(),
 });
 
 export const insertEmployeeSchema = z.object({
