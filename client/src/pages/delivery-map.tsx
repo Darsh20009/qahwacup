@@ -246,7 +246,7 @@ export default function DeliveryMapPage() {
                   <MapPin className={`w-6 h-6 mt-0.5 flex-shrink-0 ${isInFreeZone ? 'text-green-600' : 'text-yellow-600'}`} />
                   <div className="flex-1 min-w-0">
                     <p className={`font-semibold mb-1 ${isInFreeZone ? 'text-green-700 dark:text-green-300' : 'text-yellow-700 dark:text-yellow-300'}`}>
-                      {isInFreeZone ? 'منطقة توصيل مجاني ✓' : 'رسوم التوصيل: 10 ريال'}
+                      {isInFreeZone ? 'منطقة توصيل مجاني ' : 'رسوم التوصيل: 10 ريال'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {isInFreeZone ? `الحي: ${zoneName}` : 'خارج مناطق التوصيل المجاني'}

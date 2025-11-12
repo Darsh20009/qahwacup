@@ -106,7 +106,7 @@ export default function QRCodeComponent({
  وجّه الكاميرا نحو الرمز للطلب
  </span>
  <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
- <span className="text-white text-xs">📱</span>
+ <span className="text-white text-xs"></span>
  </div>
  </div>
  

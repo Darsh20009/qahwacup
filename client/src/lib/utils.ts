@@ -15,18 +15,18 @@ export const COFFEE_STRENGTH_CONFIG = {
  bgColor: "bg-amber-100 dark:bg-amber-900/30",
  textColor: "text-amber-800 dark:text-amber-200",
  borderColor: "border-amber-300 dark:border-amber-700",
- icon: "☕",
- description: "نكه� متوازن� ومعتدل� ، مثالي� للاستمتاع اليومي"
+ icon: "",
+ description: "نكهة� متوازن� ومعتدل� ، مثالي� للاستمتاع اليومي"
  },
  mild: {
- labelAr: "� فيف",
+ labelAr: "�خفيف",
  labelEn: "Mild",
  color: "#DEB887", // Burlywood
  bgColor: "bg-green-100 dark:bg-green-900/30", 
  textColor: "text-green-700 dark:text-green-200",
  borderColor: "border-green-300 dark:border-green-700",
- icon: "🌱",
- description: "قو� � فيف� ونعوم� استثنائي� ، لبداي� لطيف� "
+ icon: "",
+ description: "قو� �خفيف� ونعومة� استثنائية ، لبداي� لطيف� "
  },
  medium: {
  labelAr: "متوسط",
@@ -35,8 +35,8 @@ export const COFFEE_STRENGTH_CONFIG = {
  bgColor: "bg-orange-100 dark:bg-orange-900/30",
  textColor: "text-orange-700 dark:text-orange-200", 
  borderColor: "border-orange-300 dark:border-orange-700",
- icon: "⚡",
- description: "توازن مثالي بين النكه� والقو� "
+ icon: "",
+ description: "توازن مثالي بين النكهةة� والقو� "
  },
  strong: {
  labelAr: "قوي",
@@ -45,8 +45,8 @@ export const COFFEE_STRENGTH_CONFIG = {
  bgColor: "bg-red-100 dark:bg-red-900/30",
  textColor: "text-red-800 dark:text-red-200",
  borderColor: "border-red-300 dark:border-red-700", 
- icon: "🔥",
- description: "نكه� قوي� ومكثف� للباحثين عن الطاق� "
+ icon: "",
+ description: "نكهة� قوي� ومكثف� للباحثين عن الطاق� "
  }
 } as const;
 

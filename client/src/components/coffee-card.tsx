@@ -66,7 +66,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
  className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs sm:text-sm font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg glow-effect"
  data-testid={`badge-discount-${item.id}`}
  >
- � صم {discount}%
+ � صم {discount}%
  </Badge>
  )}
  
@@ -79,7 +79,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
  }`}
  data-testid={`badge-availability-${item.id}`}
  >
- {item.availabilityStatus === 'out_of_stock' && "نفذت الكمي� "}
+ {item.availabilityStatus === 'out_of_stock' && "نفذت الكمية "}
  {item.availabilityStatus === 'coming_soon' && "قريباً"}
  {item.availabilityStatus === 'temporarily_unavailable' && "غير متوفر مؤقتاً"}
  </Badge>
@@ -157,16 +157,16 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
  >
  <Plus className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
  <span className="hidden sm:inline">
- {item.availabilityStatus === 'out_of_stock' ? '❌ نفذ' :
- item.availabilityStatus === 'coming_soon' ? '🔜 قريباً' :
- item.availabilityStatus === 'temporarily_unavailable' ? '⏸️ غير متوفر' :
- isAnimating ? '✨ تم الإضاف� ' : 'أضف للسل� '}
+ {item.availabilityStatus === 'out_of_stock' ? ' نفذ' :
+ item.availabilityStatus === 'coming_soon' ? ' قريباً' :
+ item.availabilityStatus === 'temporarily_unavailable' ? '⏸ غير متوفر' :
+ isAnimating ? ' تم الإضاف� ' : 'أضف للسل� '}
  </span>
  <span className="sm:hidden">
- {item.availabilityStatus === 'out_of_stock' ? '❌' :
- item.availabilityStatus === 'coming_soon' ? '🔜' :
- item.availabilityStatus === 'temporarily_unavailable' ? '⏸️' :
- isAnimating ? '✨' : 'أضف'}
+ {item.availabilityStatus === 'out_of_stock' ? '' :
+ item.availabilityStatus === 'coming_soon' ? '' :
+ item.availabilityStatus === 'temporarily_unavailable' ? '⏸' :
+ isAnimating ? '' : 'أضف'}
  </span>
  </Button>
  </div>

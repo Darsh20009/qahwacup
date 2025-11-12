@@ -38,7 +38,7 @@ export default function PaymentMethods({
 
  return (
  <div className="space-y-4" data-testid="section-payment-methods">
- <h3 className="text-lg font-semibold text-foreground mb-4">ا� تر طريق� الدفع</h3>
+ <h3 className="text-lg font-semibold text-foreground mb-4">ا� تر طريقة الدفع</h3>
  <div className="space-y-3">
  {paymentMethods.map((method) => {
  const isQahwaCard = method.id === 'qahwa-card';
@@ -101,7 +101,7 @@ export default function PaymentMethods({
  data-testid={`text-payment-name-${method.id}`}
  >
  {method.nameAr}
- {isQahwaCard && <span className="mr-2 text-2xl">✨</span>}
+ {isQahwaCard && <span className="mr-2 text-2xl"></span>}
  </h4>
  <p 
  className={`text-sm ${
@@ -129,7 +129,7 @@ export default function PaymentMethods({
  {/* Special badge for Qahwa Card when selected */}
  {isQahwaCard && selectedMethod === method.id && (
  <div className="mt-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-2 text-center text-sm font-bold shadow-lg">
- 🎊 تم ا� تيار المشروب المجاني - استمتع بقهوتك!
+  تم اختيار المشروب المجاني - استمتع بقهوتك!
  </div>
  )}
  </CardContent>

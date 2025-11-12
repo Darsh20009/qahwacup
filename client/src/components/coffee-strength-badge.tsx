@@ -98,7 +98,7 @@ export function CoffeeStrengthIndicator({
  {config.icon}
  </span>
  <span className={cn("font-bold text-lg", config.textColor)}>
- قو� القهو� 
+ قو� القهوة 
  </span>
  </div>
  <Badge 
