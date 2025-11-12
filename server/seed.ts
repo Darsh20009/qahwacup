@@ -155,30 +155,24 @@ export async function seedDeliveryZones() {
   const deliveryZones: InsertDeliveryZone[] = [
     {
       nameAr: "البديعة",
-      nameEn: "Al-Buday'ah",
+      nameEn: "Al-Badia",
       coordinates: [
-        { lat: 26.3526, lng: 43.9693 },
-        { lat: 26.3545, lng: 43.9801 },
-        { lat: 26.3498, lng: 43.9827 },
-        { lat: 26.3451, lng: 43.9809 },
-        { lat: 26.3423, lng: 43.9748 },
-        { lat: 26.3432, lng: 43.9687 },
-        { lat: 26.3472, lng: 43.9665 },
-        { lat: 26.3510, lng: 43.9678 }
+        { lat: 24.7136, lng: 46.6753 },
+        { lat: 24.7200, lng: 46.6753 },
+        { lat: 24.7200, lng: 46.6850 },
+        { lat: 24.7136, lng: 46.6850 }
       ],
       deliveryFee: 10,
       isActive: 1
     },
     {
       nameAr: "ظهرة البديعة",
-      nameEn: "Dhahrat Al-Buday'ah",
+      nameEn: "Dhahrat Al-Badia",
       coordinates: [
-        { lat: 26.3558, lng: 43.9701 },
-        { lat: 26.3576, lng: 43.9789 },
-        { lat: 26.3538, lng: 43.9825 },
-        { lat: 26.3500, lng: 43.9803 },
-        { lat: 26.3512, lng: 43.9745 },
-        { lat: 26.3540, lng: 43.9715 }
+        { lat: 24.7050, lng: 46.6753 },
+        { lat: 24.7136, lng: 46.6753 },
+        { lat: 24.7136, lng: 46.6850 },
+        { lat: 24.7050, lng: 46.6850 }
       ],
       deliveryFee: 10,
       isActive: 1
