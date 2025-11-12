@@ -9,6 +9,7 @@ import { useCartStore } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "@/components/payment-methods";
+import FileUpload from "@/components/file-upload";
 import { generatePDF } from "@/lib/pdf-generator";
 import { customerStorage } from "@/lib/customer-storage";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -16,9 +17,10 @@ import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, 
 import type { PaymentMethodInfo, PaymentMethod, Order } from "@shared/schema";
 
 export default function CheckoutPage() {
-  const { cartItems, clearCart, getTotalPrice } = useCartStore();
+  const { cartItems, clearCart, getTotalPrice, deliveryInfo } = useCartStore();
   const { toast } = useToast();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentReceiptUrl, setPaymentReceiptUrl] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
@@ -241,6 +243,17 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate payment receipt for electronic payments
+    const electronicPayments = ['alinma', 'ur', 'barq', 'rajhi'];
+    if (electronicPayments.includes(selectedPaymentMethod) && !paymentReceiptUrl) {
+      toast({
+        variant: "destructive",
+        title: "إيصال الدفع مطلوب",
+        description: "يرجى رفع صورة إيصال الدفع",
+      });
+      return;
+    }
+
     // Check if using qahwa-card payment method (free drink)
     const isQahwaCardPayment = selectedPaymentMethod === 'qahwa-card';
 
@@ -336,8 +349,13 @@ export default function CheckoutPage() {
       totalAmount: totalAmount.toFixed(2),
       paymentMethod: selectedPaymentMethod,
       paymentDetails: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
+      paymentReceiptUrl: paymentReceiptUrl || undefined,
       discountCode: appliedDiscount?.code,
       discountPercentage: appliedDiscount?.percentage,
+      deliveryType: deliveryInfo?.type,
+      deliveryAddress: deliveryInfo?.type === 'delivery' ? deliveryInfo.address : undefined,
+      deliveryFee: deliveryInfo?.deliveryFee || 0,
+      branchId: deliveryInfo?.type === 'pickup' ? deliveryInfo.branchId : undefined,
       customerInfo: {
         customerName: customerName.trim(),
         transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),
@@ -358,12 +376,17 @@ export default function CheckoutPage() {
       if (isRegisteredCustomer && !customerStorage.isGuestMode()) {
         customerStorage.addOrder({
           orderNumber: order.orderNumber,
-          items: cartItems.map(item => ({
-            id: item.coffeeItemId,
-            nameAr: item.coffeeItem?.nameAr || "",
-            quantity: item.quantity,
-            price: parseFloat(item.coffeeItem?.price || "0")
-          })),
+          items: cartItems.map(item => {
+            const priceValue = typeof item.coffeeItem?.price === 'number' 
+              ? item.coffeeItem.price 
+              : parseFloat(String(item.coffeeItem?.price || "0"));
+            return {
+              id: item.coffeeItemId,
+              nameAr: item.coffeeItem?.nameAr || "",
+              quantity: item.quantity,
+              price: String(priceValue)
+            };
+          }),
           totalAmount: parseFloat(order.totalAmount),
           paymentMethod: selectedPaymentMethod!,
           transferOwnerName: isSameAsCustomer ? customerName : transferOwnerName,
@@ -381,7 +404,18 @@ export default function CheckoutPage() {
       }
 
       // Generate PDF invoice
-      const pdfBlob = await generatePDF(order, cartItems, selectedPaymentMethod!);
+      const pdfCartItems = cartItems.map(item => ({
+        coffeeItemId: item.coffeeItemId,
+        quantity: item.quantity,
+        coffeeItem: item.coffeeItem ? {
+          nameAr: item.coffeeItem.nameAr,
+          nameEn: item.coffeeItem.nameEn ?? null,
+          price: typeof item.coffeeItem.price === 'number' 
+            ? String(item.coffeeItem.price) 
+            : String(item.coffeeItem.price || "0")
+        } : undefined
+      }));
+      const pdfBlob = await generatePDF(order, pdfCartItems, selectedPaymentMethod!);
 
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
@@ -702,7 +736,7 @@ ${itemsWithPrices}
                           </div>
                         </div>
                         <span className="font-bold text-violet-700 text-lg" data-testid={`text-summary-price-${item.coffeeItemId}`}>
-                          {(parseFloat(item.coffeeItem?.price || "0") * item.quantity).toFixed(2)} ريال
+                          {((typeof item.coffeeItem?.price === 'number' ? item.coffeeItem.price : parseFloat(String(item.coffeeItem?.price || "0"))) * item.quantity).toFixed(2)} ريال
                         </span>
                       </div>
                     ))}
@@ -1192,6 +1226,32 @@ ${itemsWithPrices}
                     selectedMethod={selectedPaymentMethod}
                     onSelectMethod={setSelectedPaymentMethod}
                   />
+
+                  {/* Payment Receipt Upload - For electronic payments only */}
+                  {selectedPaymentMethod && ['alinma', 'ur', 'barq', 'rajhi'].includes(selectedPaymentMethod) && (
+                    <div className="mt-6 animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+                      <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                        <CardHeader>
+                          <CardTitle className="font-amiri text-lg flex items-center gap-2 text-primary">
+                            <FileText className="w-5 h-5" />
+                            رفع إيصال الدفع (إجباري)
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <FileUpload
+                            onFileUpload={(url) => setPaymentReceiptUrl(url)}
+                            uploadUrl="/api/upload-receipt"
+                            accept="image/*,.pdf"
+                            maxSize={5 * 1024 * 1024}
+                            label="اضغط لرفع صورة الإيصال أو PDF"
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">
+                            📸 يرجى رفع صورة واضحة لإيصال التحويل (الحد الأقصى 5 ميجابايت)
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
 
                   {/* Payment Confirmation - Creative Popup Style */}
                   {showConfirmation && (

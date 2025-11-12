@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
 import bcrypt from "bcryptjs";
+import multer from "multer";
+import path from "path";
+import { nanoid } from "nanoid";
 
 // Helper function to serialize MongoDB documents
 function serializeDoc(doc: any): any {
@@ -33,7 +36,54 @@ function getOrderStatusMessage(status: string, orderNumber: string): string {
   return statusMessages[status] || `تم تحديث حالة طلبك رقم ${orderNumber} إلى: ${status}`;
 }
 
+// Configure multer for file uploads
+const uploadsDir = path.join(import.meta.dirname, '..', 'attached_assets', 'receipts');
+const storage_multer = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = `${Date.now()}-${nanoid(8)}`;
+    cb(null, `receipt-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp|pdf/;
+    const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimeType = allowedTypes.test(file.mimetype);
+
+    if (ext && mimeType) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only images (JPG, PNG, WEBP) and PDF are allowed.'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // FILE UPLOAD ROUTES
+  
+  // Upload payment receipt
+  app.post("/api/upload-receipt", upload.single('file'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const fileUrl = `/attached_assets/receipts/${req.file.filename}`;
+      res.json({ url: fileUrl, filename: req.file.filename });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
   // EMPLOYEE ROUTES
 
   // Employee login
@@ -1029,7 +1079,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create order
   app.post("/api/orders", async (req, res) => {
     try {
-      const { items, totalAmount, paymentMethod, paymentDetails, customerInfo, customerId, customerNotes, freeItemsDiscount, usedFreeDrinks, discountCode, discountPercentage } = req.body;
+      const { 
+        items, totalAmount, paymentMethod, paymentDetails, paymentReceiptUrl,
+        customerInfo, customerId, customerNotes, freeItemsDiscount, usedFreeDrinks, 
+        discountCode, discountPercentage,
+        deliveryType, deliveryAddress, deliveryFee, branchId
+      } = req.body;
 
       // Validate required fields
       if (!items || !Array.isArray(items) || items.length === 0) {
@@ -1046,6 +1101,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!customerInfo?.customerName) {
         return res.status(400).json({ error: "Customer name is required" });
+      }
+
+      // Validate payment receipt for electronic payment methods
+      const electronicPaymentMethods = ['alinma', 'ur', 'barq', 'rajhi'];
+      if (electronicPaymentMethods.includes(paymentMethod) && !paymentReceiptUrl) {
+        return res.status(400).json({ error: "Payment receipt is required for electronic payment methods" });
+      }
+
+      // Validate delivery data when deliveryType is 'delivery'
+      if (deliveryType === 'delivery') {
+        if (!deliveryAddress || !deliveryAddress.lat || !deliveryAddress.lng) {
+          return res.status(400).json({ error: "Delivery address with coordinates is required for delivery orders" });
+        }
+        if (deliveryFee === undefined || deliveryFee === null) {
+          return res.status(400).json({ error: "Delivery fee is required for delivery orders" });
+        }
       }
 
       // Get or create customer if phone number provided
@@ -1125,10 +1196,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalAmount,
         paymentMethod,
         paymentDetails,
+        paymentReceiptUrl: paymentReceiptUrl || null,
         customerInfo,
         customerNotes,
         discountCode: discountCode || null,
         discountPercentage: discountPercentage || null,
+        deliveryType: deliveryType || null,
+        deliveryAddress: deliveryAddress || null,
+        deliveryFee: deliveryFee || 0,
+        branchId: branchId || null,
         items: JSON.stringify(items)
       };
 
@@ -1407,7 +1483,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const paymentMethods = [
         { id: 'cash', nameAr: 'الدفع نقداً', nameEn: 'Cash Payment', details: 'ادفع عند الاستلام', icon: 'fas fa-money-bill-wave', requiresReceipt: false },
-        { id: 'stc', nameAr: 'STC Pay', nameEn: 'STC Pay', details: '0532441566', icon: 'fas fa-mobile-alt', requiresReceipt: false },
         { id: 'alinma', nameAr: 'Alinma Pay', nameEn: 'Alinma Pay', details: '0532441566', icon: 'fas fa-credit-card', requiresReceipt: true },
         { id: 'ur', nameAr: 'Ur Pay', nameEn: 'Ur Pay', details: '0532441566', icon: 'fas fa-university', requiresReceipt: true },
         { id: 'barq', nameAr: 'Barq', nameEn: 'Barq', details: '0532441566', icon: 'fas fa-bolt', requiresReceipt: true },

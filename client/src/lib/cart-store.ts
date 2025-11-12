@@ -11,6 +11,18 @@ interface EnrichedCartItem {
   coffeeItem?: CoffeeItem;
 }
 
+export interface DeliveryInfo {
+  type: 'pickup' | 'delivery';
+  branchId?: string;
+  address?: {
+    fullAddress: string;
+    lat: number;
+    lng: number;
+    zone: string;
+  };
+  deliveryFee?: number;
+}
+
 interface CartContextType {
   // State
   cartItems: EnrichedCartItem[];
@@ -18,12 +30,17 @@ interface CartContextType {
   isCheckoutOpen: boolean;
   sessionId: string;
   isLoading: boolean;
+  deliveryInfo: DeliveryInfo | null;
 
   // Actions
   addToCart: (coffeeItemId: string, quantity?: number) => void;
   removeFromCart: (coffeeItemId: string) => void;
   updateQuantity: (coffeeItemId: string, quantity: number) => void;
   clearCart: () => void;
+  
+  // Delivery Actions
+  setDeliveryInfo: (info: DeliveryInfo) => void;
+  clearDeliveryInfo: () => void;
   
   // UI Actions
   showCart: () => void;
@@ -34,6 +51,7 @@ interface CartContextType {
   // Computed
   getTotalPrice: () => number;
   getTotalItems: () => number;
+  getFinalTotal: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -49,6 +67,10 @@ export const useCartStore = (): CartContextType => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [deliveryInfo, setDeliveryInfoState] = useState<DeliveryInfo | null>(() => {
+    const saved = localStorage.getItem("delivery-info");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [sessionId] = useState(() => {
     // Get or create session ID
     let id = localStorage.getItem("coffee-session-id");
@@ -138,6 +160,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     clearCartMutation.mutate();
+    clearDeliveryInfo();
+  };
+
+  // Delivery actions
+  const setDeliveryInfo = (info: DeliveryInfo) => {
+    setDeliveryInfoState(info);
+    localStorage.setItem("delivery-info", JSON.stringify(info));
+  };
+
+  const clearDeliveryInfo = () => {
+    setDeliveryInfoState(null);
+    localStorage.removeItem("delivery-info");
   };
 
   // UI actions
@@ -172,6 +206,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const getFinalTotal = (): number => {
+    const subtotal = getTotalPrice();
+    const deliveryFee = deliveryInfo?.deliveryFee || 0;
+    return subtotal + deliveryFee;
+  };
+
   // Auto-close cart when checkout opens
   useEffect(() => {
     if (isCheckoutOpen) {
@@ -185,16 +225,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isCheckoutOpen,
     sessionId,
     isLoading,
+    deliveryInfo,
     addToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
+    setDeliveryInfo,
+    clearDeliveryInfo,
     showCart,
     hideCart,
     showCheckout,
     hideCheckout,
     getTotalPrice,
     getTotalItems,
+    getFinalTotal,
   };
 
   return React.createElement(

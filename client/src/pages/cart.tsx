@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCartStore } from "@/lib/cart-store";
 import { Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, showCheckout } = useCartStore();
+  const [, setLocation] = useLocation();
+  const { cartItems, updateQuantity, removeFromCart, getTotalPrice } = useCartStore();
 
   if (cartItems.length === 0) {
     return (
@@ -100,7 +102,7 @@ export default function CartPage() {
                 </span>
               </div>
               <Button 
-                onClick={showCheckout}
+                onClick={() => setLocation('/delivery')}
                 size="lg"
                 className="w-full btn-primary text-accent-foreground py-2.5 sm:py-3 text-base sm:text-lg font-semibold"
                 data-testid="button-checkout"
