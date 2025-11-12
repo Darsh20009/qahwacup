@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Coffee, ArrowRight, CheckCircle, XCircle, Plus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Coffee, ArrowRight, CheckCircle, XCircle, Plus, Edit2, Trash2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getCoffeeImage } from "@/lib/coffee-images";
@@ -21,6 +22,9 @@ export default function EmployeeMenuManagement() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<CoffeeItem | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -91,6 +95,72 @@ export default function EmployeeMenuManagement() {
     },
   });
 
+  const updateItemMutation = useMutation({
+    mutationFn: async (data: { id: string; updates: any }) => {
+      const res = await apiRequest("PUT", `/api/coffee-items/${data.id}`, data.updates);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
+      setIsEditDialogOpen(false);
+      setEditingItem(null);
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث المشروب بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "فشل التحديث",
+        description: error.message || "حدث خطأ أثناء تحديث المشروب",
+      });
+    },
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/coffee-items/${id}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
+      setDeletingItemId(null);
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف المشروب بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "فشل الحذف",
+        description: error.message || "حدث خطأ أثناء حذف المشروب",
+      });
+    },
+  });
+
+  const toggleNewProductMutation = useMutation({
+    mutationFn: async ({ id, isNewProduct }: { id: string; isNewProduct: number }) => {
+      const res = await apiRequest("PUT", `/api/coffee-items/${id}`, { isNewProduct });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث حالة المنتج الجديد",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "فشل التحديث",
+        description: error.message || "حدث خطأ أثناء التحديث",
+      });
+    },
+  });
+
   const handleToggleAvailability = (item: CoffeeItem) => {
     const newAvailability = item.isAvailable === 1 ? 0 : 1;
     updateAvailabilityMutation.mutate({ id: item.id, isAvailable: newAvailability });
@@ -118,9 +188,49 @@ export default function EmployeeMenuManagement() {
       imageUrl: formData.get("imageUrl") as string || undefined,
       isAvailable: 1,
       availabilityStatus: "available",
+      isNewProduct: 0,
     };
 
     createItemMutation.mutate(itemData);
+  };
+
+  const handleSubmitEditItem = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    
+    const formData = new FormData(e.currentTarget);
+    
+    const updates = {
+      nameAr: formData.get("nameAr") as string,
+      nameEn: formData.get("nameEn") as string || undefined,
+      description: formData.get("description") as string,
+      price: parseFloat(formData.get("price") as string),
+      oldPrice: formData.get("oldPrice") ? parseFloat(formData.get("oldPrice") as string) : undefined,
+      category: formData.get("category") as string,
+      imageUrl: formData.get("imageUrl") as string || undefined,
+    };
+
+    updateItemMutation.mutate({ id: editingItem.id, updates });
+  };
+
+  const handleEdit = (item: CoffeeItem) => {
+    setEditingItem(item);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setDeletingItemId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deletingItemId) {
+      deleteItemMutation.mutate(deletingItemId);
+    }
+  };
+
+  const handleToggleNewProduct = (item: CoffeeItem) => {
+    const newValue = item.isNewProduct === 1 ? 0 : 1;
+    toggleNewProductMutation.mutate({ id: item.id, isNewProduct: newValue });
   };
 
   const categoryNames = {
@@ -410,6 +520,46 @@ export default function EmployeeMenuManagement() {
                           <option value="coming_soon">🔜 قريباً</option>
                         </select>
                       </div>
+
+                      {employee?.role === "manager" && (
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleToggleNewProduct(item)}
+                            className={`${
+                              item.isNewProduct === 1
+                                ? "bg-yellow-500 border-yellow-500 text-white"
+                                : "border-amber-500/30 text-amber-500"
+                            }`}
+                            disabled={toggleNewProductMutation.isPending}
+                            data-testid={`button-toggle-new-${item.id}`}
+                          >
+                            <Sparkles className="w-4 h-4 ml-1" />
+                            {item.isNewProduct === 1 ? "منتج جديد" : "جديد؟"}
+                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEdit(item)}
+                              className="border-blue-500/30 text-blue-500 hover:bg-blue-500 hover:text-white flex-1"
+                              data-testid={`button-edit-${item.id}`}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDelete(item.id)}
+                              className="border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white flex-1"
+                              data-testid={`button-delete-${item.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -418,6 +568,165 @@ export default function EmployeeMenuManagement() {
           ))
         )}
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-[#2d1f1a] border-amber-500/20 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-amber-500">تعديل المشروب</DialogTitle>
+          </DialogHeader>
+          {editingItem && (
+            <form onSubmit={handleSubmitEditItem} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-nameAr" className="text-gray-300">الاسم بالعربية *</Label>
+                  <Input
+                    id="edit-nameAr"
+                    name="nameAr"
+                    defaultValue={editingItem.nameAr}
+                    required
+                    className="bg-[#1a1410] border-amber-500/30 text-white"
+                    data-testid="input-edit-name-ar"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-nameEn" className="text-gray-300">الاسم بالإنجليزية</Label>
+                  <Input
+                    id="edit-nameEn"
+                    name="nameEn"
+                    defaultValue={editingItem.nameEn}
+                    className="bg-[#1a1410] border-amber-500/30 text-white"
+                    data-testid="input-edit-name-en"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-description" className="text-gray-300">الوصف *</Label>
+                <Textarea
+                  id="edit-description"
+                  name="description"
+                  defaultValue={editingItem.description}
+                  required
+                  className="bg-[#1a1410] border-amber-500/30 text-white"
+                  data-testid="input-edit-description"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-category" className="text-gray-300">القسم *</Label>
+                  <Select name="category" defaultValue={editingItem.category} required>
+                    <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-edit-category">
+                      <SelectValue placeholder="اختر القسم" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+                      <SelectItem value="basic">قهوة أساسية</SelectItem>
+                      <SelectItem value="hot">قهوة ساخنة</SelectItem>
+                      <SelectItem value="cold">قهوة باردة</SelectItem>
+                      <SelectItem value="specialty">مشروبات إضافية</SelectItem>
+                      <SelectItem value="desserts">الحلويات</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-price" className="text-gray-300">السعر (ريال) *</Label>
+                  <Input
+                    id="edit-price"
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    defaultValue={editingItem.price}
+                    required
+                    className="bg-[#1a1410] border-amber-500/30 text-white"
+                    data-testid="input-edit-price"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-oldPrice" className="text-gray-300">السعر القديم (ريال)</Label>
+                  <Input
+                    id="edit-oldPrice"
+                    name="oldPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    defaultValue={editingItem.oldPrice}
+                    className="bg-[#1a1410] border-amber-500/30 text-white"
+                    data-testid="input-edit-old-price"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصورة</Label>
+                  <Input
+                    id="edit-imageUrl"
+                    name="imageUrl"
+                    type="url"
+                    defaultValue={editingItem.imageUrl}
+                    placeholder="https://example.com/image.jpg"
+                    className="bg-[#1a1410] border-amber-500/30 text-white"
+                    data-testid="input-edit-image-url"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingItem(null);
+                  }}
+                  className="border-gray-600 text-gray-300"
+                  data-testid="button-edit-cancel"
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateItemMutation.isPending}
+                  className="bg-gradient-to-r from-blue-500 to-blue-700"
+                  data-testid="button-edit-submit"
+                >
+                  {updateItemMutation.isPending ? "جاري التحديث..." : "تحديث المشروب"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingItemId} onOpenChange={() => setDeletingItemId(null)}>
+        <AlertDialogContent className="bg-[#2d1f1a] border-red-500/20 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-500">تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              هل أنت متأكد من حذف هذا المشروب؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-transparent border-gray-600 text-gray-300"
+              data-testid="button-delete-cancel"
+            >
+              إلغاء
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleteItemMutation.isPending}
+              className="bg-gradient-to-r from-red-500 to-red-700 text-white"
+              data-testid="button-delete-confirm"
+            >
+              {deleteItemMutation.isPending ? "جاري الحذف..." : "حذف"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

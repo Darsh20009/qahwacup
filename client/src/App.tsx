@@ -34,6 +34,8 @@ import ManagerEmployees from "@/pages/manager-employees";
 import EmployeeActivation from "@/pages/employee-activation";
 import ManagerDashboard from "@/pages/manager-dashboard";
 import ManagerLogin from "@/pages/manager-login";
+import CashierPhoneLookup from "@/pages/cashier-phone-lookup";
+import ManagerDrivers from "@/pages/manager-drivers";
 
 function Router() {
   return (
@@ -58,12 +60,14 @@ function Router() {
       <Route path="/employee/activate" component={EmployeeActivation} />
       <Route path="/employee/dashboard" component={EmployeeDashboard} />
       <Route path="/employee/cashier" component={EmployeeCashier} />
+      <Route path="/employee/cashier/phone-lookup" component={CashierPhoneLookup} />
       <Route path="/employee/orders" component={EmployeeOrders} />
       <Route path="/employee/loyalty" component={EmployeeLoyalty} />
       <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
       <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
       <Route path="/manager" component={ManagerLogin} />
       <Route path="/manager/employees" component={ManagerEmployees} />
+      <Route path="/manager/drivers" component={ManagerDrivers} />
       <Route path="/manager/dashboard" component={ManagerDashboard} />
       <Route component={SplashScreen} />
     </Switch>

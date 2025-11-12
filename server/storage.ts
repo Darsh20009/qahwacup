@@ -491,6 +491,11 @@ export class DBStorage implements IStorage {
     return updated || undefined;
   }
 
+  async deleteCoffeeItem(id: string): Promise<boolean> {
+    const result = await CoffeeItemModel.deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
   async createOrder(order: InsertOrder): Promise<Order> {
     const orderNumber = `ORD-${Date.now()}-${this.orderCounter++}`;
     const newOrder = await OrderModel.create({

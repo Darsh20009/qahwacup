@@ -973,6 +973,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update complete coffee item (for manager)
+  app.put("/api/coffee-items/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const item = await storage.getCoffeeItem(id);
+      
+      if (!item) {
+        return res.status(404).json({ error: "Coffee item not found" });
+      }
+
+      const updatedItem = await storage.updateCoffeeItem(id, req.body);
+      res.json(serializeDoc(updatedItem));
+    } catch (error) {
+      console.error("Error updating coffee item:", error);
+      res.status(500).json({ error: "Failed to update coffee item" });
+    }
+  });
+
+  // Delete coffee item (for manager)
+  app.delete("/api/coffee-items/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteCoffeeItem(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Coffee item not found" });
+      }
+
+      res.json({ success: true, message: "Coffee item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting coffee item:", error);
+      res.status(500).json({ error: "Failed to delete coffee item" });
+    }
+  });
+
   // Get cart items for session - OPTIMIZED
   app.get("/api/cart/:sessionId", async (req, res) => {
     try {

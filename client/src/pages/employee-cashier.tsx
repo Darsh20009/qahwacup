@@ -391,6 +391,15 @@ export default function EmployeeCashier() {
             </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/employee/cashier/phone-lookup")}
+              className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
+              data-testid="button-phone-lookup"
+            >
+              <Search className="w-4 h-4 ml-2" />
+              بحث برقم الهاتف
+            </Button>
             <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2 hover-elevate">
               <div className="flex items-center gap-2">
                 <MonitorSmartphone className="w-4 h-4 text-gray-400" />
