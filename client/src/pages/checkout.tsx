@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,11 +14,12 @@ import FileUpload from "@/components/file-upload";
 import { generatePDF } from "@/lib/pdf-generator";
 import { customerStorage } from "@/lib/customer-storage";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check } from "lucide-react";
+import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check, Store, Truck, MapPin, Edit } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod, Order } from "@shared/schema";
 
 export default function CheckoutPage() {
-  const { cartItems, clearCart, getTotalPrice, deliveryInfo } = useCartStore();
+  const [, setLocation] = useLocation();
+  const { cartItems, clearCart, getTotalPrice, deliveryInfo, getFinalTotal } = useCartStore();
   const { toast } = useToast();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentReceiptUrl, setPaymentReceiptUrl] = useState("");
@@ -67,6 +69,13 @@ export default function CheckoutPage() {
   };
 
   const availableFreeDrinks = calculateFreeDrinks();
+
+  // Redirect to delivery selection if no delivery info (but not after successful order)
+  useEffect(() => {
+    if (!deliveryInfo && !showSuccessPage && cartItems.length > 0) {
+      setLocation("/delivery");
+    }
+  }, [deliveryInfo, setLocation, showSuccessPage, cartItems.length]);
 
   // Load customer data if registered
   useEffect(() => {
@@ -384,7 +393,7 @@ export default function CheckoutPage() {
               id: item.coffeeItemId,
               nameAr: item.coffeeItem?.nameAr || "",
               quantity: item.quantity,
-              price: String(priceValue)
+              price: priceValue
             };
           }),
           totalAmount: parseFloat(order.totalAmount),
@@ -796,6 +805,101 @@ ${itemsWithPrices}
                         </div>
                       )}
                     </div>
+                  )}
+
+                  {/* Delivery Information Summary */}
+                  {deliveryInfo && (
+                    <Card className="mb-4 border-2 border-primary/20 bg-gradient-to-br from-slate-50 to-white">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="font-amiri text-lg flex items-center gap-2">
+                            {deliveryInfo.type === 'pickup' ? (
+                              <>
+                                <Store className="w-5 h-5 text-primary" />
+                                <span data-testid="text-delivery-type">استلام من الفرع</span>
+                              </>
+                            ) : (
+                              <>
+                                <Truck className="w-5 h-5 text-primary" />
+                                <span data-testid="text-delivery-type">توصيل للمنزل</span>
+                              </>
+                            )}
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setLocation("/delivery")}
+                            data-testid="button-change-delivery"
+                            className="text-primary hover:bg-primary/10"
+                          >
+                            <Edit className="w-4 h-4 ml-1" />
+                            تغيير
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-2 pt-0">
+                        {deliveryInfo.type === 'delivery' && deliveryInfo.address && (
+                          <>
+                            <div className="flex items-start gap-2 text-sm">
+                              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-foreground font-medium" data-testid="text-delivery-address">
+                                  {deliveryInfo.address.fullAddress}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  المنطقة: {deliveryInfo.address.zone}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-border">
+                              <span className="text-sm text-muted-foreground">رسوم التوصيل:</span>
+                              <span className="font-semibold text-primary" data-testid="text-delivery-fee">
+                                {deliveryInfo.deliveryFee || 0} ريال
+                              </span>
+                            </div>
+                          </>
+                        )}
+                        {deliveryInfo.type === 'pickup' && (
+                          <div className="flex items-start gap-2 text-sm">
+                            <Store className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              {deliveryInfo.branchName && (
+                                <p className="text-foreground font-medium" data-testid="text-branch-name">
+                                  {deliveryInfo.branchName}
+                                </p>
+                              )}
+                              {deliveryInfo.branchAddress && (
+                                <p className="text-muted-foreground" data-testid="text-branch-address">
+                                  {deliveryInfo.branchAddress}
+                                </p>
+                              )}
+                              <p className="text-xs mt-1 text-muted-foreground">
+                                سيتم إعلامك عند جاهزية الطلب
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {/* Cost Breakdown */}
+                        <div className="pt-3 border-t border-border space-y-1.5">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">المجموع الفرعي:</span>
+                            <span className="font-medium">{getTotalPrice().toFixed(2)} ريال</span>
+                          </div>
+                          {(deliveryInfo.deliveryFee ?? 0) > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">رسوم التوصيل:</span>
+                              <span className="font-medium text-primary">+{deliveryInfo.deliveryFee} ريال</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-base font-bold pt-1.5 border-t border-border">
+                            <span>الإجمالي النهائي:</span>
+                            <span className="text-primary" data-testid="text-final-total">
+                              {getFinalTotal().toFixed(2)} ريال
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   )}
 
                   <div className={`bg-gradient-to-r ${useFreeDrink ? 'from-green-500 to-emerald-600' : 'from-primary to-secondary'} text-primary-foreground rounded-xl p-6 shadow-lg relative overflow-hidden`}>
@@ -1240,9 +1344,7 @@ ${itemsWithPrices}
                         <CardContent>
                           <FileUpload
                             onFileUpload={(url) => setPaymentReceiptUrl(url)}
-                            uploadUrl="/api/upload-receipt"
-                            accept="image/*,.pdf"
-                            maxSize={5 * 1024 * 1024}
+                            uploadedFileUrl={paymentReceiptUrl}
                             label="اضغط لرفع صورة الإيصال أو PDF"
                           />
                           <p className="text-xs text-muted-foreground mt-2">

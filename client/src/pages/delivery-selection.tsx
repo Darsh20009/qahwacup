@@ -51,9 +51,12 @@ export default function DeliverySelectionPage() {
         return;
       }
 
+      const branch = branches.find(b => b.id === selectedBranch);
       const info: DeliveryInfo = {
         type: 'pickup',
         branchId: selectedBranch,
+        branchName: branch?.nameAr,
+        branchAddress: branch?.address,
         deliveryFee: 0,
       };
       setDeliveryInfo(info);

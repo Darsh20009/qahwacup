@@ -14,6 +14,8 @@ interface EnrichedCartItem {
 export interface DeliveryInfo {
   type: 'pickup' | 'delivery';
   branchId?: string;
+  branchName?: string;
+  branchAddress?: string;
   address?: {
     fullAddress: string;
     lat: number;

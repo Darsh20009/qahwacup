@@ -183,7 +183,7 @@ export default function CartPage() {
                   </div>
 
                   <Button 
-                    onClick={() => setLocation("/checkout")}
+                    onClick={() => setLocation("/delivery")}
                     className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-6 text-xl font-bold hover:from-amber-700 hover:to-orange-700 transition-all duration-300 shadow-xl hover:shadow-amber-500/25 transform hover:scale-105 rounded-full"
                     data-testid="button-checkout"
                   >
