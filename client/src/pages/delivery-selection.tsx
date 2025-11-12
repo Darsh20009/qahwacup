@@ -6,6 +6,7 @@ import { useCartStore, DeliveryInfo } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
 import { Store, Truck, MapPin, ArrowRight, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import MapAddressSelector from "@/components/map-address-selector";
 
 interface Branch {
   id: string;
@@ -86,47 +87,11 @@ export default function DeliverySelectionPage() {
             <CardHeader>
               <CardTitle className="text-center">اختر عنوان التوصيل</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground text-center mb-2">
-                  التوصيل متاح فقط داخل البديعة وظهرة البديعة
-                </p>
-                <p className="text-sm text-center font-semibold">
-                  رسوم التوصيل: 10 ريال
-                </p>
-              </div>
-
-              <div className="h-96 bg-muted/20 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <MapPin className="w-16 h-16 mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground">
-                    سيتم إضافة خريطة تفاعلية هنا قريباً
-                  </p>
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => {
-                        handleAddressSelected({
-                          fullAddress: "البديعة، الرياض",
-                          lat: 24.7136,
-                          lng: 46.6753,
-                          zone: "البديعة",
-                        });
-                      }}
-                      data-testid="button-select-sample-address"
-                    >
-                      استخدام عنوان تجريبي (البديعة)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAddressMap(false)}
-                      className="w-full"
-                      data-testid="button-back-to-selection"
-                    >
-                      رجوع
-                    </Button>
-                  </div>
-                </div>
-              </div>
+            <CardContent>
+              <MapAddressSelector
+                onAddressSelected={handleAddressSelected}
+                onCancel={() => setShowAddressMap(false)}
+              />
             </CardContent>
           </Card>
         </div>
