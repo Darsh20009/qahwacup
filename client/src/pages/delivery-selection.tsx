@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCartStore } from '@/lib/cart-store';
 import { useToast } from '@/hooks/use-toast';
-import { Store, Truck, MapPin, ArrowRight } from 'lucide-react';
+import { Store, Truck, MapPin, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface Branch {
   _id: string;
@@ -16,6 +16,7 @@ interface Branch {
   address: string;
   city: string;
   isActive: number;
+  mapsUrl?: string;
 }
 
 export default function DeliverySelectionPage() {
@@ -135,21 +136,45 @@ export default function DeliverySelectionPage() {
               ) : activeBranches.length === 0 ? (
                 <p className="text-muted-foreground" dir="rtl">لا توجد فروع متاحة حالياً</p>
               ) : (
-                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                  <SelectTrigger className="w-full" data-testid="select-branch">
-                    <SelectValue placeholder="اختر الفرع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeBranches.map((branch) => (
-                      <SelectItem key={branch._id} value={branch._id}>
-                        <div className="flex flex-col items-start" dir="rtl">
-                          <span className="font-semibold">{branch.nameAr}</span>
-                          <span className="text-sm text-muted-foreground">{branch.address}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <>
+                  <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                    <SelectTrigger className="w-full" data-testid="select-branch">
+                      <SelectValue placeholder="اختر الفرع" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeBranches.map((branch) => (
+                        <SelectItem key={branch._id} value={branch._id}>
+                          <div className="flex flex-col items-start" dir="rtl">
+                            <span className="font-semibold">{branch.nameAr}</span>
+                            <span className="text-sm text-muted-foreground">{branch.address}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Google Maps Link */}
+                  {selectedBranchId && (() => {
+                    const selectedBranch = activeBranches.find(b => b._id === selectedBranchId);
+                    if (selectedBranch?.mapsUrl) {
+                      return (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 w-full"
+                          asChild
+                          data-testid="button-view-branch-location"
+                        >
+                          <a href={selectedBranch.mapsUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 ml-2" />
+                            <span dir="rtl">عرض الموقع على الخريطة</span>
+                          </a>
+                        </Button>
+                      );
+                    }
+                    return null;
+                  })()}
+                </>
               )}
             </CardContent>
           </Card>

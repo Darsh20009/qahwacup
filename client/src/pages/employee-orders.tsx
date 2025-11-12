@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car, Truck, Store, Receipt, Eye, X } from "lucide-react";
+import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car } from "lucide-react";
+import { OrderMeta } from "@/components/OrderMeta";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
 
 interface OrderItemData {
@@ -447,6 +448,15 @@ export default function EmployeeOrders() {
  </p>
  </div>
  </div>
+
+ 
+ <OrderMeta
+ orderId={order.id}
+ deliveryType={order.deliveryType}
+ paymentReceiptUrl={order.paymentReceiptUrl}
+ deliveryAddress={order.deliveryAddress}
+ branchId={order.branchId}
+ />
 
  <div className="bg-[#2d1f1a] rounded-lg p-3 mb-4">
  <p className="text-gray-400 text-sm mb-2">العناصر ({items.length})</p>
