@@ -1,5 +1,4 @@
-import React from 'react';
-import { Card } from './ui/card';
+import { Card } from '@/components/ui/card';
 
 interface DeliveryTypeProps {
   selectedType: 'pickup' | 'delivery';
@@ -74,6 +73,19 @@ export function DeliveryType({
           </select>
         </div>
       )}
+    </div>
+  );
+}
+
+export default function DeliverySelectionPage() {
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Delivery Selection</h1>
+      <DeliveryType
+        selectedType="pickup"
+        setSelectedType={() => {}}
+        branches={[]}
+      />
     </div>
   );
 }
