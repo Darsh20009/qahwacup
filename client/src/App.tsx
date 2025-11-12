@@ -38,70 +38,70 @@ import CashierPhoneLookup from "@/pages/cashier-phone-lookup";
 import ManagerDrivers from "@/pages/manager-drivers";
 
 function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={SplashScreen} />
-      <Route path="/0" component={UnifiedHub} />
-      <Route path="/auth" component={CustomerAuth} />
-      <Route path="/forgot-password" component={ForgotPassword} />
-      <Route path="/reset-password" component={ResetPassword} />
-      <Route path="/copy-card" component={CopyCard} />
-      <Route path="/my-orders" component={MyOrdersPage} />
-      <Route path="/menu" component={MenuPage} />
-      <Route path="/menu-view" component={MenuView} />
-      <Route path="/my-card" component={MyCard} />
-      <Route path="/cart" component={CartPage} />
-      <Route path="/delivery" component={DeliverySelectionPage} />
-      <Route path="/checkout" component={CheckoutPage} />
-      <Route path="/tracking" component={OrderTrackingPage} />
-      <Route path="/product/:id" component={ProductDetails} />
-      <Route path="/employee/gateway" component={EmployeeGateway} />
-      <Route path="/employee/login" component={EmployeeLogin} />
-      <Route path="/employee/activate" component={EmployeeActivation} />
-      <Route path="/employee/dashboard" component={EmployeeDashboard} />
-      <Route path="/employee/cashier" component={EmployeeCashier} />
-      <Route path="/employee/cashier/phone-lookup" component={CashierPhoneLookup} />
-      <Route path="/employee/orders" component={EmployeeOrders} />
-      <Route path="/employee/loyalty" component={EmployeeLoyalty} />
-      <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
-      <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
-      <Route path="/manager" component={ManagerLogin} />
-      <Route path="/manager/employees" component={ManagerEmployees} />
-      <Route path="/manager/drivers" component={ManagerDrivers} />
-      <Route path="/manager/dashboard" component={ManagerDashboard} />
-      <Route component={SplashScreen} />
-    </Switch>
-  );
+ return (
+ <Switch>
+ <Route path="/" component={SplashScreen} />
+ <Route path="/0" component={UnifiedHub} />
+ <Route path="/auth" component={CustomerAuth} />
+ <Route path="/forgot-password" component={ForgotPassword} />
+ <Route path="/reset-password" component={ResetPassword} />
+ <Route path="/copy-card" component={CopyCard} />
+ <Route path="/my-orders" component={MyOrdersPage} />
+ <Route path="/menu" component={MenuPage} />
+ <Route path="/menu-view" component={MenuView} />
+ <Route path="/my-card" component={MyCard} />
+ <Route path="/cart" component={CartPage} />
+ <Route path="/delivery" component={DeliverySelectionPage} />
+ <Route path="/checkout" component={CheckoutPage} />
+ <Route path="/tracking" component={OrderTrackingPage} />
+ <Route path="/product/:id" component={ProductDetails} />
+ <Route path="/employee/gateway" component={EmployeeGateway} />
+ <Route path="/employee/login" component={EmployeeLogin} />
+ <Route path="/employee/activate" component={EmployeeActivation} />
+ <Route path="/employee/dashboard" component={EmployeeDashboard} />
+ <Route path="/employee/cashier" component={EmployeeCashier} />
+ <Route path="/employee/cashier/phone-lookup" component={CashierPhoneLookup} />
+ <Route path="/employee/orders" component={EmployeeOrders} />
+ <Route path="/employee/loyalty" component={EmployeeLoyalty} />
+ <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
+ <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
+ <Route path="/manager" component={ManagerLogin} />
+ <Route path="/manager/employees" component={ManagerEmployees} />
+ <Route path="/manager/drivers" component={ManagerDrivers} />
+ <Route path="/manager/dashboard" component={ManagerDashboard} />
+ <Route component={SplashScreen} />
+ </Switch>
+ );
 }
 
 function AppContent() {
-  const { isCartOpen, isCheckoutOpen } = useCartStore();
+ const { isCartOpen, isCheckoutOpen } = useCartStore();
 
-  return (
-    <>
-      <Router />
-      {/* Only render modals when they are open */}
-      {isCartOpen && <CartModal />}
-      {isCheckoutOpen && <CheckoutModal />}
-      <Toaster />
-    </>
-  );
+ return (
+ <>
+ <Router />
+ {/* Only render modals when they are open */}
+ {isCartOpen && <CartModal />}
+ {isCheckoutOpen && <CheckoutModal />}
+ <Toaster />
+ </>
+ );
 }
 
 function App() {
-  return (
-    <div className="dark">
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <CustomerProvider>
-            <CartProvider>
-              <AppContent />
-            </CartProvider>
-          </CustomerProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </div>
-  );
+ return (
+ <div className="dark">
+ <QueryClientProvider client={queryClient}>
+ <TooltipProvider>
+ <CustomerProvider>
+ <CartProvider>
+ <AppContent />
+ </CartProvider>
+ </CustomerProvider>
+ </TooltipProvider>
+ </QueryClientProvider>
+ </div>
+ );
 }
 
 export default App;
