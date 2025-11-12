@@ -428,6 +428,7 @@ export interface IBranch extends Document {
     latitude: number;
     longitude: number;
   };
+  mapsUrl?: string;
   isActive: number;
   managerName?: string;
   createdAt: Date;
@@ -444,6 +445,7 @@ const BranchSchema = new Schema<IBranch>({
     latitude: { type: Number },
     longitude: { type: Number }
   },
+  mapsUrl: { type: String },
   isActive: { type: Number, default: 1, required: true },
   managerName: { type: String },
   createdAt: { type: Date, default: Date.now },
