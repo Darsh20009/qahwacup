@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCartStore, DeliveryInfo } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
-import { Store, Truck, MapPin, ArrowRight, Check } from "lucide-react";
+import { Store, Truck, MapPin, ArrowRight, Check, Phone } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import MapAddressSelector from "@/components/map-address-selector";
 
@@ -111,6 +111,7 @@ export default function DeliverySelectionPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <Card
+            key="pickup"
             className={`cursor-pointer transition-all ${
               selectedType === 'pickup'
                 ? 'border-primary bg-primary/10 shadow-lg'
@@ -145,6 +146,7 @@ export default function DeliverySelectionPage() {
           </Card>
 
           <Card
+            key="delivery"
             className={`cursor-pointer transition-all ${
               selectedType === 'delivery'
                 ? 'border-primary bg-primary/10 shadow-lg'
@@ -208,8 +210,9 @@ export default function DeliverySelectionPage() {
                           <p className="text-sm text-muted-foreground">
                             {branch.address}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            📞 {branch.phone}
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {branch.phone}
                           </p>
                         </div>
                         {selectedBranch === branch.id && (

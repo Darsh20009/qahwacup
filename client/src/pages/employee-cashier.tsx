@@ -67,6 +67,7 @@ export default function EmployeeCashier() {
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [isCheckingCustomer, setIsCheckingCustomer] = useState(false);
+  const [loyaltyCard, setLoyaltyCard] = useState<LoyaltyCard | null>(null);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number, reason: string} | null>(null);
   const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
@@ -100,17 +101,40 @@ export default function EmployeeCashier() {
             const customer = await response.json();
             setCustomerName(customer.name);
             setCustomerId(customer.id);
-            toast({
-              title: "عميل مسجل ✓",
-              description: `مرحباً ${customer.name}! سيتم إضافة أختام الولاء تلقائياً`,
-              className: "bg-green-600 text-white",
-            });
+            
+            try {
+              const loyaltyResponse = await fetch(`/api/loyalty/cards/phone/${customerPhone}`);
+              if (loyaltyResponse.ok) {
+                const card = await loyaltyResponse.json();
+                setLoyaltyCard(card);
+                const availableStamps = (card.freeCupsEarned || 0) - (card.freeCupsRedeemed || 0);
+                toast({
+                  title: "عميل مسجل ✓",
+                  description: `مرحباً ${customer.name}! لديك ${availableStamps} أختام متاحة`,
+                  className: "bg-green-600 text-white",
+                });
+              } else {
+                setLoyaltyCard(null);
+                toast({
+                  title: "عميل مسجل ✓",
+                  description: `مرحباً ${customer.name}! سيتم إضافة أختام الولاء تلقائياً`,
+                  className: "bg-green-600 text-white",
+                });
+              }
+            } catch (error) {
+              console.error('Error fetching loyalty card:', error);
+              setLoyaltyCard(null);
+            }
           } else {
             setCustomerId(null);
+            setLoyaltyCard(null);
+            setCustomerName("");
           }
         } catch (error) {
           console.error('Error checking customer:', error);
           setCustomerId(null);
+          setLoyaltyCard(null);
+          setCustomerName("");
         } finally {
           setIsCheckingCustomer(false);
         }
@@ -141,10 +165,11 @@ export default function EmployeeCashier() {
     },
     onSuccess: async (order) => {
       const paymentMethodAr = paymentMethod === "cash" ? "نقدي" : 
-                             paymentMethod === "stc" ? "STC Pay" :
                              paymentMethod === "alinma" ? "Alinma Pay" :
                              paymentMethod === "ur" ? "Ur Pay" :
-                             paymentMethod === "barq" ? "Barq" : "تحويل بنكي";
+                             paymentMethod === "barq" ? "Barq" :
+                             paymentMethod === "rajhi" ? "بنك الراجحي" :
+                             paymentMethod === "pos" ? "جهاز نقاط البيع" : "تحويل بنكي";
       
       setLastOrder({
         orderNumber: order.orderNumber,
@@ -201,6 +226,7 @@ export default function EmployeeCashier() {
     setCustomerName("");
     setCustomerPhone("");
     setCustomerId(null);
+    setLoyaltyCard(null);
     setTableNumber("");
     setPaymentMethod("cash");
     setDiscountCode("");
@@ -582,7 +608,48 @@ export default function EmployeeCashier() {
                           className="bg-[#1a1410] border-amber-500/30 text-white text-right"
                           data-testid="input-customer-phone"
                         />
+                        {isCheckingCustomer && (
+                          <p className="text-xs text-amber-400 text-right animate-pulse">جاري التحقق من العميل...</p>
+                        )}
                       </div>
+
+                      {loyaltyCard && (
+                        <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 p-4 rounded-lg border-2 border-amber-500/30 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Gift className="w-5 h-5 text-amber-400" />
+                              <span className="text-amber-300 font-semibold">بطاقة كوبي</span>
+                            </div>
+                            <Badge className="bg-amber-500 text-black">
+                              {(loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)} أختام
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-1 justify-end">
+                            {Array.from({ length: 10 }).map((_, i) => {
+                              const isEarned = i < (loyaltyCard.freeCupsEarned || 0);
+                              const isUsed = i < (loyaltyCard.freeCupsRedeemed || 0);
+                              return (
+                                <div
+                                  key={i}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                                    isUsed
+                                      ? 'bg-gray-600 border-gray-500 text-gray-400 line-through'
+                                      : isEarned
+                                      ? 'bg-amber-500 border-amber-400 text-black'
+                                      : 'bg-gray-800 border-gray-600 text-gray-500'
+                                  }`}
+                                >
+                                  {isUsed ? 'X' : isEarned ? '•' : i + 1}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-gray-400 text-right flex items-center gap-1 justify-end">
+                            <Gift className="w-3 h-3 text-amber-400" />
+                            المشروبات المجانية متاحة: {Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)}
+                          </p>
+                        </div>
+                      )}
 
                       <div className="space-y-2">
                         <Label className="text-gray-300 text-right block">
@@ -609,7 +676,6 @@ export default function EmployeeCashier() {
                           <SelectContent>
                             <SelectItem value="cash">💵 نقدي</SelectItem>
                             <SelectItem value="pos">💳 جهاز نقاط البيع (POS)</SelectItem>
-                            <SelectItem value="stc">📱 STC Pay</SelectItem>
                             <SelectItem value="alinma">🏦 Alinma Pay</SelectItem>
                             <SelectItem value="ur">🔷 Ur Pay</SelectItem>
                             <SelectItem value="barq">⚡ Barq</SelectItem>

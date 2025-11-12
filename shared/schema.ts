@@ -781,7 +781,7 @@ export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type DeliveryZone = IDeliveryZone;
 export type InsertDeliveryZone = z.infer<typeof insertDeliveryZoneSchema>;
 
-export type PaymentMethod = 'cash' | 'stc' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
+export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
 
 export interface PaymentMethodInfo {
   id: PaymentMethod;
