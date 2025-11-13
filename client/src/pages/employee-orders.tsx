@@ -320,7 +320,7 @@ export default function EmployeeOrders() {
  data-testid="button-back-dashboard"
  >
  <ArrowRight className="w-4 h-4 ml-2" />
- العود� 
+ العودة
  </Button>
  </div>
  </div>

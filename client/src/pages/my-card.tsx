@@ -89,14 +89,14 @@ export default function MyCard() {
  setShowConfetti(true);
  setTimeout(() => setShowConfetti(false), 3000);
  toast({
- title: " مبروك! قهوة مجاني� !",
+ title: " مبروك! قهوة مجانية!",
  description: "لقد حصلت على 6 أ� تام! است� دم قهوتك المجاني� في طلبك القادم",
  duration: 5000,
  });
  } else if (updatedCard.stamps === 5) {
  toast({
- title: " تم فتح � صم 10%!",
- description: "� تم واحد فقط لقهوة مجاني� !",
+ title: " تم فتح خصم 10%!",
+ description: "� تم واحد فقط لقهوة مجانية!",
  duration: 5000,
  });
  } else {
@@ -112,7 +112,7 @@ export default function MyCard() {
  onError: (error: any) => {
  toast({
  title: " خطأ في است� دام الكود",
- description: error.message || "الكود غير صالح أو مست� دم مسبقاً",
+ description: error.message || "الكود غير صالح أو مستخدم مسبقاً",
  variant: "destructive",
  });
  },
@@ -177,15 +177,15 @@ export default function MyCard() {
  await generateQRCode(newCard);
 
  toast({
- title: "تم إصدار البطاقة� بنجاح! ",
- description: "احفظ بطاقتك كصور� أو است� دم QR للوصول إليها",
+ title: "تم إصدار البطاقةبنجاح! ",
+ description: "احفظ بطاقتك كصورة أو استخدم QR للوصول إليها",
  });
  }
  } catch (error) {
  console.error("Error creating/retrieving card:", error);
  toast({
  title: "خطأ",
- description: "حدث خطأ في إصدار أو استرجاع البطاقة� ",
+ description: "حدث خطأ في إصدار أو استرجاع البطاقة",
  variant: "destructive",
  });
  }
@@ -208,14 +208,14 @@ export default function MyCard() {
  link.click();
 
  toast({
- title: "تم تحميل البطاقة� بنجاح! ",
- description: "تم حفظ البطاقة� في جهازك",
+ title: "تم تحميل البطاقةبنجاح! ",
+ description: "تم حفظ البطاقةفي جهازك",
  });
  } catch (error) {
  console.error("Error downloading card:", error);
  toast({
  title: "خطأ في التحميل",
- description: "حدث خطأ أثناء تحميل البطاقة� ",
+ description: "حدث خطأ أثناء تحميل البطاقة",
  variant: "destructive",
  });
  }
@@ -297,7 +297,7 @@ export default function MyCard() {
  data-testid="button-back"
  >
  <ArrowRight className="ml-2 h-5 w-5" />
- العود� للقائم� 
+ العودةللقائم� 
  </Button>
  
  {hasCard && (
@@ -381,14 +381,14 @@ export default function MyCard() {
  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-cairo text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300"
  data-testid="button-create-card"
  >
- {isLoading ? "جاري البحث..." : "إصدار أو استرجاع البطاقة� "}
+ {isLoading ? "جاري البحث..." : "إصدار أو استرجاع البطاقة"}
  </Button>
  </div>
 
  <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200 shadow-inner">
  <h3 className="font-cairo font-bold text-amber-900 mb-3 flex items-center justify-center gap-2 text-lg">
  <Star className="h-6 w-6 text-amber-600" />
- مميزات البطاقة� الذهبي� 
+ مميزات البطاقةالذهبي� 
  </h3>
  <ul className="space-y-3 text-amber-800 font-cairo">
  <li className="flex items-center gap-3 bg-white/60 p-3 rounded-lg">
@@ -397,11 +397,11 @@ export default function MyCard() {
  </li>
  <li className="flex items-center gap-3 bg-white/60 p-3 rounded-lg">
  <Sparkles className="h-5 w-5 text-orange-600 flex-shrink-0" />
- <span className="font-bold">6 أ� تام = قهوة مجاني� ! </span>
+ <span className="font-bold">6 أ� تام = قهوة مجانية! </span>
  </li>
  <li className="flex items-center gap-3 bg-white/60 p-3 rounded-lg">
  <Gift className="h-5 w-5 text-amber-600 flex-shrink-0" />
- <span>� صم 10% عند 5 أ� تام</span>
+ <span>خصم 10% عند 5 أ� تام</span>
  </li>
  </ul>
  </div>
@@ -409,7 +409,7 @@ export default function MyCard() {
  </motion.div>
  ) : (
  <div className="space-y-6">
- {/* بانر ال� صم 10% */}
+ {/* بانر الخصم 10% */}
  {filledStamps === 5 && (
  <motion.div
  initial={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -423,7 +423,7 @@ export default function MyCard() {
  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
  />
- <span className="relative z-10"> تم فتح � صم 10%! � تم واحد للقهوة المجاني� !</span>
+ <span className="relative z-10"> تم فتح خصم 10%! � تم واحد للقهوة المجاني� !</span>
  </motion.div>
  )}
 
@@ -450,7 +450,7 @@ export default function MyCard() {
  >
  <Star className="h-6 w-6" />
  </motion.div>
- <span className="relative z-10"> قهوة مجاني� ! است� دمها في طلبك القادم</span>
+ <span className="relative z-10"> قهوة مجانية! است� دمها في طلبك القادم</span>
  </motion.div>
  )}
 
@@ -491,7 +491,7 @@ export default function MyCard() {
  </Card>
  </motion.div>
 
- {/* البطاقة� الرئيسي� */}
+ {/* البطاقةالرئيسي� */}
  <motion.div
  ref={cardRef}
  initial={{ opacity: 0, scale: 0.95 }}
@@ -501,7 +501,7 @@ export default function MyCard() {
  data-testid="loyalty-card-display"
  >
  <div className="bg-[#F5E6D3] rounded-3xl shadow-2xl overflow-hidden border-4 border-[#8B5A3C]/20 backdrop-blur-sm">
- {/* رأس البطاقة� */}
+ {/* رأس البطاقة*/}
  <div className="relative bg-[#F5E6D3] p-8 text-center overflow-hidden">
  {/* شعار فنجان القهوة */}
  <div className="flex justify-center mb-4">
@@ -526,7 +526,7 @@ export default function MyCard() {
  </div>
  </div>
 
- {/* محتوى البطاقة� */}
+ {/* محتوى البطاقة*/}
  <div className="p-6">
  {/* عداد الأ� تام */}
  <div className="text-center mb-6">
@@ -548,12 +548,12 @@ export default function MyCard() {
  data-testid="text-available-cups"
  >
  <Gift className="h-5 w-5" />
- <span className="font-bold">لديك {availableFreeCups} قهوة مجاني� متاح� !</span>
+ <span className="font-bold">لديك {availableFreeCups} قهوة مجانيةمتاح� !</span>
  </motion.div>
  )}
  </div>
 
- {/* شبك� الأ� تام */}
+ {/* شبكةالأ� تام */}
  <div className="grid grid-cols-3 gap-4 mb-6">
  {[...Array(totalStamps)].map((_, index) => {
  const isFilled = index < filledStamps;
@@ -639,7 +639,7 @@ export default function MyCard() {
  data-testid="button-download"
  >
  <Download className="ml-2 h-6 w-6" />
- تحميل البطاقة� كصور� 
+ تحميل البطاقةكصور� 
  </Button>
  </motion.div>
 
@@ -665,11 +665,11 @@ export default function MyCard() {
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-orange-600 font-bold flex-shrink-0">3.</span>
- <span className="font-semibold">عند 5 أ� تام، احصل على � صم 10%</span>
+ <span className="font-semibold">عند 5 أ� تام، احصل على خصم 10%</span>
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-green-600 font-bold flex-shrink-0">4.</span>
- <span className="font-bold">عند 6 أ� تام، احصل على قهوة مجاني� !</span>
+ <span className="font-bold">عند 6 أ� تام، احصل على قهوة مجانية!</span>
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-amber-600 font-bold flex-shrink-0">5.</span>

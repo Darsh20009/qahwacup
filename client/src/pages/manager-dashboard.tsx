@@ -105,14 +105,14 @@ export default function ManagerDashboard() {
  managerName: "",
  });
  toast({
- title: "تم إضاف� الفرع بنجاح",
- description: "تم إضاف� الفرع الجديد إلى النظام",
+ title: "تم إضافة الفرع بنجاح",
+ description: "تم إضافة الفرع الجديد إلى النظام",
  });
  },
  onError: (error: any) => {
  toast({
- title: "� طأ في إضاف� الفرع",
- description: error.message || "حدث � طأ أثناء إضاف� الفرع",
+ title: "� طأ في إضافة الفرع",
+ description: error.message || "حدث خطأ أثناء إضافة الفرع",
  variant: "destructive",
  });
  },
@@ -127,7 +127,7 @@ export default function ManagerDashboard() {
  if (!branchForm.nameAr || !branchForm.address || !branchForm.city || !branchForm.phone) {
  toast({
  title: "بيانات ناقص� ",
- description: "الرجاء إدخال جميع البيانات المطلوب� ",
+ description: "الرجاء إدخال جميع البيانات المطلوبة",
  variant: "destructive",
  });
  return;
@@ -194,7 +194,7 @@ export default function ManagerDashboard() {
  } catch (error) {
  toast({
  title: "� طأ في التصدير",
- description: "حدث � طأ أثناء تصدير البيانات",
+ description: "حدث خطأ أثناء تصدير البيانات",
  variant: "destructive",
  });
  }
@@ -492,7 +492,7 @@ export default function ManagerDashboard() {
  <TabsContent value="customers" className="space-y-4">
  <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20">
  <CardHeader>
- <CardTitle className="text-amber-500">قائم� العملاء المسجلين</CardTitle>
+ <CardTitle className="text-amber-500">قائمة العملاء المسجلين</CardTitle>
  <CardDescription className="text-gray-400">
  جميع العملاء الذين لديهم حسابات في النظام
  </CardDescription>
@@ -768,7 +768,7 @@ export default function ManagerDashboard() {
  className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800"
  data-testid="button-submit-branch"
  >
- {createBranchMutation.isPending ? "جاري الإضاف� ..." : "إضاف� الفرع"}
+ {createBranchMutation.isPending ? "جاري الإضافة..." : "إضافة الفرع"}
  </Button>
  </div>
  </DialogContent>
@@ -811,7 +811,7 @@ export default function ManagerDashboard() {
  <CardHeader>
  <div className="flex justify-between items-center">
  <div>
- <CardTitle className="text-amber-500">م� طط المبيعات اليومي� </CardTitle>
+ <CardTitle className="text-amber-500">مخطط المبيعات اليومية</CardTitle>
  <CardDescription className="text-gray-400">
  تطور المبيعات � لال الفتر� المحدد� 
  </CardDescription>

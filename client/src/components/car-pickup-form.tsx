@@ -39,7 +39,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  toast({
  variant: "destructive",
  title: "� طأ",
- description: "حدث � طأ أثناء حفظ معلومات السيار� ",
+ description: "حدث خطأ أثناء حفظ معلومات السيار� ",
  });
  }
  });

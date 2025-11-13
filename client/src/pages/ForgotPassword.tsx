@@ -55,7 +55,7 @@ export default function ForgotPassword() {
  console.error("Check email error:", error);
  toast({
  title: "� طأ",
- description: error.message || "حدث � طأ أثناء التحقق من البريد",
+ description: error.message || "حدث خطأ أثناء التحقق من البريد",
  variant: "destructive"
  });
  } finally {
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
  setStep('password');
  toast({
  title: "تم التحقق",
- description: "الآن أدخل كلم� المرور الجديد� ",
+ description: "الآن أدخل كلمة المرور الجديد� ",
  });
  } else {
  toast({
@@ -102,7 +102,7 @@ export default function ForgotPassword() {
  console.error("Verify phone error:", error);
  toast({
  title: "� طأ",
- description: error.message || "حدث � طأ أثناء التحقق من رقم الجوال",
+ description: error.message || "حدث خطأ أثناء التحقق من رقم الجوال",
  variant: "destructive"
  });
  } finally {
@@ -116,7 +116,7 @@ export default function ForgotPassword() {
  if (!newPassword || newPassword.length < 4) {
  toast({
  title: "� طأ",
- description: "كلم� المرور يجب أن تكون على الأقل 4 أحرف",
+ description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
  return;
@@ -125,7 +125,7 @@ export default function ForgotPassword() {
  if (newPassword !== confirmPassword) {
  toast({
  title: "� طأ",
- description: "كلم� المرور غير متطابق� ",
+ description: "كلمة المرور غير متطابق� ",
  variant: "destructive"
  });
  return;
@@ -143,7 +143,7 @@ export default function ForgotPassword() {
  
  toast({
  title: "تم بنجاح!",
- description: "تم تغيير كلم� المرور بنجاح. يمكنك تسجيل الد� ول الآن",
+ description: "تم تغيير كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن",
  });
  
  setTimeout(() => navigate("/auth"), 1500);
@@ -151,7 +151,7 @@ export default function ForgotPassword() {
  console.error("Reset password error:", error);
  toast({
  title: "� طأ",
- description: error.message || "حدث � طأ أثناء تغيير كلم� المرور",
+ description: error.message || "حدث خطأ أثناء تغيير كلمة المرور",
  variant: "destructive"
  });
  } finally {
@@ -175,14 +175,14 @@ export default function ForgotPassword() {
  </div>
  </div>
  <CardTitle className="text-3xl font-bold text-amber-100">
- {step === 'email' && 'نسيت كلم� المرور؟'}
+ {step === 'email' && 'نسيت كلمة المرور؟'}
  {step === 'phone' && 'تحقق من رقم الجوال'}
- {step === 'password' && 'كلم� المرور الجديد� '}
+ {step === 'password' && 'كلمة المرور الجديد� '}
  </CardTitle>
  <CardDescription className="text-amber-200/70 text-lg">
- {step === 'email' && 'أدخل بريدك الإلكتروني لإعاد� تعيين كلم� المرور'}
+ {step === 'email' && 'أدخل بريدك الإلكتروني لإعاد� تعيين كلمة المرور'}
  {step === 'phone' && 'أدخل رقم الجوال المرتبط بالبريد الإلكتروني'}
- {step === 'password' && 'أدخل كلم� المرور الجديد� وقم بتأكيدها'}
+ {step === 'password' && 'أدخل كلمة المرور الجديد� وقم بتأكيدها'}
  </CardDescription>
  </CardHeader>
 
@@ -275,11 +275,11 @@ export default function ForgotPassword() {
  {step === 'password' && (
  <form onSubmit={handlePasswordSubmit} className="space-y-5">
  <div className="space-y-2">
- <Label htmlFor="newPassword" className="text-amber-100">كلم� المرور الجديد� </Label>
+ <Label htmlFor="newPassword" className="text-amber-100">كلمة المرور الجديد� </Label>
  <Input
  id="newPassword"
  type="password"
- placeholder="أدخل كلم� المرور الجديد� "
+ placeholder="أدخل كلمة المرور الجديد� "
  value={newPassword}
  onChange={(e) => setNewPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -289,11 +289,11 @@ export default function ForgotPassword() {
  </div>
 
  <div className="space-y-2">
- <Label htmlFor="confirmPassword" className="text-amber-100">تأكيد كلم� المرور</Label>
+ <Label htmlFor="confirmPassword" className="text-amber-100">تأكيد كلمة المرور</Label>
  <Input
  id="confirmPassword"
  type="password"
- placeholder="أدخل كلم� المرور مر� أ� رى"
+ placeholder="أدخل كلمة المرور مر� أ� رى"
  value={confirmPassword}
  onChange={(e) => setConfirmPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -301,7 +301,7 @@ export default function ForgotPassword() {
  required
  />
  <p className="text-xs text-amber-200/50 mt-1">
- كلم� المرور يجب أن تكون 4 أحرف على الأقل
+ كلمة المرور يجب أن تكون 4 أحرف على الأقل
  </p>
  </div>
 
@@ -318,7 +318,7 @@ export default function ForgotPassword() {
  </div>
  ) : (
  <div className="flex items-center gap-2">
- <span>تغيير كلم� المرور</span>
+ <span>تغيير كلمة المرور</span>
  <ArrowRight className="w-5 h-5" />
  </div>
  )}
@@ -333,7 +333,7 @@ export default function ForgotPassword() {
  className="text-amber-300/70 hover:text-amber-200 transition-colors text-sm underline-offset-4 hover:underline"
  data-testid="link-back"
  >
- العود� لتسجيل الد� ول
+ العودةلتسجيل الدخول
  </button>
  </div>
  </CardContent>

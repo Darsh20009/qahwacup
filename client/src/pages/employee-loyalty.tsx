@@ -45,7 +45,7 @@ export default function EmployeeLoyalty() {
  toast({
  variant: "destructive",
  title: "خطأ",
- description: error.message || "فشل في إنشاء بطاقة� الولاء"
+ description: error.message || "فشل في إنشاء بطاقة الولاء"
  });
  }
  });
@@ -77,7 +77,7 @@ export default function EmployeeLoyalty() {
  data-testid="button-back"
  >
  <ArrowRight className="w-5 h-5 ml-2" />
- العود� للوح� التحكم
+ العودةللوح� التحكم
  </Button>
 
  <div className="flex items-center gap-3">
@@ -142,7 +142,7 @@ export default function EmployeeLoyalty() {
  className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600"
  data-testid="button-submit-card"
  >
- {createCardMutation.isPending ? "جاري الإنشاء..." : "إصدار البطاقة� "}
+ {createCardMutation.isPending ? "جاري الإنشاء..." : "إصدار البطاقة"}
  </Button>
  </div>
  </DialogContent>

@@ -29,7 +29,7 @@ export default function CartPage() {
  <div className="flex justify-between items-center h-16">
  <Link href="/menu" className="flex items-center space-x-4 space-x-reverse text-muted-foreground hover:text-primary transition-colors group">
  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
- <span className="text-lg font-semibold">العود� للمنيو</span>
+ <span className="text-lg font-semibold">العودةللمنيو</span>
  </Link>
  <h1 className="font-amiri text-2xl font-bold text-primary">سل� التسوق</h1>
  </div>
@@ -70,7 +70,7 @@ export default function CartPage() {
  <div className="flex justify-between items-center h-16">
  <Link href="/menu" className="flex items-center space-x-4 space-x-reverse text-muted-foreground hover:text-primary transition-colors group">
  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
- <span className="text-lg font-semibold">العود� للمنيو</span>
+ <span className="text-lg font-semibold">العودةللمنيو</span>
  </Link>
  <h1 className="font-amiri text-2xl font-bold text-primary">سل� التسوق</h1>
  </div>
@@ -171,7 +171,7 @@ export default function CartPage() {
  <div className="flex justify-between items-center text-amber-700">
  <span className="text-lg">عدد العناصر:</span>
  <Badge className="bg-amber-100 text-amber-800 text-lg px-3 py-1">
- {cartItems.reduce((sum, item) => sum + item.quantity, 0)} قطع� 
+ {cartItems.reduce((sum, item) => sum + item.quantity, 0)} قطعة
  </Badge>
  </div>
 

@@ -53,8 +53,8 @@ export default function QRScanner({
 
  if (response.success) {
  toast({
- title: "تم تطبيق ال� صم بنجاح! ",
- description: `� صم ${response.discount.percentage}% - وفّر ${response.discount.amount} ر.س`,
+ title: "تم تطبيق الخصم بنجاح! ",
+ description: `خصم ${response.discount.percentage}% - وفّر ${response.discount.amount} ر.س`,
  className: "bg-green-900 border-green-700 text-white"
  });
 
@@ -65,8 +65,8 @@ export default function QRScanner({
  } catch (error: any) {
  toast({
  variant: "destructive",
- title: "فشل في مسح البطاقة� ",
- description: error.message || "تأكد من صح� رمز QR"
+ title: "فشل في مسح البطاقة",
+ description: error.message || "تأكد من صحة رمز QR"
  });
  } finally {
  setIsScanning(false);
@@ -146,9 +146,9 @@ export default function QRScanner({
  <div className="flex items-start gap-3">
  <Percent className="w-5 h-5 text-green-400 mt-0.5" />
  <div className="flex-1 space-y-1">
- <h4 className="font-semibold text-green-400">� صم الولاء التلقائي</h4>
+ <h4 className="font-semibold text-green-400">خصم الولاء التلقائي</h4>
  <p className="text-sm text-slate-300">
- سيتم تطبيق � صم 10% تلقائياً على الطلب عند مسح بطاقة� الولاء
+ سيتم تطبيق خصم 10% تلقائياً على الطلب عند مسح بطاقة� الولاء
  </p>
  </div>
  </div>

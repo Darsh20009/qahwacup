@@ -16,7 +16,7 @@ export default function EmployeeGateway() {
  if (password === "1802009") {
  setLocation("/employee/login");
  } else {
- setError("كلم� المرور غير صحيح� ");
+ setError("كلمة المرور غير صحيح� ");
  setPassword("");
  }
  };
@@ -38,7 +38,7 @@ export default function EmployeeGateway() {
  د� ول الموظفين
  </CardTitle>
  <CardDescription className="text-center text-gray-400">
- أدخل كلم� المرور العام� للوصول
+ أدخل كلمة المرور العام� للوصول
  </CardDescription>
  </CardHeader>
  <CardContent>
@@ -48,7 +48,7 @@ export default function EmployeeGateway() {
  <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
  type="password"
- placeholder="كلم� المرور العام� "
+ placeholder="كلمة المرور العام� "
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
@@ -81,7 +81,7 @@ export default function EmployeeGateway() {
  className="text-amber-500 hover:text-amber-400"
  data-testid="link-back-home"
  >
- العود� للصفح� الرئيسي� 
+ العودةللصفح� الرئيسي� 
  </Button>
  </div>
  </div>

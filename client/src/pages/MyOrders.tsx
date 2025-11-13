@@ -186,7 +186,7 @@ export default function MyOrders() {
  className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800"
  data-testid="button-browse-menu"
  >
- تصفح القائم� 
+ تصفح القائمة
  </Button>
  </div>
  </Card>

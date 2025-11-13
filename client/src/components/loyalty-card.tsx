@@ -146,14 +146,14 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
  alert(`
  لإضاف� البطاقة إلى Apple Wallet:
  1. افتح هذا الرابط على iPhone/iPad
- 2. انقر على "إضاف� إلى Wallet"
+ 2. انقر على "إضافة إلى Wallet"
 
  الرابط: ${window.location.origin}${passUrl}
 
  أو امسح رمز QR أدناه باست� دام كاميرا iPhone
  `);
  } catch (error) {
- alert("حدث � طأ أثناء إنشاء ملف Apple Wallet");
+ alert("حدث خطأ أثناء إنشاء ملف Apple Wallet");
  }
  };
 

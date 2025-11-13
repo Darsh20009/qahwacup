@@ -46,7 +46,7 @@ export default function MyOrders() {
  data-testid="button-back"
  >
  <ArrowRight className="ml-2 h-5 w-5" />
- العود� للقائم� 
+ العودةللقائم� 
  </Button>
  </motion.div>
 
@@ -71,13 +71,13 @@ export default function MyOrders() {
  لا توجد طلبات بعد
  </h2>
  <p className="text-amber-700 font-cairo mb-6">
- قم بتسجيل الد� ول أو إنشاء طلب جديد لعرض طلباتك
+ قم بتسجيل الدخول أو إنشاء طلب جديد لعرض طلباتك
  </p>
  <Button
  onClick={() => setLocation("/menu")}
  className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-cairo"
  >
- تصفح القائم� 
+ تصفح القائمة
  </Button>
  </Card>
  ) : isLoading ? (
@@ -101,7 +101,7 @@ export default function MyOrders() {
  onClick={() => setLocation("/menu")}
  className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-cairo"
  >
- تصفح القائم� 
+ تصفح القائمة
  </Button>
  </Card>
  ) : (

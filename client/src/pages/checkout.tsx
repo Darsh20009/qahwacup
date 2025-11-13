@@ -63,7 +63,7 @@ export default function CheckoutPage() {
  const calculateFreeDrinks = () => {
  if (!loyaltyCard) return 0;
 
- // المشروبات المجاني� المتاح� = المكتسب� - المست� دم� 
+ // المشروبات المجانية المتاحة= المكتسبة- المستخدمة
  const available = (loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0);
  return Math.max(0, available);
  };
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
  if (!discountCode.trim()) {
  toast({
  variant: "destructive",
- title: "يرجى إدخال كود ال� صم",
+ title: "يرجى إدخال كود الخصم",
  });
  return;
  }
@@ -203,15 +203,15 @@ export default function CheckoutPage() {
  percentage: data.discountPercentage
  });
  toast({
- title: "تم تطبيق ال� صم بنجاح",
- description: `� صم ${data.discountPercentage}% على إجمالي الطلب`,
+ title: "تم تطبيق الخصم بنجاح",
+ description: `خصم ${data.discountPercentage}% على إجمالي الطلب`,
  });
  } else {
  setAppliedDiscount(null);
  toast({
  variant: "destructive",
- title: "كود � صم غير صحيح",
- description: data.error || "الكود غير موجود أو منتهي الصلاحي� ",
+ title: "كود خصم غير صحيح",
+ description: data.error || "الكود غير موجود أو منتهي الصلاحية",
  });
  }
  } catch (error) {
@@ -463,7 +463,7 @@ export default function CheckoutPage() {
  setTimeout(() => setCopiedCodeId(null), 2000);
  toast({
  title: "تم نس� الكود",
- description: "الكود جاهز للاست� دام في صفح� بطاقةتي",
+ description: "الكود جاهز للاستخدام في صفحة بطاقتي",
  });
  } catch (error) {
  toast({
@@ -683,7 +683,7 @@ ${itemsWithPrices}
  <Card className="w-full max-w-md mx-4">
  <CardContent className="pt-6 text-center">
  <p className="text-muted-foreground mb-4">السل� فارغ� </p>
- <Button variant="outline">العود� للمنيو</Button>
+ <Button variant="outline">العودةللمنيو</Button>
  </CardContent>
  </Card>
  </div>
@@ -756,14 +756,14 @@ ${itemsWithPrices}
  <div className="mb-3 md:mb-4 p-3 md:p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg md:rounded-xl border-2 border-amber-200 dark:border-amber-800">
  <div className="flex items-center gap-2 mb-2">
  <Gift className="w-4 md:w-5 h-4 md:h-5 text-amber-600" />
- <h3 className="font-bold text-sm md:text-base text-amber-900 dark:text-amber-100">كود ال� صم</h3>
+ <h3 className="font-bold text-sm md:text-base text-amber-900 dark:text-amber-100">كود الخصم</h3>
  </div>
  {appliedDiscount ? (
  <div className="flex items-center justify-between bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
  <div className="flex items-center gap-2">
  <CheckCircle className="w-5 h-5 text-green-600" />
  <span className="font-bold text-green-800 dark:text-green-200">
- {appliedDiscount.code} - � صم {appliedDiscount.percentage}%
+ {appliedDiscount.code} - خصم {appliedDiscount.percentage}%
  </span>
  </div>
  <Button
@@ -785,7 +785,7 @@ ${itemsWithPrices}
  type="text"
  value={discountCode}
  onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
- placeholder="أدخل كود ال� صم"
+ placeholder="أدخل كود الخصم"
  className="flex-1"
  data-testid="input-discount-code"
  onKeyDown={(e) => {
@@ -930,7 +930,7 @@ ${itemsWithPrices}
  <span className="text-3xl font-bold block text-green-300" data-testid="text-summary-total">
  {(getTotalPrice() * (1 - appliedDiscount.percentage / 100)).toFixed(2)} ريال
  </span>
- <span className="text-sm opacity-90">بعد � صم {appliedDiscount.percentage}%</span>
+ <span className="text-sm opacity-90">بعد خصم {appliedDiscount.percentage}%</span>
  </>
  ) : (
  <>
@@ -1049,7 +1049,7 @@ ${itemsWithPrices}
 
  <div className="bg-white/60 rounded-xl p-4 space-y-2">
  <div className="flex justify-between items-center">
- <span className="text-sm text-amber-700">الأ� تام المكتسب� :</span>
+ <span className="text-sm text-amber-700">الأ� تام المكتسبة:</span>
  <span className="font-bold text-amber-900">
  {loyaltyCard?.stamps || 0} / 6
  </span>
@@ -1210,7 +1210,7 @@ ${itemsWithPrices}
  سجل د� ولك واحصل على مشروبات مجاني� !
  </h4>
  <p className="text-sm text-amber-700 font-cairo">
- 5 طوابع = قهوة مجاني� 
+ 5 طوابع = قهوة مجانية
  </p>
  </div>
  </div>

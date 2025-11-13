@@ -50,15 +50,15 @@ export default function EmployeeMenuManagement() {
  queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
  setIsAddDialogOpen(false);
  toast({
- title: "تم إضاف� المشروب",
- description: "تم إضاف� المشروب بنجاح إلى القائم� ",
+ title: "تم إضافة المشروب",
+ description: "تم إضافة المشروب بنجاح إلى القائمة",
  });
  },
  onError: (error: any) => {
  toast({
  variant: "destructive",
- title: "فشل إضاف� المشروب",
- description: error.message || "حدث خطأ أثناء إضاف� المشروب",
+ title: "فشل إضافة المشروب",
+ description: error.message || "حدث خطأ أثناء إضافة المشروب",
  });
  },
  });
@@ -234,9 +234,9 @@ export default function EmployeeMenuManagement() {
  };
 
  const categoryNames = {
- basic: "قهوة أساسي� ",
+ basic: "قهوة أساسية",
  hot: "قهوة سا� ن� ",
- cold: "قهوة بارد� ",
+ cold: "قهوة باردة",
  specialty: "مشروبات إضافي� ",
  desserts: "الحلويات",
  };
@@ -390,7 +390,7 @@ export default function EmployeeMenuManagement() {
  className="bg-gradient-to-r from-green-500 to-green-700"
  data-testid="button-submit"
  >
- {createItemMutation.isPending ? "جاري الإضاف� ..." : "إضاف� المشروب"}
+ {createItemMutation.isPending ? "جاري الإضافة..." : "إضافة المشروب"}
  </Button>
  </div>
  </form>
@@ -412,7 +412,7 @@ export default function EmployeeMenuManagement() {
  data-testid="button-back"
  >
  <ArrowRight className="w-4 h-4 ml-2" />
- العود� للوح� التحكم
+ العودةللوح� التحكم
  </Button>
  </div>
  </div>

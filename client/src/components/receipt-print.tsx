@@ -97,7 +97,7 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptProps>(
  
  {discount && (
  <div className="flex justify-between text-green-600">
- <span>ال� صم ({discount.code} - {discount.percentage}%):</span>
+ <span>الخصم ({discount.code} - {discount.percentage}%):</span>
  <span>-{discount.amount} ريال</span>
  </div>
  )}

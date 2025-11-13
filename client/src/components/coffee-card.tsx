@@ -66,7 +66,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
  className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs sm:text-sm font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg glow-effect"
  data-testid={`badge-discount-${item.id}`}
  >
- � صم {discount}%
+ خصم {discount}%
  </Badge>
  )}
  

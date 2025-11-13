@@ -125,7 +125,7 @@ export default function EmployeeIngredientsManagement() {
  data-testid="button-back-to-menu"
  >
  <ArrowRight className="w-5 h-5" />
- العود� للقائم� 
+ العودةللقائم� 
  </Button>
  </div>
  </div>

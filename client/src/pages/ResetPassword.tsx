@@ -26,7 +26,7 @@ export default function ResetPassword() {
  if (!resetToken) {
  toast({
  title: "� طأ",
- description: "رابط إعاد� التعيين غير صالح",
+ description: "رابط إعادة التعيين غير صالح",
  variant: "destructive"
  });
  navigate("/auth");
@@ -50,7 +50,7 @@ export default function ResetPassword() {
  } else {
  toast({
  title: "� طأ",
- description: "رابط إعاد� التعيين غير صالح أو منتهي الصلاحي� ",
+ description: "رابط إعادة التعيين غير صالح أو منتهي الصلاحي� ",
  variant: "destructive"
  });
  setTimeout(() => navigate("/forgot-password"), 2000);
@@ -59,7 +59,7 @@ export default function ResetPassword() {
  console.error("Token verification error:", error);
  toast({
  title: "� طأ",
- description: error.message || "رابط إعاد� التعيين غير صالح",
+ description: error.message || "رابط إعادة التعيين غير صالح",
  variant: "destructive"
  });
  setTimeout(() => navigate("/forgot-password"), 2000);
@@ -74,7 +74,7 @@ export default function ResetPassword() {
  if (!newPassword || newPassword.length < 4) {
  toast({
  title: "� طأ",
- description: "كلم� المرور يجب أن تكون على الأقل 4 أحرف",
+ description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
  return;
@@ -83,7 +83,7 @@ export default function ResetPassword() {
  if (newPassword !== confirmPassword) {
  toast({
  title: "� طأ",
- description: "كلم� المرور غير متطابق� ",
+ description: "كلمة المرور غير متطابق� ",
  variant: "destructive"
  });
  return;
@@ -100,7 +100,7 @@ export default function ResetPassword() {
  setResetSuccess(true);
  toast({
  title: "نجح!",
- description: "تم تغيير كلم� المرور بنجاح",
+ description: "تم تغيير كلمة المرور بنجاح",
  });
 
  setTimeout(() => navigate("/auth"), 3000);
@@ -108,7 +108,7 @@ export default function ResetPassword() {
  console.error("Reset password error:", error);
  toast({
  title: "� طأ",
- description: error.message || "حدث � طأ أثناء تغيير كلم� المرور",
+ description: error.message || "حدث خطأ أثناء تغيير كلمة المرور",
  variant: "destructive"
  });
  } finally {
@@ -157,10 +157,10 @@ export default function ResetPassword() {
  </div>
  </div>
  <CardTitle className="text-3xl font-bold text-amber-100">
- {resetSuccess ? "تم التغيير بنجاح!" : "إعاد� تعيين كلم� المرور"}
+ {resetSuccess ? "تم التغيير بنجاح!" : "إعاد� تعيين كلمة المرور"}
  </CardTitle>
  <CardDescription className="text-amber-200/70 text-lg">
- {resetSuccess ? "يمكنك الآن تسجيل الد� ول بكلم� المرور الجديد� " : "أدخل كلم� المرور الجديد� "}
+ {resetSuccess ? "يمكنك الآن تسجيل الدخول بكلمة المرور الجديد� " : "أدخل كلمة المرور الجديد� "}
  </CardDescription>
  </CardHeader>
 
@@ -170,12 +170,12 @@ export default function ResetPassword() {
  <div className="space-y-2">
  <Label htmlFor="new-password" className="text-amber-100 flex items-center gap-2">
  <Lock className="w-4 h-4" />
- كلم� المرور الجديد� 
+ كلمة المرور الجديد� 
  </Label>
  <Input
  id="new-password"
  type="password"
- placeholder="أدخل كلم� المرور الجديد� "
+ placeholder="أدخل كلمة المرور الجديد� "
  value={newPassword}
  onChange={(e) => setNewPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -187,12 +187,12 @@ export default function ResetPassword() {
  <div className="space-y-2">
  <Label htmlFor="confirm-password" className="text-amber-100 flex items-center gap-2">
  <Lock className="w-4 h-4" />
- تأكيد كلم� المرور
+ تأكيد كلمة المرور
  </Label>
  <Input
  id="confirm-password"
  type="password"
- placeholder="أعد إدخال كلم� المرور"
+ placeholder="أعد إدخال كلمة المرور"
  value={confirmPassword}
  onChange={(e) => setConfirmPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -200,7 +200,7 @@ export default function ResetPassword() {
  required
  />
  <p className="text-xs text-amber-200/50 mt-1">
- كلم� المرور يجب أن تكون على الأقل 4 أحرف
+ كلمة المرور يجب أن تكون على الأقل 4 أحرف
  </p>
  </div>
 
@@ -216,7 +216,7 @@ export default function ResetPassword() {
  <span>جارٍ التغيير...</span>
  </div>
  ) : (
- "تغيير كلم� المرور"
+ "تغيير كلمة المرور"
  )}
  </Button>
  </form>
@@ -224,7 +224,7 @@ export default function ResetPassword() {
  <div className="space-y-4 text-center">
  <div className="p-4 rounded-lg bg-green-900/20 border border-green-700/30">
  <p className="text-green-300 text-sm">
- تم تغيير كلم� المرور بنجاح! سيتم تحويلك لصفح� تسجيل الد� ول...
+ تم تغيير كلمة المرور بنجاح! سيتم تحويلك لصفح� تسجيل الدخول...
  </p>
  </div>
  <Button
@@ -232,7 +232,7 @@ export default function ResetPassword() {
  className="w-full bg-amber-600 hover:bg-amber-700"
  data-testid="button-go-to-login"
  >
- الذهاب لتسجيل الد� ول
+ الذهاب لتسجيل الدخول
  </Button>
  </div>
  )}

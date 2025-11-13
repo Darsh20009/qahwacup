@@ -285,7 +285,7 @@ export default function EmployeeCashier() {
  if (!discountCode.trim()) {
  toast({
  title: "� طأ",
- description: "يرجى إدخال كود ال� صم",
+ description: "يرجى إدخال كود الخصم",
  variant: "destructive",
  });
  return;
@@ -314,8 +314,8 @@ export default function EmployeeCashier() {
 
  if (!response.ok || !data.valid) {
  toast({
- title: "كود � صم غير صالح",
- description: data.error || "الكود المد� ل غير صحيح أو منتهي الصلاحي� ",
+ title: "كود خصم غير صالح",
+ description: data.error || "الكود المدخل غير صحيح أو منتهي الصلاحية",
  variant: "destructive",
  });
  setAppliedDiscount(null);
@@ -330,7 +330,7 @@ export default function EmployeeCashier() {
  });
 
  toast({
- title: "تم تطبيق ال� صم بنجاح",
+ title: "تم تطبيق الخصم بنجاح",
  description: `${data.reason} - ${data.discountPercentage}%`,
  className: "bg-green-600 text-white",
  });
@@ -338,7 +338,7 @@ export default function EmployeeCashier() {
  console.error('Error validating discount code:', error);
  toast({
  title: "� طأ",
- description: "فشل التحقق من كود ال� صم",
+ description: "فشل التحقق من كود الخصم",
  variant: "destructive",
  });
  } finally {
@@ -350,8 +350,8 @@ export default function EmployeeCashier() {
  setDiscountCode("");
  setAppliedDiscount(null);
  toast({
- title: "تم إزال� ال� صم",
- description: "تم إلغاء ال� صم من الطلب",
+ title: "تم إزال� الخصم",
+ description: "تم إلغاء الخصم من الطلب",
  });
  };
 
@@ -453,7 +453,7 @@ export default function EmployeeCashier() {
  data-testid="button-back-dashboard"
  >
  <ArrowRight className="w-4 h-4 ml-2" />
- العود� 
+ العودة
  </Button>
  </div>
  </div>
@@ -464,7 +464,7 @@ export default function EmployeeCashier() {
  <div className="lg:col-span-2">
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardHeader>
- <CardTitle className="text-amber-500 text-right">القائم� </CardTitle>
+ <CardTitle className="text-amber-500 text-right">القائمة</CardTitle>
  </CardHeader>
  <CardContent>
  {isLoading ? (
@@ -686,11 +686,11 @@ export default function EmployeeCashier() {
 
  <div className="space-y-2 bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-500/20">
  <Label className="text-gray-300 text-right block flex items-center justify-end gap-2">
- <span className="text-green-400">كود ال� صم (اختياري)</span>
+ <span className="text-green-400">كود الخصم (اختياري)</span>
  <Gift className="w-5 h-5 text-green-400" />
  </Label>
  <p className="text-xs text-gray-400 text-right mb-2">
- هل لديك كود � صم؟ أدخله هنا للحصول على ت� فيض فوري
+ هل لديك كود خصم؟ أدخله هنا للحصول على ت� فيض فوري
  </p>
  {!appliedDiscount ? (
  <div className="flex gap-2">
@@ -760,7 +760,7 @@ export default function EmployeeCashier() {
  
  {appliedDiscount && (
  <div className="flex justify-between items-center text-sm">
- <span className="text-green-400">ال� صم ({appliedDiscount.percentage}%):</span>
+ <span className="text-green-400">الخصم ({appliedDiscount.percentage}%):</span>
  <span className="text-green-400" data-testid="text-discount-amount">
  -{calculateDiscount().toFixed(2)} ريال
  </span>

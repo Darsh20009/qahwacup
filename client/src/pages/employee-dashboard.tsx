@@ -134,7 +134,7 @@ export default function EmployeeDashboard() {
  
  <div className="text-center text-gray-400 text-sm">
  <p>معرف الموظف: {employee.id?.slice(0, 8) || 'غير متوفر'}</p>
- <p className="mt-1">اسم المست� دم: {employee.username}</p>
+ <p className="mt-1">اسم المستخدم: {employee.username}</p>
  </div>
  </div>
  </CardContent>
@@ -195,7 +195,7 @@ export default function EmployeeDashboard() {
  </div>
  )}
  <div className="flex justify-between items-center pt-2 border-t border-amber-500/20">
- <span className="text-gray-400">اسم المست� دم:</span>
+ <span className="text-gray-400">اسم المستخدم:</span>
  <span className="text-amber-500 font-mono">{employee.username}</span>
  </div>
  </div>
@@ -243,7 +243,7 @@ export default function EmployeeDashboard() {
  <div className="lg:col-span-2 space-y-6">
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardHeader>
- <CardTitle className="text-amber-500 text-right">ال� دمات المتاح� </CardTitle>
+ <CardTitle className="text-amber-500 text-right">الخدمات المتاحة</CardTitle>
  </CardHeader>
  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
  <Button
@@ -332,7 +332,7 @@ export default function EmployeeDashboard() {
  </p>
  <p className="flex items-center gap-2">
  <span className="w-2 h-2 bg-green-500 rounded-full" />
- بطاقات الولاء تمنح � صم 10% تلقائي عند المسح
+ بطاقات الولاء تمنح خصم 10% تلقائي عند المسح
  </p>
  <p className="flex items-center gap-2">
  <span className="w-2 h-2 bg-blue-500 rounded-full" />

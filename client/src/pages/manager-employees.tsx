@@ -32,15 +32,15 @@ export default function ManagerEmployees() {
  queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
  setIsAddDialogOpen(false);
  toast({
- title: "تم إضاف� الموظف",
- description: "تم إضاف� الموظف بنجاح. يمكنه الآن إنشاء كلم� المرور ال� اص� به.",
+ title: "تم إضافة الموظف",
+ description: "تم إضافة الموظف بنجاح. يمكنه الآن إنشاء كلمة المرور ال� اص� به.",
  });
  },
  onError: (error: any) => {
  toast({
  variant: "destructive",
- title: "فشل إضاف� الموظف",
- description: error.message || "حدث � طأ أثناء إضاف� الموظف",
+ title: "فشل إضافة الموظف",
+ description: error.message || "حدث خطأ أثناء إضافة الموظف",
  });
  },
  });
@@ -62,7 +62,7 @@ export default function ManagerEmployees() {
  toast({
  variant: "destructive",
  title: "فشل التحديث",
- description: error.message || "حدث � طأ أثناء تحديث الموظف",
+ description: error.message || "حدث خطأ أثناء تحديث الموظف",
  });
  },
  });
@@ -170,7 +170,7 @@ export default function ManagerEmployees() {
  />
  </div>
  <div>
- <Label htmlFor="username" className="text-gray-300">اسم المست� دم *</Label>
+ <Label htmlFor="username" className="text-gray-300">اسم المستخدم *</Label>
  <Input
  id="username"
  name="username"
@@ -250,7 +250,7 @@ export default function ManagerEmployees() {
 
  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
  <p className="text-sm text-amber-500/90">
-  سيتم إنشاء الموظف بدون كلم� مرور. يجب على الموظف الذهاب إلى صفح� "موظف جديد" لإنشاء كلم� المرور ال� اص� به.
+  سيتم إنشاء الموظف بدون كلم� مرور. يجب على الموظف الذهاب إلى صفح� "موظف جديد" لإنشاء كلمة المرور ال� اص� به.
  </p>
  </div>
 
@@ -270,7 +270,7 @@ export default function ManagerEmployees() {
  className="bg-gradient-to-r from-amber-500 to-amber-700"
  data-testid="button-submit-add"
  >
- {createEmployeeMutation.isPending ? "جاري الإضاف� ..." : "إضاف� الموظف"}
+ {createEmployeeMutation.isPending ? "جاري الإضافة..." : "إضافة الموظف"}
  </Button>
  </div>
  </form>
@@ -347,7 +347,7 @@ export default function ManagerEmployees() {
  )}
 
  <div className="pt-2 border-t border-amber-500/20">
- <p className="text-xs text-gray-400">اسم المست� دم: {employee.username}</p>
+ <p className="text-xs text-gray-400">اسم المستخدم: {employee.username}</p>
  </div>
  </CardContent>
  </Card>

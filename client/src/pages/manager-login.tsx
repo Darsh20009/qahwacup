@@ -38,7 +38,7 @@ export default function ManagerLogin() {
  setLocation("/manager/dashboard");
  },
  onError: () => {
- setError("اسم المست� دم أو كلم� المرور غير صحيح� ");
+ setError("اسم المستخدم أو كلمة المرور غير صحيح� ");
  setPassword("");
  },
  });
@@ -48,7 +48,7 @@ export default function ManagerLogin() {
  setError("");
  
  if (!username || !password) {
- setError("الرجاء إدخال اسم المست� دم وكلم� المرور");
+ setError("الرجاء إدخال اسم المستخدم وكلمة المرور");
  return;
  }
 
@@ -82,7 +82,7 @@ export default function ManagerLogin() {
  <User className="absolute right-3 top-3 h-5 w-5 text-purple-500" />
  <Input
  type="text"
- placeholder="اسم المست� دم"
+ placeholder="اسم المستخدم"
  value={username}
  onChange={(e) => setUsername(e.target.value)}
  className="pr-10 bg-[#1a1410] border-purple-500/30 text-white placeholder:text-gray-500 text-right"
@@ -99,7 +99,7 @@ export default function ManagerLogin() {
  <Lock className="absolute right-3 top-3 h-5 w-5 text-purple-500" />
  <Input
  type="password"
- placeholder="كلم� المرور"
+ placeholder="كلمة المرور"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="pr-10 bg-[#1a1410] border-purple-500/30 text-white placeholder:text-gray-500 text-right"
@@ -124,10 +124,10 @@ export default function ManagerLogin() {
  {loginMutation.isPending ? (
  <>
  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
- جاري تسجيل الد� ول...
+ جاري تسجيل الدخول...
  </>
  ) : (
- "د� ول"
+ "دخول"
  )}
  </Button>
 
@@ -140,7 +140,7 @@ export default function ManagerLogin() {
  className="w-full border-purple-500/30 text-purple-500 hover:bg-purple-500/10"
  data-testid="button-employee-login"
  >
- تسجيل د� ول الموظف
+ تسجيل دخول الموظف
  </Button>
  </div>
  </form>

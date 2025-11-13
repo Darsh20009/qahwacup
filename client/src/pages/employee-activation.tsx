@@ -37,7 +37,7 @@ export default function EmployeeActivation() {
  toast({
  variant: "destructive",
  title: "� طأ",
- description: "كلم� المرور يجب أن تكون على الأقل 4 أحرف",
+ description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  });
  setIsLoading(false);
  return;
@@ -59,7 +59,7 @@ export default function EmployeeActivation() {
  toast({
  variant: "destructive",
  title: "فشل التفعيل",
- description: error.message || "حدث � طأ أثناء تفعيل الحساب. تأكد من رقم الهاتف والاسم.",
+ description: error.message || "حدث خطأ أثناء تفعيل الحساب. تأكد من رقم الهاتف والاسم.",
  });
  } finally {
  setIsLoading(false);
@@ -78,7 +78,7 @@ export default function EmployeeActivation() {
  <div className="text-center">
  <CardTitle className="text-2xl font-bold text-amber-500">تفعيل حساب موظف جديد</CardTitle>
  <CardDescription className="text-gray-400 mt-2">
- أدخل بياناتك التي سجلها المدير لإنشاء كلم� المرور ال� اص� بك
+ أدخل بياناتك التي سجلها المدير لإنشاء كلمة المرور ال� اص� بك
  </CardDescription>
  </div>
  </CardHeader>
@@ -118,7 +118,7 @@ export default function EmployeeActivation() {
  <div className="border-t border-amber-500/20 pt-4">
  <div className="mb-4">
  <Label htmlFor="password" className="text-gray-300">
- كلم� المرور الجديد� 
+ كلمة المرور الجديد� 
  </Label>
  <Input
  id="password"
@@ -134,7 +134,7 @@ export default function EmployeeActivation() {
 
  <div>
  <Label htmlFor="confirmPassword" className="text-gray-300">
- تأكيد كلم� المرور
+ تأكيد كلمة المرور
  </Label>
  <Input
  id="confirmPassword"
@@ -142,7 +142,7 @@ export default function EmployeeActivation() {
  type="password"
  required
  minLength={4}
- placeholder="أعد إدخال كلم� المرور"
+ placeholder="أعد إدخال كلمة المرور"
  className="bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500"
  data-testid="input-confirm-password"
  />
@@ -157,7 +157,7 @@ export default function EmployeeActivation() {
  <ul className="list-disc list-inside space-y-1">
  <li>تأكد من إدخال رقم الهاتف والاسم المسجلين لدى المدير بدق� </li>
  <li>ا� تر كلم� مرور قوي� لا تقل عن 4 أحرف</li>
- <li>احفظ كلم� المرور في مكان آمن</li>
+ <li>احفظ كلمة المرور في مكان آمن</li>
  </ul>
  </div>
  </div>
@@ -180,7 +180,7 @@ export default function EmployeeActivation() {
  className="text-amber-500 hover:text-amber-400"
  data-testid="button-back-to-login"
  >
- العود� إلى تسجيل الد� ول
+ العودةإلى تسجيل الدخول
  </Button>
  </div>
  </form>

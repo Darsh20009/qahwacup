@@ -194,7 +194,7 @@ export default function CustomerProfile() {
  <div className="space-y-1">
  <p className="text-sm text-amber-300">رقم البطاقة </p>
  <p className="text-2xl font-mono font-bold text-amber-50">{profile.cardNumber}</p>
- <p className="text-xs text-amber-400">� صم 10% عند إبرازها للكاشير</p>
+ <p className="text-xs text-amber-400">خصم 10% عند إبرازها للكاشير</p>
  </div>
 
  {/* Stamps Progress */}
@@ -251,7 +251,7 @@ export default function CustomerProfile() {
  className="w-full mt-6 border-amber-600/50 text-amber-100 hover:bg-amber-800/30"
  data-testid="button-back-menu"
  >
- العود� للقائم� 
+ العودةللقائم� 
  </Button>
  </div>
  </div>

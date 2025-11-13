@@ -28,7 +28,7 @@ export default function CustomerLogin() {
  customerStorage.registerCustomer(name, phone);
  toast({
  title: "مرحباً بك!",
- description: `تم تسجيل الد� ول بنجاح. تم إنشاء بطاقتك ال� اص� `,
+ description: `تم تسجيل الدخول بنجاح. تم إنشاء بطاقتك ال� اص� `,
  });
  setLocation("/menu");
  };
@@ -37,7 +37,7 @@ export default function CustomerLogin() {
  customerStorage.setGuestMode(true);
  toast({
  title: "وضع الضيف",
- description: "يمكنك الآن تصفح القائم� وإضاف� طلبك",
+ description: "يمكنك الآن تصفح القائمةوإضاف� طلبك",
  });
  setLocation("/menu");
  };
@@ -85,7 +85,7 @@ export default function CustomerLogin() {
 
  <div className="text-center">
  <p className="text-amber-300/60 text-sm">
- تسجيل الد� ول يتيح لك: بطاقة ولاء • طوابع مجاني� • متابعة طلباتك
+ تسجيل الدخول يتيح لك: بطاقة ولاء • طوابع مجاني� • متابعة طلباتك
  </p>
  </div>
  </div>
@@ -100,7 +100,7 @@ export default function CustomerLogin() {
  <CardHeader className="text-center">
  <div className="flex items-center justify-center gap-2 mb-2">
  <Coffee className="w-8 h-8 text-amber-500" />
- <CardTitle className="text-2xl text-amber-50">تسجيل الد� ول</CardTitle>
+ <CardTitle className="text-2xl text-amber-50">تسجيل الدخول</CardTitle>
  </div>
  <CardDescription className="text-amber-200/70">
  أدخل بياناتك للحصول على بطاقة ولاء � اص� 
@@ -142,7 +142,7 @@ export default function CustomerLogin() {
  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
  data-testid="button-submit"
  >
- تسجيل الد� ول
+ تسجيل الدخول
  </Button>
 
  <Button

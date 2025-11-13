@@ -61,7 +61,7 @@ export default function ProductDetails() {
  <CardContent className="pt-6 text-center">
  <p className="text-muted-foreground mb-4">المنتج غير موجود</p>
  <Button onClick={handleGoBack} variant="outline">
- العود� للمنيو
+ العودةللمنيو
  </Button>
  </CardContent>
  </Card>
@@ -83,7 +83,7 @@ export default function ProductDetails() {
  data-testid="button-back"
  >
  <ArrowRight className="w-4 h-4 ml-2" />
- العود� للمنيو
+ العودةللمنيو
  </Button>
 
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -102,7 +102,7 @@ export default function ProductDetails() {
  <div className="flex gap-2 flex-wrap absolute top-4 left-4">
  {item.oldPrice && (
  <Badge className="bg-red-500 text-white" data-testid="badge-discount">
- � صم {Math.round(((parseFloat(item.oldPrice) - parseFloat(item.price)) / parseFloat(item.oldPrice)) * 100)}%
+ خصم {Math.round(((parseFloat(item.oldPrice) - parseFloat(item.price)) / parseFloat(item.oldPrice)) * 100)}%
  </Badge>
  )}
 

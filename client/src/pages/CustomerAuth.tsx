@@ -38,7 +38,7 @@ export default function CustomerAuth() {
  if (!password || password.length < 4) {
  toast({
  title: "� طأ",
- description: "كلم� المرور يجب أن تكون على الأقل 4 أحرف",
+ description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
  return;
@@ -57,7 +57,7 @@ export default function CustomerAuth() {
  
  toast({
  title: "مرحباً بك!",
- description: `أهلاً ${customer.name}، تم تسجيل د� ولك بنجاح`,
+ description: `أهلاً ${customer.name}، تم تسجيل دخولك بنجاح`,
  });
 
  navigate("/");
@@ -65,7 +65,7 @@ export default function CustomerAuth() {
  console.error("Login error:", error);
  toast({
  title: "� طأ",
- description: error.message || "رقم الهاتف/البريد الإلكتروني أو كلم� المرور غير صحيح� ",
+ description: error.message || "رقم الهاتف/البريد الإلكتروني أو كلمة المرور غير صحيح� ",
  variant: "destructive"
  });
  } finally {
@@ -108,7 +108,7 @@ export default function CustomerAuth() {
  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
  toast({
  title: "� طأ",
- description: "البريد الإلكتروني مطلوب وصيغته غير صحيح� ",
+ description: "البريد الإلكتروني مطلوب وصيغته غير صحيحة",
  variant: "destructive"
  });
  return;
@@ -117,7 +117,7 @@ export default function CustomerAuth() {
  if (!password || password.length < 4) {
  toast({
  title: "� طأ",
- description: "كلم� المرور يجب أن تكون على الأقل 4 أحرف",
+ description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
  return;
@@ -146,7 +146,7 @@ export default function CustomerAuth() {
  console.error("Registration error:", error);
  toast({
  title: "� طأ",
- description: error.message || "حدث � طأ أثناء إنشاء الحساب",
+ description: error.message || "حدث خطأ أثناء إنشاء الحساب",
  variant: "destructive"
  });
  } finally {
@@ -203,19 +203,19 @@ export default function CustomerAuth() {
  required
  />
  <p className="text-xs text-amber-200/50 mt-1">
- يمكنك تسجيل الد� ول بالجوال (9 أرقام يبدأ بـ 5) أو البريد الإلكتروني
+ يمكنك تسجيل الدخول بالجوال (9 أرقام يبدأ بـ 5) أو البريد الإلكتروني
  </p>
  </div>
 
  <div className="space-y-2">
  <Label htmlFor="login-password" className="text-amber-100 flex items-center gap-2">
  <Lock className="w-4 h-4" />
- كلم� المرور
+ كلمة المرور
  </Label>
  <Input
  id="login-password"
  type="password"
- placeholder="أدخل كلم� المرور"
+ placeholder="أدخل كلمة المرور"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -228,7 +228,7 @@ export default function CustomerAuth() {
  className="text-xs text-amber-400/80 hover:text-amber-300 transition-colors underline-offset-4 hover:underline"
  data-testid="link-forgot-password"
  >
- نسيت كلم� المرور؟
+ نسيت كلمة المرور؟
  </button>
  </div>
 
@@ -241,10 +241,10 @@ export default function CustomerAuth() {
  {loading ? (
  <div className="flex items-center gap-2">
  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
- <span>جارٍ تسجيل الد� ول...</span>
+ <span>جارٍ تسجيل الدخول...</span>
  </div>
  ) : (
- "تسجيل الد� ول"
+ "تسجيل الدخول"
  )}
  </Button>
  </form>
@@ -312,19 +312,19 @@ export default function CustomerAuth() {
  required
  />
  <p className="text-xs text-amber-200/50 mt-1">
- مطلوب لاستعاد� كلم� المرور إذا نسيتها
+ مطلوب لاستعاد� كلمة المرور إذا نسيتها
  </p>
  </div>
 
  <div className="space-y-2">
  <Label htmlFor="register-password" className="text-amber-100 flex items-center gap-2">
  <Lock className="w-4 h-4" />
- كلم� المرور
+ كلمة المرور
  </Label>
  <Input
  id="register-password"
  type="password"
- placeholder="أدخل كلم� المرور (4 أحرف على الأقل)"
+ placeholder="أدخل كلمة المرور (4 أحرف على الأقل)"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -359,7 +359,7 @@ export default function CustomerAuth() {
  className="text-amber-300/70 hover:text-amber-200 transition-colors text-sm underline-offset-4 hover:underline"
  data-testid="link-skip"
  >
- ت� طي وتصفح القائم� 
+ ت� طي وتصفح القائمة
  </button>
  </div>
  </CardContent>

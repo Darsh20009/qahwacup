@@ -581,7 +581,7 @@ export default function CheckoutModal() {
  <div className="space-y-3">
  <img 
  src={receiptPreview} 
- alt="معاين� الإيصال" 
+ alt="معاينة الإيصال" 
  className="max-h-48 mx-auto rounded-lg"
  />
  <p className="text-sm text-muted-foreground">
@@ -732,7 +732,7 @@ export default function CheckoutModal() {
  className="w-full btn-primary text-accent-foreground py-4 text-lg font-semibold shadow-lg"
  >
  <Coffee className="w-5 h-5 ml-2" />
- العود� للقائم� 
+ العودةللقائم� 
  </Button>
  </div>
  </div>

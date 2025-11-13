@@ -61,9 +61,9 @@ export default function MenuView() {
  }, {} as Record<string, CoffeeItem[]>);
 
  const categoryTitles: Record<string, string> = {
- "basic": "القهوة الأساسي� ",
- "hot": "المشروبات السا� ن� ", 
- "cold": "المشروبات البارد� "
+ "basic": "القهوة الأساسية",
+ "hot": "المشروبات الساخنة", 
+ "cold": "المشروبات الباردة"
  };
 
 
@@ -72,7 +72,7 @@ export default function MenuView() {
  <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
  <div className="text-center">
  <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
- <p className="text-primary text-xl font-semibold">جاري تحميل القائم� الف� م� ...</p>
+ <p className="text-primary text-xl font-semibold">جاري تحميل القائمة الفاخرة...</p>
  </div>
  </div>
  );
@@ -94,7 +94,7 @@ export default function MenuView() {
  {/* Title Section */}
  <div className="flex justify-between items-center">
  <div className="bg-card/90 backdrop-blur-xl rounded-2xl px-4 md:px-6 py-2 md:py-3 border border-primary/20 shadow-xl">
- <h1 className="font-amiri text-lg md:text-2xl font-bold text-primary">قائم� القهوة الف� م� </h1>
+ <h1 className="font-amiri text-lg md:text-2xl font-bold text-primary">قائمة القهوة الفاخرة</h1>
  </div>
  
  <Button 
@@ -105,7 +105,7 @@ export default function MenuView() {
  data-testid="button-back"
  >
  <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 ml-2" />
- <span className="hidden sm:inline">العود� </span>
+ <span className="hidden sm:inline">العودة</span>
  </Button>
  </div>
 
@@ -140,7 +140,7 @@ export default function MenuView() {
  data-testid="button-grid"
  >
  <Grid3X3 className="w-3 h-3 sm:w-4 sm:h-4" />
- <span className="hidden sm:inline">شبك� </span>
+ <span className="hidden sm:inline">شبكة</span>
  </Button>
  <Button
  variant={viewMode === 'mosaic' ? 'default' : 'ghost'}
@@ -180,7 +180,7 @@ export default function MenuView() {
  data-testid="button-window"
  >
  <QrCode className="w-3 h-3 sm:w-4 sm:h-4" />
- <span className="hidden sm:inline">النافذ� </span>
+ <span className="hidden sm:inline">النافذة</span>
  </Button>
  </div>
  </div>
@@ -418,7 +418,7 @@ export default function MenuView() {
  قهوة كوب
  </h1>
  <p className="text-xl text-muted-foreground">
- أجود أنواع القهوة العربي� الأصيل� 
+ أجود أنواع القهوة العربية الأصيلة
  </p>
  </div>
  
@@ -564,7 +564,7 @@ export default function MenuView() {
  قهوة كوب
  </h1>
  <p className="text-xs md:text-xl text-gray-300">
- أجود أنواع القهوة العربي� الأصيل� 
+ أجود أنواع القهوة العربية الأصيلة
  </p>
  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl md:rounded-2xl p-2 md:p-4">
  <p className="text-xs md:text-lg font-bold">

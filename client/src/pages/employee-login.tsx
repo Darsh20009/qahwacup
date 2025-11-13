@@ -34,7 +34,7 @@ export default function EmployeeLogin() {
  setLocation("/employee/dashboard");
  },
  onError: () => {
- setError("اسم المست� دم أو كلم� المرور غير صحيح� ");
+ setError("اسم المستخدم أو كلمة المرور غير صحيح� ");
  setPassword("");
  },
  });
@@ -44,7 +44,7 @@ export default function EmployeeLogin() {
  setError("");
  
  if (!username || !password) {
- setError("الرجاء إدخال اسم المست� دم وكلم� المرور");
+ setError("الرجاء إدخال اسم المستخدم وكلمة المرور");
  return;
  }
 
@@ -59,13 +59,13 @@ export default function EmployeeLogin() {
  <Coffee className="w-10 h-10 text-white" />
  </div>
  <h1 className="text-3xl font-bold text-amber-500 mb-2">قهوة كوب</h1>
- <p className="text-gray-400">تسجيل د� ول الموظف</p>
+ <p className="text-gray-400">تسجيل دخول الموظف</p>
  </div>
 
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardHeader>
  <CardTitle className="text-2xl text-center text-amber-500">
- تسجيل الد� ول
+ تسجيل الدخول
  </CardTitle>
  <CardDescription className="text-center text-gray-400">
  أدخل بيانات حسابك للوصول
@@ -78,7 +78,7 @@ export default function EmployeeLogin() {
  <User className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
  type="text"
- placeholder="اسم المست� دم"
+ placeholder="اسم المستخدم"
  value={username}
  onChange={(e) => setUsername(e.target.value)}
  className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
@@ -94,7 +94,7 @@ export default function EmployeeLogin() {
  <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
  type="password"
- placeholder="كلم� المرور"
+ placeholder="كلمة المرور"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
@@ -118,10 +118,10 @@ export default function EmployeeLogin() {
  {loginMutation.isPending ? (
  <>
  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
- جاري تسجيل الد� ول...
+ جاري تسجيل الدخول...
  </>
  ) : (
- "د� ول"
+ "دخول"
  )}
  </Button>
 
