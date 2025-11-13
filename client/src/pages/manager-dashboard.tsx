@@ -14,7 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
  Coffee, Users, ShoppingBag, TrendingUp, DollarSign, 
  Package, MapPin, Layers, ArrowLeft, Calendar,
- UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus
+ UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus, Trash2
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { 
@@ -42,6 +42,8 @@ export default function ManagerDashboard() {
  phone: "",
  city: "",
  managerName: "",
+ latitude: "",
+ longitude: "",
  });
  const { toast } = useToast();
 
@@ -77,15 +79,30 @@ export default function ManagerDashboard() {
 
  const createBranchMutation = useMutation({
  mutationFn: async (branchData: typeof branchForm) => {
+ const payload: any = {
+ nameAr: branchData.nameAr,
+ nameEn: branchData.nameEn || undefined,
+ address: branchData.address,
+ phone: branchData.phone,
+ city: branchData.city,
+ managerName: branchData.managerName || undefined,
+ isActive: 1,
+ };
+
+ // Add location if both coordinates are provided
+ if (branchData.latitude && branchData.longitude) {
+ payload.location = {
+ latitude: parseFloat(branchData.latitude),
+ longitude: parseFloat(branchData.longitude),
+ };
+ }
+
  const response = await fetch("/api/branches", {
  method: "POST",
  headers: {
  "Content-Type": "application/json",
  },
- body: JSON.stringify({
- ...branchData,
- isActive: 1,
- }),
+ body: JSON.stringify(payload),
  });
  if (!response.ok) {
  const error = await response.json();
@@ -103,6 +120,8 @@ export default function ManagerDashboard() {
  phone: "",
  city: "",
  managerName: "",
+ latitude: "",
+ longitude: "",
  });
  toast({
  title: "تم إضافة الفرع بنجاح",
@@ -113,6 +132,27 @@ export default function ManagerDashboard() {
  toast({
  title: "خطأ في إضافة الفرع",
  description: error.message || "حدث خطأ أثناء إضافة الفرع",
+ variant: "destructive",
+ });
+ },
+ });
+
+ const deleteBranchMutation = useMutation({
+ mutationFn: async (branchId: string) => {
+ await apiRequest("DELETE", `/api/branches/${branchId}`, {});
+ return true;
+ },
+ onSuccess: () => {
+ queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
+ toast({
+ title: "تم حذف الفرع بنجاح",
+ description: "تم إزالة الفرع من النظام",
+ });
+ },
+ onError: (error: any) => {
+ toast({
+ title: "خطأ في حذف الفرع",
+ description: error.message || "حدث خطأ أثناء حذف الفرع",
  variant: "destructive",
  });
  },
@@ -753,6 +793,32 @@ export default function ManagerDashboard() {
  placeholder="مثال: أحمد محمد"
  />
  </div>
+ <div className="grid gap-2">
+ <Label htmlFor="latitude" className="text-gray-300">خط العرض (Latitude)</Label>
+ <Input
+ id="latitude"
+ type="number"
+ step="any"
+ value={branchForm.latitude}
+ onChange={(e) => setBranchForm({ ...branchForm, latitude: e.target.value })}
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ placeholder="مثال: 24.7136"
+ data-testid="input-branch-latitude"
+ />
+ </div>
+ <div className="grid gap-2">
+ <Label htmlFor="longitude" className="text-gray-300">خط الطول (Longitude)</Label>
+ <Input
+ id="longitude"
+ type="number"
+ step="any"
+ value={branchForm.longitude}
+ onChange={(e) => setBranchForm({ ...branchForm, longitude: e.target.value })}
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ placeholder="مثال: 46.6753"
+ data-testid="input-branch-longitude"
+ />
+ </div>
  </div>
  <div className="flex gap-2 justify-end">
  <Button
@@ -792,10 +858,31 @@ export default function ManagerDashboard() {
  <h3 className="font-semibold text-gray-200">{branch.nameAr}</h3>
  <p className="text-sm text-gray-400">{branch.address}, {branch.city}</p>
  <p className="text-sm text-gray-500">{branch.phone}</p>
+ {branch.location && branch.location.latitude && branch.location.longitude && (
+ <p className="text-xs text-gray-500 mt-1">
+ الموقع: {branch.location.latitude.toFixed(4)}, {branch.location.longitude.toFixed(4)}
+ </p>
+ )}
  </div>
+ <div className="flex items-center gap-2">
  <Badge variant="outline" className={branch.isActive ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}>
  {branch.isActive ? 'نشط' : 'غير نشط'}
  </Badge>
+ <Button
+ variant="outline"
+ size="icon"
+ onClick={() => {
+ if (window.confirm(`هل أنت متأكد من حذف الفرع: ${branch.nameAr}؟`)) {
+ deleteBranchMutation.mutate(branch._id);
+ }
+ }}
+ disabled={deleteBranchMutation.isPending}
+ className="border-red-500/50 text-red-500 hover:bg-red-500/10"
+ data-testid={`button-delete-branch-${branch._id}`}
+ >
+ <Trash2 className="w-4 h-4" />
+ </Button>
+ </div>
  </div>
  </div>
  ))
