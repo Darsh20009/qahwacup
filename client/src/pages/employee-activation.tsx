@@ -26,8 +26,8 @@ export default function EmployeeActivation() {
  if (password !== confirmPassword) {
  toast({
  variant: "destructive",
- title: "� طأ",
- description: "كلمات المرور غير متطابق� ",
+ title: "خطأ",
+ description: "كلمات المرور غير متطابقة",
  });
  setIsLoading(false);
  return;
@@ -36,7 +36,7 @@ export default function EmployeeActivation() {
  if (password.length < 4) {
  toast({
  variant: "destructive",
- title: "� طأ",
+ title: "خطأ",
  description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  });
  setIsLoading(false);
@@ -78,7 +78,7 @@ export default function EmployeeActivation() {
  <div className="text-center">
  <CardTitle className="text-2xl font-bold text-amber-500">تفعيل حساب موظف جديد</CardTitle>
  <CardDescription className="text-gray-400 mt-2">
- أدخل بياناتك التي سجلها المدير لإنشاء كلمة المرور ال� اص� بك
+ أدخل بياناتك التي سجلها المدير لإنشاء كلمة المرور الخاصةبك
  </CardDescription>
  </div>
  </CardHeader>
@@ -118,7 +118,7 @@ export default function EmployeeActivation() {
  <div className="border-t border-amber-500/20 pt-4">
  <div className="mb-4">
  <Label htmlFor="password" className="text-gray-300">
- كلمة المرور الجديد� 
+ كلمة المرور الجديدة 
  </Label>
  <Input
  id="password"
@@ -126,7 +126,7 @@ export default function EmployeeActivation() {
  type="password"
  required
  minLength={4}
- placeholder="أدخل كلم� مرور قوي� "
+ placeholder="أدخل كلمة مرور قوية"
  className="bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500"
  data-testid="input-password"
  />
@@ -153,10 +153,10 @@ export default function EmployeeActivation() {
  <div className="flex items-start gap-2">
  <UserPlus className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
  <div className="text-sm text-amber-500/90">
- <p className="font-semibold mb-1">تعليمات مهم� :</p>
+ <p className="font-semibold mb-1">تعليمات مهمة:</p>
  <ul className="list-disc list-inside space-y-1">
- <li>تأكد من إدخال رقم الهاتف والاسم المسجلين لدى المدير بدق� </li>
- <li>ا� تر كلم� مرور قوي� لا تقل عن 4 أحرف</li>
+ <li>تأكد من إدخال رقم الهاتف والاسم المسجلين لدى المدير بدقة</li>
+ <li>اختر كلمة مرور قويةلا تقل عن 4 أحرف</li>
  <li>احفظ كلمة المرور في مكان آمن</li>
  </ul>
  </div>

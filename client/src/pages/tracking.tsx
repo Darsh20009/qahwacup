@@ -141,7 +141,7 @@ export default function OrderTrackingPage() {
  <CardContent>
  <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
  {/* Map placeholder - integrate with Google Maps or similar */}
- <p className="text-muted-foreground">� ريط� الموقع</p>
+ <p className="text-muted-foreground">خريطةالموقع</p>
  </div>
  {order.estimatedDeliveryTime && (
  <p className="mt-4 text-center text-muted-foreground">

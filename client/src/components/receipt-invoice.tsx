@@ -97,7 +97,7 @@ export function ReceiptInvoice({ order, variant = "button" }: ReceiptInvoiceProp
 
  <div style="margin-top: 40px; text-align: center; padding-top: 20px; border-top: 1px solid #ddd;">
  <p style="color: #8B4513; font-size: 16px; margin-bottom: 5px;">شكراً لزيارتكم</p>
- <p style="color: #666; font-size: 14px;">نتطلع ل� دمتكم مر� أ� رى</p>
+ <p style="color: #666; font-size: 14px;">نتطلع لخدمتكم مرة أخرى</p>
  </div>
  `;
 
@@ -160,7 +160,7 @@ export function ReceiptInvoice({ order, variant = "button" }: ReceiptInvoiceProp
  data-testid="button-print-invoice"
  >
  <Printer className="ml-2 h-4 w-4" />
- طباع� الفاتورة 
+ طباعة الفاتورة 
  </Button>
  <Button
  onClick={generatePDF}

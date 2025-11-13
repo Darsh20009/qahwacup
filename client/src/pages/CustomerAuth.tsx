@@ -28,7 +28,7 @@ export default function CustomerAuth() {
  
  if (!cleanIdentifier) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "يرجى إدخال رقم الجوال أو البريد الإلكتروني",
  variant: "destructive"
  });
@@ -37,7 +37,7 @@ export default function CustomerAuth() {
 
  if (!password || password.length < 4) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
@@ -64,8 +64,8 @@ export default function CustomerAuth() {
  } catch (error: any) {
  console.error("Login error:", error);
  toast({
- title: "� طأ",
- description: error.message || "رقم الهاتف/البريد الإلكتروني أو كلمة المرور غير صحيح� ",
+ title: "خطأ",
+ description: error.message || "رقم الهاتف/البريد الإلكتروني أو كلمة المرور غير صحيحة ",
  variant: "destructive"
  });
  } finally {
@@ -80,7 +80,7 @@ export default function CustomerAuth() {
  
  if (!cleanPhone || cleanPhone.length !== 9) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "يرجى إدخال رقم جوال مكون من 9 أرقام",
  variant: "destructive"
  });
@@ -89,7 +89,7 @@ export default function CustomerAuth() {
 
  if (!cleanPhone.startsWith('5')) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "رقم الجوال يجب أن يبدأ بالرقم 5",
  variant: "destructive"
  });
@@ -98,7 +98,7 @@ export default function CustomerAuth() {
 
  if (!name || name.trim().length < 2) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "الاسم يجب أن يكون على الأقل حرفين",
  variant: "destructive"
  });
@@ -107,7 +107,7 @@ export default function CustomerAuth() {
 
  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "البريد الإلكتروني مطلوب وصيغته غير صحيحة",
  variant: "destructive"
  });
@@ -116,7 +116,7 @@ export default function CustomerAuth() {
 
  if (!password || password.length < 4) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
@@ -145,7 +145,7 @@ export default function CustomerAuth() {
  } catch (error: any) {
  console.error("Registration error:", error);
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: error.message || "حدث خطأ أثناء إنشاء الحساب",
  variant: "destructive"
  });
@@ -173,14 +173,14 @@ export default function CustomerAuth() {
  مرحباً بك في كوب
  </CardTitle>
  <CardDescription className="text-amber-200/70 text-lg">
- سجل د� ولك للحصول على بطاقة كوبي ال� اص� بك
+ سجل دخولك للحصول على بطاقة كوبي الخاصةبك
  </CardDescription>
  </CardHeader>
 
  <CardContent>
  <Tabs value={mode} onValueChange={(v) => setMode(v as "login" | "register")} className="w-full">
  <TabsList className="h-10 items-center justify-center rounded-md p-1 grid w-full grid-cols-2 bg-stone-800/50 text-[#d37107]">
- <TabsTrigger value="login" data-testid="tab-login">تسجيل د� ول</TabsTrigger>
+ <TabsTrigger value="login" data-testid="tab-login">تسجيل دخول</TabsTrigger>
  <TabsTrigger value="register" data-testid="tab-register">حساب جديد</TabsTrigger>
  </TabsList>
 
@@ -312,7 +312,7 @@ export default function CustomerAuth() {
  required
  />
  <p className="text-xs text-amber-200/50 mt-1">
- مطلوب لاستعاد� كلمة المرور إذا نسيتها
+ مطلوب لاستعادةكلمة المرور إذا نسيتها
  </p>
  </div>
 
@@ -359,7 +359,7 @@ export default function CustomerAuth() {
  className="text-amber-300/70 hover:text-amber-200 transition-colors text-sm underline-offset-4 hover:underline"
  data-testid="link-skip"
  >
- ت� طي وتصفح القائمة
+ تخطي وتصفح القائمة
  </button>
  </div>
  </CardContent>

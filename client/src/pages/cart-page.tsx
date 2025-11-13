@@ -31,7 +31,7 @@ export default function CartPage() {
  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
  <span className="text-lg font-semibold">العودةللمنيو</span>
  </Link>
- <h1 className="font-amiri text-2xl font-bold text-primary">سل� التسوق</h1>
+ <h1 className="font-amiri text-2xl font-bold text-primary">سلةالتسوق</h1>
  </div>
  </div>
  </header>
@@ -39,9 +39,9 @@ export default function CartPage() {
  {/* Simple Empty Cart */}
  <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
  <ShoppingCart className="w-24 h-24 text-amber-600 mb-6" />
- <h2 className="font-amiri text-3xl font-bold text-amber-800 mb-4">السل� فارغ� حالياً</h2>
+ <h2 className="font-amiri text-3xl font-bold text-amber-800 mb-4">السلةفارغةحالياً</h2>
  <p className="text-amber-700 text-lg mb-8 text-center max-w-md leading-relaxed">
- ابدأ رحل� القهوة ال� اص� بك وا� تر من تشكيلتنا الرائع� من القهوة الطازج� 
+ ابدأ رحلة القهوة الخاصةبك واختر من تشكيلتنا الرائعةمن القهوة الطازجة 
  </p>
  <Link href="/menu">
  <Button className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-8 py-4 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg">
@@ -72,7 +72,7 @@ export default function CartPage() {
  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
  <span className="text-lg font-semibold">العودةللمنيو</span>
  </Link>
- <h1 className="font-amiri text-2xl font-bold text-primary">سل� التسوق</h1>
+ <h1 className="font-amiri text-2xl font-bold text-primary">سلةالتسوق</h1>
  </div>
  </div>
  </header>
@@ -84,7 +84,7 @@ export default function CartPage() {
  <div className="lg:col-span-2 space-y-6">
  <h2 className="font-amiri text-3xl font-black text-amber-800 mb-8 flex items-center">
  <ShoppingCart className="w-8 h-8 ml-3" />
- العناصر الم� تار� 
+ العناصر المختارة
  </h2>
 
  {cartItems.map((item, index) => (

@@ -38,7 +38,7 @@ export default function PaymentMethods({
 
  return (
  <div className="space-y-4" data-testid="section-payment-methods">
- <h3 className="text-lg font-semibold text-foreground mb-4">ا� تر طريقة الدفع</h3>
+ <h3 className="text-lg font-semibold text-foreground mb-4">اختر طريقة الدفع</h3>
  <div className="space-y-3">
  {paymentMethods.map((method) => {
  const isQahwaCard = method.id === 'qahwa-card';

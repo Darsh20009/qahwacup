@@ -38,7 +38,7 @@ export default function ManagerLogin() {
  setLocation("/manager/dashboard");
  },
  onError: () => {
- setError("اسم المستخدم أو كلمة المرور غير صحيح� ");
+ setError("اسم المستخدم أو كلمة المرور غير صحيحة ");
  setPassword("");
  },
  });
@@ -63,13 +63,13 @@ export default function ManagerLogin() {
  <Shield className="w-10 h-10 text-white" />
  </div>
  <h1 className="text-3xl font-bold text-purple-500 mb-2">قهوة كوب</h1>
- <p className="text-gray-400">تسجيل د� ول المدير</p>
+ <p className="text-gray-400">تسجيل دخول المدير</p>
  </div>
 
  <Card className="bg-[#2d1f1a] border-purple-500/20">
  <CardHeader>
  <CardTitle className="text-2xl text-center text-purple-500">
- لوح� تحكم المدير
+ لوحةتحكم المدير
  </CardTitle>
  <CardDescription className="text-center text-gray-400">
  أدخل بيانات حساب المدير للوصول

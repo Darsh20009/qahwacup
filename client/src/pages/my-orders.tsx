@@ -46,7 +46,7 @@ export default function MyOrders() {
  data-testid="button-back"
  >
  <ArrowRight className="ml-2 h-5 w-5" />
- العودةللقائم� 
+ العودةللقائمة 
  </Button>
  </motion.div>
 
@@ -60,7 +60,7 @@ export default function MyOrders() {
  طلباتي
  </h1>
  <p className="text-amber-700 font-cairo">
- تتبع طلباتك السابق� والحالي� 
+ تتبع طلباتك السابقةوالحالية 
  </p>
  </motion.div>
 

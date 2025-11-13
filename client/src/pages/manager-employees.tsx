@@ -33,7 +33,7 @@ export default function ManagerEmployees() {
  setIsAddDialogOpen(false);
  toast({
  title: "تم إضافة الموظف",
- description: "تم إضافة الموظف بنجاح. يمكنه الآن إنشاء كلمة المرور ال� اص� به.",
+ description: "تم إضافة الموظف بنجاح. يمكنه الآن إنشاء كلمة المرور الخاصةبه.",
  });
  },
  onError: (error: any) => {
@@ -117,8 +117,8 @@ export default function ManagerEmployees() {
  <Coffee className="w-6 h-6 text-white" />
  </div>
  <div>
- <h1 className="text-2xl font-bold text-amber-500">إدار� الموظفين</h1>
- <p className="text-gray-400 text-sm">لوح� تحكم المدير</p>
+ <h1 className="text-2xl font-bold text-amber-500">إدارةالموظفين</h1>
+ <p className="text-gray-400 text-sm">لوحةتحكم المدير</p>
  </div>
  </div>
  <div className="flex gap-2">
@@ -128,7 +128,7 @@ export default function ManagerEmployees() {
  className="border-amber-500/50 text-amber-500"
  data-testid="button-dashboard"
  >
- لوح� التحكم
+ لوحةالتحكم
  </Button>
  <Button
  variant="outline"
@@ -137,7 +137,7 @@ export default function ManagerEmployees() {
  data-testid="button-logout"
  >
  <LogOut className="w-4 h-4 ml-2" />
- تسجيل ال� روج
+ تسجيل الخروج
  </Button>
  </div>
  </div>
@@ -150,12 +150,12 @@ export default function ManagerEmployees() {
  data-testid="button-add-employee"
  >
  <Plus className="w-4 h-4 ml-2" />
- إضاف� موظف جديد
+ إضافة موظف جديد
  </Button>
  </DialogTrigger>
  <DialogContent className="bg-[#2d1f1a] border-amber-500/20 text-white max-w-2xl">
  <DialogHeader>
- <DialogTitle className="text-amber-500">إضاف� موظف جديد</DialogTitle>
+ <DialogTitle className="text-amber-500">إضافة موظف جديد</DialogTitle>
  </DialogHeader>
  <form onSubmit={handleSubmitNew} className="space-y-4">
  <div className="grid grid-cols-2 gap-4">
@@ -194,10 +194,10 @@ export default function ManagerEmployees() {
  />
  </div>
  <div>
- <Label htmlFor="jobTitle" className="text-gray-300">الوظيف� *</Label>
+ <Label htmlFor="jobTitle" className="text-gray-300">الوظيفة*</Label>
  <Select name="jobTitle" required>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-jobtitle">
- <SelectValue placeholder="ا� تر الوظيف� " />
+ <SelectValue placeholder="اختر الوظيفة" />
  </SelectTrigger>
  <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
  <SelectItem value="كاشير">كاشير</SelectItem>
@@ -221,7 +221,7 @@ export default function ManagerEmployees() {
  />
  </div>
  <div>
- <Label htmlFor="commissionPercentage" className="text-gray-300">نسب� العمول� (%)</Label>
+ <Label htmlFor="commissionPercentage" className="text-gray-300">نسبةالعمولة(%)</Label>
  <Input
  id="commissionPercentage"
  name="commissionPercentage"
@@ -237,7 +237,7 @@ export default function ManagerEmployees() {
  </div>
 
  <div>
- <Label htmlFor="imageUrl" className="text-gray-300">رابط الصور� </Label>
+ <Label htmlFor="imageUrl" className="text-gray-300">رابط الصورة </Label>
  <Input
  id="imageUrl"
  name="imageUrl"
@@ -250,7 +250,7 @@ export default function ManagerEmployees() {
 
  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
  <p className="text-sm text-amber-500/90">
-  سيتم إنشاء الموظف بدون كلم� مرور. يجب على الموظف الذهاب إلى صفح� "موظف جديد" لإنشاء كلمة المرور ال� اص� به.
+  سيتم إنشاء الموظف بدون كلمة مرور. يجب على الموظف الذهاب إلى صفحة "موظف جديد" لإنشاء كلمة المرور الخاصةبه.
  </p>
  </div>
 
@@ -342,7 +342,7 @@ export default function ManagerEmployees() {
  {employee.commissionPercentage !== undefined && employee.commissionPercentage > 0 && (
  <div className="flex items-center gap-2 text-gray-300">
  <Percent className="w-4 h-4 text-amber-500" />
- <span className="text-sm">عمول� : {employee.commissionPercentage}%</span>
+ <span className="text-sm">عمولة: {employee.commissionPercentage}%</span>
  </div>
  )}
 
@@ -390,7 +390,7 @@ export default function ManagerEmployees() {
 
  <div className="grid grid-cols-2 gap-4">
  <div>
- <Label htmlFor="edit-jobTitle" className="text-gray-300">الوظيف� *</Label>
+ <Label htmlFor="edit-jobTitle" className="text-gray-300">الوظيفة*</Label>
  <Select name="jobTitle" defaultValue={editingEmployee.jobTitle} required>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-edit-jobtitle">
  <SelectValue />
@@ -418,7 +418,7 @@ export default function ManagerEmployees() {
 
  <div className="grid grid-cols-2 gap-4">
  <div>
- <Label htmlFor="edit-commissionPercentage" className="text-gray-300">نسب� العمول� (%)</Label>
+ <Label htmlFor="edit-commissionPercentage" className="text-gray-300">نسبةالعمولة(%)</Label>
  <Input
  id="edit-commissionPercentage"
  name="commissionPercentage"
@@ -432,7 +432,7 @@ export default function ManagerEmployees() {
  />
  </div>
  <div>
- <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصور� </Label>
+ <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصورة </Label>
  <Input
  id="edit-imageUrl"
  name="imageUrl"

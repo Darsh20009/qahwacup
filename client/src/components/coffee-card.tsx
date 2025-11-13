@@ -160,7 +160,7 @@ export default function CoffeeCard({ item }: CoffeeCardProps) {
  {item.availabilityStatus === 'out_of_stock' ? ' نفذ' :
  item.availabilityStatus === 'coming_soon' ? ' قريباً' :
  item.availabilityStatus === 'temporarily_unavailable' ? '⏸ غير متوفر' :
- isAnimating ? ' تم الإضاف� ' : 'أضف للسل� '}
+ isAnimating ? ' تم الإضافة ' : 'أضف للسلة '}
  </span>
  <span className="sm:hidden">
  {item.availabilityStatus === 'out_of_stock' ? '' :

@@ -111,7 +111,7 @@ export default function ManagerDashboard() {
  },
  onError: (error: any) => {
  toast({
- title: "� طأ في إضافة الفرع",
+ title: "خطأ في إضافة الفرع",
  description: error.message || "حدث خطأ أثناء إضافة الفرع",
  variant: "destructive",
  });
@@ -126,7 +126,7 @@ export default function ManagerDashboard() {
  const handleCreateBranch = () => {
  if (!branchForm.nameAr || !branchForm.address || !branchForm.city || !branchForm.phone) {
  toast({
- title: "بيانات ناقص� ",
+ title: "بيانات ناقصة",
  description: "الرجاء إدخال جميع البيانات المطلوبة",
  variant: "destructive",
  });
@@ -142,11 +142,11 @@ export default function ManagerDashboard() {
  const employee = employees.find(e => e._id === order.employeeId);
  return {
  'رقم الطلب': order.orderNumber,
- 'التاري� ': order.createdAt ? new Date(order.createdAt).toLocaleString('ar-SA') : '',
+ 'التاريخ ': order.createdAt ? new Date(order.createdAt).toLocaleString('ar-SA') : '',
  'اسم العميل': order.customerInfo?.name || '',
  'رقم الجوال': order.customerInfo?.phone || '',
- 'رقم الطاول� ': order.tableNumber || '',
- 'الحال� ': order.status,
+ 'رقم الطاولة ': order.tableNumber || '',
+ 'الحالة': order.status,
  'طريقة الدفع': order.paymentMethod === 'cash' ? 'نقدي' : order.paymentMethod,
  'الكاشير': employee?.fullName || '',
  'الإجمالي': Number(order.totalAmount).toFixed(2),
@@ -161,7 +161,7 @@ export default function ManagerDashboard() {
 
  const employeesExport = employeesWithStats.map(emp => ({
  'الاسم': emp.fullName,
- 'الوظيف� ': emp.jobTitle,
+ 'الوظيفة': emp.jobTitle,
  'الدور': emp.role === 'manager' ? 'مدير' : 'كاشير',
  'رقم الجوال': emp.phone,
  'عدد الطلبات': emp.orderCount || 0,
@@ -193,7 +193,7 @@ export default function ManagerDashboard() {
  });
  } catch (error) {
  toast({
- title: "� طأ في التصدير",
+ title: "خطأ في التصدير",
  description: "حدث خطأ أثناء تصدير البيانات",
  variant: "destructive",
  });
@@ -349,7 +349,7 @@ export default function ManagerDashboard() {
  <Coffee className="w-6 h-6 text-white" />
  </div>
  <div>
- <h1 className="text-2xl font-bold text-amber-500">لوح� تحكم المدير</h1>
+ <h1 className="text-2xl font-bold text-amber-500">لوحةتحكم المدير</h1>
  <p className="text-gray-400 text-sm">مرحباً، {manager.fullName}</p>
  </div>
  </div>
@@ -369,7 +369,7 @@ export default function ManagerDashboard() {
  className="border-red-500/50 text-red-500 hover:bg-red-500/10"
  data-testid="button-logout"
  >
- تسجيل ال� روج
+ تسجيل الخروج
  </Button>
  </div>
  </div>
@@ -380,7 +380,7 @@ export default function ManagerDashboard() {
  <div className="flex items-center justify-between gap-4">
  <div className="flex items-center gap-2">
  <Calendar className="w-5 h-5 text-amber-500" />
- <span className="text-gray-300">فلتر� التقارير:</span>
+ <span className="text-gray-300">فلترةالتقارير:</span>
  </div>
  <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
  <SelectTrigger className="w-[200px] bg-[#1a1410] border-amber-500/30 text-white">
@@ -388,9 +388,9 @@ export default function ManagerDashboard() {
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="today">اليوم</SelectItem>
- <SelectItem value="week">آ� ر أسبوع</SelectItem>
- <SelectItem value="month">آ� ر شهر</SelectItem>
- <SelectItem value="all">كل الفتر� </SelectItem>
+ <SelectItem value="week">آخر أسبوع</SelectItem>
+ <SelectItem value="month">آخر شهر</SelectItem>
+ <SelectItem value="all">كل الفترة</SelectItem>
  </SelectContent>
  </Select>
  </div>
@@ -415,7 +415,7 @@ export default function ManagerDashboard() {
  <CardHeader className="pb-3">
  <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
  <ShoppingBag className="w-4 h-4" />
- الطلبات ({dateFilter === "all" ? "كل الفتر� " : dateFilter === "today" ? "اليوم" : dateFilter === "week" ? "أسبوع" : "شهر"})
+ الطلبات ({dateFilter === "all" ? "كل الفترة" : dateFilter === "today" ? "اليوم" : dateFilter === "week" ? "أسبوع" : "شهر"})
  </CardTitle>
  </CardHeader>
  <CardContent>
@@ -628,7 +628,7 @@ export default function ManagerDashboard() {
  {new Date(order.createdAt).toLocaleString('ar-SA')}
  </p>
  {order.tableNumber && (
- <p className="text-sm text-blue-400">طاول� رقم: {order.tableNumber}</p>
+ <p className="text-sm text-blue-400">طاولةرقم: {order.tableNumber}</p>
  )}
  </div>
  <Badge variant="outline" className={statusColors[order.status as keyof typeof statusColors] || statusColors.pending}>
@@ -671,7 +671,7 @@ export default function ManagerDashboard() {
  <div>
  <CardTitle className="text-amber-500">الفروع</CardTitle>
  <CardDescription className="text-gray-400">
- إدار� فروع المقهى
+ إدارةفروع المقهى
  </CardDescription>
  </div>
  <Dialog open={isAddBranchOpen} onOpenChange={setIsAddBranchOpen}>
@@ -681,12 +681,12 @@ export default function ManagerDashboard() {
  data-testid="button-add-branch"
  >
  <Plus className="w-4 h-4 ml-2" />
- إضاف� فرع
+ إضافة فرع
  </Button>
  </DialogTrigger>
  <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-white sm:max-w-[500px]">
  <DialogHeader>
- <DialogTitle className="text-amber-500 text-xl">إضاف� فرع جديد</DialogTitle>
+ <DialogTitle className="text-amber-500 text-xl">إضافة فرع جديد</DialogTitle>
  </DialogHeader>
  <div className="grid gap-4 py-4">
  <div className="grid gap-2">
@@ -722,7 +722,7 @@ export default function ManagerDashboard() {
  />
  </div>
  <div className="grid gap-2">
- <Label htmlFor="city" className="text-gray-300">المدين� *</Label>
+ <Label htmlFor="city" className="text-gray-300">المدينة*</Label>
  <Input
  id="city"
  value={branchForm.city}
@@ -778,7 +778,7 @@ export default function ManagerDashboard() {
  <CardContent>
  <div className="space-y-3">
  {branches.length === 0 ? (
- <p className="text-center text-gray-500 py-8">لا توجد فروع مسجل� </p>
+ <p className="text-center text-gray-500 py-8">لا توجد فروع مسجلة</p>
  ) : (
  branches.map((branch: any) => (
  <div
@@ -813,7 +813,7 @@ export default function ManagerDashboard() {
  <div>
  <CardTitle className="text-amber-500">مخطط المبيعات اليومية</CardTitle>
  <CardDescription className="text-gray-400">
- تطور المبيعات � لال الفتر� المحدد� 
+ تطور المبيعات خلال الفترةالمحددة 
  </CardDescription>
  </div>
  <Button 
@@ -910,7 +910,7 @@ export default function ManagerDashboard() {
  <CardHeader>
  <CardTitle className="text-amber-500">توزيع طرق الدفع</CardTitle>
  <CardDescription className="text-gray-400">
- نسب است� دام وسائل الدفع الم� تلف� 
+ نسب استخدام وسائل الدفع المختلفة
  </CardDescription>
  </CardHeader>
  <CardContent>
@@ -966,7 +966,7 @@ export default function ManagerDashboard() {
  <CardHeader>
  <CardTitle className="text-amber-500">أداء الموظفين</CardTitle>
  <CardDescription className="text-gray-400">
- مبيعات كل موظف � لال الفتر� المحدد� 
+ مبيعات كل موظف خلال الفترةالمحددة 
  </CardDescription>
  </CardHeader>
  <CardContent>

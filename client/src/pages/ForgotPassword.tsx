@@ -24,7 +24,7 @@ export default function ForgotPassword() {
  
  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "البريد الإلكتروني غير صحيح",
  variant: "destructive"
  });
@@ -46,7 +46,7 @@ export default function ForgotPassword() {
  });
  } else {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "البريد الإلكتروني غير مسجل لدينا",
  variant: "destructive"
  });
@@ -54,7 +54,7 @@ export default function ForgotPassword() {
  } catch (error: any) {
  console.error("Check email error:", error);
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: error.message || "حدث خطأ أثناء التحقق من البريد",
  variant: "destructive"
  });
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
  const cleanPhone = phone.trim().replace(/\s/g, '');
  if (!cleanPhone || !/^5\d{8}$/.test(cleanPhone)) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "رقم الجوال يجب أن يبدأ بـ 5 ويتكون من 9 أرقام (مثال: 512345678)",
  variant: "destructive"
  });
@@ -89,11 +89,11 @@ export default function ForgotPassword() {
  setStep('password');
  toast({
  title: "تم التحقق",
- description: "الآن أدخل كلمة المرور الجديد� ",
+ description: "الآن أدخل كلمة المرور الجديدة ",
  });
  } else {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "رقم الجوال غير مطابق للبريد الإلكتروني",
  variant: "destructive"
  });
@@ -101,7 +101,7 @@ export default function ForgotPassword() {
  } catch (error: any) {
  console.error("Verify phone error:", error);
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: error.message || "حدث خطأ أثناء التحقق من رقم الجوال",
  variant: "destructive"
  });
@@ -115,7 +115,7 @@ export default function ForgotPassword() {
  
  if (!newPassword || newPassword.length < 4) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "كلمة المرور يجب أن تكون على الأقل 4 أحرف",
  variant: "destructive"
  });
@@ -124,8 +124,8 @@ export default function ForgotPassword() {
 
  if (newPassword !== confirmPassword) {
  toast({
- title: "� طأ",
- description: "كلمة المرور غير متطابق� ",
+ title: "خطأ",
+ description: "كلمة المرور غير متطابقة",
  variant: "destructive"
  });
  return;
@@ -150,7 +150,7 @@ export default function ForgotPassword() {
  } catch (error: any) {
  console.error("Reset password error:", error);
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: error.message || "حدث خطأ أثناء تغيير كلمة المرور",
  variant: "destructive"
  });
@@ -177,12 +177,12 @@ export default function ForgotPassword() {
  <CardTitle className="text-3xl font-bold text-amber-100">
  {step === 'email' && 'نسيت كلمة المرور؟'}
  {step === 'phone' && 'تحقق من رقم الجوال'}
- {step === 'password' && 'كلمة المرور الجديد� '}
+ {step === 'password' && 'كلمة المرور الجديدة '}
  </CardTitle>
  <CardDescription className="text-amber-200/70 text-lg">
- {step === 'email' && 'أدخل بريدك الإلكتروني لإعاد� تعيين كلمة المرور'}
+ {step === 'email' && 'أدخل بريدك الإلكتروني لإعادةتعيين كلمة المرور'}
  {step === 'phone' && 'أدخل رقم الجوال المرتبط بالبريد الإلكتروني'}
- {step === 'password' && 'أدخل كلمة المرور الجديد� وقم بتأكيدها'}
+ {step === 'password' && 'أدخل كلمة المرور الجديدة وقم بتأكيدها'}
  </CardDescription>
  </CardHeader>
 
@@ -206,7 +206,7 @@ export default function ForgotPassword() {
  required
  />
  <p className="text-xs text-amber-200/50 mt-1">
- أدخل البريد الإلكتروني الذي است� دمته عند إنشاء الحساب
+ أدخل البريد الإلكتروني الذي استخدمته عند إنشاء الحساب
  </p>
  </div>
 
@@ -275,11 +275,11 @@ export default function ForgotPassword() {
  {step === 'password' && (
  <form onSubmit={handlePasswordSubmit} className="space-y-5">
  <div className="space-y-2">
- <Label htmlFor="newPassword" className="text-amber-100">كلمة المرور الجديد� </Label>
+ <Label htmlFor="newPassword" className="text-amber-100">كلمة المرور الجديدة </Label>
  <Input
  id="newPassword"
  type="password"
- placeholder="أدخل كلمة المرور الجديد� "
+ placeholder="أدخل كلمة المرور الجديدة "
  value={newPassword}
  onChange={(e) => setNewPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
@@ -293,7 +293,7 @@ export default function ForgotPassword() {
  <Input
  id="confirmPassword"
  type="password"
- placeholder="أدخل كلمة المرور مر� أ� رى"
+ placeholder="أدخل كلمة المرور مرة أخرى"
  value={confirmPassword}
  onChange={(e) => setConfirmPassword(e.target.value)}
  className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"

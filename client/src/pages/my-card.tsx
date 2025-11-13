@@ -90,19 +90,19 @@ export default function MyCard() {
  setTimeout(() => setShowConfetti(false), 3000);
  toast({
  title: " مبروك! قهوة مجانية!",
- description: "لقد حصلت على 6 أ� تام! است� دم قهوتك المجاني� في طلبك القادم",
+ description: "لقد حصلت على 6 أختام! استخدم قهوتك المجانية في طلبك القادم",
  duration: 5000,
  });
  } else if (updatedCard.stamps === 5) {
  toast({
  title: " تم فتح خصم 10%!",
- description: "� تم واحد فقط لقهوة مجانية!",
+ description: "ختم واحد فقط لقهوة مجانية!",
  duration: 5000,
  });
  } else {
  toast({
- title: " تم إضاف� ال� تم بنجاح!",
- description: `لديك الآن ${updatedCard.stamps} أ� تام من ${totalStamps}`,
+ title: " تم إضافة الختم بنجاح!",
+ description: `لديك الآن ${updatedCard.stamps} أختام من ${totalStamps}`,
  });
  }
  
@@ -111,7 +111,7 @@ export default function MyCard() {
  },
  onError: (error: any) => {
  toast({
- title: " خطأ في است� دام الكود",
+ title: " خطأ في استخدام الكود",
  description: error.message || "الكود غير صالح أو مستخدم مسبقاً",
  variant: "destructive",
  });
@@ -154,7 +154,7 @@ export default function MyCard() {
  
  toast({
  title: "تم استرجاع بطاقتك! ",
- description: `مرحباً مجدداً ${existingCard.customerName}! لديك ${existingCard.stamps} � تم`,
+ description: `مرحباً مجدداً ${existingCard.customerName}! لديك ${existingCard.stamps} ختم`,
  });
  } else {
  const newCardResponse = await fetch("/api/loyalty/cards", {
@@ -203,7 +203,7 @@ export default function MyCard() {
  });
  
  const link = document.createElement("a");
- link.download = `بطاقة� -ولاء-قهوة -كوب-${card.customerName}.png`;
+ link.download = `بطاقة -ولاء-قهوة -كوب-${card.customerName}.png`;
  link.href = canvas.toDataURL();
  link.click();
 
@@ -235,7 +235,7 @@ export default function MyCard() {
 
  return (
  <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 overflow-hidden relative" data-testid="page-my-card">
- {/* � لفي� فا� ر� مع عناصر متحرك� */}
+ {/* خلفية فاخرة مع عناصر متحركة*/}
  <div className="absolute inset-0 pointer-events-none">
  <div className="absolute top-20 left-20 w-40 h-40 bg-amber-300/20 rounded-full blur-3xl animate-pulse"></div>
  <div className="absolute bottom-32 right-16 w-32 h-32 bg-orange-300/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
@@ -297,7 +297,7 @@ export default function MyCard() {
  data-testid="button-back"
  >
  <ArrowRight className="ml-2 h-5 w-5" />
- العودةللقائم� 
+ العودةللقائمة 
  </Button>
  
  {hasCard && (
@@ -307,7 +307,7 @@ export default function MyCard() {
  className="text-red-600 hover:text-red-700 hover:bg-red-50/50 backdrop-blur-sm"
  data-testid="button-reset"
  >
- إصدار بطاقة� جديد� 
+ إصدار بطاقة جديدة
  </Button>
  )}
  </motion.div>
@@ -339,10 +339,10 @@ export default function MyCard() {
  </motion.div>
  
  <h2 className="text-3xl font-amiri font-bold bg-gradient-to-r from-amber-800 to-orange-700 bg-clip-text text-transparent mb-3">
- بطاقة� الولاء الذهبي� 
+ بطاقة الولاء الذهبية
  </h2>
  <p className="text-amber-700 font-cairo text-lg">
- أدخل اسمك ورقم جوالك لإصدار بطاقة� جديد� أو استرجاع بطاقتك الحالي� 
+ أدخل اسمك ورقم جوالك لإصدار بطاقة جديدة أو استرجاع بطاقتك الحالية 
  </p>
  </div>
 
@@ -388,20 +388,20 @@ export default function MyCard() {
  <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200 shadow-inner">
  <h3 className="font-cairo font-bold text-amber-900 mb-3 flex items-center justify-center gap-2 text-lg">
  <Star className="h-6 w-6 text-amber-600" />
- مميزات البطاقةالذهبي� 
+ مميزات البطاقةالذهبية
  </h3>
  <ul className="space-y-3 text-amber-800 font-cairo">
  <li className="flex items-center gap-3 bg-white/60 p-3 rounded-lg">
  <Coffee className="h-5 w-5 text-amber-600 flex-shrink-0" />
- <span>احصل على � تم مع كل عملي� شراء</span>
+ <span>احصل على ختم مع كل عمليةشراء</span>
  </li>
  <li className="flex items-center gap-3 bg-white/60 p-3 rounded-lg">
  <Sparkles className="h-5 w-5 text-orange-600 flex-shrink-0" />
- <span className="font-bold">6 أ� تام = قهوة مجانية! </span>
+ <span className="font-bold">6 أختام = قهوة مجانية! </span>
  </li>
  <li className="flex items-center gap-3 bg-white/60 p-3 rounded-lg">
  <Gift className="h-5 w-5 text-amber-600 flex-shrink-0" />
- <span>خصم 10% عند 5 أ� تام</span>
+ <span>خصم 10% عند 5 أختام</span>
  </li>
  </ul>
  </div>
@@ -423,11 +423,11 @@ export default function MyCard() {
  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
  />
- <span className="relative z-10"> تم فتح خصم 10%! � تم واحد للقهوة المجاني� !</span>
+ <span className="relative z-10"> تم فتح خصم 10%! ختم واحد للقهوة المجانية !</span>
  </motion.div>
  )}
 
- {/* بانر القهوة المجاني� */}
+ {/* بانر القهوة المجانية */}
  {filledStamps === 6 && (
  <motion.div
  initial={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -450,7 +450,7 @@ export default function MyCard() {
  >
  <Star className="h-6 w-6" />
  </motion.div>
- <span className="relative z-10"> قهوة مجانية! است� دمها في طلبك القادم</span>
+ <span className="relative z-10"> قهوة مجانية! استخدمها في طلبك القادم</span>
  </motion.div>
  )}
 
@@ -463,7 +463,7 @@ export default function MyCard() {
  <Card className="p-6 bg-white/90 backdrop-blur-lg shadow-xl border-2 border-amber-200/50" data-testid="card-redeem-section">
  <h3 className="text-2xl font-amiri font-bold text-amber-900 mb-4 text-center flex items-center justify-center gap-2">
  <Gift className="h-7 w-7 text-amber-600" />
- أضف � تم جديد 
+ أضف ختم جديد 
  </h3>
  <div className="flex gap-2">
  <Input
@@ -485,13 +485,13 @@ export default function MyCard() {
  className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-cairo whitespace-nowrap px-6 shadow-lg"
  data-testid="button-redeem-code"
  >
- {redeemMutation.isPending ? "⏳" : "است� دام"}
+ {redeemMutation.isPending ? "⏳" : "استخدام"}
  </Button>
  </div>
  </Card>
  </motion.div>
 
- {/* البطاقةالرئيسي� */}
+ {/* البطاقةالرئيسية*/}
  <motion.div
  ref={cardRef}
  initial={{ opacity: 0, scale: 0.95 }}
@@ -528,7 +528,7 @@ export default function MyCard() {
 
  {/* محتوى البطاقة*/}
  <div className="p-6">
- {/* عداد الأ� تام */}
+ {/* عداد الأختام */}
  <div className="text-center mb-6">
  <motion.div
  initial={{ scale: 0 }}
@@ -538,7 +538,7 @@ export default function MyCard() {
  data-testid="text-stamps-progress"
  style={{fontFamily: 'Cairo, sans-serif'}}
  >
- � تم {filledStamps}/{totalStamps}
+ ختم {filledStamps}/{totalStamps}
  </motion.div>
  {availableFreeCups > 0 && (
  <motion.div
@@ -548,12 +548,12 @@ export default function MyCard() {
  data-testid="text-available-cups"
  >
  <Gift className="h-5 w-5" />
- <span className="font-bold">لديك {availableFreeCups} قهوة مجانيةمتاح� !</span>
+ <span className="font-bold">لديك {availableFreeCups} قهوة مجانيةمتاحة!</span>
  </motion.div>
  )}
  </div>
 
- {/* شبكةالأ� تام */}
+ {/* شبكةالأختام */}
  <div className="grid grid-cols-3 gap-4 mb-6">
  {[...Array(totalStamps)].map((_, index) => {
  const isFilled = index < filledStamps;
@@ -639,7 +639,7 @@ export default function MyCard() {
  data-testid="button-download"
  >
  <Download className="ml-2 h-6 w-6" />
- تحميل البطاقةكصور� 
+ تحميل البطاقةكصورة 
  </Button>
  </motion.div>
 
@@ -652,28 +652,28 @@ export default function MyCard() {
  <Card className="p-5 bg-gradient-to-br from-amber-50/90 to-orange-50/90 backdrop-blur-sm border-2 border-amber-200/50 shadow-lg">
  <h3 className="font-cairo font-bold text-amber-900 mb-3 text-lg flex items-center gap-2">
  <Sparkles className="h-5 w-5 text-amber-600" />
- كيف تست� دم بطاقتك:
+ كيف تستخدم بطاقتك:
  </h3>
  <ul className="space-y-2.5 text-sm text-amber-800 font-cairo">
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-amber-600 font-bold flex-shrink-0">1.</span>
- <span>احصل على كود مع كل عملي� شراء من الكاشير</span>
+ <span>احصل على كود مع كل عمليةشراء من الكاشير</span>
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-amber-600 font-bold flex-shrink-0">2.</span>
- <span>أدخل الكود في الحقل أعلاه للحصول على � تم</span>
+ <span>أدخل الكود في الحقل أعلاه للحصول على ختم</span>
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-orange-600 font-bold flex-shrink-0">3.</span>
- <span className="font-semibold">عند 5 أ� تام، احصل على خصم 10%</span>
+ <span className="font-semibold">عند 5 أختام، احصل على خصم 10%</span>
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-green-600 font-bold flex-shrink-0">4.</span>
- <span className="font-bold">عند 6 أ� تام، احصل على قهوة مجانية!</span>
+ <span className="font-bold">عند 6 أختام، احصل على قهوة مجانية!</span>
  </li>
  <li className="flex items-start gap-2 bg-white/60 p-2 rounded-lg">
  <span className="text-amber-600 font-bold flex-shrink-0">5.</span>
- <span>اعرض QR للكاشير لاست� دام قهوتك المجاني� </span>
+ <span>اعرض QR للكاشير لاستخدام قهوتك المجانية </span>
  </li>
  </ul>
  </Card>

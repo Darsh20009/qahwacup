@@ -78,7 +78,7 @@ export default function EmployeeDashboard() {
  </div>
  <div>
  <h1 className="text-2xl font-bold text-amber-500">قهوة كوب</h1>
- <p className="text-gray-400 text-sm">لوح� تحكم الموظف</p>
+ <p className="text-gray-400 text-sm">لوحةتحكم الموظف</p>
  </div>
  </div>
  <Button
@@ -88,7 +88,7 @@ export default function EmployeeDashboard() {
  data-testid="button-logout"
  >
  <LogOut className="w-4 h-4 ml-2" />
- تسجيل ال� روج
+ تسجيل الخروج
  </Button>
  </div>
  </div>
@@ -100,7 +100,7 @@ export default function EmployeeDashboard() {
  <TabsList className="grid w-full grid-cols-2 bg-[#2d1f1a] border-amber-500/20">
  <TabsTrigger value="profile" data-testid="tab-profile">
  <User className="w-4 h-4 ml-2" />
- الملف الش� صي
+ الملف الشخصي
  </TabsTrigger>
  <TabsTrigger value="card" data-testid="tab-card">
  <IdCard className="w-4 h-4 ml-2" />
@@ -179,7 +179,7 @@ export default function EmployeeDashboard() {
  {/* Employee Details */}
  <div className="bg-[#1a1410] rounded-lg p-3 space-y-2 text-sm">
  <div className="flex justify-between items-center">
- <span className="text-gray-400">الوظيف� :</span>
+ <span className="text-gray-400">الوظيفة:</span>
  <span className="text-amber-500">{employee.jobTitle}</span>
  </div>
  {employee.shiftTime && (
@@ -190,7 +190,7 @@ export default function EmployeeDashboard() {
  )}
  {employee.commissionPercentage !== undefined && employee.commissionPercentage > 0 && (
  <div className="flex justify-between items-center">
- <span className="text-gray-400">نسب� العمول� :</span>
+ <span className="text-gray-400">نسبةالعمولة:</span>
  <span className="text-green-500 font-bold">{employee.commissionPercentage}%</span>
  </div>
  )}
@@ -255,7 +255,7 @@ export default function EmployeeDashboard() {
  <ShoppingCart className="w-10 h-10" />
  <div className="text-center">
  <div className="font-bold text-lg">نظام الكاشير</div>
- <div className="text-sm opacity-90">إضاف� طلب جديد</div>
+ <div className="text-sm opacity-90">إضافة طلب جديد</div>
  </div>
  </Button>
 
@@ -267,7 +267,7 @@ export default function EmployeeDashboard() {
  >
  <ClipboardList className="w-10 h-10" />
  <div className="text-center">
- <div className="font-bold text-lg">إدار� الطلبات</div>
+ <div className="font-bold text-lg">إدارةالطلبات</div>
  <div className="text-sm opacity-90">عرض وتحديث الطلبات</div>
  </div>
  </Button>
@@ -280,8 +280,8 @@ export default function EmployeeDashboard() {
  >
  <Settings className="w-10 h-10" />
  <div className="text-center">
- <div className="font-bold text-lg">إدار� المشروبات</div>
- <div className="text-sm opacity-90">تحديث حال� التوفر</div>
+ <div className="font-bold text-lg">إدارةالمشروبات</div>
+ <div className="text-sm opacity-90">تحديث حالةالتوفر</div>
  </div>
  </Button>
 
@@ -295,8 +295,8 @@ export default function EmployeeDashboard() {
  >
  <BarChart3 className="w-10 h-10" />
  <div className="text-center">
- <div className="font-bold text-lg">لوح� التحكم</div>
- <div className="text-sm opacity-90">إحصائيات شامل� </div>
+ <div className="font-bold text-lg">لوحةالتحكم</div>
+ <div className="text-sm opacity-90">إحصائيات شاملة</div>
  </div>
  </Button>
  
@@ -308,8 +308,8 @@ export default function EmployeeDashboard() {
  >
  <User className="w-10 h-10" />
  <div className="text-center">
- <div className="font-bold text-lg">إدار� الموظفين</div>
- <div className="text-sm opacity-90">إضاف� وتعديل الموظفين</div>
+ <div className="font-bold text-lg">إدارةالموظفين</div>
+ <div className="text-sm opacity-90">إضافة وتعديل الموظفين</div>
  </div>
  </Button>
  </>
@@ -322,13 +322,13 @@ export default function EmployeeDashboard() {
  <CardHeader>
  <CardTitle className="text-amber-500 text-right flex items-center gap-2">
  <Sparkles className="w-5 h-5" />
- معلومات مهم� 
+ معلومات مهمة
  </CardTitle>
  </CardHeader>
  <CardContent className="text-gray-300 text-right space-y-2">
  <p className="flex items-center gap-2">
  <span className="w-2 h-2 bg-amber-500 rounded-full" />
- يمكنك است� دام نظام الكاشير لإضاف� طلبات جديد� للعملاء
+ يمكنك استخدام نظام الكاشير لإضافة طلبات جديدةللعملاء
  </p>
  <p className="flex items-center gap-2">
  <span className="w-2 h-2 bg-green-500 rounded-full" />
@@ -340,11 +340,11 @@ export default function EmployeeDashboard() {
  </p>
  <p className="flex items-center gap-2">
  <span className="w-2 h-2 bg-purple-500 rounded-full" />
- يمكنك متابعة حال� الطلبات وتحديثها من صفح� إدار� الطلبات
+ يمكنك متابعة حالة الطلبات وتحديثها من صفحة إدارةالطلبات
  </p>
  <p className="flex items-center gap-2">
  <span className="w-2 h-2 bg-amber-500 rounded-full" />
- رمز QR ال� اص بك يمكن است� دامه للتعريف أو تسجيل الحضور
+ رمز QR الخاص بك يمكن استخدامه للتعريف أو تسجيل الحضور
  </p>
  </CardContent>
  </Card>

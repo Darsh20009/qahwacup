@@ -16,7 +16,7 @@ export default function EmployeeGateway() {
  if (password === "1802009") {
  setLocation("/employee/login");
  } else {
- setError("كلمة المرور غير صحيح� ");
+ setError("كلمة المرور غير صحيحة ");
  setPassword("");
  }
  };
@@ -29,16 +29,16 @@ export default function EmployeeGateway() {
  <Coffee className="w-10 h-10 text-white" />
  </div>
  <h1 className="text-3xl font-bold text-amber-500 mb-2">قهوة كوب</h1>
- <p className="text-gray-400">بواب� الموظفين</p>
+ <p className="text-gray-400">بوابةالموظفين</p>
  </div>
 
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardHeader>
  <CardTitle className="text-2xl text-center text-amber-500">
- د� ول الموظفين
+ دخول الموظفين
  </CardTitle>
  <CardDescription className="text-center text-gray-400">
- أدخل كلمة المرور العام� للوصول
+ أدخل كلمة المرور العامةللوصول
  </CardDescription>
  </CardHeader>
  <CardContent>
@@ -48,7 +48,7 @@ export default function EmployeeGateway() {
  <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
  type="password"
- placeholder="كلمة المرور العام� "
+ placeholder="كلمة المرور العامة"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
@@ -68,7 +68,7 @@ export default function EmployeeGateway() {
  className="w-full bg-gradient-to-r from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-bold"
  data-testid="button-gateway-submit"
  >
- د� ول
+ دخول
  </Button>
  </form>
  </CardContent>
@@ -81,7 +81,7 @@ export default function EmployeeGateway() {
  className="text-amber-500 hover:text-amber-400"
  data-testid="link-back-home"
  >
- العودةللصفح� الرئيسي� 
+ العودة للصفحة الرئيسية
  </Button>
  </div>
  </div>

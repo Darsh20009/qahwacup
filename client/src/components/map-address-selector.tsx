@@ -96,7 +96,7 @@ export default function MapAddressSelector({
  } else if (error.code === error.POSITION_UNAVAILABLE) {
  errorMessage = "الموقع غير متاح حالياً";
  } else if (error.code === error.TIMEOUT) {
- errorMessage = "انتهت مهل� تحديد الموقع، يرجى المحاول� مر� أ� رى";
+ errorMessage = "انتهت مهلة تحديد الموقع، يرجى المحاولة مرة أخرى";
  }
  alert(errorMessage);
  setIsLoadingLocation(false);
@@ -126,7 +126,7 @@ export default function MapAddressSelector({
  <div className="flex-1 space-y-2">
  <p className="text-sm font-semibold">حدد موقع التوصيل</p>
  <p className="text-xs text-muted-foreground">
- اضغط على ال� ريط� لاختيار موقعك أو است� دم زر تحديد الموقع الحالي
+ اضغط على الخريطة لاختيار موقعك أو استخدم زر تحديد الموقع الحالي
  </p>
  </div>
  </div>
@@ -136,7 +136,7 @@ export default function MapAddressSelector({
  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
  <div className="flex-1">
  <p className="font-semibold text-green-700 dark:text-green-400">
- موقعك دا� ل منطق� التوصيل
+ موقعك داخل منطقة التوصيل
  </p>
  <p className="text-sm text-green-600 dark:text-green-300 mt-1">
  {selectedZone.nameAr} - رسوم التوصيل: {selectedZone.deliveryFee} ريال
@@ -148,10 +148,10 @@ export default function MapAddressSelector({
  <X className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
  <div className="flex-1">
  <p className="font-semibold text-red-700 dark:text-red-400">
- موقعك � ارج منطق� التوصيل
+ موقعك خارج منطقة التوصيل
  </p>
  <p className="text-sm text-red-600 dark:text-red-300 mt-1">
- التوصيل متاح فقط في البديع� وظهر� البديع� 
+ التوصيل متاح فقط في البديعةوظهران البديعة
  </p>
  </div>
  </div>
@@ -168,7 +168,7 @@ export default function MapAddressSelector({
  data-testid="button-get-current-location"
  >
  <Navigation className="w-4 h-4 ml-2" />
- {isLoadingLocation ? "جاري تحديد الموقع..." : "است� دام موقعي الحالي"}
+ {isLoadingLocation ? "جاري تحديد الموقع..." : "استخدام موقعي الحالي"}
  </Button>
  </div>
 
@@ -244,7 +244,7 @@ export default function MapAddressSelector({
  <div className="bg-muted/50 p-3 rounded-lg flex items-center justify-center gap-2">
  <MapPin className="w-4 h-4 text-muted-foreground" />
  <p className="text-xs text-muted-foreground">
- المناطق ال� ضراء والزرقاء تمثل مناطق التوصيل المتاح� 
+ المناطق الخضراء والزرقاء تمثل مناطق التوصيل المتاحة 
  </p>
  </div>
  </div>

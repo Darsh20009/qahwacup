@@ -37,7 +37,7 @@ export default function CustomerProfile() {
  const handleLogout = () => {
  customerStorage.logout();
  toast({
- title: "تم تسجيل ال� روج",
+ title: "تم تسجيل الخروج",
  description: "نراك قريباً!"
  });
  setLocation("/customer-login");
@@ -79,7 +79,7 @@ export default function CustomerProfile() {
  data-testid="button-logout"
  >
  <LogOut className="ml-2 w-4 h-4" />
- تسجيل � روج
+ تسجيل خروج
  </Button>
  </div>
  </div>
@@ -112,7 +112,7 @@ export default function CustomerProfile() {
  <Card className="bg-amber-900/20 border-amber-700/30 backdrop-blur">
  <CardContent className="p-8 text-center text-amber-200/70">
  <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-50" />
- <p>لا توجد طلبات سابق� </p>
+ <p>لا توجد طلبات سابقة</p>
  </CardContent>
  </Card>
  ) : (
@@ -150,7 +150,7 @@ export default function CustomerProfile() {
  {order.usedFreeDrink && (
  <Badge variant="outline" className="border-green-500 text-green-400">
  <Gift className="ml-1 w-3 h-3" />
- است� دمت مشروب مجاني
+ استخدمت مشروب مجاني
  </Badge>
  )}
  </div>
@@ -224,7 +224,7 @@ export default function CustomerProfile() {
  </span>
  </div>
  <p className="text-xs text-green-300/70 mt-2">
- است� دمها عند الدفع
+ استخدمها عند الدفع
  </p>
  </div>
  )}
@@ -251,7 +251,7 @@ export default function CustomerProfile() {
  className="w-full mt-6 border-amber-600/50 text-amber-100 hover:bg-amber-800/30"
  data-testid="button-back-menu"
  >
- العودةللقائم� 
+ العودةللقائمة 
  </Button>
  </div>
  </div>

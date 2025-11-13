@@ -31,15 +31,15 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/customers", customerId, "orders"] });
  toast({
- title: "تم حفظ معلومات السيار� ",
+ title: "تم حفظ معلومات السيارة",
  description: "سيتم توصيل طلبك إلى سيارتك",
  });
  },
  onError: () => {
  toast({
  variant: "destructive",
- title: "� طأ",
- description: "حدث خطأ أثناء حفظ معلومات السيار� ",
+ title: "خطأ",
+ description: "حدث خطأ أثناء حفظ معلومات السيارة",
  });
  }
  });
@@ -61,8 +61,8 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  if (!carType.trim() || !carColor.trim()) {
  toast({
  variant: "destructive",
- title: "� طأ",
- description: "يرجى إدخال نوع السيار� ولونها",
+ title: "خطأ",
+ description: "يرجى إدخال نوع السيارة ولونها",
  });
  return;
  }
@@ -87,7 +87,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  <Car className="w-6 h-6 text-purple-400" />
  </div>
  <div className="flex-1">
- <h3 className="text-lg font-bold text-purple-400 mb-2">معلومات السيار� </h3>
+ <h3 className="text-lg font-bold text-purple-400 mb-2">معلومات السيارة</h3>
  <div className="space-y-1 text-sm text-gray-300">
  <p><strong className="text-purple-400">النوع:</strong> {order.carPickup.carType}</p>
  <p><strong className="text-purple-400">اللون:</strong> {order.carPickup.carColor}</p>
@@ -115,7 +115,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  <CardHeader>
  <CardTitle className="flex items-center gap-2 text-purple-400">
  <Car className="w-5 h-5" />
- استلام من السيار� 
+ استلام من السيارة
  </CardTitle>
  <p className="text-sm text-gray-400">
  أدخل معلومات سيارتك لتوصيل الطلب إليك
@@ -124,7 +124,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  <CardContent>
  <form onSubmit={handleSubmit} className="space-y-4">
  <div>
- <Label htmlFor="carType" className="text-gray-300">نوع السيار� </Label>
+ <Label htmlFor="carType" className="text-gray-300">نوع السيارة</Label>
  <Input
  id="carType"
  value={carType}
@@ -136,7 +136,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  </div>
 
  <div>
- <Label htmlFor="carColor" className="text-gray-300">لون السيار� </Label>
+ <Label htmlFor="carColor" className="text-gray-300">لون السيارة</Label>
  <Input
  id="carColor"
  value={carColor}
@@ -157,7 +157,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  data-testid="checkbox-save-car-info"
  />
  <Label htmlFor="saveCarInfo" className="text-sm text-gray-300 cursor-pointer">
- حفظ معلومات السيار� للطلبات المستقبلي� 
+ حفظ معلومات السيارةللطلبات المستقبلية 
  </Label>
  </div>
  )}
@@ -173,7 +173,7 @@ export function CarPickupForm({ order, customer }: CarPickupFormProps) {
  ) : (
  <>
  <Save className="ml-2 h-4 w-4" />
- حفظ معلومات السيار� 
+ حفظ معلومات السيارة
  </>
  )}
  </Button>

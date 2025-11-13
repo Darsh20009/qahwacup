@@ -43,7 +43,7 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptProps>(
  <span>{orderNumber}</span>
  </div>
  <div className="flex justify-between">
- <span>التاري� :</span>
+ <span>التاريخ :</span>
  <span>{date}</span>
  </div>
  <div className="flex justify-between">
@@ -56,7 +56,7 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptProps>(
  </div>
  {tableNumber && (
  <div className="flex justify-between">
- <span>الطاول� :</span>
+ <span>الطاولة :</span>
  <span>{tableNumber}</span>
  </div>
  )}
@@ -115,7 +115,7 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptProps>(
 
  <div className="text-center text-xs border-t-2 border-dashed border-gray-400 pt-4 space-y-1">
  <p>شكراً لزيارتكم</p>
- <p>نتمنى لكم تجربة ممتع� </p>
+ <p>نتمنى لكم تجربة ممتعة </p>
  <p className="mt-3">تابعونا على وسائل التواصل الاجتماعي</p>
  <p className="font-mono">@QahwaCup</p>
  </div>

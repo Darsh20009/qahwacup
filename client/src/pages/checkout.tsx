@@ -219,7 +219,7 @@ export default function CheckoutPage() {
  toast({
  variant: "destructive",
  title: "خطأ في التحقق من الكود",
- description: "حاول مر� أ� رى لاحقاً",
+ description: "حاول مرة أخرى لاحقاً",
  });
  } finally {
  setIsValidatingDiscount(false);
@@ -258,7 +258,7 @@ export default function CheckoutPage() {
  toast({
  variant: "destructive",
  title: "إيصال الدفع مطلوب",
- description: "يرجى رفع صور� إيصال الدفع",
+ description: "يرجى رفع صورة إيصال الدفع",
  });
  return;
  }
@@ -270,7 +270,7 @@ export default function CheckoutPage() {
  if (isQahwaCardPayment && availableFreeDrinks <= 0) {
  toast({
  variant: "destructive",
- title: "ليس لديك مشروبات مجاني� ",
+ title: "ليس لديك مشروبات مجانية ",
  description: "اطلب المزيد للحصول على مشروب مجاني!"
  });
  return;
@@ -283,8 +283,8 @@ export default function CheckoutPage() {
  if (useFreeDrink && !hasFreeDrinks) {
  toast({
  variant: "destructive",
- title: "ليس لديك مشروبات مجاني� ",
- description: "يرجى إلغاء تفعيل است� دام بطاقةتي"
+ title: "ليس لديك مشروبات مجانية ",
+ description: "يرجى إلغاء تفعيل استخدام بطاقةتي"
  });
  return;
  }
@@ -406,7 +406,7 @@ export default function CheckoutPage() {
  if (useFreeDrink) {
  customerStorage.useFreeDrink();
  toast({
- title: "تم است� دام المشروب المجاني!",
+ title: "تم استخدام المشروب المجاني!",
  description: "استمتع بقهوتك",
  });
  }
@@ -462,14 +462,14 @@ export default function CheckoutPage() {
  setCopiedCodeId(codeId);
  setTimeout(() => setCopiedCodeId(null), 2000);
  toast({
- title: "تم نس� الكود",
+ title: "تم نسخالكود",
  description: "الكود جاهز للاستخدام في صفحة بطاقتي",
  });
  } catch (error) {
  toast({
  variant: "destructive",
- title: "خطأ في النس� ",
- description: "حدث خطأ أثناء نس� الكود",
+ title: "خطأ في النسخ",
+ description: "حدث خطأ أثناء نسخالكود",
  });
  }
  };
@@ -504,7 +504,7 @@ export default function CheckoutPage() {
 اسم صاحب التحويل: ${transferName}
 طريقة الدفع: ${getPaymentMethodName(selectedPaymentMethod!)}
 
-المنتجات المطلوب� :
+المنتجات المطلوبة :
 ${itemsWithPrices}
 
 إجمالي المبلغ: ${totalAmount} ريال
@@ -571,7 +571,7 @@ ${itemsWithPrices}
  </div>
  </div>
  <div className="text-center text-muted-foreground text-sm bg-primary/5 rounded-lg p-3">
- شكراً لثقتك في قهوة كوب - طلبك الآن في قائم� التحضير
+ شكراً لثقتك في قهوة كوب - طلبك الآن في قائمةالتحضير
  </div>
  </div>
  )}
@@ -598,7 +598,7 @@ ${itemsWithPrices}
  <div className="bg-gradient-to-br from-card/50 to-background/30 rounded-xl p-6 border border-border/50">
  <div className="flex items-center justify-center mb-4">
  <Clock className="w-6 h-6 text-primary ml-2" />
- <h3 className="font-amiri text-xl font-bold text-foreground">� طوات الاستلام</h3>
+ <h3 className="font-amiri text-xl font-bold text-foreground">خطوات الاستلام</h3>
  </div>
  <div className="space-y-3 text-right">
  <div className="flex items-start space-x-3 space-x-reverse">
@@ -611,7 +611,7 @@ ${itemsWithPrices}
  </div>
  <div className="flex items-start space-x-3 space-x-reverse">
  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">3</div>
- <p className="text-muted-foreground flex-1">استمتع بقهوتك الطازج� !</p>
+ <p className="text-muted-foreground flex-1">استمتع بقهوتك الطازجة !</p>
  </div>
  </div>
  </div>
@@ -624,7 +624,7 @@ ${itemsWithPrices}
  <Star key={i} className="w-8 h-8 text-primary fill-primary cursor-pointer hover:scale-110 transition-transform" />
  ))}
  </div>
- <p className="text-sm text-muted-foreground">تقييمك يساعدنا على تحسين � دماتنا</p>
+ <p className="text-sm text-muted-foreground">تقييمك يساعدنا على تحسين خدماتنا</p>
  </div>
 
  
@@ -647,7 +647,7 @@ ${itemsWithPrices}
  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-semibold"
  >
  <MessageCircle className="w-5 h-5 ml-2" />
- مشارك� لتجهيز الطلب
+ مشاركةلتجهيز الطلب
  </Button>
 
  <Button
@@ -682,7 +682,7 @@ ${itemsWithPrices}
  <div className="min-h-screen bg-background flex items-center justify-center" data-testid="page-checkout-empty">
  <Card className="w-full max-w-md mx-4">
  <CardContent className="pt-6 text-center">
- <p className="text-muted-foreground mb-4">السل� فارغ� </p>
+ <p className="text-muted-foreground mb-4">السلةفارغة</p>
  <Button variant="outline">العودةللمنيو</Button>
  </CardContent>
  </Card>
@@ -703,10 +703,10 @@ ${itemsWithPrices}
  {/* Clean Header */}
  <div className="text-center mb-6 md:mb-12">
  <h1 className="font-amiri text-2xl sm:text-3xl md:text-4xl font-bold text-slate-700 mb-2 md:mb-4">
- إتمام عملي� الدفع
+ إتمام عمليةالدفع
  </h1>
  <p className="text-slate-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed px-4">
- ا� تر طريقة الدفع المفضل� لديك واستمتع بتجربة قهوة لا تُنسى
+ اختر طريقة الدفع المفضلةلديك واستمتع بتجربة قهوة لا تُنسى
  </p>
  <div className="mt-4 md:mt-6 flex items-center justify-center space-x-2">
  <div className="w-6 md:w-8 h-1 bg-primary/50 rounded-full animate-pulse"></div>
@@ -776,7 +776,7 @@ ${itemsWithPrices}
  className="text-red-600 hover:text-red-700 hover:bg-red-100"
  data-testid="button-remove-discount"
  >
- إزال� 
+ إزالة
  </Button>
  </div>
  ) : (
@@ -847,7 +847,7 @@ ${itemsWithPrices}
  {deliveryInfo.address.fullAddress}
  </p>
  <p className="text-muted-foreground">
- المنطق� : {deliveryInfo.address.zone}
+ المنطقة : {deliveryInfo.address.zone}
  </p>
  </div>
  </div>
@@ -874,7 +874,7 @@ ${itemsWithPrices}
  </p>
  )}
  <p className="text-xs mt-1 text-muted-foreground">
- سيتم إعلامك عند جاهزي� الطلب
+ سيتم إعلامك عند جاهزيةالطلب
  </p>
  </div>
  </div>
@@ -945,7 +945,7 @@ ${itemsWithPrices}
  </div>
  </div>
  <div className="mt-3 text-center text-sm opacity-90 bg-white/20 rounded-lg p-2">
- {useFreeDrink ? 'است� دمت بطاقةتك - استمتع بقهوتك المجاني� !' : 'لكل لحظة قهوة ، لحظة نجاح'}
+ {useFreeDrink ? 'استخدمت بطاقةتك - استمتع بقهوتك المجانية !' : 'لكل لحظة قهوة ، لحظة نجاح'}
  </div>
  </div>
  {/* Decorative elements */}
@@ -962,7 +962,7 @@ ${itemsWithPrices}
  <CardHeader className="bg-slate-100 rounded-t-lg p-4 md:p-6">
  <CardTitle className="flex items-center font-amiri text-lg md:text-xl font-bold text-slate-700" data-testid="text-checkout-title">
  <CreditCard className="w-4 md:w-5 h-4 md:h-5 ml-2" />
- ا� تر طريقة الدفع
+ اختر طريقة الدفع
  </CardTitle>
  </CardHeader>
  <CardContent className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8">
@@ -994,7 +994,7 @@ ${itemsWithPrices}
  </p>
  ) : (
  <p className="text-center text-slate-600 mb-4 md:mb-6 lg:mb-8 text-sm">
- أدخل بياناتك للمتابعة مع تجربة قهوة رائع� 
+ أدخل بياناتك للمتابعة مع تجربة قهوة رائعة
  </p>
  )}
 
@@ -1043,34 +1043,34 @@ ${itemsWithPrices}
  <div className="flex items-center justify-center gap-2">
  <Coffee className="w-6 h-6 text-amber-600" />
  <h4 className="font-amiri text-xl font-bold text-amber-900">
- بطاقة� كوبي - مشروباتك
+ بطاقة كوبي - مشروباتك
  </h4>
  </div>
 
  <div className="bg-white/60 rounded-xl p-4 space-y-2">
  <div className="flex justify-between items-center">
- <span className="text-sm text-amber-700">الأ� تام المكتسبة:</span>
+ <span className="text-sm text-amber-700">الأختام المكتسبة:</span>
  <span className="font-bold text-amber-900">
  {loyaltyCard?.stamps || 0} / 6
  </span>
  </div>
 
  <div className="flex justify-between items-center">
- <span className="text-sm text-blue-700">مشروبات مجاني� مكتسب� :</span>
+ <span className="text-sm text-blue-700">مشروبات مجانية مكتسبة:</span>
  <span className="font-bold text-blue-600">
  {loyaltyCard?.freeCupsEarned || 0}
  </span>
  </div>
 
  <div className="flex justify-between items-center">
- <span className="text-sm text-orange-700">مشروبات تم است� دامها:</span>
+ <span className="text-sm text-orange-700">مشروبات تم استخدامها:</span>
  <span className="font-bold text-orange-600">
  {loyaltyCard?.freeCupsRedeemed || 0}
  </span>
  </div>
 
  <div className="flex justify-between items-center pt-2 border-t border-amber-300">
- <span className="text-sm text-green-700 font-bold">مشروبات مجاني� متاح� :</span>
+ <span className="text-sm text-green-700 font-bold">مشروبات مجانية متاحة:</span>
  <span className="font-bold text-green-600 text-xl">
  {availableFreeDrinks}
  </span>
@@ -1080,7 +1080,7 @@ ${itemsWithPrices}
  {availableFreeDrinks > 0 ? (
  <div>
  <p className="text-sm text-green-700 bg-green-100 rounded-lg p-2 mb-3">
- ا� تر المشروبات المجاني� من طلبك الحالي!
+ اختر المشروبات المجانية من طلبك الحالي!
  </p>
 
  {/* Free Drinks Selection UI */}
@@ -1088,7 +1088,7 @@ ${itemsWithPrices}
  <div className="bg-white/80 rounded-xl p-4 space-y-3 border-2 border-green-300">
  <h5 className="font-bold text-green-800 flex items-center gap-2">
  <Gift className="w-5 h-5" />
- ا� تر {availableFreeDrinks} مشروب مجاني من طلبك
+ اختر {availableFreeDrinks} مشروب مجاني من طلبك
  </h5>
 
  {cartItems.map((item) => {
@@ -1138,7 +1138,7 @@ ${itemsWithPrices}
  })}
 
  <div className="flex justify-between items-center pt-2 border-t border-green-300">
- <span className="text-sm font-semibold">المشروبات المجاني� الم� تار� :</span>
+ <span className="text-sm font-semibold">المشروبات المجانية المختارة:</span>
  <span className="text-lg font-bold text-green-600">
  {Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0)} / {availableFreeDrinks}
  </span>
@@ -1148,7 +1148,7 @@ ${itemsWithPrices}
  </div>
  ) : (
  <p className="text-sm text-amber-700 bg-amber-100 rounded-lg p-2">
- اجمع {6 - (loyaltyCard?.stamps || 0)} أ� تام إضافي� للحصول على المشروب المجاني القادم!
+ اجمع {6 - (loyaltyCard?.stamps || 0)} أختام إضافية للحصول على المشروب المجاني القادم!
  </p>
  )}
  </div>
@@ -1179,7 +1179,7 @@ ${itemsWithPrices}
  </div>
  <div>
  <Label htmlFor="use-free-drink" className="font-amiri text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent cursor-pointer">
- است� دام بطاقةتي (مشروب مجاني)
+ استخدام بطاقةتي (مشروب مجاني)
  </Label>
  <p className="text-sm text-green-700 font-cairo">
  لديك {customerStorage.getProfile()?.freeDrinks} مشروب مجاني متاح!
@@ -1207,7 +1207,7 @@ ${itemsWithPrices}
  </div>
  <div>
  <h4 className="font-amiri text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-700 bg-clip-text text-transparent">
- سجل د� ولك واحصل على مشروبات مجاني� !
+ سجل دخولك واحصل على مشروبات مجانية !
  </h4>
  <p className="text-sm text-amber-700 font-cairo">
  5 طوابع = قهوة مجانية
@@ -1233,11 +1233,11 @@ ${itemsWithPrices}
  <div className="space-y-2 bg-gradient-to-br from-blue-50/80 to-indigo-50/60 rounded-lg p-4 border border-blue-200">
  <Label htmlFor="customer-notes" className="text-sm font-semibold text-blue-800 flex items-center gap-2">
  <MessageCircle className="w-4 h-4" />
- ملاحظات إضافي� على الطلب (اختياري)
+ ملاحظات إضافية على الطلب (اختياري)
  </Label>
  <textarea
  id="customer-notes"
- placeholder="مثال: بدون سكر، قهوة سا� ن� جداً، إضاف� كريم� ..."
+ placeholder="مثال: بدون سكر، قهوة ساخنةجداً، إضافة كريمة ..."
  value={customerNotes}
  onChange={(e) => setCustomerNotes(e.target.value)}
  className="w-full min-h-[80px] text-right p-3 border border-blue-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none bg-white/80"
@@ -1245,7 +1245,7 @@ ${itemsWithPrices}
  maxLength={500}
  />
  <p className="text-xs text-blue-600">
- شارك أي تفضيلات � اص� بطلبك ({customerNotes.length}/500 حرف)
+ شارك أي تفضيلات خاصةبطلبك ({customerNotes.length}/500 حرف)
  </p>
  </div>
 
@@ -1288,7 +1288,7 @@ ${itemsWithPrices}
  required
  />
  <p className="text-xs text-slate-600 bg-blue-50 p-2 rounded">
- يرجى إدخال اسم الش� ص الذي سيقوم بالتحويل
+ يرجى إدخال اسم الشخص الذي سيقوم بالتحويل
  </p>
  </div>
  )}
@@ -1296,11 +1296,11 @@ ${itemsWithPrices}
  {/* Info message based on selection */}
  {isSameAsCustomer ? (
  <p className="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg flex items-center">
- سيتم است� دام اسم العميل كاسم صاحب التحويل
+ سيتم استخدام اسم العميل كاسم صاحب التحويل
  </p>
  ) : (
  <p className="text-xs text-blue-700 bg-blue-50 p-2 rounded-lg flex items-center">
- يرجى كتاب� اسم صاحب التحويل بوضوح
+ يرجى كتابةاسم صاحب التحويل بوضوح
  </p>
  )}
  </div>
@@ -1308,12 +1308,12 @@ ${itemsWithPrices}
 
  {selectedPaymentMethod === 'cash' && (
  <p className="text-xs text-emerald-600 mt-3 bg-emerald-50 p-2 rounded-lg">
- الدفع النقدي - لا يتطلب تفاصيل تحويل إضافي� 
+ الدفع النقدي - لا يتطلب تفاصيل تحويل إضافية 
  </p>
  )}
  {selectedPaymentMethod && selectedPaymentMethod !== 'cash' && (
  <p className="text-xs text-blue-600 mt-3 bg-blue-50 p-2 rounded-lg">
- للدفع الإلكتروني - يرجى إدخال اسم صاحب التحويل أو علام� صح للتأكيد
+ للدفع الإلكتروني - يرجى إدخال اسم صاحب التحويل أو علامةصح للتأكيد
  </p>
  )}
 
@@ -1345,10 +1345,10 @@ ${itemsWithPrices}
  <FileUpload
  onFileUpload={(url) => setPaymentReceiptUrl(url)}
  uploadedFileUrl={paymentReceiptUrl}
- label="اضغط لرفع صور� الإيصال أو PDF"
+ label="اضغط لرفع صورة الإيصال أو PDF"
  />
  <p className="text-xs text-muted-foreground mt-2">
- يرجى رفع صور� واضح� لإيصال التحويل (الحد الأقصى 5 ميجابايت)
+ يرجى رفع صورة واضحة لإيصال التحويل (الحد الأقصى 5 ميجابايت)
  </p>
  </CardContent>
  </Card>
@@ -1388,7 +1388,7 @@ ${itemsWithPrices}
  <div className="text-3xl font-bold font-amiri bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">
  {getTotalPrice().toFixed(2)} ريال
  </div>
- <p className="text-sm text-slate-600 mt-1">باست� دام الطريقة المحدد� </p>
+ <p className="text-sm text-slate-600 mt-1">باستخدام الطريقة المحددة </p>
  </div>
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -1416,7 +1416,7 @@ ${itemsWithPrices}
  data-testid="button-share-whatsapp"
  >
  <MessageCircle className="w-4 h-4 ml-2" />
- مشارك� لتجهيز الطلب
+ مشاركةلتجهيز الطلب
  </Button>
 
  {/* Decorative floating elements */}
@@ -1447,7 +1447,7 @@ ${itemsWithPrices}
  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
  </div>
  <span className="mr-3 font-amiri">
- جاري معالج� طلبك بعناي� ...
+ جاري معالجةطلبك بعناية ...
  </span>
  <Coffee className="w-6 h-6 animate-pulse ml-2" />
  </div>

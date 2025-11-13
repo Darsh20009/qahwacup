@@ -18,7 +18,7 @@ export default function CustomerLogin() {
  const handleRegister = () => {
  if (!name.trim() || !phone.trim()) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "الرجاء إدخال الاسم ورقم الجوال",
  variant: "destructive"
  });
@@ -28,7 +28,7 @@ export default function CustomerLogin() {
  customerStorage.registerCustomer(name, phone);
  toast({
  title: "مرحباً بك!",
- description: `تم تسجيل الدخول بنجاح. تم إنشاء بطاقتك ال� اص� `,
+ description: `تم تسجيل الدخول بنجاح. تم إنشاء بطاقتك الخاصة`,
  });
  setLocation("/menu");
  };
@@ -37,7 +37,7 @@ export default function CustomerLogin() {
  customerStorage.setGuestMode(true);
  toast({
  title: "وضع الضيف",
- description: "يمكنك الآن تصفح القائمةوإضاف� طلبك",
+ description: "يمكنك الآن تصفح القائمةوإضافة طلبك",
  });
  setLocation("/menu");
  };
@@ -58,7 +58,7 @@ export default function CustomerLogin() {
  <CardHeader className="text-center">
  <CardTitle className="text-2xl text-amber-50">مرحباً بك</CardTitle>
  <CardDescription className="text-amber-200/70">
- ا� تر طريقة المتابعة 
+ اختر طريقة المتابعة 
  </CardDescription>
  </CardHeader>
  <CardContent className="space-y-3">
@@ -68,7 +68,7 @@ export default function CustomerLogin() {
  data-testid="button-login"
  >
  <User className="ml-2" />
- تسجيل د� ول
+ تسجيل دخول
  </Button>
  
  <Button 
@@ -85,7 +85,7 @@ export default function CustomerLogin() {
 
  <div className="text-center">
  <p className="text-amber-300/60 text-sm">
- تسجيل الدخول يتيح لك: بطاقة ولاء • طوابع مجاني� • متابعة طلباتك
+ تسجيل الدخول يتيح لك: بطاقة ولاء • طوابع مجانية • متابعة طلباتك
  </p>
  </div>
  </div>
@@ -103,7 +103,7 @@ export default function CustomerLogin() {
  <CardTitle className="text-2xl text-amber-50">تسجيل الدخول</CardTitle>
  </div>
  <CardDescription className="text-amber-200/70">
- أدخل بياناتك للحصول على بطاقة ولاء � اص� 
+ أدخل بياناتك للحصول على بطاقة ولاء خاصة
  </CardDescription>
  </CardHeader>
  <CardContent className="space-y-4">
@@ -167,7 +167,7 @@ export default function CustomerLogin() {
  <CardHeader className="text-center">
  <CardTitle className="text-2xl text-amber-50">وضع الضيف</CardTitle>
  <CardDescription className="text-amber-200/70">
- في وضع الضيف، لن تحصل على بطاقة ولاء أو طوابع مجاني� 
+ في وضع الضيف، لن تحصل على بطاقة ولاء أو طوابع مجانية 
  </CardDescription>
  </CardHeader>
  <CardContent className="space-y-3">

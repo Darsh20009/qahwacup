@@ -15,10 +15,10 @@ export default function CartPage() {
  <CardContent className="pt-6 text-center">
  <ShoppingCart className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
  <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2" data-testid="text-empty-title">
- السل� فارغ� 
+ السلةفارغة
  </h2>
  <p className="text-sm sm:text-base text-muted-foreground mb-4" data-testid="text-empty-description">
- لم تقم بإضاف� أي عناصر إلى السل� بعد
+ لم تقم بإضافة أي عناصر إلى السلةبعد
  </p>
  <Button variant="default" className="bg-primary text-accent-foreground" data-testid="button-continue-shopping">
  متابعة التسوق
@@ -36,7 +36,7 @@ export default function CartPage() {
  <CardHeader className="pb-3 sm:pb-6">
  <CardTitle className="flex items-center text-lg sm:text-xl md:text-2xl font-bold text-foreground" data-testid="text-cart-title">
  <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 ml-2" />
- سل� الطلبات
+ سلةالطلبات
  </CardTitle>
  </CardHeader>
  <CardContent className="space-y-3 sm:space-y-4">

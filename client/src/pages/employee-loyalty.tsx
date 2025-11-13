@@ -33,8 +33,8 @@ export default function EmployeeLoyalty() {
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/loyalty/cards"] });
  toast({
- title: "تم إنشاء بطاقة� الولاء! ",
- description: `تم إصدار بطاقة� جديد� للعميل ${customerName}`,
+ title: "تم إنشاء بطاقة الولاء! ",
+ description: `تم إصدار بطاقة جديدةللعميل ${customerName}`,
  className: "bg-green-900 border-green-700 text-white"
  });
  setIsDialogOpen(false);
@@ -77,13 +77,13 @@ export default function EmployeeLoyalty() {
  data-testid="button-back"
  >
  <ArrowRight className="w-5 h-5 ml-2" />
- العودةللوح� التحكم
+ العودةللوحةالتحكم
  </Button>
 
  <div className="flex items-center gap-3">
  <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-2 rounded-lg shadow-lg">
  <Gift className="w-5 h-5" />
- <span className="font-bold">إدار� بطاقةات الولاء</span>
+ <span className="font-bold">إدارةبطاقات الولاء</span>
  </div>
  </div>
  </div>
@@ -95,7 +95,7 @@ export default function EmployeeLoyalty() {
  <CardHeader>
  <CardTitle className="text-purple-400 flex items-center gap-2">
  <UserPlus className="w-5 h-5" />
- إصدار بطاقة� ولاء جديد� 
+ إصدار بطاقة ولاء جديدة
  </CardTitle>
  </CardHeader>
  <CardContent>
@@ -106,7 +106,7 @@ export default function EmployeeLoyalty() {
  data-testid="button-create-card"
  >
  <UserPlus className="w-4 h-4 ml-2" />
- إنشاء بطاقة� ولاء جديد� 
+ إنشاء بطاقة ولاء جديدة
  </Button>
  </DialogTrigger>
  <DialogContent className="bg-slate-900 border-purple-500/30">
@@ -155,7 +155,7 @@ export default function EmployeeLoyalty() {
  <CardHeader>
  <CardTitle className="text-purple-400 flex items-center gap-2">
  <Search className="w-5 h-5" />
- بطاقةات الولاء المُصدر� ({cards.length})
+ بطاقات الولاء المُصدرة({cards.length})
  </CardTitle>
  </CardHeader>
  <CardContent>
@@ -163,7 +163,7 @@ export default function EmployeeLoyalty() {
  <div className="text-center py-8 text-slate-400">جاري التحميل...</div>
  ) : cards.length === 0 ? (
  <div className="text-center py-8 text-slate-400">
- لا توجد بطاقةات ولاء حالياً. قم بإنشاء أول بطاقة� !
+ لا توجد بطاقات ولاء حالياً. قم بإنشاء أول بطاقة !
  </div>
  ) : (
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

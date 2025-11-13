@@ -142,9 +142,9 @@ export default function ProductDetails() {
 
  {/* Category Badge */}
  <Badge variant="outline" className="w-fit" data-testid="badge-category">
- {item.category === 'basic' && 'قهوة أساسي� '}
- {item.category === 'hot' && 'قهوة سا� ن� '}
- {item.category === 'cold' && 'قهوة بارد� '}
+ {item.category === 'basic' && 'قهوة أساسية'}
+ {item.category === 'hot' && 'قهوة ساخنة'}
+ {item.category === 'cold' && 'قهوة باردة '}
  </Badge>
 
  {/* Ingredients Section */}
@@ -236,7 +236,7 @@ export default function ProductDetails() {
  {item.availabilityStatus === 'out_of_stock' ? ' نفذت الكمية ' :
  item.availabilityStatus === 'coming_soon' ? ' قريباً' :
  item.availabilityStatus === 'temporarily_unavailable' ? '⏸ غير متوفر مؤقتاً' :
- 'أضف للسل� '}
+ 'أضف للسلة '}
  </Button>
  </div>
  </div>

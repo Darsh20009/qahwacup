@@ -83,13 +83,13 @@ export default function EmployeeMenuManagement() {
  queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
  toast({
  title: "تم التحديث بنجاح",
- description: "تم تحديث حال� توفر المشروب",
+ description: "تم تحديث حالةتوفر المشروب",
  });
  },
  onError: () => {
  toast({
  title: "خطأ",
- description: "فشل تحديث حال� توفر المشروب",
+ description: "فشل تحديث حالةتوفر المشروب",
  variant: "destructive",
  });
  },
@@ -149,7 +149,7 @@ export default function EmployeeMenuManagement() {
  queryClient.invalidateQueries({ queryKey: ["/api/coffee-items"] });
  toast({
  title: "تم التحديث",
- description: "تم تحديث حال� المنتج الجديد",
+ description: "تم تحديث حالةالمنتج الجديد",
  });
  },
  onError: (error: any) => {
@@ -235,9 +235,9 @@ export default function EmployeeMenuManagement() {
 
  const categoryNames = {
  basic: "قهوة أساسية",
- hot: "قهوة سا� ن� ",
+ hot: "قهوة ساخنة",
  cold: "قهوة باردة",
- specialty: "مشروبات إضافي� ",
+ specialty: "مشروبات إضافية ",
  desserts: "الحلويات",
  };
 
@@ -263,8 +263,8 @@ export default function EmployeeMenuManagement() {
  <Coffee className="w-6 h-6 text-white" />
  </div>
  <div>
- <h1 className="text-2xl font-bold text-amber-500">إدار� المشروبات</h1>
- <p className="text-gray-400 text-sm">تحديث حال� توفر المشروبات</p>
+ <h1 className="text-2xl font-bold text-amber-500">إدارةالمشروبات</h1>
+ <p className="text-gray-400 text-sm">تحديث حالةتوفر المشروبات</p>
  </div>
  </div>
  <div className="flex gap-3">
@@ -276,17 +276,17 @@ export default function EmployeeMenuManagement() {
  data-testid="button-add-item"
  >
  <Plus className="w-4 h-4 ml-2" />
- إضاف� مشروب جديد
+ إضافة مشروب جديد
  </Button>
  </DialogTrigger>
  <DialogContent className="bg-[#2d1f1a] border-amber-500/20 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
  <DialogHeader>
- <DialogTitle className="text-amber-500">إضاف� مشروب جديد</DialogTitle>
+ <DialogTitle className="text-amber-500">إضافة مشروب جديد</DialogTitle>
  </DialogHeader>
  <form onSubmit={handleSubmitNewItem} className="space-y-4">
  <div className="grid grid-cols-2 gap-4">
  <div>
- <Label htmlFor="nameAr" className="text-gray-300">الاسم بالعربي� *</Label>
+ <Label htmlFor="nameAr" className="text-gray-300">الاسم بالعربية *</Label>
  <Input
  id="nameAr"
  name="nameAr"
@@ -296,7 +296,7 @@ export default function EmployeeMenuManagement() {
  />
  </div>
  <div>
- <Label htmlFor="nameEn" className="text-gray-300">الاسم بالإنجليزي� </Label>
+ <Label htmlFor="nameEn" className="text-gray-300">الاسم بالإنجليزية</Label>
  <Input
  id="nameEn"
  name="nameEn"
@@ -322,13 +322,13 @@ export default function EmployeeMenuManagement() {
  <Label htmlFor="category" className="text-gray-300">القسم *</Label>
  <Select name="category" required>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-category">
- <SelectValue placeholder="ا� تر القسم" />
+ <SelectValue placeholder="اختر القسم" />
  </SelectTrigger>
  <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
- <SelectItem value="basic">قهوة أساسي� </SelectItem>
- <SelectItem value="hot">قهوة سا� ن� </SelectItem>
- <SelectItem value="cold">قهوة بارد� </SelectItem>
- <SelectItem value="specialty">مشروبات إضافي� </SelectItem>
+ <SelectItem value="basic">قهوة أساسية</SelectItem>
+ <SelectItem value="hot">قهوة ساخنة</SelectItem>
+ <SelectItem value="cold">قهوة باردة </SelectItem>
+ <SelectItem value="specialty">مشروبات إضافية </SelectItem>
  <SelectItem value="desserts">الحلويات</SelectItem>
  </SelectContent>
  </Select>
@@ -362,7 +362,7 @@ export default function EmployeeMenuManagement() {
  />
  </div>
  <div>
- <Label htmlFor="imageUrl" className="text-gray-300">رابط الصور� </Label>
+ <Label htmlFor="imageUrl" className="text-gray-300">رابط الصورة </Label>
  <Input
  id="imageUrl"
  name="imageUrl"
@@ -403,7 +403,7 @@ export default function EmployeeMenuManagement() {
  className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-white"
  data-testid="button-ingredients"
  >
- إدار� المكونات
+ إدارةالمكونات
  </Button>
  <Button
  variant="outline"
@@ -412,7 +412,7 @@ export default function EmployeeMenuManagement() {
  data-testid="button-back"
  >
  <ArrowRight className="w-4 h-4 ml-2" />
- العودةللوح� التحكم
+ العودةللوحةالتحكم
  </Button>
  </div>
  </div>
@@ -463,7 +463,7 @@ export default function EmployeeMenuManagement() {
  <Badge variant="outline" className="text-xs border-amber-500/30 text-gray-400">
  {item.coffeeStrength === "strong" && "قوي"}
  {item.coffeeStrength === "medium" && "متوسط"}
- {item.coffeeStrength === "mild" && "� فيف"}
+ {item.coffeeStrength === "mild" && "خفيف"}
  </Badge>
  )}
  </div>
@@ -579,7 +579,7 @@ export default function EmployeeMenuManagement() {
  <form onSubmit={handleSubmitEditItem} className="space-y-4">
  <div className="grid grid-cols-2 gap-4">
  <div>
- <Label htmlFor="edit-nameAr" className="text-gray-300">الاسم بالعربي� *</Label>
+ <Label htmlFor="edit-nameAr" className="text-gray-300">الاسم بالعربية *</Label>
  <Input
  id="edit-nameAr"
  name="nameAr"
@@ -590,7 +590,7 @@ export default function EmployeeMenuManagement() {
  />
  </div>
  <div>
- <Label htmlFor="edit-nameEn" className="text-gray-300">الاسم بالإنجليزي� </Label>
+ <Label htmlFor="edit-nameEn" className="text-gray-300">الاسم بالإنجليزية</Label>
  <Input
  id="edit-nameEn"
  name="nameEn"
@@ -618,13 +618,13 @@ export default function EmployeeMenuManagement() {
  <Label htmlFor="edit-category" className="text-gray-300">القسم *</Label>
  <Select name="category" defaultValue={editingItem.category} required>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-edit-category">
- <SelectValue placeholder="ا� تر القسم" />
+ <SelectValue placeholder="اختر القسم" />
  </SelectTrigger>
  <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
- <SelectItem value="basic">قهوة أساسي� </SelectItem>
- <SelectItem value="hot">قهوة سا� ن� </SelectItem>
- <SelectItem value="cold">قهوة بارد� </SelectItem>
- <SelectItem value="specialty">مشروبات إضافي� </SelectItem>
+ <SelectItem value="basic">قهوة أساسية</SelectItem>
+ <SelectItem value="hot">قهوة ساخنة</SelectItem>
+ <SelectItem value="cold">قهوة باردة </SelectItem>
+ <SelectItem value="specialty">مشروبات إضافية </SelectItem>
  <SelectItem value="desserts">الحلويات</SelectItem>
  </SelectContent>
  </Select>
@@ -660,7 +660,7 @@ export default function EmployeeMenuManagement() {
  />
  </div>
  <div>
- <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصور� </Label>
+ <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصورة </Label>
  <Input
  id="edit-imageUrl"
  name="imageUrl"

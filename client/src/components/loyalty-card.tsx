@@ -144,13 +144,13 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
 
  // For now, show instructions to the user
  alert(`
- لإضاف� البطاقة إلى Apple Wallet:
+ لإضافة البطاقة إلى Apple Wallet:
  1. افتح هذا الرابط على iPhone/iPad
  2. انقر على "إضافة إلى Wallet"
 
  الرابط: ${window.location.origin}${passUrl}
 
- أو امسح رمز QR أدناه باست� دام كاميرا iPhone
+ أو امسح رمز QR أدناه باستخدام كاميرا iPhone
  `);
  } catch (error) {
  alert("حدث خطأ أثناء إنشاء ملف Apple Wallet");
@@ -212,7 +212,7 @@ export default function LoyaltyCardComponent({ card, showActions = true }: Loyal
  <div className="flex items-center gap-2 justify-end">
  <div className="text-right">
  <div className="text-3xl font-bold" data-testid="text-discount-count">{card.discountCount}</div>
- <div className="text-xs opacity-90">مر� است� دام</div>
+ <div className="text-xs opacity-90">مرة استخدام</div>
  </div>
  <Sparkles className="w-6 h-6" />
  </div>

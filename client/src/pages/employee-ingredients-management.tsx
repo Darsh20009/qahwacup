@@ -16,7 +16,7 @@ const getIngredientIcon = (nameAr: string) => {
  "حليب": Droplet,
  "حبوب البن": Coffee,
  "بن مطحون": Coffee,
- "شوكولات� ": Cherry,
+ "شوكولاتة": Cherry,
  "حليب مكثف": Droplet,
  "فانيليا": Sparkles,
  "كاكاو": Cherry,
@@ -28,7 +28,7 @@ const getIngredientIcon = (nameAr: string) => {
  "ليمون": Cherry,
  "ماتشا": Leaf,
  "كيك": Cherry,
- "كريم� ": Droplet,
+ "كريمة ": Droplet,
  "بسكويت": Cherry
  };
  return iconMap[nameAr] || Coffee;
@@ -82,8 +82,8 @@ export default function EmployeeIngredientsManagement() {
  toast({
  title: "تم التحديث بنجاح",
  description: affectedCount > 0 
- ? `تم تحديث حال� توفر المكون وتأثر ${affectedCount} مشروب`
- : "تم تحديث حال� توفر المكون",
+ ? `تم تحديث حالةتوفر المكون وتأثر ${affectedCount} مشروب`
+ : "تم تحديث حالةتوفر المكون",
  });
  },
  onError: (error, variables, context: any) => {
@@ -91,8 +91,8 @@ export default function EmployeeIngredientsManagement() {
  queryClient.setQueryData(["/api/ingredients"], context.previousIngredients);
  }
  toast({
- title: "� طأ",
- description: "فشل تحديث حال� توفر المكون",
+ title: "خطأ",
+ description: "فشل تحديث حالةتوفر المكون",
  variant: "destructive",
  });
  },
@@ -114,7 +114,7 @@ export default function EmployeeIngredientsManagement() {
  <div className="max-w-7xl mx-auto">
  <div className="flex items-center justify-between">
  <div>
- <h1 className="text-3xl font-bold mb-2">إدار� المكونات</h1>
+ <h1 className="text-3xl font-bold mb-2">إدارةالمكونات</h1>
  <p className="text-amber-100">مرحباً، {employee.fullName}</p>
  </div>
  <Button 
@@ -125,7 +125,7 @@ export default function EmployeeIngredientsManagement() {
  data-testid="button-back-to-menu"
  >
  <ArrowRight className="w-5 h-5" />
- العودةللقائم� 
+ العودةللقائمة 
  </Button>
  </div>
  </div>
@@ -136,7 +136,7 @@ export default function EmployeeIngredientsManagement() {
  <div className="mb-6">
  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border-r-4 border-amber-500">
  <p className="text-gray-700 dark:text-gray-300">
-  <strong>تنبيه:</strong> عند تعطيل أي مكون، سيتم تلقائياً جعل جميع المشروبات التي تحتوي على هذا المكون غير متوفر� .
+  <strong>تنبيه:</strong> عند تعطيل أي مكون، سيتم تلقائياً جعل جميع المشروبات التي تحتوي على هذا المكون غير متوفرة.
  </p>
  </div>
  </div>
@@ -206,7 +206,7 @@ export default function EmployeeIngredientsManagement() {
  {/* Availability toggle */}
  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
- الحال� 
+ الحالة
  </span>
  <Switch
  checked={isAvailable}
@@ -235,7 +235,7 @@ export default function EmployeeIngredientsManagement() {
  لا توجد مكونات
  </h3>
  <p className="text-gray-500 dark:text-gray-400">
- لم يتم إضاف� أي مكونات بعد
+ لم يتم إضافة أي مكونات بعد
  </p>
  </div>
  )}

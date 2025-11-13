@@ -87,7 +87,7 @@ export default function CheckoutModal() {
  toast({
  variant: "destructive",
  title: "الملف كبير جداً",
- description: "يرجى اختيار صور� أقل من 5 ميجابايت",
+ description: "يرجى اختيار صورة أقل من 5 ميجابايت",
  });
  return;
  }
@@ -420,7 +420,7 @@ export default function CheckoutModal() {
  <div className="bg-card/50 rounded-xl p-6 border border-primary/20">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
  <Truck className="w-5 h-5 ml-2" />
- ا� تر طريقة الاستلام
+ اختر طريقة الاستلام
  </h3>
 
  <RadioGroup value={deliveryType || ""} onValueChange={(value) => setDeliveryType(value as DeliveryType)}>
@@ -447,13 +447,13 @@ export default function CheckoutModal() {
  {/* Branch Selection */}
  {deliveryType === 'pickup' && (
  <div className="mt-4 space-y-2 animate-in slide-in-from-top-10 duration-300">
- <Label>ا� تر الفرع</Label>
+ <Label>اختر الفرع</Label>
  <select
  value={selectedBranch}
  onChange={(e) => setSelectedBranch(e.target.value)}
  className="w-full p-3 rounded-lg border border-border bg-background text-foreground"
  >
- <option value="">-- ا� تر فرعاً --</option>
+ <option value="">-- اختر فرعاً --</option>
  {branches.map((branch: any) => (
  <option key={branch.id} value={branch.id}>
  {branch.nameAr} - {branch.location}
@@ -478,7 +478,7 @@ export default function CheckoutModal() {
  <Truck className="w-5 h-5 text-primary" />
  <div>
  <div className="font-semibold">توصيل للمنزل</div>
- <div className="text-sm text-muted-foreground">دا� ل حدود البديع� فقط</div>
+ <div className="text-sm text-muted-foreground">داخل حدود البديعة فقط</div>
  </div>
  </div>
  <div className="text-primary font-bold">15 ريال</div>
@@ -505,12 +505,12 @@ export default function CheckoutModal() {
  </div>
 
  <div>
- <Label htmlFor="delivery-notes">ملاحظات إضافي� (اختياري)</Label>
+ <Label htmlFor="delivery-notes">ملاحظات إضافية (اختياري)</Label>
  <Input
  id="delivery-notes"
  value={deliveryNotes}
  onChange={(e) => setDeliveryNotes(e.target.value)}
- placeholder="مثال: بجوار المسجد، بواب� � لفي� "
+ placeholder="مثال: بجوار المسجد، بوابة خلفية"
  className="mt-2"
  dir="rtl"
  />
@@ -518,7 +518,7 @@ export default function CheckoutModal() {
 
  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
  <p className="font-semibold mb-1"> تنبيه مهم</p>
- <p>التوصيل متاح فقط دا� ل حدود البديع� . سيتم التحقق من العنوان قبل تأكيد الطلب.</p>
+ <p>التوصيل متاح فقط داخل حدود البديعة. سيتم التحقق من العنوان قبل تأكيد الطلب.</p>
  </div>
  </div>
  )}
@@ -554,7 +554,7 @@ export default function CheckoutModal() {
  <div className="bg-card/50 rounded-xl p-6 border border-primary/20">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
  <Wallet className="w-5 h-5 ml-2" />
- ا� تر طريقة الدفع
+ اختر طريقة الدفع
  </h3>
 
  <PaymentMethods
@@ -571,7 +571,7 @@ export default function CheckoutModal() {
  رفع إيصال الدفع
  </h4>
  <p className="text-sm text-muted-foreground mb-3">
- يرجى رفع صور� واضح� لإيصال الدفع لإتمام الطلب
+ يرجى رفع صورة واضحة لإيصال الدفع لإتمام الطلب
  </p>
  
  <div className="space-y-3">
@@ -597,13 +597,13 @@ export default function CheckoutModal() {
  setReceiptPreview(null);
  }}
  >
- تغيير الصور� 
+ تغيير الصورة 
  </Button>
  </div>
  ) : (
  <>
  <Upload className="w-12 h-12 mx-auto mb-3 text-primary" />
- <p className="text-sm font-medium">اضغط لرفع صور� الإيصال</p>
+ <p className="text-sm font-medium">اضغط لرفع صورة الإيصال</p>
  <p className="text-xs text-muted-foreground mt-1">PNG, JPG حتى 5MB</p>
  </>
  )}
@@ -640,7 +640,7 @@ export default function CheckoutModal() {
  {createOrderMutation.isPending ? (
  <div className="flex items-center">
  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin ml-2" />
- جاري المعالج� ...
+ جاري المعالجة ...
  </div>
  ) : (
  <>
@@ -662,7 +662,7 @@ export default function CheckoutModal() {
  <h4 className="text-xl font-semibold text-foreground mb-3">تم إنشاء طلبك بنجاح!</h4>
  <p className="text-muted-foreground mb-2">رقم الطلب: <span className="font-semibold text-primary">{orderDetails?.orderNumber}</span></p>
  <p className="text-sm text-muted-foreground mb-6">
- يرجى إرسال المبلغ باست� دام الطريقة المحدد� وتأكيد الدفع
+ يرجى إرسال المبلغ باستخدام الطريقة المحددة وتأكيد الدفع
  </p>
 
  <div className="bg-background/50 p-4 rounded-lg border border-primary/20 mb-6">
@@ -732,7 +732,7 @@ export default function CheckoutModal() {
  className="w-full btn-primary text-accent-foreground py-4 text-lg font-semibold shadow-lg"
  >
  <Coffee className="w-5 h-5 ml-2" />
- العودةللقائم� 
+ العودةللقائمة 
  </Button>
  </div>
  </div>

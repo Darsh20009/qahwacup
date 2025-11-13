@@ -44,7 +44,7 @@ ${data.items.map(item => `• ${item.coffeeItem.nameAr} × ${item.quantity} - ${
 الإجمالي: ${data.total} ريال
 طريقة الدفع: ${data.paymentMethod}
 
-حال� الطلب: تحت التنفيذ
+حالةالطلب: تحت التنفيذ
 
 سنبلغك عند اكتمال طلبك. شكراً لتعاملك معنا!
 
@@ -110,14 +110,14 @@ export default function EmployeeCashier() {
  const availableStamps = (card.freeCupsEarned || 0) - (card.freeCupsRedeemed || 0);
  toast({
  title: "عميل مسجل",
- description: `مرحباً ${customer.name}! لديك ${availableStamps} أ� تام متاح� `,
+ description: `مرحباً ${customer.name}! لديك ${availableStamps} أختام متاحة`,
  className: "bg-green-600 text-white",
  });
  } else {
  setLoyaltyCard(null);
  toast({
  title: "عميل مسجل",
- description: `مرحباً ${customer.name}! سيتم إضاف� أ� تام الولاء تلقائياً`,
+ description: `مرحباً ${customer.name}! سيتم إضافة أختام الولاء تلقائياً`,
  className: "bg-green-600 text-white",
  });
  }
@@ -207,15 +207,15 @@ export default function EmployeeCashier() {
  className: "bg-green-600 text-white",
  });
  
- // تحديث قائم� الطلبات في صفح� الطلبات
+ // تحديث قائمةالطلبات في صفحة الطلبات
  await queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
  
  resetForm();
  },
  onError: () => {
  toast({
- title: "� طأ",
- description: "فشل إنشاء الطلب. يرجى المحاول� مر� أ� رى",
+ title: "خطأ",
+ description: "فشل إنشاء الطلب. يرجى المحاولة مرة أخرى",
  variant: "destructive",
  });
  },
@@ -284,7 +284,7 @@ export default function EmployeeCashier() {
  const validateDiscountCode = async () => {
  if (!discountCode.trim()) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "يرجى إدخال كود الخصم",
  variant: "destructive",
  });
@@ -304,8 +304,8 @@ export default function EmployeeCashier() {
  data = await response.json();
  } catch (parseError) {
  toast({
- title: "� طأ",
- description: "فشل قراء� استجاب� ال� ادم",
+ title: "خطأ",
+ description: "فشل قراءةاستجابةالخادم",
  variant: "destructive",
  });
  setIsValidatingDiscount(false);
@@ -337,7 +337,7 @@ export default function EmployeeCashier() {
  } catch (error) {
  console.error('Error validating discount code:', error);
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "فشل التحقق من كود الخصم",
  variant: "destructive",
  });
@@ -350,7 +350,7 @@ export default function EmployeeCashier() {
  setDiscountCode("");
  setAppliedDiscount(null);
  toast({
- title: "تم إزال� الخصم",
+ title: "تم إزالةالخصم",
  description: "تم إلغاء الخصم من الطلب",
  });
  };
@@ -362,8 +362,8 @@ export default function EmployeeCashier() {
  const handleSubmitOrder = () => {
  if (orderItems.length === 0) {
  toast({
- title: "� طأ",
- description: "يرجى إضاف� عناصر للطلب",
+ title: "خطأ",
+ description: "يرجى إضافة عناصر للطلب",
  variant: "destructive",
  });
  return;
@@ -371,7 +371,7 @@ export default function EmployeeCashier() {
 
  if (!(customerName || '').trim() || !(customerPhone || '').trim()) {
  toast({
- title: "� طأ",
+ title: "خطأ",
  description: "يرجى إدخال بيانات العميل",
  variant: "destructive",
  });
@@ -434,7 +434,7 @@ export default function EmployeeCashier() {
  غير متصل
  </Badge>
  </div>
- <p className="text-xs text-gray-500 mt-1">� يار "POS" متاح في طرق الدفع</p>
+ <p className="text-xs text-gray-500 mt-1">خيار "POS" متاح في طرق الدفع</p>
  </div>
  {lastOrder && (
  <Button
@@ -443,7 +443,7 @@ export default function EmployeeCashier() {
  data-testid="button-print-receipt"
  >
  <Printer className="w-4 h-4 ml-2" />
- طباع� الفاتورة 
+ طباعة الفاتورة 
  </Button>
  )}
  <Button
@@ -495,7 +495,7 @@ export default function EmployeeCashier() {
  data-testid={`button-add-${item.id}`}
  >
  <Plus className="w-4 h-4 ml-1" />
- إضاف� 
+ إضافة 
  </Button>
  </div>
  </CardContent>
@@ -621,7 +621,7 @@ export default function EmployeeCashier() {
  <span className="text-amber-300 font-semibold">بطاقة كوبي</span>
  </div>
  <Badge className="bg-amber-500 text-black">
- {(loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)} أ� تام
+ {(loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)} أختام
  </Badge>
  </div>
  <div className="flex items-center gap-1 justify-end">
@@ -646,7 +646,7 @@ export default function EmployeeCashier() {
  </div>
  <p className="text-xs text-gray-400 text-right flex items-center gap-1 justify-end">
  <Gift className="w-3 h-3 text-amber-400" />
- المشروبات المجاني� متاح� : {Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)}
+ المشروبات المجانية متاحة: {Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)}
  </p>
  </div>
  )}
@@ -654,7 +654,7 @@ export default function EmployeeCashier() {
  <div className="space-y-2">
  <Label className="text-gray-300 text-right block">
  <Coffee className="w-4 h-4 inline ml-2" />
- رقم الطاول� (اختياري)
+ رقم الطاولة (اختياري)
  </Label>
  <Input
  value={tableNumber}
@@ -690,7 +690,7 @@ export default function EmployeeCashier() {
  <Gift className="w-5 h-5 text-green-400" />
  </Label>
  <p className="text-xs text-gray-400 text-right mb-2">
- هل لديك كود خصم؟ أدخله هنا للحصول على ت� فيض فوري
+ هل لديك كود خصم؟ أدخله هنا للحصول على تخفيض فوري
  </p>
  {!appliedDiscount ? (
  <div className="flex gap-2">

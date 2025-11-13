@@ -34,7 +34,7 @@ export default function EmployeeLogin() {
  setLocation("/employee/dashboard");
  },
  onError: () => {
- setError("اسم المستخدم أو كلمة المرور غير صحيح� ");
+ setError("اسم المستخدم أو كلمة المرور غير صحيحة ");
  setPassword("");
  },
  });

@@ -16,17 +16,17 @@ export const COFFEE_STRENGTH_CONFIG = {
  textColor: "text-amber-800 dark:text-amber-200",
  borderColor: "border-amber-300 dark:border-amber-700",
  icon: "",
- description: "نكهة� متوازن� ومعتدل� ، مثالي� للاستمتاع اليومي"
+ description: "نكهةمتوازنةومعتدلة، مثاليةللاستمتاع اليومي"
  },
  mild: {
- labelAr: "�خفيف",
+ labelAr: "خفيف",
  labelEn: "Mild",
  color: "#DEB887", // Burlywood
  bgColor: "bg-green-100 dark:bg-green-900/30", 
  textColor: "text-green-700 dark:text-green-200",
  borderColor: "border-green-300 dark:border-green-700",
  icon: "",
- description: "قو� �خفيف� ونعومة� استثنائية ، لبداي� لطيف� "
+ description: "قوة خفيفةونعومة استثنائية ، لبداية لطيفة"
  },
  medium: {
  labelAr: "متوسط",
@@ -36,7 +36,7 @@ export const COFFEE_STRENGTH_CONFIG = {
  textColor: "text-orange-700 dark:text-orange-200", 
  borderColor: "border-orange-300 dark:border-orange-700",
  icon: "",
- description: "توازن مثالي بين النكهةة� والقو� "
+ description: "توازن مثالي بين النكهةوالقوة "
  },
  strong: {
  labelAr: "قوي",
@@ -46,7 +46,7 @@ export const COFFEE_STRENGTH_CONFIG = {
  textColor: "text-red-800 dark:text-red-200",
  borderColor: "border-red-300 dark:border-red-700", 
  icon: "",
- description: "نكهة� قوي� ومكثف� للباحثين عن الطاق� "
+ description: "نكهةقويةومكثفةللباحثين عن الطاقة"
  }
 } as const;
 

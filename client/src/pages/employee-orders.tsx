@@ -106,7 +106,7 @@ export default function EmployeeOrders() {
  // Show toast notification
  toast({
  title: "طلب جديد",
- description: `لديك ${newOrderIds.length} طلب ${newOrderIds.length === 1 ? 'جديد' : 'جديد� '}`,
+ description: `لديك ${newOrderIds.length} طلب ${newOrderIds.length === 1 ? 'جديد' : 'جديدة'}`,
  className: "bg-green-600 text-white border-green-700",
  });
  
@@ -137,7 +137,7 @@ export default function EmployeeOrders() {
  queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
  
  toast({
- title: "تم تحديث حال� الطلب",
+ title: "تم تحديث حالةالطلب",
  description: `الطلب ${updatedOrder.orderNumber}`,
  });
 
@@ -155,7 +155,7 @@ export default function EmployeeOrders() {
  onError: () => {
  toast({
  title: "خطأ",
- description: "فشل تحديث حال� الطلب",
+ description: "فشل تحديث حالةالطلب",
  variant: "destructive",
  });
  },
@@ -297,7 +297,7 @@ export default function EmployeeOrders() {
  </div>
  <div>
  <h1 className="text-2xl font-bold text-amber-500 flex items-center gap-2">
- إدار� الطلبات
+ إدارةالطلبات
  {newOrdersCount > 0 && <BellRing className="w-5 h-5 text-red-500 animate-pulse" />}
  </h1>
  <p className="text-gray-400 text-sm">الموظف: {employee.fullName}</p>
@@ -345,18 +345,18 @@ export default function EmployeeOrders() {
  <Filter className="text-amber-500 w-5 h-5" />
  <Select value={statusFilter} onValueChange={setStatusFilter}>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-filter">
- <SelectValue placeholder="فلتر� حسب الحال� " />
+ <SelectValue placeholder="فلترةحسب الحالة" />
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="all">جميع الطلبات</SelectItem>
- <SelectItem value="active">الطلبات النشط� </SelectItem>
+ <SelectItem value="active">الطلبات النشطة</SelectItem>
  <SelectItem value="pending">في الانتظار</SelectItem>
  <SelectItem value="payment_confirmed">تم تأكيد الدفع</SelectItem>
  <SelectItem value="in_progress">قيد التحضير</SelectItem>
  <SelectItem value="ready">جاهز للاستلام</SelectItem>
- <SelectItem value="completed_cancelled">المكتمل� والملغا� </SelectItem>
- <SelectItem value="completed">مكتمل� </SelectItem>
- <SelectItem value="cancelled">ملغا� </SelectItem>
+ <SelectItem value="completed_cancelled">المكتملةوالملغاة</SelectItem>
+ <SelectItem value="completed">مكتملة</SelectItem>
+ <SelectItem value="cancelled">ملغاة</SelectItem>
  </SelectContent>
  </Select>
  </div>
@@ -393,13 +393,13 @@ export default function EmployeeOrders() {
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardHeader>
  <CardTitle className="text-amber-500 text-right">
- الطلبات النشط� ({activeOrders.length})
+ الطلبات النشطة({activeOrders.length})
  </CardTitle>
  </CardHeader>
  <CardContent>
  {activeOrders.length === 0 ? (
  <div className="text-center text-gray-400 py-8">
- لا توجد طلبات نشط� 
+ لا توجد طلبات نشطة
  </div>
  ) : (
  <div className="space-y-4">
@@ -498,7 +498,7 @@ export default function EmployeeOrders() {
  <div className="flex items-start gap-2">
  <Car className="w-5 h-5 text-purple-400 mt-0.5" />
  <div className="flex-1">
- <p className="text-purple-400 text-sm font-semibold mb-2">معلومات السيار� - استلام من المركب� </p>
+ <p className="text-purple-400 text-sm font-semibold mb-2">معلومات السيارة- استلام من المركبة</p>
  <div className="space-y-1">
  <p className="text-white text-sm">
  <span className="text-gray-400">النوع:</span> {order.carPickup.carType}
@@ -507,7 +507,7 @@ export default function EmployeeOrders() {
  <span className="text-gray-400">اللون:</span> {order.carPickup.carColor}
  </p>
  </div>
- <p className="text-xs text-purple-300 mt-2">يرجى توصيل الطلب للعميل في السيار� </p>
+ <p className="text-xs text-purple-300 mt-2">يرجى توصيل الطلب للعميل في السيارة</p>
  </div>
  </div>
  </div>
@@ -556,13 +556,13 @@ export default function EmployeeOrders() {
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardHeader>
  <CardTitle className="text-gray-400 text-right">
- الطلبات المكتمل� ({completedOrders.length})
+ الطلبات المكتملة({completedOrders.length})
  </CardTitle>
  </CardHeader>
  <CardContent>
  {completedOrders.length === 0 ? (
  <div className="text-center text-gray-400 py-8">
- لا توجد طلبات مكتمل� 
+ لا توجد طلبات مكتملة
  </div>
  ) : (
  <div className="space-y-3">

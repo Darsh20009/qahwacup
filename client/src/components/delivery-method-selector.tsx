@@ -9,7 +9,7 @@ interface DeliveryMethodSelectorProps {
 export function DeliveryMethodSelector({ value, onChange }: DeliveryMethodSelectorProps) {
  return (
  <div className="space-y-3">
- <h3 className="text-lg font-semibold">ا� تر طريقة الاستلام</h3>
+ <h3 className="text-lg font-semibold">اختر طريقة الاستلام</h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
  <Card
  data-testid="button-pickup-method"
@@ -49,7 +49,7 @@ export function DeliveryMethodSelector({ value, onChange }: DeliveryMethodSelect
  <div>
  <h4 className="font-semibold text-base">توصيل للمنزل</h4>
  <p className="text-sm text-muted-foreground mt-1">
- نوصل لك في البديع� وظهر� البديع� (10 ريال)
+ نوصل لك في البديعةوظهران البديعة(10 ريال)
  </p>
  </div>
  </div>

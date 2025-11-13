@@ -77,7 +77,7 @@ export default function QRScanner({
  // Alternative: search by phone number
  toast({
  title: "قريباً",
- description: "ميز� البحث برقم الهاتف قيد التطوير"
+ description: "ميزة البحث برقم الهاتف قيد التطوير"
  });
  };
 
@@ -87,7 +87,7 @@ export default function QRScanner({
  <DialogHeader>
  <DialogTitle className="flex items-center gap-2 text-amber-400">
  <Scan className="w-5 h-5" />
- مسح بطاقة� الولاء
+ مسح بطاقة الولاء
  </DialogTitle>
  </DialogHeader>
 
@@ -105,7 +105,7 @@ export default function QRScanner({
  {/* QR Code Input */}
  <div className="space-y-2">
  <Label htmlFor="qr-token" className="text-slate-300">
- رمز بطاقة� الولاء (QR)
+ رمز بطاقة الولاء (QR)
  </Label>
  <div className="flex gap-2">
  <Input
@@ -137,7 +137,7 @@ export default function QRScanner({
  </Button>
  </div>
  <p className="text-xs text-slate-400">
- أدخل رمز QR من بطاقة� العميل أو امسحها باست� دام الكاميرا
+ أدخل رمز QR من بطاقة العميل أو امسحها باستخدام الكاميرا
  </p>
  </div>
 
@@ -148,7 +148,7 @@ export default function QRScanner({
  <div className="flex-1 space-y-1">
  <h4 className="font-semibold text-green-400">خصم الولاء التلقائي</h4>
  <p className="text-sm text-slate-300">
- سيتم تطبيق خصم 10% تلقائياً على الطلب عند مسح بطاقة� الولاء
+ سيتم تطبيق خصم 10% تلقائياً على الطلب عند مسح بطاقة الولاء
  </p>
  </div>
  </div>
