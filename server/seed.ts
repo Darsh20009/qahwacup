@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import type { InsertIngredient, InsertDiscountCode, InsertDeliveryZone } from "@shared/schema";
+import type { InsertIngredient, InsertDiscountCode, InsertDeliveryZone, InsertBranch } from "@shared/schema";
 
 export async function seedDiscountCodes() {
   const discountCodes: InsertDiscountCode[] = [
@@ -151,6 +151,66 @@ export async function linkDrinkIngredients(ingredientMap: Map<string, string>) {
   }
 }
 
+export async function seedBranches() {
+  const branches: InsertBranch[] = [
+    {
+      nameAr: "فرع التحلية",
+      nameEn: "Al-Tahlia Branch",
+      address: "شارع التحلية، الرياض",
+      phone: "501234567",
+      city: "الرياض",
+      location: {
+        latitude: 24.7136,
+        longitude: 46.6753
+      },
+      isActive: 1,
+      managerName: "أحمد محمد"
+    },
+    {
+      nameAr: "فرع العليا",
+      nameEn: "Al-Olaya Branch",
+      address: "طريق العليا، الرياض",
+      phone: "502345678",
+      city: "الرياض",
+      location: {
+        latitude: 24.7200,
+        longitude: 46.6850
+      },
+      isActive: 1,
+      managerName: "محمد عبدالله"
+    },
+    {
+      nameAr: "فرع الملز",
+      nameEn: "Al-Malaz Branch",
+      address: "حي الملز، الرياض",
+      phone: "503456789",
+      city: "الرياض",
+      location: {
+        latitude: 24.7280,
+        longitude: 46.7280
+      },
+      isActive: 1,
+      managerName: "خالد سعد"
+    }
+  ];
+
+  for (const branch of branches) {
+    try {
+      const existing = await storage.getBranches();
+      const found = existing.find(b => b.nameAr === branch.nameAr);
+      
+      if (!found) {
+        await storage.createBranch(branch);
+        console.log(`✅ Created branch: ${branch.nameAr}`);
+      } else {
+        console.log(`ℹ️  Branch already exists: ${branch.nameAr}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error creating branch ${branch.nameAr}:`, error);
+    }
+  }
+}
+
 export async function seedDeliveryZones() {
   const deliveryZones: InsertDeliveryZone[] = [
     {
@@ -207,6 +267,9 @@ export async function runSeeds() {
   
   console.log("\n🔗 Linking drinks with ingredients...");
   await linkDrinkIngredients(ingredientMap);
+  
+  console.log("\n🏪 Seeding branches...");
+  await seedBranches();
   
   console.log("\n📍 Seeding delivery zones...");
   await seedDeliveryZones();
