@@ -705,6 +705,7 @@ export const insertBranchSchema = z.object({
     latitude: z.number(),
     longitude: z.number()
   }).optional(),
+  mapsUrl: z.string().optional(),
   isActive: z.number().optional(),
   managerName: z.string().optional(),
 });

@@ -14,7 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
  Coffee, Users, ShoppingBag, TrendingUp, DollarSign, 
  Package, MapPin, Layers, ArrowLeft, Calendar,
- UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus, Trash2
+ UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus, Trash2, ExternalLink
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { 
@@ -42,8 +42,7 @@ export default function ManagerDashboard() {
  phone: "",
  city: "",
  managerName: "",
- latitude: "",
- longitude: "",
+ mapsUrl: "",
  });
  const { toast } = useToast();
 
@@ -86,16 +85,9 @@ export default function ManagerDashboard() {
  phone: branchData.phone,
  city: branchData.city,
  managerName: branchData.managerName || undefined,
+ mapsUrl: branchData.mapsUrl || undefined,
  isActive: 1,
  };
-
- // Add location if both coordinates are provided
- if (branchData.latitude && branchData.longitude) {
- payload.location = {
- latitude: parseFloat(branchData.latitude),
- longitude: parseFloat(branchData.longitude),
- };
- }
 
  const response = await fetch("/api/branches", {
  method: "POST",
@@ -120,8 +112,7 @@ export default function ManagerDashboard() {
  phone: "",
  city: "",
  managerName: "",
- latitude: "",
- longitude: "",
+ mapsUrl: "",
  });
  toast({
  title: "تم إضافة الفرع بنجاح",
@@ -794,29 +785,14 @@ export default function ManagerDashboard() {
  />
  </div>
  <div className="grid gap-2">
- <Label htmlFor="latitude" className="text-gray-300">خط العرض (Latitude)</Label>
+ <Label htmlFor="mapsUrl" className="text-gray-300">رابط Google Maps</Label>
  <Input
- id="latitude"
- type="number"
- step="any"
- value={branchForm.latitude}
- onChange={(e) => setBranchForm({ ...branchForm, latitude: e.target.value })}
+ id="mapsUrl"
+ value={branchForm.mapsUrl}
+ onChange={(e) => setBranchForm({ ...branchForm, mapsUrl: e.target.value })}
  className="bg-[#1a1410] border-amber-500/30 text-white"
- placeholder="مثال: 24.7136"
- data-testid="input-branch-latitude"
- />
- </div>
- <div className="grid gap-2">
- <Label htmlFor="longitude" className="text-gray-300">خط الطول (Longitude)</Label>
- <Input
- id="longitude"
- type="number"
- step="any"
- value={branchForm.longitude}
- onChange={(e) => setBranchForm({ ...branchForm, longitude: e.target.value })}
- className="bg-[#1a1410] border-amber-500/30 text-white"
- placeholder="مثال: 46.6753"
- data-testid="input-branch-longitude"
+ placeholder="https://maps.app.goo.gl/..."
+ data-testid="input-branch-maps-url"
  />
  </div>
  </div>
@@ -858,10 +834,18 @@ export default function ManagerDashboard() {
  <h3 className="font-semibold text-gray-200">{branch.nameAr}</h3>
  <p className="text-sm text-gray-400">{branch.address}, {branch.city}</p>
  <p className="text-sm text-gray-500">{branch.phone}</p>
- {branch.location && branch.location.latitude && branch.location.longitude && (
- <p className="text-xs text-gray-500 mt-1">
- الموقع: {branch.location.latitude.toFixed(4)}, {branch.location.longitude.toFixed(4)}
- </p>
+ {branch.mapsUrl && (
+ <a 
+ href={branch.mapsUrl} 
+ target="_blank" 
+ rel="noopener noreferrer"
+ className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1 mt-1"
+ data-testid={`link-map-${branch._id}`}
+ >
+ <MapPin className="w-3 h-3" />
+ عرض على الخريطة
+ <ExternalLink className="w-3 h-3" />
+ </a>
  )}
  </div>
  <div className="flex items-center gap-2">
