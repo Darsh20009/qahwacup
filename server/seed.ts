@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import type { InsertIngredient, InsertDiscountCode, InsertDeliveryZone, InsertBranch } from "@shared/schema";
+import type { InsertIngredient, InsertDiscountCode, InsertDeliveryZone, InsertBranch, InsertEmployee } from "@shared/schema";
 
 export async function seedDiscountCodes() {
   const discountCodes: InsertDiscountCode[] = [
@@ -256,6 +256,58 @@ export async function seedDeliveryZones() {
   }
 }
 
+export async function seedEmployees() {
+  const employees: InsertEmployee[] = [
+    {
+      username: "manager1",
+      fullName: "أحمد محمد",
+      role: "manager",
+      phone: "501111111",
+      jobTitle: "مدير عام",
+      isActivated: 0,
+    },
+    {
+      username: "cashier1",
+      fullName: "خالد سعيد",
+      role: "cashier",
+      phone: "502222222",
+      jobTitle: "كاشير",
+      isActivated: 0,
+    },
+    {
+      username: "cashier2",
+      fullName: "محمد علي",
+      role: "cashier",
+      phone: "503333333",
+      jobTitle: "كاشير",
+      isActivated: 0,
+    },
+    {
+      username: "cashier3",
+      fullName: "عبدالله حسن",
+      role: "cashier",
+      phone: "504444444",
+      jobTitle: "كاشير",
+      isActivated: 0,
+    },
+  ];
+
+  for (const employee of employees) {
+    try {
+      const existing = await storage.getEmployeeByPhone(employee.phone);
+      
+      if (!existing) {
+        await storage.createEmployee(employee);
+        console.log(`✅ Created employee: ${employee.fullName} (${employee.role}) - Phone: ${employee.phone}`);
+      } else {
+        console.log(`ℹ️  Employee already exists: ${employee.fullName}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error creating employee ${employee.fullName}:`, error);
+    }
+  }
+}
+
 export async function runSeeds() {
   console.log("\n🌱 Starting database seeding...\n");
   
@@ -273,6 +325,9 @@ export async function runSeeds() {
   
   console.log("\n📍 Seeding delivery zones...");
   await seedDeliveryZones();
+  
+  console.log("\n👥 Seeding employees...");
+  await seedEmployees();
   
   console.log("\n✅ Seeding completed!\n");
 }

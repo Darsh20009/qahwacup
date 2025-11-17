@@ -1,16 +1,27 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Coffee, MapPin, Truck, Check, Clock, Package } from "lucide-react";
+import { Coffee, MapPin, Truck, Check, Clock, Package, ExternalLink, Store } from "lucide-react";
 import type { Order } from "@shared/schema";
 
 export default function OrderTrackingPage() {
+ const [location] = useLocation();
  const [orderNumber, setOrderNumber] = useState("");
  const [trackingOrderNumber, setTrackingOrderNumber] = useState("");
+ 
+ useEffect(() => {
+ const params = new URLSearchParams(window.location.search);
+ const orderFromUrl = params.get('order');
+ if (orderFromUrl) {
+ setOrderNumber(orderFromUrl);
+ setTrackingOrderNumber(orderFromUrl);
+ }
+ }, [location]);
 
  const { data: order, isLoading } = useQuery<Order>({
  queryKey: ["/api/orders/number", trackingOrderNumber],
@@ -21,6 +32,17 @@ export default function OrderTrackingPage() {
  return res.json();
  },
  enabled: !!trackingOrderNumber,
+ });
+ 
+ const { data: branch } = useQuery<any>({
+ queryKey: ["/api/branches", order?.branchId],
+ queryFn: async () => {
+ if (!order?.branchId) return null;
+ const res = await fetch(`/api/branches/${order.branchId}`);
+ if (!res.ok) return null;
+ return res.json();
+ },
+ enabled: !!order?.branchId,
  });
 
  const handleTrack = () => {
@@ -123,6 +145,40 @@ export default function OrderTrackingPage() {
  <span className="font-bold">
  {order.deliveryType === 'delivery' ? 'توصيل' : 'استلام من الفرع'}
  </span>
+ </div>
+ )}
+ {branch && (
+ <div className="space-y-3 pt-4 border-t">
+ <div className="flex items-center gap-2 text-primary font-semibold">
+ <Store className="w-5 h-5" />
+ <span>معلومات الفرع</span>
+ </div>
+ <div className="flex justify-between items-center">
+ <span className="text-muted-foreground">اسم الفرع:</span>
+ <span className="font-bold">{branch.nameAr}</span>
+ </div>
+ <div className="flex justify-between items-center">
+ <span className="text-muted-foreground">العنوان:</span>
+ <span className="font-bold">{branch.address}</span>
+ </div>
+ {branch.phone && (
+ <div className="flex justify-between items-center">
+ <span className="text-muted-foreground">الهاتف:</span>
+ <span className="font-bold" dir="ltr">{branch.phone}</span>
+ </div>
+ )}
+ {branch.mapsUrl && (
+ <Button
+ variant="outline"
+ className="w-full"
+ onClick={() => window.open(branch.mapsUrl, '_blank')}
+ data-testid="button-view-branch-location"
+ >
+ <MapPin className="w-4 h-4 ml-2" />
+ عرض الموقع على الخريطة
+ <ExternalLink className="w-4 h-4 mr-2" />
+ </Button>
+ )}
  </div>
  )}
  </div>

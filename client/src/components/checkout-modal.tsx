@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/cart-store";
@@ -8,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentMethods from "./payment-methods";
 import { generatePDF } from "@/lib/pdf-generator";
+import { saveOrderLocally } from "@/lib/local-orders";
 import { CreditCard, FileText, MessageCircle, Check, ArrowRight, Coffee, ShoppingCart, Wallet, Star, Phone, Truck, Store, MapPin, Upload, User } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +22,7 @@ type CheckoutStep = 'review' | 'delivery' | 'payment' | 'confirmation' | 'succes
 type DeliveryType = 'pickup' | 'delivery' | null;
 
 export default function CheckoutModal() {
+ const [, navigate] = useLocation();
  const {
  cartItems,
  isCheckoutOpen,
@@ -65,6 +68,11 @@ export default function CheckoutModal() {
  },
  onSuccess: (order) => {
  setOrderDetails(order);
+ 
+ if (!customer) {
+ saveOrderLocally(order.orderNumber);
+ }
+ 
  if (selectedPaymentMethod === 'cash') {
  handlePaymentConfirmed(order);
  } else {
@@ -205,13 +213,23 @@ export default function CheckoutModal() {
  document.body.removeChild(link);
  URL.revokeObjectURL(url);
 
- // Move to success step
  setCurrentStep('success');
 
  toast({
  title: "تم إنشاء الطلب بنجاح! ",
- description: "تم تحميل الفاتورة . سيتم إرسالها لرقمك الجوال قريباً.",
+ description: "تم تحميل الفاتورة. جاري التوجيه لصفحة تتبع الطلب...",
  });
+ 
+ setTimeout(() => {
+ clearCart();
+ hideCheckout();
+ 
+ if (customer) {
+ navigate("/my-orders");
+ } else {
+ navigate(`/tracking?order=${order.orderNumber}`);
+ }
+ }, 2000);
  } catch (error) {
  toast({
  variant: "destructive",

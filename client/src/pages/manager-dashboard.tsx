@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import BranchLocationPicker from "@/components/branch-location-picker";
 import { 
  Coffee, Users, ShoppingBag, TrendingUp, DollarSign, 
  Package, MapPin, Layers, ArrowLeft, Calendar,
@@ -43,6 +44,8 @@ export default function ManagerDashboard() {
  city: "",
  managerName: "",
  mapsUrl: "",
+ latitude: 24.7136,
+ longitude: 46.6753,
  });
  const { toast } = useToast();
 
@@ -86,6 +89,10 @@ export default function ManagerDashboard() {
  city: branchData.city,
  managerName: branchData.managerName || undefined,
  mapsUrl: branchData.mapsUrl || undefined,
+ location: {
+ latitude: branchData.latitude,
+ longitude: branchData.longitude,
+ },
  isActive: 1,
  };
 
@@ -113,6 +120,8 @@ export default function ManagerDashboard() {
  city: "",
  managerName: "",
  mapsUrl: "",
+ latitude: 24.7136,
+ longitude: 46.6753,
  });
  toast({
  title: "تم إضافة الفرع بنجاح",
@@ -715,7 +724,7 @@ export default function ManagerDashboard() {
  إضافة فرع
  </Button>
  </DialogTrigger>
- <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-white sm:max-w-[500px]">
+ <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-white sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
  <DialogHeader>
  <DialogTitle className="text-amber-500 text-xl">إضافة فرع جديد</DialogTitle>
  </DialogHeader>
@@ -795,6 +804,14 @@ export default function ManagerDashboard() {
  data-testid="input-branch-maps-url"
  />
  </div>
+ 
+ <BranchLocationPicker
+ initialLat={branchForm.latitude}
+ initialLng={branchForm.longitude}
+ onLocationSelect={(lat, lng) => {
+ setBranchForm({ ...branchForm, latitude: lat, longitude: lng });
+ }}
+ />
  </div>
  <div className="flex gap-2 justify-end">
  <Button
