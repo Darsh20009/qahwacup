@@ -955,16 +955,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Always return success to prevent phone enumeration
       // But only generate OTP if customer exists and has no password
       if (customer && !customer.password) {
-        // Generate 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-        
-        // Store OTP (in production, use Redis or similar)
-        // For now, store in memory map or database
-        // TODO: Implement OTP storage and SMS sending
-        console.log(`OTP for ${cleanPhone}: ${otp} (expires at ${expiresAt})`);
-        
-        // In production: Send SMS with OTP via Twilio/etc
+        try {
+          const { otp, expiresAt } = await storage.createPasswordSetupOTP(cleanPhone);
+          
+          // Log OTP for development (in production: send SMS via Twilio/etc)
+          console.log(`OTP for ${cleanPhone}: ${otp} (expires at ${expiresAt.toISOString()})`);
+          
+          // TODO PRODUCTION: Send SMS with OTP
+          // await twilioClient.messages.create({
+          //   body: `رمز التحقق الخاص بك: ${otp}`,
+          //   to: '+966' + cleanPhone,
+          //   from: process.env.TWILIO_PHONE_NUMBER
+          // });
+        } catch (otpError: any) {
+          // If rate limit exceeded, return specific error
+          if (otpError.message.includes('تجاوز الحد')) {
+            return res.status(429).json({ error: otpError.message });
+          }
+          throw otpError;
+        }
       }
 
       res.json({ 
@@ -993,9 +1002,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
       }
 
-      // TODO: Verify OTP from storage
-      // For now, accept any 6-digit OTP for development
-      // In production: Verify OTP matches stored value and hasn't expired
       if (!/^\d{6}$/.test(otp)) {
         return res.status(400).json({ error: "رمز التحقق غير صحيح" });
       }
@@ -1013,6 +1019,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Verify OTP from database
+      const otpVerification = await storage.verifyPasswordSetupOTP(cleanPhone, otp);
+      if (!otpVerification.valid) {
+        return res.status(400).json({ error: otpVerification.message || "رمز التحقق غير صحيح" });
+      }
+
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
       
@@ -1025,7 +1037,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "فشل تحديث كلمة المرور" });
       }
 
-      // TODO: Invalidate the used OTP
+      // Invalidate the used OTP
+      await storage.invalidatePasswordSetupOTP(cleanPhone, otp);
 
       const { password: _, ...customerData } = updated;
       res.json({ 

@@ -80,6 +80,31 @@ const PasswordResetTokenSchema = new Schema<IPasswordResetToken>({
 
 export const PasswordResetTokenModel = mongoose.model<IPasswordResetToken>("PasswordResetToken", PasswordResetTokenSchema);
 
+export interface IPasswordSetupOTP extends Document {
+  phone: string;
+  otp: string;
+  expiresAt: Date;
+  used: number;
+  attempts: number;
+  createdAt: Date;
+}
+
+const PasswordSetupOTPSchema = new Schema<IPasswordSetupOTP>({
+  phone: { type: String, required: true },
+  otp: { type: String, required: true },
+  expiresAt: { type: Date, required: true },
+  used: { type: Number, default: 0, required: true },
+  attempts: { type: Number, default: 0, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Create index for automatic cleanup of expired OTPs (TTL index)
+PasswordSetupOTPSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// Index for quick phone lookup
+PasswordSetupOTPSchema.index({ phone: 1 });
+
+export const PasswordSetupOTPModel = mongoose.model<IPasswordSetupOTP>("PasswordSetupOTP", PasswordSetupOTPSchema);
+
 export interface IEmployee extends Document {
   username: string;
   password?: string;

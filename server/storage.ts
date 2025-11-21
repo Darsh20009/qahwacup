@@ -52,6 +52,7 @@ import {
   IngredientModel,
   CoffeeItemIngredientModel,
   PasswordResetTokenModel,
+  PasswordSetupOTPModel,
   BranchModel,
   CategoryModel,
   DeliveryZoneModel,
@@ -93,6 +94,10 @@ export interface IStorage {
   createPasswordResetToken(email: string): Promise<{token: string, expiresAt: Date}>;
   verifyPasswordResetToken(token: string): Promise<{valid: boolean, email?: string}>;
   usePasswordResetToken(token: string): Promise<boolean>;
+
+  createPasswordSetupOTP(phone: string): Promise<{otp: string, expiresAt: Date}>;
+  verifyPasswordSetupOTP(phone: string, otp: string): Promise<{valid: boolean, message?: string}>;
+  invalidatePasswordSetupOTP(phone: string, otp: string): Promise<boolean>;
 
   getCoffeeItems(): Promise<CoffeeItem[]>;
   getCoffeeItem(id: string): Promise<CoffeeItem | undefined>;
@@ -469,6 +474,83 @@ export class DBStorage implements IStorage {
 
   async usePasswordResetToken(token: string): Promise<boolean> {
     const result = await PasswordResetTokenModel.updateOne({ token }, { used: 1 });
+    return result.modifiedCount > 0;
+  }
+
+  async createPasswordSetupOTP(phone: string): Promise<{otp: string, expiresAt: Date}> {
+    const MAX_OTP_REQUESTS_PER_HOUR = 5;
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
+    // Rate limiting: check how many OTPs were created for this phone in the last hour
+    const recentOTPs = await PasswordSetupOTPModel.countDocuments({
+      phone,
+      createdAt: { $gte: oneHourAgo }
+    });
+    
+    if (recentOTPs >= MAX_OTP_REQUESTS_PER_HOUR) {
+      throw new Error('تم تجاوز الحد الأقصى للمحاولات. يرجى المحاولة مرة أخرى بعد ساعة');
+    }
+    
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    // Invalidate any previous unused OTPs for this phone
+    await PasswordSetupOTPModel.updateMany(
+      { phone, used: 0 },
+      { used: 1 }
+    );
+    
+    // Create new OTP
+    await PasswordSetupOTPModel.create({
+      phone,
+      otp,
+      expiresAt,
+      used: 0,
+      attempts: 0
+    });
+    
+    return { otp, expiresAt };
+  }
+
+  async verifyPasswordSetupOTP(phone: string, otp: string): Promise<{valid: boolean, message?: string}> {
+    const MAX_ATTEMPTS = 3;
+    
+    // Find the most recent unused OTP for this phone
+    const otpRecord = await PasswordSetupOTPModel.findOne({ 
+      phone, 
+      used: 0,
+      otp 
+    }).sort({ createdAt: -1 });
+    
+    if (!otpRecord) {
+      return { valid: false, message: 'رمز التحقق غير صحيح أو منتهي الصلاحية' };
+    }
+    
+    // Check if expired
+    if (otpRecord.expiresAt < new Date()) {
+      return { valid: false, message: 'رمز التحقق منتهي الصلاحية' };
+    }
+    
+    // Check max attempts
+    if (otpRecord.attempts >= MAX_ATTEMPTS) {
+      return { valid: false, message: 'تم تجاوز الحد الأقصى للمحاولات' };
+    }
+    
+    // Increment attempts
+    await PasswordSetupOTPModel.updateOne(
+      { _id: otpRecord._id },
+      { $inc: { attempts: 1 } }
+    );
+    
+    return { valid: true };
+  }
+
+  async invalidatePasswordSetupOTP(phone: string, otp: string): Promise<boolean> {
+    const result = await PasswordSetupOTPModel.updateOne(
+      { phone, otp, used: 0 },
+      { used: 1 }
+    );
     return result.modifiedCount > 0;
   }
 
