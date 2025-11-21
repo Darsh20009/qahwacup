@@ -36,6 +36,10 @@ import EmployeeActivation from "@/pages/employee-activation";
 import ManagerDashboard from "@/pages/manager-dashboard";
 import ManagerLogin from "@/pages/manager-login";
 import ManagerDrivers from "@/pages/manager-drivers";
+import ManagerTables from "@/pages/manager-tables";
+import TableMenu from "@/pages/table-menu";
+import TableOrderTracking from "@/pages/table-order-tracking";
+import CashierTableOrders from "@/pages/cashier-table-orders";
 
 function Router() {
  return (
@@ -49,6 +53,8 @@ function Router() {
  <Route path="/my-orders" component={MyOrdersPage} />
  <Route path="/menu" component={MenuPage} />
  <Route path="/menu-view" component={MenuView} />
+ <Route path="/table-menu/:qrToken" component={TableMenu} />
+ <Route path="/table-order-tracking/:orderId" component={TableOrderTracking} />
  <Route path="/my-card" component={MyCard} />
  <Route path="/cart" component={CartPage} />
  <Route path="/delivery" component={DeliverySelectionPage} />
@@ -61,6 +67,7 @@ function Router() {
  <Route path="/employee/activate" component={EmployeeActivation} />
  <Route path="/employee/dashboard" component={EmployeeDashboard} />
  <Route path="/employee/cashier" component={EmployeeCashier} />
+ <Route path="/employee/table-orders" component={CashierTableOrders} />
  <Route path="/employee/orders" component={EmployeeOrders} />
  <Route path="/employee/loyalty" component={EmployeeLoyalty} />
  <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
@@ -69,6 +76,7 @@ function Router() {
  <Route path="/manager/employees" component={ManagerEmployees} />
  <Route path="/manager/drivers" component={ManagerDrivers} />
  <Route path="/manager/dashboard" component={ManagerDashboard} />
+ <Route path="/manager/tables" component={ManagerTables} />
  <Route component={SplashScreen} />
  </Switch>
  );

@@ -285,6 +285,19 @@ export default function EmployeeDashboard() {
  </div>
  </Button>
 
+ <Button
+ size="lg"
+ className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 text-white"
+ onClick={() => setLocation("/employee/table-orders")}
+ data-testid="button-table-orders"
+ >
+ <Coffee className="w-10 h-10" />
+ <div className="text-center">
+ <div className="font-bold text-lg">طلبات الطاولات</div>
+ <div className="text-sm opacity-90">استلام وإدارة طلبات الطاولات</div>
+ </div>
+ </Button>
+
  {employee.role === "manager" && (
  <>
  <Button
