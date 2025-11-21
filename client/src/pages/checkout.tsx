@@ -634,12 +634,12 @@ ${itemsWithPrices}
  <div className="space-y-4">
  <Button
  onClick={() => {
- window.location.href = '/tracking';
+ window.location.href = '/my-orders';
  }}
  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground py-4 text-lg font-semibold"
  >
- <Clock className="w-5 h-5 ml-2" />
- اذهب لتتبع الطلب
+ <ShoppingBag className="w-5 h-5 ml-2" />
+ عرض طلباتي
  </Button>
 
  <Button
