@@ -40,7 +40,8 @@ export interface ICustomer extends Document {
   phone: string;
   email?: string;
   name: string;
-  password: string;
+  password?: string;
+  registeredBy?: 'self' | 'cashier';
   carType?: string;
   carColor?: string;
   saveCarInfo?: number;
@@ -51,7 +52,8 @@ const CustomerSchema = new Schema<ICustomer>({
   phone: { type: String, required: true, unique: true },
   email: { type: String, unique: true, sparse: true },
   name: { type: String, required: true },
-  password: { type: String, required: true },
+  password: { type: String },
+  registeredBy: { type: String, default: 'self' },
   carType: { type: String },
   carColor: { type: String },
   saveCarInfo: { type: Number, default: 0 },
@@ -515,6 +517,30 @@ const DeliveryZoneSchema = new Schema<IDeliveryZone>({
 
 export const DeliveryZoneModel = mongoose.model<IDeliveryZone>("DeliveryZone", DeliveryZoneSchema);
 
+export interface ITable extends Document {
+  tableNumber: string;
+  qrToken: string;
+  branchId?: string;
+  isActive: number;
+  isOccupied: number;
+  currentOrderId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const TableSchema = new Schema<ITable>({
+  tableNumber: { type: String, required: true, unique: true },
+  qrToken: { type: String, required: true, unique: true },
+  branchId: { type: String },
+  isActive: { type: Number, default: 1, required: true },
+  isOccupied: { type: Number, default: 0, required: true },
+  currentOrderId: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const TableModel = mongoose.model<ITable>("Table", TableSchema);
+
 export const insertCoffeeItemSchema = z.object({
   id: z.string(),
   nameAr: z.string(),
@@ -626,7 +652,8 @@ export const insertCustomerSchema = z.object({
   phone: z.string(),
   email: z.string().email("البريد الإلكتروني غير صالح").optional(),
   name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
-  password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف"),
+  password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف").optional(),
+  registeredBy: z.enum(['self', 'cashier']).optional(),
   carType: z.string().optional(),
   carColor: z.string().optional(),
   saveCarInfo: z.number().optional(),
@@ -730,6 +757,15 @@ export const insertDeliveryZoneSchema = z.object({
   isActive: z.number().optional(),
 });
 
+export const insertTableSchema = z.object({
+  tableNumber: z.string().min(1, "رقم الطاولة مطلوب"),
+  qrToken: z.string().optional(),
+  branchId: z.string().optional(),
+  isActive: z.number().optional(),
+  isOccupied: z.number().optional(),
+  currentOrderId: z.string().optional(),
+});
+
 export type CoffeeItem = ICoffeeItem;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
 
@@ -783,6 +819,9 @@ export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 export type DeliveryZone = IDeliveryZone;
 export type InsertDeliveryZone = z.infer<typeof insertDeliveryZoneSchema>;
+
+export type Table = ITable;
+export type InsertTable = z.infer<typeof insertTableSchema>;
 
 export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
 

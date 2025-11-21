@@ -35,6 +35,8 @@ import {
   type InsertCategory,
   type DeliveryZone,
   type InsertDeliveryZone,
+  type Table,
+  type InsertTable,
   CoffeeItemModel,
   CustomerModel,
   EmployeeModel,
@@ -53,6 +55,7 @@ import {
   BranchModel,
   CategoryModel,
   DeliveryZoneModel,
+  TableModel,
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -173,6 +176,16 @@ export interface IStorage {
   completeDelivery(orderId: string): Promise<Order | undefined>;
   getActiveDeliveryOrders(): Promise<Order[]>;
   getDriverActiveOrders(driverId: string): Promise<Order[]>;
+  
+  getTables(branchId?: string): Promise<Table[]>;
+  getTable(id: string): Promise<Table | undefined>;
+  getTableByNumber(tableNumber: string): Promise<Table | undefined>;
+  getTableByQRToken(qrToken: string): Promise<Table | undefined>;
+  createTable(table: InsertTable): Promise<Table>;
+  updateTable(id: string, updates: Partial<Table>): Promise<Table | undefined>;
+  deleteTable(id: string): Promise<boolean>;
+  updateTableOccupancy(id: string, isOccupied: number, currentOrderId?: string): Promise<Table | undefined>;
+  regenerateTableQRToken(id: string): Promise<Table | undefined>;
 }
 
 export class DBStorage implements IStorage {
@@ -402,7 +415,7 @@ export class DBStorage implements IStorage {
   }
 
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const hashedPassword = await bcrypt.hash(customer.password, 10);
+    const hashedPassword = customer.password ? await bcrypt.hash(customer.password, 10) : undefined;
     const newCustomer = await CustomerModel.create({
       ...customer,
       password: hashedPassword,
@@ -412,7 +425,7 @@ export class DBStorage implements IStorage {
 
   async verifyCustomerPassword(phone: string, password: string): Promise<Customer | undefined> {
     const customer = await this.getCustomerByPhone(phone);
-    if (!customer) return undefined;
+    if (!customer || !customer.password) return undefined;
     
     const isPasswordValid = await bcrypt.compare(password, customer.password);
     if (!isPasswordValid) return undefined;
@@ -959,6 +972,91 @@ export class DBStorage implements IStorage {
       driverId,
       deliveryStatus: { $in: ['assigned', 'out_for_delivery'] }
     }).sort({ createdAt: -1 });
+  }
+
+  async getTables(branchId?: string): Promise<Table[]> {
+    const filter = branchId ? { branchId } : {};
+    return await TableModel.find(filter).sort({ tableNumber: 1 });
+  }
+
+  async getTable(id: string): Promise<Table | undefined> {
+    const table = await TableModel.findById(id);
+    return table || undefined;
+  }
+
+  async getTableByNumber(tableNumber: string): Promise<Table | undefined> {
+    const table = await TableModel.findOne({ tableNumber });
+    return table || undefined;
+  }
+
+  async getTableByQRToken(qrToken: string): Promise<Table | undefined> {
+    const table = await TableModel.findOne({ qrToken });
+    return table || undefined;
+  }
+
+  async createTable(table: InsertTable): Promise<Table> {
+    // Check for duplicate table number in the same branch
+    const existingTable = await TableModel.findOne({
+      tableNumber: table.tableNumber,
+      branchId: table.branchId,
+    });
+
+    if (existingTable) {
+      throw new Error(`Table number ${table.tableNumber} already exists in this branch`);
+    }
+
+    // Generate unique QR token (32 chars like loyalty cards for maximum security)
+    const qrToken = nanoid(32);
+    const newTable = await TableModel.create({
+      ...table,
+      qrToken,
+      isOccupied: 0, // Set default
+    });
+    return newTable;
+  }
+
+  async updateTable(id: string, updates: Partial<Table>): Promise<Table | undefined> {
+    const updated = await TableModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async deleteTable(id: string): Promise<boolean> {
+    const result = await TableModel.findByIdAndUpdate(
+      id,
+      { isActive: 0, updatedAt: new Date() },
+      { new: true }
+    );
+    return !!result;
+  }
+
+  async updateTableOccupancy(id: string, isOccupied: number, currentOrderId?: string): Promise<Table | undefined> {
+    const updated = await TableModel.findByIdAndUpdate(
+      id,
+      { 
+        isOccupied, 
+        currentOrderId: isOccupied ? currentOrderId : undefined,
+        updatedAt: new Date() 
+      },
+      { new: true }
+    );
+    return updated || undefined;
+  }
+
+  async regenerateTableQRToken(id: string): Promise<Table | undefined> {
+    const newQrToken = nanoid(32); // Use 32 chars for maximum security (same as loyalty cards)
+    const updated = await TableModel.findByIdAndUpdate(
+      id,
+      { 
+        qrToken: newQrToken,
+        updatedAt: new Date() 
+      },
+      { new: true }
+    );
+    return updated || undefined;
   }
 }
 

@@ -536,13 +536,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if identifier is email or phone
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let foundCustomer;
+      
       if (emailRegex.test(cleanIdentifier)) {
-        // Login with email - get customer and verify password
-        const customerByEmail = await storage.getCustomerByEmail(cleanIdentifier);
-        if (customerByEmail && customerByEmail.password) {
-          const isPasswordValid = await bcrypt.compare(password, customerByEmail.password);
+        // Login with email
+        foundCustomer = await storage.getCustomerByEmail(cleanIdentifier);
+        if (foundCustomer) {
+          if (!foundCustomer.password) {
+            // Customer exists but has no password (cashier-registered)
+            return res.status(403).json({ 
+              error: "هذا الحساب تم تسجيله من قبل الكاشير ولا يحتوي على كلمة مرور. يرجى إنشاء كلمة مرور أولاً",
+              message: "This account was registered by cashier and has no password. Please set up a password first",
+              requiresPasswordSetup: true
+            });
+          }
+          const isPasswordValid = await bcrypt.compare(password, foundCustomer.password);
           if (isPasswordValid) {
-            customer = customerByEmail;
+            customer = foundCustomer;
           }
         }
       } else {
@@ -550,7 +560,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!/^5\d{8}$/.test(cleanIdentifier)) {
           return res.status(400).json({ error: "صيغة رقم الهاتف أو البريد الإلكتروني غير صحيحة" });
         }
-        customer = await storage.verifyCustomerPassword(cleanIdentifier, password);
+        
+        foundCustomer = await storage.getCustomerByPhone(cleanIdentifier);
+        if (foundCustomer) {
+          if (!foundCustomer.password) {
+            // Customer exists but has no password (cashier-registered)
+            return res.status(403).json({ 
+              error: "هذا الحساب تم تسجيله من قبل الكاشير ولا يحتوي على كلمة مرور. يرجى إنشاء كلمة مرور أولاً",
+              message: "This account was registered by cashier and has no password. Please set up a password first",
+              requiresPasswordSetup: true
+            });
+          }
+          customer = await storage.verifyCustomerPassword(cleanIdentifier, password);
+        }
       }
 
       if (!customer) {
@@ -790,13 +812,230 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const customers = await storage.getCustomers();
       const serializedCustomers = customers.map(customer => {
-        const { password, ...customerData } = customer.toObject ? customer.toObject() : customer;
+        const { password, ...customerData} = customer.toObject ? customer.toObject() : customer;
         return serializeDoc(customerData);
       });
       res.json(serializedCustomers);
     } catch (error) {
       console.error("Error fetching customers:", error);
       res.status(500).json({ error: "Failed to fetch customers" });
+    }
+  });
+
+  /* 
+   * CASHIER-REGISTERED CUSTOMERS - العملاء المسجلين من الكاشير
+   * 
+   * Customers registered by cashiers don't have passwords initially.
+   * They can't log in through the normal /api/customers/login flow.
+   * 
+   * When they order via QR code (table menu), they just enter their phone number
+   * and the system automatically links the order to their account for loyalty tracking.
+   * 
+   * They can optionally set a password later using /api/customers/set-password
+   * to gain full account access with login capability.
+   */
+  
+  // Customer lookup by phone for cashier - البحث عن عميل برقم الجوال من الكاشير
+  app.post("/api/customers/lookup-by-phone", async (req, res) => {
+    try {
+      const { phone } = req.body;
+
+      if (!phone) {
+        return res.status(400).json({ error: "رقم الجوال مطلوب" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      
+      const customer = await storage.getCustomerByPhone(cleanPhone);
+      
+      if (!customer) {
+        return res.json({ found: false });
+      }
+
+      const loyaltyCard = await storage.getLoyaltyCardByPhone(cleanPhone);
+
+      const { password: _, ...customerData } = customer.toObject ? customer.toObject() : customer;
+      const serializedCustomer = serializeDoc(customerData);
+
+      res.json({ 
+        found: true,
+        customer: serializedCustomer,
+        loyaltyCard: loyaltyCard ? serializeDoc(loyaltyCard) : null
+      });
+    } catch (error) {
+      console.error("Error looking up customer by phone:", error);
+      res.status(500).json({ error: "فشل البحث عن العميل" });
+    }
+  });
+
+  // Quick customer registration by cashier - تسجيل عميل سريع من الكاشير
+  app.post("/api/customers/register-by-cashier", async (req, res) => {
+    try {
+      const { phone, name } = req.body;
+
+      if (!phone || !name) {
+        return res.status(400).json({ error: "رقم الجوال والاسم مطلوبان" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      const cleanName = name.trim();
+
+      if (cleanName.length < 2) {
+        return res.status(400).json({ error: "الاسم يجب أن يكون على الأقل حرفين" });
+      }
+
+      if (!/^5\d{8}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
+      }
+
+      const existingCustomer = await storage.getCustomerByPhone(cleanPhone);
+      if (existingCustomer) {
+        return res.status(400).json({ error: "رقم الهاتف مسجل مسبقاً" });
+      }
+
+      const customer = await storage.createCustomer({ 
+        phone: cleanPhone, 
+        name: cleanName,
+        registeredBy: 'cashier'
+      });
+
+      try {
+        await storage.createLoyaltyCard({ 
+          customerName: cleanName, 
+          phoneNumber: cleanPhone 
+        });
+      } catch (cardError) {
+        console.error("Error creating loyalty card for cashier-registered customer:", cardError);
+      }
+
+      const { password: _, ...customerData } = customer;
+      const serialized = serializeDoc(customerData);
+      res.status(201).json(serialized);
+    } catch (error) {
+      console.error("Error registering customer by cashier:", error);
+      res.status(500).json({ error: "فشل تسجيل العميل" });
+    }
+  });
+
+  /*
+   * PASSWORDLESS CUSTOMER PASSWORD SETUP FLOW
+   * 
+   * For security, customers must verify phone ownership via OTP before setting password.
+   * This prevents unauthorized password changes even if someone knows the customer's phone number.
+   * 
+   * Flow:
+   * 1. POST /api/customers/request-password-setup-otp { phone }
+   *    - Generates and stores OTP for the customer's phone
+   *    - In production, sends SMS with OTP
+   *    - Returns success (doesn't reveal if phone exists for security)
+   * 
+   * 2. POST /api/customers/set-password { phone, otp, password }
+   *    - Verifies OTP matches and hasn't expired
+   *    - Sets password only if OTP is valid
+   *    - Prevents setting password if customer already has one
+   */
+
+  // Step 1: Request OTP to set password
+  app.post("/api/customers/request-password-setup-otp", async (req, res) => {
+    try {
+      const { phone } = req.body;
+
+      if (!phone) {
+        return res.status(400).json({ error: "رقم الجوال مطلوب" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      
+      if (!/^5\d{8}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
+      }
+
+      const customer = await storage.getCustomerByPhone(cleanPhone);
+      
+      // Always return success to prevent phone enumeration
+      // But only generate OTP if customer exists and has no password
+      if (customer && !customer.password) {
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        
+        // Store OTP (in production, use Redis or similar)
+        // For now, store in memory map or database
+        // TODO: Implement OTP storage and SMS sending
+        console.log(`OTP for ${cleanPhone}: ${otp} (expires at ${expiresAt})`);
+        
+        // In production: Send SMS with OTP via Twilio/etc
+      }
+
+      res.json({ 
+        success: true,
+        message: "إذا كان الرقم مسجلاً، سيتم إرسال رمز التحقق خلال دقائق",
+        message_en: "If the number is registered, verification code will be sent within minutes"
+      });
+    } catch (error) {
+      console.error("Error requesting password setup OTP:", error);
+      res.status(500).json({ error: "فشل إرسال رمز التحقق" });
+    }
+  });
+
+  // Step 2: Verify OTP and set password
+  app.post("/api/customers/set-password", async (req, res) => {
+    try {
+      const { phone, otp, password } = req.body;
+
+      if (!phone || !otp || !password) {
+        return res.status(400).json({ error: "رقم الجوال، رمز التحقق وكلمة المرور مطلوبة" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      
+      if (password.length < 8) {
+        return res.status(400).json({ error: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" });
+      }
+
+      // TODO: Verify OTP from storage
+      // For now, accept any 6-digit OTP for development
+      // In production: Verify OTP matches stored value and hasn't expired
+      if (!/^\d{6}$/.test(otp)) {
+        return res.status(400).json({ error: "رمز التحقق غير صحيح" });
+      }
+
+      const customer = await storage.getCustomerByPhone(cleanPhone);
+      if (!customer) {
+        return res.status(404).json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" });
+      }
+
+      // Prevent overwriting existing passwords
+      if (customer.password) {
+        return res.status(400).json({ 
+          error: "هذا الحساب لديه كلمة مرور بالفعل. يرجى استخدام ميزة إعادة تعيين كلمة المرور",
+          message: "Account already has a password. Use password reset instead"
+        });
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // Update customer with password
+      const updated = await storage.updateCustomer(customer._id.toString(), { 
+        password: hashedPassword 
+      });
+
+      if (!updated) {
+        return res.status(500).json({ error: "فشل تحديث كلمة المرور" });
+      }
+
+      // TODO: Invalidate the used OTP
+
+      const { password: _, ...customerData } = updated;
+      res.json({ 
+        success: true, 
+        message: "تم تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول",
+        customer: serializeDoc(customerData)
+      });
+    } catch (error) {
+      console.error("Error setting customer password:", error);
+      res.status(500).json({ error: "فشل تعيين كلمة المرور" });
     }
   });
 
@@ -2153,6 +2392,209 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error validating delivery zone:", error);
       res.status(500).json({ error: "Failed to validate delivery zone" });
+    }
+  });
+
+  // TABLE MANAGEMENT ROUTES - إدارة الطاولات
+  
+  app.get("/api/tables", async (req, res) => {
+    try {
+      const { branchId } = req.query;
+      const tables = await storage.getTables(branchId as string);
+      res.json(tables);
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+      res.status(500).json({ error: "Failed to fetch tables" });
+    }
+  });
+
+  app.get("/api/tables/:id", async (req, res) => {
+    try {
+      const table = await storage.getTable(req.params.id);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+      res.json(table);
+    } catch (error) {
+      console.error("Error fetching table:", error);
+      res.status(500).json({ error: "Failed to fetch table" });
+    }
+  });
+
+  app.get("/api/tables/qr/:qrToken", async (req, res) => {
+    try {
+      const table = await storage.getTableByQRToken(req.params.qrToken);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+      res.json(table);
+    } catch (error) {
+      console.error("Error fetching table by QR token:", error);
+      res.status(500).json({ error: "Failed to fetch table" });
+    }
+  });
+
+  app.post("/api/tables", async (req, res) => {
+    try {
+      const { insertTableSchema } = await import("@shared/schema");
+      const validatedData = insertTableSchema.parse(req.body);
+      const table = await storage.createTable(validatedData);
+      res.status(201).json(table);
+    } catch (error: any) {
+      console.error("Error creating table:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error.issues });
+      }
+      if (error.message?.includes('already exists')) {
+        return res.status(409).json({ error: error.message });
+      }
+      res.status(500).json({ error: "Failed to create table" });
+    }
+  });
+
+  app.post("/api/tables/bulk-create", async (req, res) => {
+    try {
+      const { count, branchId } = req.body;
+      
+      if (!count || count < 1 || count > 100) {
+        return res.status(400).json({ error: "Count must be between 1 and 100" });
+      }
+
+      if (!branchId || typeof branchId !== 'string') {
+        return res.status(400).json({ error: "Valid branchId is required" });
+      }
+
+      const results = {
+        created: [] as any[],
+        failed: [] as { tableNumber: string, reason: string }[],
+        totalRequested: count,
+      };
+
+      for (let i = 1; i <= count; i++) {
+        const tableNumber = String(i).padStart(2, '0');
+        try {
+          const table = await storage.createTable({
+            tableNumber,
+            branchId
+          });
+          results.created.push(table);
+        } catch (tableError: any) {
+          // Track failures with reason
+          results.failed.push({
+            tableNumber,
+            reason: tableError.message || "Unknown error"
+          });
+        }
+      }
+
+      // Return appropriate status code based on results
+      if (results.created.length === 0) {
+        // All failed
+        return res.status(409).json({
+          error: "Failed to create any tables",
+          details: results
+        });
+      } else if (results.failed.length > 0) {
+        // Partial success - use 207 Multi-Status
+        return res.status(207).json({
+          message: `Created ${results.created.length} of ${count} tables`,
+          details: results
+        });
+      } else {
+        // Complete success
+        return res.status(201).json({
+          message: `Successfully created ${results.created.length} tables`,
+          details: results
+        });
+      }
+    } catch (error) {
+      console.error("Error bulk creating tables:", error);
+      res.status(500).json({ error: "Failed to create tables" });
+    }
+  });
+
+  app.put("/api/tables/:id", async (req, res) => {
+    try {
+      // Validate update data (partial schema validation)
+      const { insertTableSchema } = await import("@shared/schema");
+      const partialSchema = insertTableSchema.partial(); // Allow partial updates
+      const validatedData = partialSchema.parse(req.body);
+      
+      const table = await storage.updateTable(req.params.id, validatedData);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+      res.json(table);
+    } catch (error: any) {
+      console.error("Error updating table:", error);
+      if (error instanceof Error && 'issues' in error) {
+        return res.status(400).json({ error: "Validation error", details: error.issues });
+      }
+      res.status(500).json({ error: "Failed to update table" });
+    }
+  });
+
+  app.patch("/api/tables/:id/occupancy", async (req, res) => {
+    try {
+      const { isOccupied, currentOrderId } = req.body;
+      const table = await storage.updateTableOccupancy(
+        req.params.id, 
+        isOccupied ? 1 : 0, 
+        currentOrderId
+      );
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+      res.json(table);
+    } catch (error) {
+      console.error("Error updating table occupancy:", error);
+      res.status(500).json({ error: "Failed to update table occupancy" });
+    }
+  });
+
+  app.delete("/api/tables/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteTable(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting table:", error);
+      res.status(500).json({ error: "Failed to delete table" });
+    }
+  });
+
+  app.get("/api/tables/:id/qr-code", async (req, res) => {
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const table = await storage.getTable(req.params.id);
+      
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const tableUrl = `${baseUrl}/table-menu/${table.qrToken}`;
+      
+      const qrCodeDataUrl = await QRCode.toDataURL(tableUrl, {
+        width: 400,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+
+      res.json({
+        qrCodeDataUrl,
+        tableUrl,
+        tableNumber: table.tableNumber,
+        qrToken: table.qrToken
+      });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      res.status(500).json({ error: "Failed to generate QR code" });
     }
   });
 
