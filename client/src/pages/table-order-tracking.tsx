@@ -114,11 +114,11 @@ export default function TableOrderTracking() {
           description: "طلبك قيد التحضير الآن",
           color: "text-orange-500",
         };
-      case "ready":
+      case "delivering_to_table":
         return {
           icon: Truck,
-          label: "جاهز للتوصيل",
-          description: "طلبك جاهز وسيتم توصيله لطاولتك قريباً",
+          label: "جاري التوصيل",
+          description: "طلبك في الطريق إلى طاولتك",
           color: "text-purple-500",
         };
       case "delivered":

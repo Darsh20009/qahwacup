@@ -51,9 +51,6 @@ export default function TableMenu() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
   const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [isGuestCheckout, setIsGuestCheckout] = useState(true);
-  const [customerInfo, setCustomerInfo] = useState<any>(null);
 
   const qrToken = params?.qrToken;
 
@@ -75,32 +72,6 @@ export default function TableMenu() {
       const response = await fetch("/api/coffee-items");
       if (!response.ok) throw new Error("Failed to fetch menu");
       return response.json();
-    },
-  });
-
-  // Search customer by phone
-  const searchCustomerMutation = useMutation({
-    mutationFn: async (phone: string) => {
-      const response = await fetch(`/api/cashier/customers/search?phone=${phone}`);
-      if (!response.ok) throw new Error("Search failed");
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.exists) {
-        setCustomerInfo(data.customer);
-        setCustomerName(data.customer.name);
-        setIsGuestCheckout(false);
-        toast({
-          title: "تم العثور على حسابك",
-          description: `مرحباً ${data.customer.name}! لديك ${data.customer.points} نقطة`,
-        });
-      } else {
-        setIsGuestCheckout(true);
-        toast({
-          title: "رقم جديد",
-          description: "يمكنك المتابعة كضيف",
-        });
-      }
     },
   });
 
@@ -180,20 +151,8 @@ export default function TableMenu() {
     setShowCheckout(true);
   };
 
-  const handlePhoneSearch = () => {
-    if (!customerPhone || customerPhone.length !== 9) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء إدخال رقم هاتف صحيح (9 أرقام)",
-        variant: "destructive",
-      });
-      return;
-    }
-    searchCustomerMutation.mutate(customerPhone);
-  };
-
   const handleSubmitOrder = () => {
-    if (!customerName) {
+    if (!customerName || customerName.trim() === "") {
       toast({
         title: "خطأ",
         description: "الرجاء إدخال الاسم",
@@ -217,11 +176,11 @@ export default function TableMenu() {
       tableId: table?._id,
       tableStatus: "pending",
       customerInfo: {
-        name: customerName,
-        phone: customerPhone || "guest",
-        isGuest: isGuestCheckout,
+        name: customerName.trim(),
+        phone: "guest",
+        isGuest: true,
       },
-      customerId: customerInfo?._id,
+      customerId: null,
     };
 
     createOrderMutation.mutate(orderData);
@@ -340,63 +299,21 @@ export default function TableMenu() {
           <DialogHeader>
             <DialogTitle>إتمام الطلب</DialogTitle>
             <DialogDescription>
-              أدخل بياناتك لإرسال الطلب
+              أدخل اسمك لإرسال الطلب. للحصول على نقاط الولاء، استخدم التطبيق الرئيسي.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Phone Number */}
+            {/* Guest Name Only */}
             <div className="space-y-2">
-              <Label htmlFor="phone">رقم الهاتف (اختياري)</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="5xxxxxxxx"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  maxLength={9}
-                  data-testid="input-phone"
-                />
-                <Button
-                  onClick={handlePhoneSearch}
-                  disabled={searchCustomerMutation.isPending}
-                  data-testid="button-search-phone"
-                >
-                  بحث
-                </Button>
-              </div>
+              <Label htmlFor="name">الاسم *</Label>
+              <Input
+                id="name"
+                placeholder="أدخل اسمك"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                data-testid="input-name"
+              />
             </div>
-
-            {/* Customer Info */}
-            {customerInfo && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    <div>
-                      <p className="font-bold">{customerInfo.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        النقاط: {customerInfo.points}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Guest Name */}
-            {isGuestCheckout && (
-              <div className="space-y-2">
-                <Label htmlFor="name">الاسم *</Label>
-                <Input
-                  id="name"
-                  placeholder="أدخل اسمك"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  data-testid="input-name"
-                />
-              </div>
-            )}
 
             {/* Order Summary */}
             <div className="border-t pt-4">

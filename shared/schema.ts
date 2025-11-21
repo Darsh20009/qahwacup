@@ -193,7 +193,7 @@ export interface IOrder extends Document {
   paymentDetails?: string;
   paymentReceiptUrl?: string;
   status: string;
-  tableStatus?: 'pending' | 'payment_confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  tableStatus?: 'pending' | 'payment_confirmed' | 'preparing' | 'delivering_to_table' | 'delivered' | 'cancelled';
   orderType?: 'regular' | 'table';
   customerInfo?: any;
   customerId?: string;
@@ -239,7 +239,7 @@ const OrderSchema = new Schema<IOrder>({
   paymentDetails: { type: String },
   paymentReceiptUrl: { type: String },
   status: { type: String, default: "pending", required: true },
-  tableStatus: { type: String, enum: ['pending', 'payment_confirmed', 'preparing', 'ready', 'delivered', 'cancelled'] },
+  tableStatus: { type: String, enum: ['pending', 'payment_confirmed', 'preparing', 'delivering_to_table', 'delivered', 'cancelled'] },
   orderType: { type: String, enum: ['regular', 'table'], default: 'regular' },
   customerInfo: { type: Schema.Types.Mixed },
   customerId: { type: String },

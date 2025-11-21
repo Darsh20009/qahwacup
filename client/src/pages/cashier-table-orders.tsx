@@ -138,8 +138,8 @@ export default function CashierTableOrders() {
         return <Badge className="bg-blue-500">تم تأكيد الدفع</Badge>;
       case "preparing":
         return <Badge className="bg-orange-500">جاري التحضير</Badge>;
-      case "ready":
-        return <Badge className="bg-purple-500">جاهز</Badge>;
+      case "delivering_to_table":
+        return <Badge className="bg-purple-500">جاري التوصيل</Badge>;
       case "delivered":
         return <Badge variant="default">تم التوصيل</Badge>;
       case "cancelled":
@@ -157,7 +157,7 @@ export default function CashierTableOrders() {
         return CheckCircle;
       case "preparing":
         return ChefHat;
-      case "ready":
+      case "delivering_to_table":
         return Truck;
       case "delivered":
         return CheckCircle;
@@ -319,7 +319,9 @@ export default function CashierTableOrders() {
                                         تم تأكيد الدفع
                                       </SelectItem>
                                       <SelectItem value="preparing">جاري التحضير</SelectItem>
-                                      <SelectItem value="ready">جاهز للتوصيل</SelectItem>
+                                      <SelectItem value="delivering_to_table">
+                                        جاري التوصيل للطاولة
+                                      </SelectItem>
                                       <SelectItem value="delivered">تم التوصيل</SelectItem>
                                       <SelectItem value="cancelled">إلغاء</SelectItem>
                                     </SelectContent>
