@@ -890,7 +890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quick customer registration by cashier - تسجيل عميل سريع من الكاشير
   app.post("/api/customers/register-by-cashier", async (req, res) => {
     try {
-      const { phone, name } = req.body;
+      const { phone, name, email } = req.body;
 
       if (!phone || !name) {
         return res.status(400).json({ error: "رقم الجوال والاسم مطلوبان" });
@@ -898,6 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const cleanPhone = phone.trim().replace(/\s/g, '');
       const cleanName = name.trim();
+      const cleanEmail = email ? email.trim() : undefined;
 
       if (cleanName.length < 2) {
         return res.status(400).json({ error: "الاسم يجب أن يكون على الأقل حرفين" });
@@ -907,14 +908,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
       }
 
+      // Validate email format if provided
+      if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        return res.status(400).json({ error: "صيغة البريد الإلكتروني غير صحيحة" });
+      }
+
       const existingCustomer = await storage.getCustomerByPhone(cleanPhone);
       if (existingCustomer) {
         return res.status(400).json({ error: "رقم الهاتف مسجل مسبقاً" });
       }
 
+      // Check if email already exists
+      if (cleanEmail) {
+        const existingEmailCustomer = await storage.getCustomerByEmail(cleanEmail);
+        if (existingEmailCustomer) {
+          return res.status(400).json({ error: "البريد الإلكتروني مسجل مسبقاً" });
+        }
+      }
+
       const customer = await storage.createCustomer({ 
         phone: cleanPhone, 
         name: cleanName,
+        email: cleanEmail,
         registeredBy: 'cashier'
       });
 

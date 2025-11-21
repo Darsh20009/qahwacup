@@ -51,8 +51,63 @@ export default function TableMenu() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(true);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [isCheckingCustomer, setIsCheckingCustomer] = useState(false);
+  const [customerPoints, setCustomerPoints] = useState(0);
 
   const qrToken = params?.qrToken;
+
+  // Check for existing customer when phone number is entered
+  useEffect(() => {
+    const checkCustomer = async () => {
+      if (customerPhone.length === 9 && customerPhone.startsWith('5')) {
+        setIsCheckingCustomer(true);
+        try {
+          const response = await fetch(`/api/customers/lookup-by-phone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: customerPhone })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.found && data.customer) {
+              setCustomerName(data.customer.name);
+              setCustomerId(data.customer.id);
+              setCustomerPoints(data.customer.points || 0);
+              setIsGuest(false);
+              setShowLoginDialog(false);
+              
+              toast({
+                title: "✅ تم تسجيل الدخول",
+                description: `مرحباً ${data.customer.name}! لديك ${data.customer.points || 0} نقطة`,
+                className: "bg-green-600 text-white",
+              });
+            } else {
+              setCustomerId(null);
+              setCustomerPoints(0);
+              setIsGuest(true);
+            }
+          }
+        } catch (error) {
+          console.error('Error checking customer:', error);
+          setCustomerId(null);
+          setCustomerPoints(0);
+          setIsGuest(true);
+        } finally {
+          setIsCheckingCustomer(false);
+        }
+      }
+    };
+
+    if (customerPhone.length > 0) {
+      const debounceTimer = setTimeout(checkCustomer, 500);
+      return () => clearTimeout(debounceTimer);
+    }
+  }, [customerPhone, toast]);
 
   // Fetch table info
   const { data: table, isLoading: tableLoading } = useQuery<ITable>({
@@ -177,10 +232,10 @@ export default function TableMenu() {
       tableStatus: "pending",
       customerInfo: {
         name: customerName.trim(),
-        phone: "guest",
-        isGuest: true,
+        phone: isGuest ? "guest" : customerPhone,
+        isGuest: isGuest,
       },
-      customerId: null,
+      customerId: isGuest ? null : customerId,
     };
 
     createOrderMutation.mutate(orderData);
@@ -299,11 +354,76 @@ export default function TableMenu() {
           <DialogHeader>
             <DialogTitle>إتمام الطلب</DialogTitle>
             <DialogDescription>
-              أدخل اسمك لإرسال الطلب. للحصول على نقاط الولاء، استخدم التطبيق الرئيسي.
+              {isGuest 
+                ? "أدخل معلوماتك لإرسال الطلب. يمكنك تسجيل الدخول للحصول على نقاط الولاء."
+                : "سيتم إضافة النقاط لحسابك تلقائياً بعد الدفع"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Guest Name Only */}
+            {/* Customer Type Toggle */}
+            <div className="flex gap-2">
+              <Button
+                variant={isGuest ? "default" : "outline"}
+                onClick={() => {
+                  setIsGuest(true);
+                  setCustomerPhone("");
+                  setCustomerId(null);
+                  setCustomerPoints(0);
+                }}
+                className="flex-1"
+                data-testid="button-guest"
+              >
+                <User className="w-4 h-4 ml-1" />
+                ضيف
+              </Button>
+              <Button
+                variant={!isGuest ? "default" : "outline"}
+                onClick={() => setIsGuest(false)}
+                className="flex-1"
+                data-testid="button-member"
+              >
+                <UserPlus className="w-4 h-4 ml-1" />
+                عميل مسجل
+              </Button>
+            </div>
+
+            {/* Phone field for registered customers */}
+            {!isGuest && (
+              <div className="space-y-2">
+                <Label htmlFor="phone">رقم الجوال (9 أرقام تبدأ بـ 5)</Label>
+                <Input
+                  id="phone"
+                  placeholder="5xxxxxxxx"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  maxLength={9}
+                  data-testid="input-phone"
+                />
+                {isCheckingCustomer && (
+                  <p className="text-xs text-amber-500 animate-pulse">جاري التحقق...</p>
+                )}
+                {customerPhone.length === 9 && !customerId && !isCheckingCustomer && (
+                  <p className="text-xs text-red-500">
+                    رقم الجوال غير مسجل. يمكنك المتابعة كضيف أو التسجيل عند الكاشير.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Customer info display */}
+            {!isGuest && customerId && (
+              <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-green-300">✅ تم تسجيل الدخول</span>
+                  <Badge variant="outline" className="border-green-400 text-green-300">
+                    {customerPoints} نقطة
+                  </Badge>
+                </div>
+                <p className="text-sm font-medium">{customerName}</p>
+              </div>
+            )}
+
+            {/* Name field */}
             <div className="space-y-2">
               <Label htmlFor="name">الاسم *</Label>
               <Input
@@ -311,6 +431,7 @@ export default function TableMenu() {
                 placeholder="أدخل اسمك"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
+                disabled={!isGuest && !!customerId}
                 data-testid="input-name"
               />
             </div>

@@ -63,10 +63,14 @@ export default function EmployeeCashier() {
  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
  const [customerName, setCustomerName] = useState("");
  const [customerPhone, setCustomerPhone] = useState("");
+ const [customerEmail, setCustomerEmail] = useState("");
+ const [customerPoints, setCustomerPoints] = useState(0);
  const [customerId, setCustomerId] = useState<string | null>(null);
+ const [showRegisterDialog, setShowRegisterDialog] = useState(false);
  const [tableNumber, setTableNumber] = useState("");
  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
  const [isCheckingCustomer, setIsCheckingCustomer] = useState(false);
+ const [isRegisteringCustomer, setIsRegisteringCustomer] = useState(false);
  const [loyaltyCard, setLoyaltyCard] = useState<LoyaltyCard | null>(null);
  const [discountCode, setDiscountCode] = useState("");
  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number, reason: string} | null>(null);
@@ -91,52 +95,67 @@ export default function EmployeeCashier() {
  if (customerPhone.length === 9 && customerPhone.startsWith('5')) {
  setIsCheckingCustomer(true);
  try {
- const response = await fetch(`/api/customers/auth`, {
+ const response = await fetch(`/api/customers/lookup-by-phone`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({ phone: customerPhone })
  });
  
  if (response.ok) {
- const customer = await response.json();
- setCustomerName(customer.name);
- setCustomerId(customer.id);
+ const data = await response.json();
+ if (data.found && data.customer) {
+ setCustomerName(data.customer.name);
+ setCustomerEmail(data.customer.email || "");
+ setCustomerPoints(data.customer.points || 0);
+ setCustomerId(data.customer.id);
+ setLoyaltyCard(data.loyaltyCard || null);
+ setShowRegisterDialog(false);
  
- try {
- const loyaltyResponse = await fetch(`/api/loyalty/cards/phone/${customerPhone}`);
- if (loyaltyResponse.ok) {
- const card = await loyaltyResponse.json();
- setLoyaltyCard(card);
- const availableStamps = (card.freeCupsEarned || 0) - (card.freeCupsRedeemed || 0);
+ const availableStamps = data.loyaltyCard 
+ ? (data.loyaltyCard.freeCupsEarned || 0) - (data.loyaltyCard.freeCupsRedeemed || 0) 
+ : 0;
+ 
  toast({
- title: "عميل مسجل",
- description: `مرحباً ${customer.name}! لديك ${availableStamps} أختام متاحة`,
+ title: "✅ عميل مسجل",
+ description: `مرحباً ${data.customer.name}! لديك ${data.customer.points || 0} نقطة${availableStamps > 0 ? ` و ${availableStamps} أختام متاحة` : ''}`,
  className: "bg-green-600 text-white",
  });
  } else {
+ // Customer not found - show registration dialog
+ setCustomerId(null);
  setLoyaltyCard(null);
- toast({
- title: "عميل مسجل",
- description: `مرحباً ${customer.name}! سيتم إضافة أختام الولاء تلقائياً`,
- className: "bg-green-600 text-white",
- });
- }
- } catch (error) {
- console.error('Error fetching loyalty card:', error);
- setLoyaltyCard(null);
+ setCustomerName("");
+ setCustomerEmail("");
+ setCustomerPoints(0);
+ setShowRegisterDialog(true);
  }
  } else {
  setCustomerId(null);
  setLoyaltyCard(null);
  setCustomerName("");
+ setCustomerEmail("");
+ setCustomerPoints(0);
+ setShowRegisterDialog(true);
  }
  } catch (error) {
  console.error('Error checking customer:', error);
  setCustomerId(null);
  setLoyaltyCard(null);
  setCustomerName("");
+ setCustomerEmail("");
+ setCustomerPoints(0);
  } finally {
  setIsCheckingCustomer(false);
+ }
+ } else {
+ // Reset when phone is incomplete
+ if (customerPhone.length === 0) {
+ setCustomerId(null);
+ setLoyaltyCard(null);
+ setCustomerName("");
+ setCustomerEmail("");
+ setCustomerPoints(0);
+ setShowRegisterDialog(false);
  }
  }
  };
@@ -221,12 +240,78 @@ export default function EmployeeCashier() {
  },
  });
 
+ const registerCustomerMutation = useMutation({
+ mutationFn: async (customerData: { phone: string; name: string; email?: string }) => {
+ const response = await fetch("/api/customers/register-by-cashier", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify(customerData),
+ });
+ 
+ if (!response.ok) {
+ const error = await response.json();
+ throw new Error(error.error || "فشل تسجيل العميل");
+ }
+ 
+ return response.json();
+ },
+ onSuccess: async (customer) => {
+ setCustomerId(customer.id);
+ setCustomerPoints(customer.points || 0);
+ setShowRegisterDialog(false);
+ 
+ toast({
+ title: "✅ تم تسجيل العميل بنجاح",
+ description: `تم تسجيل ${customer.name} في النظام. يمكن للعميل تفعيل الحساب لاحقاً عبر نظام استعادة كلمة المرور.`,
+ className: "bg-green-600 text-white",
+ });
+
+ // Fetch loyalty card after registration
+ try {
+ const loyaltyResponse = await fetch(`/api/loyalty/cards/phone/${customer.phone}`);
+ if (loyaltyResponse.ok) {
+ const card = await loyaltyResponse.json();
+ setLoyaltyCard(card);
+ }
+ } catch (error) {
+ console.error('Error fetching loyalty card after registration:', error);
+ }
+ },
+ onError: (error: Error) => {
+ toast({
+ title: "خطأ في التسجيل",
+ description: error.message,
+ variant: "destructive",
+ });
+ },
+ });
+
+ const handleRegisterCustomer = () => {
+ if (!customerName.trim()) {
+ toast({
+ title: "خطأ",
+ description: "يرجى إدخال اسم العميل",
+ variant: "destructive",
+ });
+ return;
+ }
+
+ registerCustomerMutation.mutate({
+ phone: customerPhone,
+ name: customerName.trim(),
+ email: customerEmail.trim() || undefined,
+ });
+ };
+
  const resetForm = () => {
  setOrderItems([]);
  setCustomerName("");
  setCustomerPhone("");
+ setCustomerEmail("");
+ setCustomerPoints(0);
  setCustomerId(null);
  setLoyaltyCard(null);
+ setShowRegisterDialog(false);
  setTableNumber("");
  setPaymentMethod("cash");
  setDiscountCode("");
@@ -612,6 +697,53 @@ export default function EmployeeCashier() {
  <p className="text-xs text-amber-400 text-right animate-pulse">جاري التحقق من العميل...</p>
  )}
  </div>
+
+ {showRegisterDialog && customerPhone.length === 9 && (
+ <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 space-y-3">
+ <p className="text-blue-300 text-sm text-right">❓ عميل غير مسجل - يمكنك تسجيله الآن</p>
+ <div className="space-y-2">
+ <Label className="text-gray-300 text-right block text-xs">
+ البريد الإلكتروني (اختياري)
+ </Label>
+ <Input
+ value={customerEmail}
+ onChange={(e) => setCustomerEmail(e.target.value)}
+ placeholder="customer@example.com"
+ type="email"
+ className="bg-[#1a1410] border-blue-500/30 text-white text-right"
+ data-testid="input-customer-email"
+ />
+ </div>
+ <Button
+ onClick={handleRegisterCustomer}
+ disabled={isRegisteringCustomer || !customerName.trim()}
+ className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+ data-testid="button-register-customer"
+ >
+ {isRegisteringCustomer ? "جاري التسجيل..." : "✅ تسجيل العميل"}
+ </Button>
+ <p className="text-xs text-gray-400 text-right">
+ ℹ️ سيتمكن العميل من تفعيل حسابه لاحقاً عبر نظام استعادة كلمة المرور
+ </p>
+ </div>
+ )}
+
+ {customerId && customerPoints > 0 && (
+ <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-3 rounded-lg border border-purple-500/30">
+ <div className="flex items-center justify-between">
+ <Badge variant="outline" className="border-purple-400 text-purple-300">
+ {customerPoints} نقطة
+ </Badge>
+ <span className="text-purple-300 text-sm">💎 نقاط العميل</span>
+ </div>
+ </div>
+ )}
+
+ {customerId && customerEmail && (
+ <div className="text-xs text-gray-400 text-right">
+ 📧 {customerEmail}
+ </div>
+ )}
 
  {loyaltyCard && (
  <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 p-4 rounded-lg border-2 border-amber-500/30 space-y-2">
