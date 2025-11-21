@@ -14,7 +14,7 @@ import FileUpload from "@/components/file-upload";
 import { generatePDF } from "@/lib/pdf-generator";
 import { customerStorage } from "@/lib/customer-storage";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check, Store, Truck, MapPin, Edit } from "lucide-react";
+import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check, Store, Truck, MapPin, Edit, ShoppingBag } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod, Order } from "@shared/schema";
 
 export default function CheckoutPage() {
