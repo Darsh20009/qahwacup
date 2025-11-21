@@ -73,6 +73,7 @@ export interface IStorage {
   updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | undefined>;
   activateEmployee(phone: string, fullName: string, password: string): Promise<Employee | undefined>;
   getEmployees(): Promise<Employee[]>;
+  getActiveCashiers(): Promise<Employee[]>;
 
   createDiscountCode(discountCode: InsertDiscountCode): Promise<DiscountCode>;
   getDiscountCode(id: string): Promise<DiscountCode | undefined>;
@@ -187,10 +188,14 @@ export interface IStorage {
   getTableByNumber(tableNumber: string): Promise<Table | undefined>;
   getTableByQRToken(qrToken: string): Promise<Table | undefined>;
   createTable(table: InsertTable): Promise<Table>;
+  bulkCreateTables(count: number, branchId?: string): Promise<Table[]>;
   updateTable(id: string, updates: Partial<Table>): Promise<Table | undefined>;
   deleteTable(id: string): Promise<boolean>;
   updateTableOccupancy(id: string, isOccupied: number, currentOrderId?: string): Promise<Table | undefined>;
   regenerateTableQRToken(id: string): Promise<Table | undefined>;
+  
+  getTableOrders(status?: string): Promise<Order[]>;
+  getPendingTableOrders(): Promise<Order[]>;
 }
 
 export class DBStorage implements IStorage {
@@ -361,6 +366,13 @@ export class DBStorage implements IStorage {
 
   async getEmployees(): Promise<Employee[]> {
     return await EmployeeModel.find();
+  }
+
+  async getActiveCashiers(): Promise<Employee[]> {
+    return await EmployeeModel.find({ 
+      role: 'cashier',
+      isActivated: 1
+    });
   }
 
   async createDiscountCode(insertDiscountCode: InsertDiscountCode): Promise<DiscountCode> {
@@ -1097,6 +1109,41 @@ export class DBStorage implements IStorage {
     return newTable;
   }
 
+  async bulkCreateTables(count: number, branchId?: string): Promise<Table[]> {
+    const tables: Table[] = [];
+    
+    // Get all tables (including inactive) to find highest number
+    const allTables = await TableModel.find(branchId ? { branchId } : {});
+    
+    // Find the highest table number (accounting for gaps from deletions)
+    let highestNumber = 0;
+    for (const table of allTables) {
+      const num = parseInt(table.tableNumber);
+      if (!isNaN(num) && num > highestNumber) {
+        highestNumber = num;
+      }
+    }
+    
+    const startNumber = highestNumber + 1;
+
+    for (let i = 0; i < count; i++) {
+      const tableNumber = String(startNumber + i);
+      const qrToken = nanoid(32);
+      
+      const newTable = await TableModel.create({
+        tableNumber,
+        qrToken,
+        branchId,
+        isActive: 1,
+        isOccupied: 0,
+      });
+      
+      tables.push(newTable);
+    }
+    
+    return tables;
+  }
+
   async updateTable(id: string, updates: Partial<Table>): Promise<Table | undefined> {
     const updated = await TableModel.findByIdAndUpdate(
       id,
@@ -1139,6 +1186,21 @@ export class DBStorage implements IStorage {
       { new: true }
     );
     return updated || undefined;
+  }
+
+  async getTableOrders(status?: string): Promise<Order[]> {
+    const filter: any = { orderType: 'table' };
+    if (status) {
+      filter.status = status;
+    }
+    return await OrderModel.find(filter).sort({ createdAt: -1 });
+  }
+
+  async getPendingTableOrders(): Promise<Order[]> {
+    return await OrderModel.find({
+      orderType: 'table',
+      status: { $in: ['pending', 'payment_confirmed'] }
+    }).sort({ createdAt: -1 });
   }
 }
 

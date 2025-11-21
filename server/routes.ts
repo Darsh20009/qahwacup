@@ -179,6 +179,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get active cashiers
+  // TODO: Add employee authentication middleware before production
+  app.get("/api/employees/active-cashiers", async (req, res) => {
+    try {
+      const cashiers = await storage.getActiveCashiers();
+
+      // Don't send passwords back
+      const cashiersData = cashiers.map(emp => {
+        const { password: _, ...data } = emp;
+        return data;
+      });
+
+      res.json(cashiersData);
+    } catch (error) {
+      console.error("Error fetching active cashiers:", error);
+      res.status(500).json({ error: "Failed to fetch active cashiers" });
+    }
+  });
+
   // Update employee
   app.put("/api/employees/:id", async (req, res) => {
     try {
@@ -1029,7 +1048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(password, 10);
       
       // Update customer with password
-      const updated = await storage.updateCustomer(customer._id.toString(), { 
+      const updated = await storage.updateCustomer((customer as any)._id.toString(), { 
         password: hashedPassword 
       });
 
@@ -1370,7 +1389,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items, totalAmount, paymentMethod, paymentDetails, paymentReceiptUrl,
         customerInfo, customerId, customerNotes, freeItemsDiscount, usedFreeDrinks, 
         discountCode, discountPercentage,
-        deliveryType, deliveryAddress, deliveryFee, branchId
+        deliveryType, deliveryAddress, deliveryFee, branchId,
+        tableNumber, tableId, orderType
       } = req.body;
 
       // Validate required fields
@@ -1492,6 +1512,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deliveryAddress: deliveryAddress || null,
         deliveryFee: deliveryFee || 0,
         branchId: branchId || null,
+        tableNumber: tableNumber || null,
+        tableId: tableId || null,
+        orderType: orderType || (tableNumber || tableId ? 'table' : 'regular'),
         items: JSON.stringify(items)
       };
 
@@ -1760,6 +1783,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching orders:", error);
       return res.status(500).json({ error: "Failed to fetch orders" });
+    }
+  });
+
+  // Get table orders
+  // TODO: Add employee authentication middleware before production
+  app.get("/api/orders/table", async (req, res) => {
+    try {
+      const { status } = req.query;
+      const orders = await storage.getTableOrders(status as string | undefined);
+      const coffeeItems = await storage.getCoffeeItems();
+
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            orderItems = [];
+          }
+        }
+        
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      res.json(enrichedOrders);
+    } catch (error) {
+      console.error("Error fetching table orders:", error);
+      res.status(500).json({ error: "Failed to fetch table orders" });
+    }
+  });
+
+  // Get pending table orders (for cashier)
+  // TODO: Add employee authentication middleware before production
+  app.get("/api/orders/table/pending", async (req, res) => {
+    try {
+      const orders = await storage.getPendingTableOrders();
+      const coffeeItems = await storage.getCoffeeItems();
+
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            orderItems = [];
+          }
+        }
+        
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      res.json(enrichedOrders);
+    } catch (error) {
+      console.error("Error fetching pending table orders:", error);
+      res.status(500).json({ error: "Failed to fetch pending table orders" });
     }
   });
 

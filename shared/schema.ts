@@ -189,11 +189,13 @@ export interface IOrder extends Document {
   paymentDetails?: string;
   paymentReceiptUrl?: string;
   status: string;
+  orderType?: 'regular' | 'table';
   customerInfo?: any;
   customerId?: string;
   employeeId?: string;
   branchId?: string;
   tableNumber?: string;
+  tableId?: string;
   customerNotes?: string;
   cancellationReason?: string;
   carPickup?: any;
@@ -230,11 +232,13 @@ const OrderSchema = new Schema<IOrder>({
   paymentDetails: { type: String },
   paymentReceiptUrl: { type: String },
   status: { type: String, default: "pending", required: true },
+  orderType: { type: String, enum: ['regular', 'table'], default: 'regular' },
   customerInfo: { type: Schema.Types.Mixed },
   customerId: { type: String },
   employeeId: { type: String },
   branchId: { type: String },
   tableNumber: { type: String },
+  tableId: { type: String },
   customerNotes: { type: String },
   cancellationReason: { type: String },
   carPickup: { type: Schema.Types.Mixed },
@@ -613,11 +617,13 @@ export const insertOrderSchema = z.object({
   paymentDetails: z.string().optional(),
   paymentReceiptUrl: z.string().optional(),
   status: z.string().optional(),
+  orderType: z.enum(['regular', 'table']).optional(),
   customerInfo: z.any().optional(),
   customerId: z.string().optional(),
   employeeId: z.string().optional(),
   branchId: z.string().optional(),
   tableNumber: z.string().optional(),
+  tableId: z.string().optional(),
   customerNotes: z.string().optional(),
   cancellationReason: z.string().optional(),
   carPickup: z.any().optional(),
