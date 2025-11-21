@@ -42,6 +42,8 @@ export interface ICustomer extends Document {
   name: string;
   password?: string;
   registeredBy?: 'self' | 'cashier';
+  isPasswordSet?: number;
+  points?: number;
   carType?: string;
   carColor?: string;
   saveCarInfo?: number;
@@ -54,6 +56,8 @@ const CustomerSchema = new Schema<ICustomer>({
   name: { type: String, required: true },
   password: { type: String },
   registeredBy: { type: String, default: 'self' },
+  isPasswordSet: { type: Number, default: 0 },
+  points: { type: Number, default: 0 },
   carType: { type: String },
   carColor: { type: String },
   saveCarInfo: { type: Number, default: 0 },
@@ -189,15 +193,18 @@ export interface IOrder extends Document {
   paymentDetails?: string;
   paymentReceiptUrl?: string;
   status: string;
+  tableStatus?: 'pending' | 'payment_confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   orderType?: 'regular' | 'table';
   customerInfo?: any;
   customerId?: string;
   employeeId?: string;
+  assignedCashierId?: string;
   branchId?: string;
   tableNumber?: string;
   tableId?: string;
   customerNotes?: string;
   cancellationReason?: string;
+  cancelledBy?: 'customer' | 'cashier';
   carPickup?: any;
   discountCode?: string;
   discountPercentage?: number;
@@ -232,15 +239,18 @@ const OrderSchema = new Schema<IOrder>({
   paymentDetails: { type: String },
   paymentReceiptUrl: { type: String },
   status: { type: String, default: "pending", required: true },
+  tableStatus: { type: String, enum: ['pending', 'payment_confirmed', 'preparing', 'ready', 'delivered', 'cancelled'] },
   orderType: { type: String, enum: ['regular', 'table'], default: 'regular' },
   customerInfo: { type: Schema.Types.Mixed },
   customerId: { type: String },
   employeeId: { type: String },
+  assignedCashierId: { type: String },
   branchId: { type: String },
   tableNumber: { type: String },
   tableId: { type: String },
   customerNotes: { type: String },
   cancellationReason: { type: String },
+  cancelledBy: { type: String, enum: ['customer', 'cashier'] },
   carPickup: { type: Schema.Types.Mixed },
   discountCode: { type: String },
   discountPercentage: { type: Number },
@@ -617,15 +627,18 @@ export const insertOrderSchema = z.object({
   paymentDetails: z.string().optional(),
   paymentReceiptUrl: z.string().optional(),
   status: z.string().optional(),
+  tableStatus: z.enum(['pending', 'payment_confirmed', 'preparing', 'ready', 'delivered', 'cancelled']).optional(),
   orderType: z.enum(['regular', 'table']).optional(),
   customerInfo: z.any().optional(),
   customerId: z.string().optional(),
   employeeId: z.string().optional(),
+  assignedCashierId: z.string().optional(),
   branchId: z.string().optional(),
   tableNumber: z.string().optional(),
   tableId: z.string().optional(),
   customerNotes: z.string().optional(),
   cancellationReason: z.string().optional(),
+  cancelledBy: z.enum(['customer', 'cashier']).optional(),
   carPickup: z.any().optional(),
   deliveryType: z.enum(['pickup', 'delivery']).optional(),
   deliveryAddress: z.object({
@@ -685,6 +698,8 @@ export const insertCustomerSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
   password: z.string().min(4, "كلمة المرور يجب أن تكون على الأقل 4 أحرف").optional(),
   registeredBy: z.enum(['self', 'cashier']).optional(),
+  isPasswordSet: z.number().optional(),
+  points: z.number().optional(),
   carType: z.string().optional(),
   carColor: z.string().optional(),
   saveCarInfo: z.number().optional(),

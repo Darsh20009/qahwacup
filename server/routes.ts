@@ -2844,6 +2844,249 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CASHIER - CUSTOMER MANAGEMENT ROUTES
+
+  // Search for customer by phone number (for cashier)
+  app.get("/api/cashier/customers/search", async (req, res) => {
+    try {
+      const { phone } = req.query;
+      
+      if (!phone || typeof phone !== 'string') {
+        return res.status(400).json({ error: "رقم الهاتف مطلوب" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      const customer = await storage.getCustomerByPhone(cleanPhone);
+      
+      if (customer) {
+        // Customer exists - return their info
+        res.json({
+          exists: true,
+          customer: {
+            id: customer._id,
+            phone: customer.phone,
+            name: customer.name,
+            email: customer.email,
+            points: customer.points || 0,
+            registeredBy: customer.registeredBy,
+            isPasswordSet: customer.isPasswordSet || 0
+          }
+        });
+      } else {
+        // Customer doesn't exist
+        res.json({
+          exists: false,
+          phone: cleanPhone
+        });
+      }
+    } catch (error) {
+      console.error("Error searching for customer:", error);
+      res.status(500).json({ error: "فشل البحث عن العميل" });
+    }
+  });
+
+  // Register customer by cashier (partial registration)
+  app.post("/api/cashier/customers/register", async (req, res) => {
+    try {
+      const { phone, name } = req.body;
+
+      if (!phone || !name) {
+        return res.status(400).json({ error: "رقم الهاتف والاسم مطلوبان" });
+      }
+
+      // Validate phone format
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      if (cleanPhone.length !== 9 || !cleanPhone.startsWith('5')) {
+        return res.status(400).json({ error: "رقم الهاتف يجب أن يكون 9 أرقام ويبدأ بـ 5" });
+      }
+
+      // Check if customer already exists
+      const existingCustomer = await storage.getCustomerByPhone(cleanPhone);
+      if (existingCustomer) {
+        return res.status(400).json({ error: "العميل مسجل بالفعل" });
+      }
+
+      // Create customer with cashier registration
+      const customer = await storage.createCustomer({
+        phone: cleanPhone,
+        name: name.trim(),
+        registeredBy: 'cashier',
+        isPasswordSet: 0,
+        points: 0
+      });
+
+      res.status(201).json({
+        id: customer._id,
+        phone: customer.phone,
+        name: customer.name,
+        points: customer.points,
+        registeredBy: customer.registeredBy,
+        isPasswordSet: customer.isPasswordSet
+      });
+    } catch (error) {
+      console.error("Error registering customer by cashier:", error);
+      res.status(500).json({ error: "فشل تسجيل العميل" });
+    }
+  });
+
+  // TABLE ORDER MANAGEMENT ROUTES
+
+  // Cancel order by customer (only before payment confirmation)
+  app.patch("/api/orders/:id/cancel-by-customer", async (req, res) => {
+    try {
+      const { cancellationReason } = req.body;
+      const { OrderModel } = await import("@shared/schema");
+      
+      const order = await OrderModel.findById(req.params.id);
+      
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+
+      // Only allow cancellation if order is pending
+      if (order.tableStatus && order.tableStatus !== 'pending') {
+        return res.status(400).json({ error: "لا يمكن إلغاء الطلب بعد تأكيد الدفع" });
+      }
+
+      order.status = 'cancelled';
+      order.tableStatus = 'cancelled';
+      order.cancelledBy = 'customer';
+      order.cancellationReason = cancellationReason || 'إلغاء من العميل';
+      order.updatedAt = new Date();
+      
+      await order.save();
+      
+      // Update table occupancy if applicable
+      if (order.tableId) {
+        await storage.updateTableOccupancy(order.tableId, 0);
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      res.status(500).json({ error: "فشل إلغاء الطلب" });
+    }
+  });
+
+  // Assign order to cashier (or accept pending order)
+  app.patch("/api/orders/:id/assign-cashier", async (req, res) => {
+    try {
+      const { cashierId } = req.body;
+      const { OrderModel } = await import("@shared/schema");
+      
+      if (!cashierId) {
+        return res.status(400).json({ error: "معرف الكاشير مطلوب" });
+      }
+
+      const order = await OrderModel.findById(req.params.id);
+      
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+
+      if (order.assignedCashierId) {
+        return res.status(400).json({ error: "الطلب مستلم بالفعل من كاشير آخر" });
+      }
+
+      order.assignedCashierId = cashierId;
+      order.updatedAt = new Date();
+      
+      await order.save();
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error assigning cashier:", error);
+      res.status(500).json({ error: "فشل استلام الطلب" });
+    }
+  });
+
+  // Update table order status (by cashier)
+  app.patch("/api/orders/:id/table-status", async (req, res) => {
+    try {
+      const { tableStatus } = req.body;
+      const { OrderModel } = await import("@shared/schema");
+      
+      const validStatuses = ['pending', 'payment_confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
+      if (!tableStatus || !validStatuses.includes(tableStatus)) {
+        return res.status(400).json({ error: "حالة الطلب غير صالحة" });
+      }
+
+      const order = await OrderModel.findById(req.params.id);
+      
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+
+      order.tableStatus = tableStatus;
+      order.updatedAt = new Date();
+
+      // Update main status based on table status
+      if (tableStatus === 'payment_confirmed') {
+        order.status = 'payment_confirmed';
+      } else if (tableStatus === 'delivered') {
+        order.status = 'completed';
+        // Mark table as available
+        if (order.tableId) {
+          await storage.updateTableOccupancy(order.tableId, 0);
+        }
+      } else if (tableStatus === 'cancelled') {
+        order.status = 'cancelled';
+        order.cancelledBy = 'cashier';
+        if (order.tableId) {
+          await storage.updateTableOccupancy(order.tableId, 0);
+        }
+      }
+      
+      await order.save();
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating table status:", error);
+      res.status(500).json({ error: "فشل تحديث حالة الطلب" });
+    }
+  });
+
+  // Get orders assigned to specific cashier
+  app.get("/api/cashier/:cashierId/orders", async (req, res) => {
+    try {
+      const { OrderModel } = await import("@shared/schema");
+      const { status } = req.query;
+      
+      const query: any = {
+        assignedCashierId: req.params.cashierId,
+        orderType: 'table'
+      };
+
+      if (status) {
+        query.tableStatus = status;
+      }
+
+      const orders = await OrderModel.find(query).sort({ createdAt: -1 });
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching cashier orders:", error);
+      res.status(500).json({ error: "Failed to fetch cashier orders" });
+    }
+  });
+
+  // Get unassigned pending table orders
+  app.get("/api/orders/table/unassigned", async (req, res) => {
+    try {
+      const { OrderModel } = await import("@shared/schema");
+      
+      const orders = await OrderModel.find({
+        orderType: 'table',
+        tableStatus: 'pending',
+        assignedCashierId: { $exists: false }
+      }).sort({ createdAt: 1 });
+
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching unassigned orders:", error);
+      res.status(500).json({ error: "Failed to fetch unassigned orders" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
