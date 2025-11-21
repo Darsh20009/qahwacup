@@ -23,6 +23,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 interface ITable {
@@ -37,12 +44,27 @@ interface ITable {
   updatedAt: Date;
 }
 
+interface IBranch {
+  _id: string;
+  nameAr: string;
+  nameEn?: string;
+  address: string;
+  city: string;
+  isActive: number;
+}
+
 export default function ManagerTables() {
   const { toast } = useToast();
   const [bulkCount, setBulkCount] = useState("10");
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
   const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<any>(null);
+
+  // Fetch branches
+  const { data: branches } = useQuery<IBranch[]>({
+    queryKey: ["/api/branches"],
+  });
 
   // Fetch tables
   const { data: tables, isLoading } = useQuery<ITable[]>({
@@ -78,27 +100,31 @@ export default function ManagerTables() {
 
   // Bulk create tables mutation
   const bulkCreateMutation = useMutation({
-    mutationFn: async (count: number) => {
+    mutationFn: async ({ count, branchId }: { count: number; branchId: string }) => {
       const response = await fetch("/api/tables/bulk-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ count }),
+        body: JSON.stringify({ count, branchId }),
       });
-      if (!response.ok) throw new Error("Failed to bulk create tables");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to bulk create tables");
+      }
       return response.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      const createdCount = data.results?.created?.length || data.details?.created?.length || 0;
       toast({
         title: "تم إنشاء الطاولات",
-        description: `تم إنشاء ${data.results.created.length} طاولة بنجاح`,
+        description: `تم إنشاء ${createdCount} طاولة بنجاح`,
       });
       setBulkCount("10");
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "خطأ",
-        description: "فشل إنشاء الطاولات",
+        description: error.message || "فشل إنشاء الطاولات",
         variant: "destructive",
       });
     },
@@ -159,7 +185,15 @@ export default function ManagerTables() {
       });
       return;
     }
-    bulkCreateMutation.mutate(count);
+    if (!selectedBranch) {
+      toast({
+        title: "خطأ",
+        description: "يجب اختيار الفرع أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    bulkCreateMutation.mutate({ count, branchId: selectedBranch });
   };
 
   const handleViewQR = (table: ITable) => {
@@ -199,6 +233,21 @@ export default function ManagerTables() {
           <CardContent className="space-y-4">
             <div className="flex flex-wrap items-end gap-4">
               <div className="flex-1 min-w-[200px]">
+                <Label htmlFor="branch">اختر الفرع</Label>
+                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الفرع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches?.map((branch) => (
+                      <SelectItem key={branch._id} value={branch._id}>
+                        {branch.nameAr}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 min-w-[200px]">
                 <Label htmlFor="bulkCount">عدد الطاولات</Label>
                 <Input
                   id="bulkCount"
@@ -213,7 +262,7 @@ export default function ManagerTables() {
               </div>
               <Button
                 onClick={handleBulkCreate}
-                disabled={bulkCreateMutation.isPending}
+                disabled={bulkCreateMutation.isPending || !selectedBranch}
                 data-testid="button-bulk-create"
               >
                 <Plus className="w-4 h-4 ml-2" />
