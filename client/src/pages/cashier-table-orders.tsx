@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Clock, CheckCircle, ChefHat, Truck, XCircle, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -185,12 +186,15 @@ export default function CashierTableOrders() {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="pending">
               طلبات جديدة ({unassignedOrders?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="my-orders">
               طلباتي ({myOrders?.filter(o => o.tableStatus !== 'delivered' && o.tableStatus !== 'cancelled').length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="tables">
+              إدارة الطاولات
             </TabsTrigger>
           </TabsList>
 
@@ -335,6 +339,25 @@ export default function CashierTableOrders() {
                     })}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tables Management */}
+          <TabsContent value="tables">
+            <Card>
+              <CardHeader>
+                <CardTitle>إدارة الطاولات</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    لإدارة الطاولات، يرجى الذهاب إلى لوحة تحكم المدير
+                  </p>
+                  <Button onClick={() => setLocation("/manager/tables")}>
+                    الذهاب إلى إدارة الطاولات
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
