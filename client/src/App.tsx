@@ -40,6 +40,7 @@ import ManagerTables from "@/pages/manager-tables";
 import TableMenu from "@/pages/table-menu";
 import TableOrderTracking from "@/pages/table-order-tracking";
 import CashierTableOrders from "@/pages/cashier-table-orders";
+import CashierTables from "@/pages/cashier-tables";
 
 function Router() {
  return (
@@ -67,6 +68,7 @@ function Router() {
  <Route path="/employee/activate" component={EmployeeActivation} />
  <Route path="/employee/dashboard" component={EmployeeDashboard} />
  <Route path="/employee/cashier" component={EmployeeCashier} />
+ <Route path="/employee/tables" component={CashierTables} />
  <Route path="/employee/table-orders" component={CashierTableOrders} />
  <Route path="/employee/orders" component={EmployeeOrders} />
  <Route path="/employee/loyalty" component={EmployeeLoyalty} />

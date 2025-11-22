@@ -121,6 +121,7 @@ export interface IEmployee extends Document {
   shiftTime?: string;
   commissionPercentage?: number;
   isActivated: number;
+  branchId?: string;
   vehicleType?: string;
   vehiclePlateNumber?: string;
   vehicleColor?: string;
@@ -147,6 +148,7 @@ const EmployeeSchema = new Schema<IEmployee>({
   shiftTime: { type: String },
   commissionPercentage: { type: Number, default: 0 },
   isActivated: { type: Number, default: 0, required: true },
+  branchId: { type: String },
   vehicleType: { type: String },
   vehiclePlateNumber: { type: String },
   vehicleColor: { type: String },
@@ -559,24 +561,38 @@ export const DeliveryZoneModel = mongoose.model<IDeliveryZone>("DeliveryZone", D
 export interface ITable extends Document {
   tableNumber: string;
   qrToken: string;
-  branchId?: string;
+  branchId: string;
   isActive: number;
   isOccupied: number;
   currentOrderId?: string;
+  reservedFor?: {
+    customerName: string;
+    customerPhone: string;
+    reservedAt: Date;
+    reservedBy: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
 
 const TableSchema = new Schema<ITable>({
-  tableNumber: { type: String, required: true, unique: true },
+  tableNumber: { type: String, required: true },
   qrToken: { type: String, required: true, unique: true },
-  branchId: { type: String },
+  branchId: { type: String, required: true },
   isActive: { type: Number, default: 1, required: true },
   isOccupied: { type: Number, default: 0, required: true },
   currentOrderId: { type: String },
+  reservedFor: {
+    customerName: { type: String },
+    customerPhone: { type: String },
+    reservedAt: { type: Date },
+    reservedBy: { type: String },
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
+
+TableSchema.index({ tableNumber: 1, branchId: 1 }, { unique: true });
 
 export const TableModel = mongoose.model<ITable>("Table", TableSchema);
 
@@ -608,6 +624,7 @@ export const insertEmployeeSchema = z.object({
   shiftTime: z.string().optional(),
   commissionPercentage: z.number().optional(),
   isActivated: z.number().optional(),
+  branchId: z.string().optional(),
   vehicleType: z.string().optional(),
   vehiclePlateNumber: z.string().optional(),
   vehicleColor: z.string().optional(),
@@ -806,10 +823,16 @@ export const insertDeliveryZoneSchema = z.object({
 export const insertTableSchema = z.object({
   tableNumber: z.string().min(1, "رقم الطاولة مطلوب"),
   qrToken: z.string().optional(),
-  branchId: z.string().optional(),
+  branchId: z.string().min(1, "معرّف الفرع مطلوب"),
   isActive: z.number().optional(),
   isOccupied: z.number().optional(),
   currentOrderId: z.string().optional(),
+  reservedFor: z.object({
+    customerName: z.string(),
+    customerPhone: z.string(),
+    reservedAt: z.date(),
+    reservedBy: z.string(),
+  }).optional(),
 });
 
 export type CoffeeItem = ICoffeeItem;

@@ -2719,7 +2719,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tables/:id/qr-code", async (req, res) => {
     try {
-      const QRCode = (await import("qrcode")).default;
       const table = await storage.getTable(req.params.id);
       
       if (!table) {
@@ -2729,24 +2728,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const tableUrl = `${baseUrl}/table-menu/${table.qrToken}`;
       
-      const qrCodeDataUrl = await QRCode.toDataURL(tableUrl, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
-      });
+      // Get branch info for QR card
+      const branch = await storage.getBranch(table.branchId);
 
       res.json({
-        qrCodeDataUrl,
         tableUrl,
         tableNumber: table.tableNumber,
-        qrToken: table.qrToken
+        qrToken: table.qrToken,
+        branchName: branch?.nameAr || 'قهوة كوب'
       });
     } catch (error) {
       console.error("Error generating QR code:", error);
       res.status(500).json({ error: "Failed to generate QR code" });
+    }
+  });
+
+  // Reserve a table
+  app.post("/api/tables/:id/reserve", async (req, res) => {
+    try {
+      const { customerName, customerPhone, employeeId } = req.body;
+      
+      if (!customerName || !customerPhone || !employeeId) {
+        return res.status(400).json({ error: "Customer name, phone, and employee ID required" });
+      }
+
+      // Get employee to verify branch
+      const employee = await storage.getEmployeeById(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Get table to verify it belongs to the same branch
+      const existingTable = await storage.getTable(req.params.id);
+      if (!existingTable) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      // Verify branch ownership
+      if (existingTable.branchId && employee.branchId && existingTable.branchId !== employee.branchId) {
+        return res.status(403).json({ error: "Cannot reserve tables in other branches" });
+      }
+
+      const table = await storage.updateTable(req.params.id, {
+        isOccupied: 1,
+        reservedFor: {
+          customerName,
+          customerPhone,
+          reservedAt: new Date(),
+          reservedBy: employeeId
+        }
+      });
+
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      res.json(table);
+    } catch (error) {
+      console.error("Error reserving table:", error);
+      res.status(500).json({ error: "Failed to reserve table" });
+    }
+  });
+
+  // Release a table reservation
+  app.post("/api/tables/:id/release", async (req, res) => {
+    try {
+      const { employeeId } = req.body;
+
+      // Optionally verify branch ownership if employeeId is provided
+      if (employeeId) {
+        const employee = await storage.getEmployeeById(employeeId);
+        if (!employee) {
+          return res.status(404).json({ error: "Employee not found" });
+        }
+
+        const existingTable = await storage.getTable(req.params.id);
+        if (!existingTable) {
+          return res.status(404).json({ error: "Table not found" });
+        }
+
+        // Verify branch ownership
+        if (existingTable.branchId && employee.branchId && existingTable.branchId !== employee.branchId) {
+          return res.status(403).json({ error: "Cannot release tables in other branches" });
+        }
+      }
+
+      const table = await storage.updateTable(req.params.id, {
+        isOccupied: 0,
+        reservedFor: undefined,
+        currentOrderId: undefined
+      });
+
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      res.json(table);
+    } catch (error) {
+      console.error("Error releasing table:", error);
+      res.status(500).json({ error: "Failed to release table" });
     }
   });
 

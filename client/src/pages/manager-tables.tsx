@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { TableQRCard, downloadQRCard } from "@/components/table-qr-card";
 
 interface ITable {
   _id: string;
@@ -60,6 +61,7 @@ export default function ManagerTables() {
   const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<any>(null);
+  const qrCardRef = useRef<HTMLCanvasElement>(null);
 
   // Fetch branches
   const { data: branches } = useQuery<IBranch[]>({
@@ -201,13 +203,9 @@ export default function ManagerTables() {
     getQRCodeMutation.mutate(table._id);
   };
 
-  const downloadQRCode = () => {
-    if (!qrCodeData || !selectedTable) return;
-
-    const link = document.createElement("a");
-    link.download = `table-${selectedTable.tableNumber}-qr.png`;
-    link.href = qrCodeData.qrCodeDataUrl;
-    link.click();
+  const handleDownloadQRCode = () => {
+    if (!selectedTable || !qrCardRef.current) return;
+    downloadQRCard(qrCardRef.current, selectedTable.tableNumber);
   };
 
   return (
@@ -347,39 +345,35 @@ export default function ManagerTables() {
 
         {/* QR Code Dialog */}
         <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-          <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle>
-                رمز QR للطاولة {selectedTable?.tableNumber}
+                بطاقة QR للطاولة {selectedTable?.tableNumber}
               </DialogTitle>
               <DialogDescription>
-                اطبع أو احفظ هذا الرمز لاستخدامه على الطاولة
+                اطبع أو احفظ هذه البطاقة لوضعها على الطاولة
               </DialogDescription>
             </DialogHeader>
-            {qrCodeData && (
+            {qrCodeData && selectedTable && (
               <div className="space-y-4">
-                <div className="flex justify-center bg-white p-4 rounded-md">
-                  <img
-                    src={qrCodeData.qrCodeDataUrl}
-                    alt={`QR Code for table ${selectedTable?.tableNumber}`}
-                    className="w-64 h-64"
-                  />
-                </div>
+                <TableQRCard
+                  tableNumber={selectedTable.tableNumber}
+                  qrToken={qrCodeData.qrToken}
+                  branchName={qrCodeData.branchName}
+                  tableUrl={qrCodeData.tableUrl}
+                />
                 <div className="space-y-2">
-                  <p className="text-sm text-center">
-                    <strong>رقم الطاولة:</strong> {selectedTable?.tableNumber}
-                  </p>
                   <p className="text-xs text-center text-muted-foreground break-all">
                     {qrCodeData.tableUrl}
                   </p>
                 </div>
                 <Button
-                  onClick={downloadQRCode}
+                  onClick={handleDownloadQRCode}
                   className="w-full"
                   data-testid="button-download-qr"
                 >
                   <Download className="w-4 h-4 ml-2" />
-                  تحميل الرمز
+                  تحميل البطاقة
                 </Button>
               </div>
             )}
