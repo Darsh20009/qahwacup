@@ -5,9 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCartStore } from '@/lib/cart-store';
 import { useToast } from '@/hooks/use-toast';
-import { Store, MapPin, ArrowRight, Phone, Map } from 'lucide-react';
+import { Store, MapPin, ArrowRight, Phone, Map, Coffee } from 'lucide-react';
 
 interface Branch {
   _id: string;
@@ -29,6 +30,7 @@ export default function DeliverySelectionPage() {
   const { setDeliveryInfo, cartItems } = useCartStore();
   const { toast } = useToast();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+  const [dineIn, setDineIn] = useState<boolean>(false);
 
   // Fetch branches
   const { data: branches = [], isLoading } = useQuery<Branch[]>({
@@ -66,6 +68,7 @@ export default function DeliverySelectionPage() {
       branchId: branch._id,
       branchName: branch.nameAr,
       branchAddress: branch.address,
+      dineIn: dineIn,
       deliveryFee: 0,
     });
     
@@ -164,6 +167,34 @@ export default function DeliverySelectionPage() {
                             </div>
                           </a>
                         )}
+
+                        {/* Dine-In Option */}
+                        <Card className="bg-accent/5">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                                  <Coffee className="w-5 h-5 text-primary" />
+                                </div>
+                                <div className="flex-1" dir="rtl">
+                                  <Label htmlFor="dine-in" className="text-base font-semibold cursor-pointer">
+                                    الجلوس في الكافيه
+                                  </Label>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    احصل على طلبك واستمتع به في الكافيه
+                                  </p>
+                                </div>
+                              </div>
+                              <Checkbox 
+                                id="dine-in"
+                                checked={dineIn} 
+                                onCheckedChange={(checked) => setDineIn(checked as boolean)}
+                                data-testid="checkbox-dine-in"
+                                className="ml-2"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
 
                         {/* Action Buttons */}
                         <div className="flex gap-2">

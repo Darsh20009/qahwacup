@@ -2878,6 +2878,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer table reservation
+  app.post("/api/tables/customer-reserve", async (req, res) => {
+    try {
+      const { tableId, customerName, customerPhone, customerId, reservationDate, reservationTime, numberOfGuests, branchId } = req.body;
+      
+      if (!tableId || !customerName || !customerPhone || !reservationDate || !reservationTime || !numberOfGuests) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const table = await storage.getTable(tableId);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      if (table.isOccupied) {
+        return res.status(400).json({ error: "Table is currently occupied" });
+      }
+
+      // Check for existing active reservations
+      if (table.reservedFor && (table.reservedFor.status === 'pending' || table.reservedFor.status === 'confirmed')) {
+        return res.status(400).json({ error: "Table already has an active reservation" });
+      }
+
+      const updatedTable = await storage.updateTable(tableId, {
+        reservedFor: {
+          customerName,
+          customerPhone,
+          customerId,
+          reservationDate: new Date(reservationDate),
+          reservationTime,
+          numberOfGuests,
+          reservedAt: new Date(),
+          reservedBy: customerId || 'customer',
+          status: 'pending'
+        }
+      });
+
+      if (!updatedTable) {
+        return res.status(500).json({ error: "Failed to reserve table" });
+      }
+
+      res.json({ success: true, table: updatedTable });
+    } catch (error) {
+      console.error("Error creating customer reservation:", error);
+      res.status(500).json({ error: "Failed to create reservation" });
+    }
+  });
+
+  // Get available tables for reservation
+  app.get("/api/tables/available", async (req, res) => {
+    try {
+      const { branchId, date } = req.query;
+      
+      if (!branchId) {
+        return res.status(400).json({ error: "Branch ID required" });
+      }
+
+      const tables = await storage.getTables(branchId as string);
+      const availableTables = tables.filter(t => 
+        t.isActive === 1 && 
+        (!t.reservedFor || t.reservedFor.status === 'cancelled' || t.reservedFor.status === 'completed')
+      );
+
+      res.json(availableTables);
+    } catch (error) {
+      console.error("Error fetching available tables:", error);
+      res.status(500).json({ error: "Failed to fetch available tables" });
+    }
+  });
+
   app.get("/api/drivers", async (req, res) => {
     try {
       const drivers = await storage.getAvailableDrivers();

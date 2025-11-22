@@ -31,6 +31,36 @@ export function requireManager(req: AuthRequest, res: Response, next: NextFuncti
   next();
 }
 
+export function requireBranchAccess(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.employee) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  // Admin has access to all branches
+  if (req.employee.role === "admin") {
+    next();
+    return;
+  }
+
+  // Get branchId from query, params, or body
+  const requestedBranchId = req.params.branchId || req.query.branchId || req.body.branchId;
+
+  // If no branch is specified, allow (will be handled by route logic)
+  if (!requestedBranchId) {
+    next();
+    return;
+  }
+
+  // If manager, check if the requested branch matches their assigned branch
+  if (req.employee.role === "manager") {
+    if (req.employee.branchId !== requestedBranchId) {
+      return res.status(403).json({ error: "Forbidden - You can only access your assigned branch" });
+    }
+  }
+
+  next();
+}
+
 export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   if (!req.employee) {
     return res.status(401).json({ error: "Unauthorized" });

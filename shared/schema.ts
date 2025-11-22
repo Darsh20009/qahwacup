@@ -196,7 +196,7 @@ export interface IOrder extends Document {
   paymentReceiptUrl?: string;
   status: string;
   tableStatus?: 'pending' | 'payment_confirmed' | 'preparing' | 'delivering_to_table' | 'delivered' | 'cancelled';
-  orderType?: 'regular' | 'table';
+  orderType?: 'regular' | 'table' | 'dine-in';
   customerInfo?: any;
   customerId?: string;
   employeeId?: string;
@@ -210,7 +210,7 @@ export interface IOrder extends Document {
   carPickup?: any;
   discountCode?: string;
   discountPercentage?: number;
-  deliveryType?: 'pickup' | 'delivery';
+  deliveryType?: 'pickup' | 'delivery' | 'dine-in';
   deliveryAddress?: {
     fullAddress?: string;
     lat: number;
@@ -242,7 +242,7 @@ const OrderSchema = new Schema<IOrder>({
   paymentReceiptUrl: { type: String },
   status: { type: String, default: "pending", required: true },
   tableStatus: { type: String, enum: ['pending', 'payment_confirmed', 'preparing', 'delivering_to_table', 'delivered', 'cancelled'] },
-  orderType: { type: String, enum: ['regular', 'table'], default: 'regular' },
+  orderType: { type: String, enum: ['regular', 'table', 'dine-in'], default: 'regular' },
   customerInfo: { type: Schema.Types.Mixed },
   customerId: { type: String },
   employeeId: { type: String },
@@ -256,7 +256,7 @@ const OrderSchema = new Schema<IOrder>({
   carPickup: { type: Schema.Types.Mixed },
   discountCode: { type: String },
   discountPercentage: { type: Number },
-  deliveryType: { type: String, enum: ['pickup', 'delivery'] },
+  deliveryType: { type: String, enum: ['pickup', 'delivery', 'dine-in'] },
   deliveryAddress: {
     fullAddress: { type: String },
     lat: { type: Number },
@@ -562,14 +562,21 @@ export interface ITable extends Document {
   tableNumber: string;
   qrToken: string;
   branchId: string;
+  capacity?: number;
+  location?: string;
   isActive: number;
   isOccupied: number;
   currentOrderId?: string;
   reservedFor?: {
     customerName: string;
     customerPhone: string;
+    customerId?: string;
+    reservationDate: Date;
+    reservationTime: string;
+    numberOfGuests: number;
     reservedAt: Date;
     reservedBy: string;
+    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   };
   createdAt: Date;
   updatedAt: Date;
@@ -579,14 +586,21 @@ const TableSchema = new Schema<ITable>({
   tableNumber: { type: String, required: true },
   qrToken: { type: String, required: true, unique: true },
   branchId: { type: String, required: true },
+  capacity: { type: Number, default: 4 },
+  location: { type: String },
   isActive: { type: Number, default: 1, required: true },
   isOccupied: { type: Number, default: 0, required: true },
   currentOrderId: { type: String },
   reservedFor: {
     customerName: { type: String },
     customerPhone: { type: String },
+    customerId: { type: String },
+    reservationDate: { type: Date },
+    reservationTime: { type: String },
+    numberOfGuests: { type: Number },
     reservedAt: { type: Date },
     reservedBy: { type: String },
+    status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed'], default: 'pending' },
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -645,7 +659,7 @@ export const insertOrderSchema = z.object({
   paymentReceiptUrl: z.string().optional(),
   status: z.string().optional(),
   tableStatus: z.enum(['pending', 'payment_confirmed', 'preparing', 'ready', 'delivered', 'cancelled']).optional(),
-  orderType: z.enum(['regular', 'table']).optional(),
+  orderType: z.enum(['regular', 'table', 'dine-in']).optional(),
   customerInfo: z.any().optional(),
   customerId: z.string().optional(),
   employeeId: z.string().optional(),
@@ -657,7 +671,7 @@ export const insertOrderSchema = z.object({
   cancellationReason: z.string().optional(),
   cancelledBy: z.enum(['customer', 'cashier']).optional(),
   carPickup: z.any().optional(),
-  deliveryType: z.enum(['pickup', 'delivery']).optional(),
+  deliveryType: z.enum(['pickup', 'delivery', 'dine-in']).optional(),
   deliveryAddress: z.object({
     fullAddress: z.string().optional(),
     lat: z.number(),
@@ -824,14 +838,21 @@ export const insertTableSchema = z.object({
   tableNumber: z.string().min(1, "رقم الطاولة مطلوب"),
   qrToken: z.string().optional(),
   branchId: z.string().min(1, "معرّف الفرع مطلوب"),
+  capacity: z.number().optional(),
+  location: z.string().optional(),
   isActive: z.number().optional(),
   isOccupied: z.number().optional(),
   currentOrderId: z.string().optional(),
   reservedFor: z.object({
     customerName: z.string(),
     customerPhone: z.string(),
-    reservedAt: z.date(),
+    customerId: z.string().optional(),
+    reservationDate: z.coerce.date().optional(),
+    reservationTime: z.string().optional(),
+    numberOfGuests: z.number().optional(),
+    reservedAt: z.coerce.date().optional(),
     reservedBy: z.string(),
+    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional(),
   }).optional(),
 });
 

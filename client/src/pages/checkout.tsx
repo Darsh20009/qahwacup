@@ -352,6 +352,10 @@ export default function CheckoutPage() {
 
  // Calculate number of free drinks used
  const usedFreeDrinks = isQahwaCardPayment ? Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0) : 0;
+  // Determine the correct order type based on delivery info
+  const isDineIn = deliveryInfo?.type === 'pickup' && deliveryInfo?.dineIn;
+  const finalOrderType = isDineIn ? 'dine-in' : 'regular';
+
 
  const orderData = {
  items: orderItems,
@@ -361,10 +365,11 @@ export default function CheckoutPage() {
  paymentReceiptUrl: paymentReceiptUrl || undefined,
  discountCode: appliedDiscount?.code,
  discountPercentage: appliedDiscount?.percentage,
- deliveryType: deliveryInfo?.type,
+ orderType: finalOrderType,
+    deliveryType: deliveryInfo?.type,
  deliveryAddress: deliveryInfo?.type === 'delivery' ? deliveryInfo.address : undefined,
  deliveryFee: deliveryInfo?.deliveryFee || 0,
- branchId: deliveryInfo?.type === 'pickup' ? deliveryInfo.branchId : undefined,
+ branchId: (deliveryInfo?.type === 'pickup' || isDineIn) ? deliveryInfo.branchId : undefined,
  customerInfo: {
  customerName: customerName.trim(),
  transferOwnerName: isSameAsCustomer ? customerName.trim() : transferOwnerName.trim(),

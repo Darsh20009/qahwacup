@@ -41,7 +41,7 @@ async function seedManagersAndBranches() {
       },
     ];
 
-    const createdBranches = [];
+    const createdBranches: any[] = [];
     for (const branchData of branches) {
       let branch = await BranchModel.findOne({ nameAr: branchData.nameAr });
       if (!branch) {

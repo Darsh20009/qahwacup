@@ -16,6 +16,8 @@ export interface DeliveryInfo {
  branchId?: string;
  branchName?: string;
  branchAddress?: string;
+ dineIn?: boolean;
+ tableNumber?: string;
  address?: {
  fullAddress: string;
  lat: number;
