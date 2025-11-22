@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
+import { requireAuth, requireManager, requireAdmin, filterByBranch, type AuthRequest } from "./middleware/auth";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -108,8 +109,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
+      // Create session
+      req.session.employee = {
+        id: employee.id,
+        username: employee.username,
+        role: employee.role,
+        branchId: employee.branchId,
+        fullName: employee.fullName,
+      };
+
       // Don't send password back
-      const { password: _, ...employeeData } = employee;
+      const { password: _, ...employeeData} = employee;
       res.json(employeeData);
     } catch (error) {
       console.error("Error during employee login:", error);
@@ -117,14 +127,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get employee by ID
-  app.get("/api/employees/:id", async (req, res) => {
+  // Get employee by ID (branch-restricted for managers)
+  app.get("/api/employees/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
       const employee = await storage.getEmployee(id);
 
       if (!employee) {
         return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Verify branch access for non-admin managers
+      if (req.employee?.role !== "admin" && employee.branchId !== req.employee?.branchId) {
+        return res.status(403).json({ error: "Access denied - different branch" });
       }
 
       // Don't send password back
@@ -136,8 +151,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new employee (admin only - you might want to add auth middleware)
-  app.post("/api/employees", async (req, res) => {
+  // Create new employee (admin only)
+  app.post("/api/employees", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertEmployeeSchema.parse(req.body);
 
@@ -161,10 +176,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all employees
-  app.get("/api/employees", async (req, res) => {
+  // Get all employees (branch-filtered for managers)
+  app.get("/api/employees", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
-      const employees = await storage.getEmployees();
+      const allEmployees = await storage.getEmployees();
+
+      // Filter by branch for non-admin managers
+      const employees = filterByBranch(allEmployees, req.employee);
 
       // Don't send passwords back
       const employeesData = employees.map(emp => {
@@ -179,11 +197,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get active cashiers
-  // TODO: Add employee authentication middleware before production
-  app.get("/api/employees/active-cashiers", async (req, res) => {
+  // Get active cashiers (branch-filtered for managers)
+  app.get("/api/employees/active-cashiers", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
-      const cashiers = await storage.getActiveCashiers();
+      const allCashiers = await storage.getActiveCashiers();
+
+      // Filter by branch for non-admin managers
+      const cashiers = filterByBranch(allCashiers, req.employee);
 
       // Don't send passwords back
       const cashiersData = cashiers.map(emp => {
@@ -198,11 +218,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update employee
-  app.put("/api/employees/:id", async (req, res) => {
+  // Update employee (branch-restricted for managers)
+  app.put("/api/employees/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
+
+      // Get employee to verify branch access
+      const existingEmployee = await storage.getEmployee(id);
+      if (!existingEmployee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Verify branch access for non-admin managers
+      if (req.employee?.role !== "admin" && existingEmployee.branchId !== req.employee?.branchId) {
+        return res.status(403).json({ error: "Access denied - different branch" });
+      }
 
       const updatedEmployee = await storage.updateEmployee(id, updates);
 
@@ -1692,8 +1723,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update order status
-  app.put("/api/orders/:id/status", async (req, res) => {
+  // Update order status (branch-restricted for managers)
+  app.put("/api/orders/:id/status", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
       const { status, cancellationReason } = req.body;
@@ -1702,6 +1733,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validStatuses = ['pending', 'payment_confirmed', 'in_progress', 'ready', 'completed', 'cancelled'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
+      }
+
+      // Verify branch access for non-admin users
+      const order = await storage.getOrder(id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      if (req.employee?.role !== "admin" && order.branchId !== req.employee?.branchId) {
+        return res.status(403).json({ error: "Access denied - different branch" });
       }
 
       const updatedOrder = await storage.updateOrderStatus(id, status, cancellationReason);
@@ -1745,14 +1786,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all orders (for employee dashboard)
-  app.get("/api/orders", async (req, res) => {
+  // Get all orders (branch-filtered for managers)
+  app.get("/api/orders", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const { limit, offset } = req.query;
       const limitNum = limit ? parseInt(limit as string) : undefined;
       const offsetNum = offset ? parseInt(offset as string) : undefined;
 
-      const orders = await storage.getOrders(limitNum, offsetNum);
+      const allOrders = await storage.getOrders(limitNum, offsetNum);
+
+      // Filter by branch for non-admin managers
+      const orders = filterByBranch(allOrders, req.employee);
+
       const coffeeItems = await storage.getCoffeeItems();
 
       // Enrich orders with coffee item details
@@ -1801,12 +1846,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get table orders
-  // TODO: Add employee authentication middleware before production
-  app.get("/api/orders/table", async (req, res) => {
+  // Get table orders (branch-filtered for managers)
+  app.get("/api/orders/table", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const { status } = req.query;
-      const orders = await storage.getTableOrders(status as string | undefined);
+      const allOrders = await storage.getTableOrders(status as string | undefined);
+
+      // Filter by branch for non-admin managers
+      const orders = filterByBranch(allOrders, req.employee);
+
       const coffeeItems = await storage.getCoffeeItems();
 
       // Enrich orders with coffee item details
@@ -2753,7 +2801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get employee to verify branch
-      const employee = await storage.getEmployeeById(employeeId);
+      const employee = await storage.getEmployee(employeeId);
       if (!employee) {
         return res.status(404).json({ error: "Employee not found" });
       }
@@ -2797,7 +2845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Optionally verify branch ownership if employeeId is provided
       if (employeeId) {
-        const employee = await storage.getEmployeeById(employeeId);
+        const employee = await storage.getEmployee(employeeId);
         if (!employee) {
           return res.status(404).json({ error: "Employee not found" });
         }

@@ -134,17 +134,17 @@ export default function CashierTableOrders() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline">في الانتظار</Badge>;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">في الانتظار ⏳</Badge>;
       case "payment_confirmed":
-        return <Badge className="bg-blue-500">تم تأكيد الدفع</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600 text-white">تم تأكيد الدفع ✅</Badge>;
       case "preparing":
-        return <Badge className="bg-orange-500">جاري التحضير</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">جاري التحضير ☕</Badge>;
       case "delivering_to_table":
-        return <Badge className="bg-purple-500">جاري التوصيل</Badge>;
+        return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاري التوصيل 🚶</Badge>;
       case "delivered":
-        return <Badge variant="default">تم التوصيل</Badge>;
+        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">تم التوصيل 🎉</Badge>;
       case "cancelled":
-        return <Badge variant="destructive">ملغي</Badge>;
+        return <Badge className="bg-red-600 hover:bg-red-700 text-white">ملغي ❌</Badge>;
       default:
         return <Badge variant="secondary">غير معروف</Badge>;
     }

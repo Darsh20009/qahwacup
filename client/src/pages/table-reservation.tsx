@@ -1,0 +1,309 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Coffee, Calendar, User, Phone, MapPin, CheckCircle2 } from "lucide-react";
+import { useLocation } from "wouter";
+
+interface Branch {
+  _id: string;
+  nameAr: string;
+  city: string;
+  address: string;
+  phone: string;
+}
+
+interface Table {
+  _id: string;
+  tableNumber: string;
+  branchId: string;
+  isOccupied: number;
+  isActive: number;
+  reservedFor?: {
+    customerName: string;
+    customerPhone: string;
+  };
+}
+
+export default function TableReservation() {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedTable, setSelectedTable] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [reservationDate, setReservationDate] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const { data: branches = [] } = useQuery<Branch[]>({
+    queryKey: ["/api/branches"],
+  });
+
+  const { data: tables = [] } = useQuery<Table[]>({
+    queryKey: ["/api/tables"],
+  });
+
+  const availableTables = tables.filter(
+    (table) =>
+      table.branchId === selectedBranch &&
+      table.isActive === 1 &&
+      table.isOccupied === 0 &&
+      !table.reservedFor
+  );
+
+  const reserveTableMutation = useMutation({
+    mutationFn: async (data: {
+      tableId: string;
+      customerName: string;
+      customerPhone: string;
+      reservedAt: Date;
+    }) => {
+      const response = await fetch(`/api/tables/${data.tableId}/reserve`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservedFor: {
+            customerName: data.customerName,
+            customerPhone: data.customerPhone,
+            reservedAt: data.reservedAt,
+            reservedBy: "customer",
+          },
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to reserve table");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSelectedBranch("");
+        setSelectedTable("");
+        setCustomerName("");
+        setCustomerPhone("");
+        setReservationDate("");
+      }, 3000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في الحجز",
+        description: error.message || "فشل حجز الطاولة. حاول مرة أخرى",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleReserve = () => {
+    if (!selectedBranch || !selectedTable || !customerName || !customerPhone || !reservationDate) {
+      toast({
+        title: "معلومات ناقصة",
+        description: "الرجاء ملء جميع الحقول",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (customerPhone.length !== 9 || !customerPhone.startsWith("5")) {
+      toast({
+        title: "رقم جوال غير صحيح",
+        description: "الرجاء إدخال رقم جوال صحيح يبدأ بـ 5 ويتكون من 9 أرقام",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    reserveTableMutation.mutate({
+      tableId: selectedTable,
+      customerName,
+      customerPhone,
+      reservedAt: new Date(reservationDate),
+    });
+  };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-4" dir="rtl">
+        <Card className="w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-500">
+          <CardContent className="pt-12 pb-8 text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-4 animate-bounce">
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-green-700 mb-3">تم الحجز بنجاح!</h2>
+            <p className="text-lg text-muted-foreground mb-6">
+              تم حجز طاولتك بنجاح. سنتواصل معك قريباً للتأكيد.
+            </p>
+            <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+              <p className="text-sm text-green-800">
+                ✅ ستصلك رسالة تأكيد على الرقم {customerPhone}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-8 px-4" dir="rtl">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
+            <Calendar className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">حجز طاولة</h1>
+          <p className="text-lg text-muted-foreground">
+            احجز طاولتك المفضلة في أقرب فرع واستمتع بتجربة قهوة لا تُنسى
+          </p>
+        </div>
+
+        <Card className="shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Coffee className="w-6 h-6 text-primary" />
+              معلومات الحجز
+            </CardTitle>
+            <CardDescription className="text-base">
+              اختر الفرع والطاولة واملأ معلوماتك
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="branch" className="text-base flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                اختر الفرع *
+              </Label>
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="h-12 text-lg">
+                  <SelectValue placeholder="اختر الفرع" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((branch) => (
+                    <SelectItem key={branch._id} value={branch._id}>
+                      {branch.nameAr} - {branch.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedBranch && (
+              <div className="space-y-2 animate-in slide-in-from-top duration-500">
+                <Label htmlFor="table" className="text-base flex items-center gap-2">
+                  <Coffee className="w-4 h-4" />
+                  اختر الطاولة *
+                </Label>
+                {availableTables.length === 0 ? (
+                  <div className="text-center py-8 bg-muted/50 rounded-lg">
+                    <p className="text-muted-foreground">
+                      😔 لا توجد طاولات متاحة في هذا الفرع حالياً
+                    </p>
+                  </div>
+                ) : (
+                  <Select value={selectedTable} onValueChange={setSelectedTable}>
+                    <SelectTrigger className="h-12 text-lg">
+                      <SelectValue placeholder="اختر رقم الطاولة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTables.map((table) => (
+                        <SelectItem key={table._id} value={table._id}>
+                          طاولة رقم {table.tableNumber}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
+
+            {selectedTable && (
+              <>
+                <div className="space-y-2 animate-in slide-in-from-top duration-500">
+                  <Label htmlFor="date" className="text-base flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    تاريخ ووقت الحجز *
+                  </Label>
+                  <Input
+                    id="date"
+                    type="datetime-local"
+                    value={reservationDate}
+                    onChange={(e) => setReservationDate(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)}
+                    className="h-12 text-lg"
+                  />
+                </div>
+
+                <div className="space-y-2 animate-in slide-in-from-top duration-500">
+                  <Label htmlFor="name" className="text-base flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    الاسم *
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="أدخل اسمك"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="h-12 text-lg"
+                  />
+                </div>
+
+                <div className="space-y-2 animate-in slide-in-from-top duration-500">
+                  <Label htmlFor="phone" className="text-base flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    رقم الجوال *
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="phone"
+                      placeholder="5xxxxxxxx"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      maxLength={9}
+                      className="h-12 text-lg flex-1"
+                    />
+                    <div className="flex items-center justify-center h-12 px-4 bg-muted rounded-md text-muted-foreground font-medium">
+                      +966
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg animate-in slide-in-from-top duration-500">
+                  <p className="text-sm text-muted-foreground">
+                    📞 سنتواصل معك على رقم الجوال لتأكيد الحجز
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleReserve}
+                  disabled={reserveTableMutation.isPending}
+                  className="w-full h-14 text-lg font-bold shadow-lg animate-in slide-in-from-bottom duration-500"
+                >
+                  {reserveTableMutation.isPending ? "جاري الحجز..." : "تأكيد الحجز"}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="mt-6 text-center">
+          <Button variant="outline" onClick={() => navigate("/")}>
+            العودة للصفحة الرئيسية
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

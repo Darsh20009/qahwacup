@@ -38,7 +38,9 @@ import ManagerLogin from "@/pages/manager-login";
 import ManagerDrivers from "@/pages/manager-drivers";
 import ManagerTables from "@/pages/manager-tables";
 import TableMenu from "@/pages/table-menu";
+import TableCheckout from "@/pages/table-checkout";
 import TableOrderTracking from "@/pages/table-order-tracking";
+import TableReservation from "@/pages/table-reservation";
 import CashierTableOrders from "@/pages/cashier-table-orders";
 import CashierTables from "@/pages/cashier-tables";
 
@@ -55,6 +57,8 @@ function Router() {
  <Route path="/menu" component={MenuPage} />
  <Route path="/menu-view" component={MenuView} />
  <Route path="/table-menu/:qrToken" component={TableMenu} />
+ <Route path="/table-checkout/:tableId/:tableNumber" component={TableCheckout} />
+ <Route path="/table-reservation" component={TableReservation} />
  <Route path="/table-order-tracking/:orderId" component={TableOrderTracking} />
  <Route path="/my-card" component={MyCard} />
  <Route path="/cart" component={CartPage} />

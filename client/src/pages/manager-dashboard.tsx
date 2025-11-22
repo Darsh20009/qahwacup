@@ -63,21 +63,38 @@ export default function ManagerDashboard() {
  }
  }, [setLocation]);
 
- const { data: employees = [] } = useQuery<Employee[]>({
+ // For managers (not admin), filter by branchId
+ const isAdmin = manager?.role === "admin";
+ const managerBranchId = manager?.branchId;
+
+ const { data: allEmployees = [] } = useQuery<Employee[]>({
  queryKey: ["/api/employees"],
+ enabled: !!manager,
  });
+
+ // Filter employees by branch for non-admin managers
+ const employees = isAdmin ? allEmployees : allEmployees.filter(emp => emp.branchId === managerBranchId);
 
  const { data: customers = [] } = useQuery<Customer[]>({
  queryKey: ["/api/customers"],
+ enabled: !!manager,
  });
 
- const { data: orders = [] } = useQuery<Order[]>({
+ const { data: allOrders = [] } = useQuery<Order[]>({
  queryKey: ["/api/orders"],
+ enabled: !!manager,
  });
 
- const { data: branches = [] } = useQuery<any[]>({
+ // Filter orders by branch for non-admin managers
+ const orders = isAdmin ? allOrders : allOrders.filter(order => order.branchId === managerBranchId);
+
+ const { data: allBranches = [] } = useQuery<any[]>({
  queryKey: ["/api/branches"],
+ enabled: !!manager,
  });
+
+ // Filter branches for non-admin managers
+ const branches = isAdmin ? allBranches : allBranches.filter(branch => branch._id === managerBranchId);
 
  const createBranchMutation = useMutation({
  mutationFn: async (branchData: typeof branchForm) => {

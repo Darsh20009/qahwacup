@@ -7,15 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Coffee, ShoppingCart, Flame, Snowflake, Star, Cake, Sprout, Zap, User, ArrowLeft } from "lucide-react";
 import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface ITable {
   _id: string;
@@ -41,10 +32,6 @@ export default function TableMenuNew() {
   const { toast } = useToast();
   
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStrength, setSelectedStrength] = useState<CoffeeStrengthType | "all">("all");
 
@@ -138,71 +125,11 @@ export default function TableMenuNew() {
       });
       return;
     }
-    setShowCheckout(true);
+    sessionStorage.setItem(`cart_${table?._id}`, JSON.stringify(cart));
+    sessionStorage.setItem(`branchId_${table?._id}`, table?.branchId || "");
+    navigate(`/table-checkout/${table?._id}/${table?.tableNumber}`);
   };
 
-  const handleSubmitOrder = async () => {
-    if (!customerName || customerName.trim() === "") {
-      toast({
-        title: "خطأ",
-        description: "الرجاء إدخال الاسم",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const orderData = {
-        items: cart.map((ci) => ({
-          id: ci.item.id,
-          nameAr: ci.item.nameAr,
-          price: ci.item.price,
-          quantity: ci.quantity,
-        })),
-        totalAmount: getTotalPrice(),
-        paymentMethod: "cash",
-        status: "pending",
-        orderType: "table",
-        tableNumber: table?.tableNumber,
-        tableId: table?._id,
-        branchId: table?.branchId,
-        tableStatus: "pending",
-        customerInfo: {
-          name: customerName.trim(),
-          phone: customerPhone.trim() || "guest",
-        },
-      };
-
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) throw new Error("Failed to create order");
-      
-      const order = await response.json();
-
-      toast({
-        title: "تم إرسال الطلب بنجاح",
-        description: "سيتم التواصل معك قريباً للدفع",
-      });
-
-      // Navigate to order tracking
-      navigate(`/table-order-tracking/${order._id}`);
-    } catch (error) {
-      console.error("Error submitting order:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل إرسال الطلب. حاول مرة أخرى",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   if (tableLoading || menuLoading) {
     return (
@@ -438,71 +365,6 @@ export default function TableMenuNew() {
         </section>
       </main>
 
-      {/* Checkout Dialog */}
-      <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>إتمام الطلب - طاولة {table.tableNumber}</DialogTitle>
-            <DialogDescription>
-              أدخل معلوماتك لإرسال الطلب. سيتم الدفع عند الكاشير.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">الاسم *</Label>
-              <Input
-                id="name"
-                placeholder="أدخل اسمك"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                data-testid="input-name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">رقم الجوال (اختياري)</Label>
-              <Input
-                id="phone"
-                placeholder="5xxxxxxxx"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                maxLength={9}
-                data-testid="input-phone"
-              />
-            </div>
-
-            {/* Order Summary */}
-            <div className="border-t pt-4">
-              <h3 className="font-bold mb-2">ملخص الطلب</h3>
-              {cart.map((ci) => (
-                <div key={ci.item.id} className="flex justify-between text-sm mb-1">
-                  <span>
-                    {ci.item.nameAr} × {ci.quantity}
-                  </span>
-                  <span>{(ci.item.price * ci.quantity).toFixed(2)} ر.س</span>
-                </div>
-              ))}
-              <div className="border-t pt-2 mt-2 flex justify-between font-bold">
-                <span>الإجمالي</span>
-                <span>{getTotalPrice().toFixed(2)} ر.س</span>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSubmitOrder}
-              disabled={isSubmitting}
-              className="w-full"
-              data-testid="button-submit-order"
-            >
-              {isSubmitting ? "جاري الإرسال..." : "إرسال الطلب"}
-            </Button>
-
-            <p className="text-xs text-center text-muted-foreground">
-              سيتم الدفع عند الكاشير
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
