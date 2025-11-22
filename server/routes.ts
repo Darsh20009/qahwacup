@@ -2405,7 +2405,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { insertBranchSchema } = await import("@shared/schema");
       const validatedData = insertBranchSchema.parse(req.body);
       const branch = await storage.createBranch(validatedData);
-      res.status(201).json(branch);
+      
+      // Auto-create manager for the branch
+      const branchId = (branch as any)._id.toString();
+      const branchNameSlug = validatedData.nameAr.replace(/\s+/g, '_').toLowerCase();
+      const managerUsername = `manager_${branchNameSlug}`;
+      const temporaryPassword = `manager${Math.random().toString(36).slice(-8)}`;
+      
+      try {
+        // Check if manager username already exists
+        const existingManager = await storage.getEmployeeByUsername(managerUsername);
+        let finalUsername = managerUsername;
+        
+        if (existingManager) {
+          // Add random suffix if username exists
+          finalUsername = `${managerUsername}_${Math.random().toString(36).slice(-4)}`;
+        }
+        
+        const manager = await storage.createEmployee({
+          username: finalUsername,
+          password: temporaryPassword,
+          fullName: `مدير ${validatedData.nameAr}`,
+          role: 'manager',
+          phone: validatedData.phone,
+          jobTitle: 'مدير الفرع',
+          isActivated: 1,
+          branchId: branchId,
+        });
+        
+        // Update branch with manager name
+        await storage.updateBranch(branchId, {
+          managerName: `مدير ${validatedData.nameAr}`,
+        });
+        
+        res.status(201).json({
+          branch,
+          manager: {
+            id: (manager as any)._id.toString(),
+            username: finalUsername,
+            temporaryPassword: temporaryPassword,
+            fullName: `مدير ${validatedData.nameAr}`,
+            message: 'تم إنشاء حساب المدير تلقائياً. يرجى حفظ اسم المستخدم وكلمة المرور المؤقتة.',
+          },
+        });
+      } catch (managerError) {
+        console.error("Error creating manager for branch:", managerError);
+        // Return branch even if manager creation fails
+        res.status(201).json({
+          branch,
+          managerError: 'تم إنشاء الفرع ولكن فشل إنشاء حساب المدير',
+        });
+      }
     } catch (error) {
       console.error("Error creating branch:", error);
       if (error instanceof Error && 'issues' in error) {

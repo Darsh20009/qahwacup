@@ -238,13 +238,15 @@ export default function CashierTables() {
         {/* Legend */}
         <Card className="bg-white/80 backdrop-blur">
           <CardContent className="pt-6">
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="flex flex-wrap gap-6 justify-center">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">متاحة</Badge>
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">متاحة</Badge>
                 <span className="text-sm text-muted-foreground">جاهزة للحجز</span>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="destructive">محجوزة</Badge>
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <Badge variant="destructive" className="bg-red-600 hover:bg-red-700">محجوزة</Badge>
                 <span className="text-sm text-muted-foreground">بها عميل حالياً</span>
               </div>
             </div>
@@ -269,10 +271,10 @@ export default function CashierTables() {
             {tables.map((table) => (
               <Card
                 key={table._id}
-                className={`hover-elevate cursor-pointer transition-all ${
+                className={`hover-elevate cursor-pointer transition-all border-2 ${
                   table.isOccupied
-                    ? "bg-red-50 border-red-200"
-                    : "bg-green-50 border-green-200"
+                    ? "bg-gradient-to-br from-red-50 to-red-100 border-red-300 dark:from-red-950 dark:to-red-900"
+                    : "bg-gradient-to-br from-emerald-50 to-green-100 border-emerald-300 dark:from-emerald-950 dark:to-green-900"
                 }`}
                 data-testid={`card-table-${table.tableNumber}`}
               >

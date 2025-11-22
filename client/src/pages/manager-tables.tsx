@@ -300,18 +300,24 @@ export default function ManagerTables() {
                         طاولة {table.tableNumber}
                       </TableCell>
                       <TableCell>
-                        {table.isActive ? (
-                          <Badge variant="default">نشطة</Badge>
-                        ) : (
-                          <Badge variant="secondary">غير نشطة</Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${table.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          {table.isActive ? (
+                            <Badge variant="default" className="bg-green-600 hover:bg-green-700">نشطة</Badge>
+                          ) : (
+                            <Badge variant="secondary">غير نشطة</Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        {table.isOccupied ? (
-                          <Badge variant="destructive">محجوزة</Badge>
-                        ) : (
-                          <Badge variant="outline">متاحة</Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${table.isOccupied ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                          {table.isOccupied ? (
+                            <Badge variant="destructive" className="bg-red-600 hover:bg-red-700">محجوزة</Badge>
+                          ) : (
+                            <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">متاحة</Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

@@ -45,6 +45,7 @@ interface IOrder {
 export default function CashierTableOrders() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [prevOrderCount, setPrevOrderCount] = useState<number>(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,6 +62,21 @@ export default function CashierTableOrders() {
     queryKey: ["/api/orders/table/unassigned"],
     refetchInterval: 3000, // Poll every 3 seconds
   });
+
+  // Notify when new orders arrive
+  useEffect(() => {
+    if (unassignedOrders && unassignedOrders.length > prevOrderCount && prevOrderCount > 0) {
+      const newOrderCount = unassignedOrders.length - prevOrderCount;
+      toast({
+        title: `🔔 طلب جديد!`,
+        description: `لديك ${newOrderCount} ${newOrderCount === 1 ? 'طلب جديد' : 'طلبات جديدة'}`,
+        duration: 5000,
+      });
+    }
+    if (unassignedOrders) {
+      setPrevOrderCount(unassignedOrders.length);
+    }
+  }, [unassignedOrders, prevOrderCount, toast]);
 
   // Fetch cashier's assigned orders
   const { data: myOrders } = useQuery<IOrder[]>({
@@ -105,6 +121,34 @@ export default function CashierTableOrders() {
     },
   });
 
+  // Reject order mutation
+  const rejectOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const response = await fetch(`/api/orders/${orderId}/table-status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tableStatus: "cancelled" }),
+      });
+      if (!response.ok) throw new Error("Failed to reject order");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders/table/unassigned"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cashier", employee?._id, "orders"] });
+      toast({
+        title: "تم رفض الطلب",
+        description: "تم إلغاء الطلب بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل رفض الطلب",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Update order status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
@@ -134,15 +178,17 @@ export default function CashierTableOrders() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">في الانتظار ⏳</Badge>;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">طلب جديد 🆕</Badge>;
       case "payment_confirmed":
-        return <Badge className="bg-green-500 hover:bg-green-600 text-white">تم تأكيد الدفع ✅</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600 text-white">تم الدفع ✅</Badge>;
       case "preparing":
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">جاري التحضير ☕</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">قيد التحضير ☕</Badge>;
+      case "ready":
+        return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاهز للتقديم ✨</Badge>;
       case "delivering_to_table":
         return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاري التوصيل 🚶</Badge>;
       case "delivered":
-        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">تم التوصيل 🎉</Badge>;
+        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">تم التقديم 🎉</Badge>;
       case "cancelled":
         return <Badge className="bg-red-600 hover:bg-red-700 text-white">ملغي ❌</Badge>;
       default:
@@ -158,6 +204,8 @@ export default function CashierTableOrders() {
         return CheckCircle;
       case "preparing":
         return ChefHat;
+      case "ready":
+        return CheckCircle;
       case "delivering_to_table":
         return Truck;
       case "delivered":
@@ -239,13 +287,30 @@ export default function CashierTableOrders() {
                                   {order.totalAmount.toFixed(2)} ر.س
                                 </div>
                               </div>
-                              <Button
-                                onClick={() => assignOrderMutation.mutate(order._id)}
-                                disabled={assignOrderMutation.isPending}
-                                data-testid={`button-accept-${order._id}`}
-                              >
-                                استلام الطلب
-                              </Button>
+                              <div className="flex flex-col sm:flex-row gap-2">
+                                <Button
+                                  onClick={() => assignOrderMutation.mutate(order._id)}
+                                  disabled={assignOrderMutation.isPending || rejectOrderMutation.isPending}
+                                  className="bg-green-600 hover:bg-green-700"
+                                  data-testid={`button-accept-${order._id}`}
+                                >
+                                  <CheckCircle className="w-4 h-4 ml-1" />
+                                  قبول
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm(`هل أنت متأكد من رفض طلب الطاولة ${order.tableNumber}؟`)) {
+                                      rejectOrderMutation.mutate(order._id);
+                                    }
+                                  }}
+                                  disabled={assignOrderMutation.isPending || rejectOrderMutation.isPending}
+                                  data-testid={`button-reject-${order._id}`}
+                                >
+                                  <XCircle className="w-4 h-4 ml-1" />
+                                  رفض
+                                </Button>
+                              </div>
                             </div>
                           </CardContent>
                         </Card>
@@ -322,11 +387,9 @@ export default function CashierTableOrders() {
                                       <SelectItem value="payment_confirmed">
                                         تم تأكيد الدفع
                                       </SelectItem>
-                                      <SelectItem value="preparing">جاري التحضير</SelectItem>
-                                      <SelectItem value="delivering_to_table">
-                                        جاري التوصيل للطاولة
-                                      </SelectItem>
-                                      <SelectItem value="delivered">تم التوصيل</SelectItem>
+                                      <SelectItem value="preparing">قيد التحضير</SelectItem>
+                                      <SelectItem value="ready">جاهز للتقديم</SelectItem>
+                                      <SelectItem value="delivered">تم التقديم</SelectItem>
                                       <SelectItem value="cancelled">إلغاء</SelectItem>
                                     </SelectContent>
                                   </Select>

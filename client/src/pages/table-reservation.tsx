@@ -44,6 +44,8 @@ export default function TableReservation() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [reservationDate, setReservationDate] = useState("");
+  const [reservationTime, setReservationTime] = useState("");
+  const [numberOfGuests, setNumberOfGuests] = useState("2");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: branches = [] } = useQuery<Branch[]>({
@@ -67,21 +69,28 @@ export default function TableReservation() {
       tableId: string;
       customerName: string;
       customerPhone: string;
-      reservedAt: Date;
+      reservationDate: string;
+      reservationTime: string;
+      numberOfGuests: number;
+      branchId: string;
     }) => {
-      const response = await fetch(`/api/tables/${data.tableId}/reserve`, {
-        method: "PATCH",
+      const response = await fetch("/api/tables/customer-reserve", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reservedFor: {
-            customerName: data.customerName,
-            customerPhone: data.customerPhone,
-            reservedAt: data.reservedAt,
-            reservedBy: "customer",
-          },
+          tableId: data.tableId,
+          customerName: data.customerName,
+          customerPhone: data.customerPhone,
+          reservationDate: data.reservationDate,
+          reservationTime: data.reservationTime,
+          numberOfGuests: data.numberOfGuests,
+          branchId: data.branchId,
         }),
       });
-      if (!response.ok) throw new Error("Failed to reserve table");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to reserve table");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -94,6 +103,8 @@ export default function TableReservation() {
         setCustomerName("");
         setCustomerPhone("");
         setReservationDate("");
+        setReservationTime("");
+        setNumberOfGuests("2");
       }, 3000);
     },
     onError: (error: Error) => {
@@ -106,7 +117,7 @@ export default function TableReservation() {
   });
 
   const handleReserve = () => {
-    if (!selectedBranch || !selectedTable || !customerName || !customerPhone || !reservationDate) {
+    if (!selectedBranch || !selectedTable || !customerName || !customerPhone || !reservationDate || !reservationTime || !numberOfGuests) {
       toast({
         title: "معلومات ناقصة",
         description: "الرجاء ملء جميع الحقول",
@@ -124,11 +135,24 @@ export default function TableReservation() {
       return;
     }
 
+    const guests = parseInt(numberOfGuests);
+    if (isNaN(guests) || guests < 1 || guests > 20) {
+      toast({
+        title: "عدد الضيوف غير صحيح",
+        description: "الرجاء إدخال عدد صحيح من 1 إلى 20",
+        variant: "destructive",
+      });
+      return;
+    }
+
     reserveTableMutation.mutate({
       tableId: selectedTable,
       customerName,
       customerPhone,
-      reservedAt: new Date(reservationDate),
+      reservationDate,
+      reservationTime,
+      numberOfGuests: guests,
+      branchId: selectedBranch,
     });
   };
 
@@ -231,19 +255,58 @@ export default function TableReservation() {
 
             {selectedTable && (
               <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top duration-500">
+                  <div className="space-y-2">
+                    <Label htmlFor="date" className="text-base flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      تاريخ الحجز *
+                    </Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={reservationDate}
+                      onChange={(e) => setReservationDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="h-12 text-lg"
+                      data-testid="input-reservation-date"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="time" className="text-base flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      وقت الحجز *
+                    </Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={reservationTime}
+                      onChange={(e) => setReservationTime(e.target.value)}
+                      className="h-12 text-lg"
+                      data-testid="input-reservation-time"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2 animate-in slide-in-from-top duration-500">
-                  <Label htmlFor="date" className="text-base flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    تاريخ ووقت الحجز *
+                  <Label htmlFor="guests" className="text-base flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    عدد الضيوف *
                   </Label>
-                  <Input
-                    id="date"
-                    type="datetime-local"
-                    value={reservationDate}
-                    onChange={(e) => setReservationDate(e.target.value)}
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="h-12 text-lg"
-                  />
+                  <Select value={numberOfGuests} onValueChange={setNumberOfGuests}>
+                    <SelectTrigger className="h-12 text-lg" data-testid="select-guests">
+                      <SelectValue placeholder="اختر عدد الضيوف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num} {num === 1 ? 'شخص' : num === 2 ? 'شخصين' : 'أشخاص'}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="9">9 أشخاص</SelectItem>
+                      <SelectItem value="10">10 أشخاص</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2 animate-in slide-in-from-top duration-500">
