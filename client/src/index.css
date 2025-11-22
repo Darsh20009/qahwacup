@@ -23,7 +23,7 @@
   --card: hsl(42, 30%, 98%); /* Pure cream cards */
   --card-foreground: hsl(25, 40%, 25%); /* Dark brown text */
   --card-border: hsl(35, 20%, 90%); /* Soft beige border */
-  
+
   --sidebar: hsl(40, 25%, 94%); /* Light cream sidebar */
   --sidebar-foreground: hsl(25, 35%, 30%); /* Brown text */
   --sidebar-border: hsl(35, 15%, 88%); /* Beige border */
@@ -32,29 +32,29 @@
   --sidebar-accent: hsl(38, 25%, 85%); /* Light beige accent */
   --sidebar-accent-foreground: hsl(25, 30%, 35%); /* Brown text */
   --sidebar-ring: hsl(32, 45%, 60%); /* Caramel brown ring */
-  
+
   --popover: hsl(42, 30%, 98%); /* Same as card */
   --popover-foreground: hsl(25, 40%, 25%); /* Dark brown text */
   --popover-border: hsl(35, 15%, 88%); /* Light beige border */
-  
+
   --primary: hsl(32, 45%, 60%); /* Warm caramel brown */
   --primary-foreground: hsl(40, 30%, 98%); /* Cream text on brown */
-  
+
   --secondary: hsl(38, 25%, 85%); /* Light beige */
   --secondary-foreground: hsl(25, 30%, 35%); /* Brown text */
-  
+
   --muted: hsl(40, 20%, 92%); /* Light muted beige */
   --muted-foreground: hsl(25, 25%, 55%); /* Medium brown text */
-  
+
   --accent: hsl(32, 45%, 60%); /* Warm caramel brown */
   --accent-foreground: hsl(40, 30%, 98%); /* Cream text */
-  
+
   --destructive: hsl(0, 65%, 55%); /* Rich red */
   --destructive-foreground: hsl(40, 25%, 96%); /* Light cream text */
-  
+
   --input: hsl(40, 20%, 94%); /* Light cream input background */
   --ring: hsl(32, 45%, 60%); /* Caramel brown focus ring */
-  
+
   --chart-1: hsl(43, 74%, 52%); /* Gold */
   --chart-2: hsl(35, 35%, 85%); /* Cream */
   --chart-3: hsl(35, 15%, 35%); /* Brown */
@@ -65,7 +65,7 @@
   --font-serif: 'Amiri', serif;
   --font-mono: Menlo, monospace;
   --radius: .75rem; /* 12px for luxury feel */
-  
+
   --shadow-2xs: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.05);
   --shadow-xs: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1);
   --shadow-sm: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.1), 0px 1px 2px -1px hsl(43, 74%, 52%, 0.1);
@@ -74,29 +74,29 @@
   --shadow-lg: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.2), 0px 4px 6px -1px hsl(43, 74%, 52%, 0.1);
   --shadow-xl: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.25), 0px 8px 10px -1px hsl(43, 74%, 52%, 0.1);
   --shadow-2xl: 0px 2px 0px 0px hsl(43, 74%, 52%, 0.3);
-  
+
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
   /* Automatically computed borders */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  
+
   --sidebar-accent-border: hsl(var(--sidebar-accent));
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  
+
   --primary-border: hsl(var(--primary));
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  
+
   --secondary-border: hsl(var(--secondary));
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  
+
   --muted-border: hsl(var(--muted));
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  
+
   --accent-border: hsl(var(--accent));
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  
+
   --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
@@ -117,7 +117,7 @@
   --card: hsl(25, 20%, 12%); /* Dark brown cards */
   --card-foreground: hsl(40, 25%, 88%); /* Light cream text */
   --card-border: hsl(30, 15%, 18%); /* Dark brown border */
-  
+
   --sidebar: hsl(25, 18%, 10%); /* Dark brown sidebar */
   --sidebar-foreground: hsl(40, 20%, 85%); /* Light cream text */
   --sidebar-border: hsl(30, 12%, 15%); /* Dark border */
@@ -126,29 +126,29 @@
   --sidebar-accent: hsl(30, 20%, 25%); /* Dark brown accent */
   --sidebar-accent-foreground: hsl(40, 25%, 80%); /* Light text */
   --sidebar-ring: hsl(32, 45%, 60%); /* Caramel brown ring */
-  
+
   --popover: hsl(25, 20%, 12%); /* Same as card */
   --popover-foreground: hsl(40, 25%, 88%); /* Light cream text */
   --popover-border: hsl(30, 15%, 18%); /* Dark brown border */
-  
+
   --primary: hsl(32, 45%, 60%); /* Warm caramel brown */
   --primary-foreground: hsl(40, 30%, 95%); /* Light text */
-  
+
   --secondary: hsl(30, 20%, 25%); /* Dark brown */
   --secondary-foreground: hsl(40, 25%, 80%); /* Light text */
-  
+
   --muted: hsl(25, 15%, 15%); /* Dark muted brown */
   --muted-foreground: hsl(35, 20%, 65%); /* Medium beige text */
-  
+
   --accent: hsl(32, 45%, 60%); /* Warm caramel brown */
   --accent-foreground: hsl(40, 30%, 95%); /* Light text */
-  
+
   --destructive: hsl(0, 65%, 55%);
   --destructive-foreground: hsl(40, 25%, 95%);
-  
+
   --input: hsl(25, 18%, 16%);
   --ring: hsl(32, 45%, 60%);
-  
+
   --chart-1: hsl(43, 74%, 52%);
   --chart-2: hsl(35, 35%, 85%);
   --chart-3: hsl(35, 15%, 35%);
@@ -174,12 +174,12 @@
     @apply font-sans antialiased bg-background text-foreground;
     direction: rtl;
   }
-  
+
   /* Arabic Typography */
   .font-amiri {
     font-family: 'Amiri', serif;
   }
-  
+
   .font-cairo {
     font-family: 'Cairo', sans-serif;
   }
@@ -190,34 +190,34 @@
   .coffee-steam {
     animation: steam 2s ease-in-out infinite alternate;
   }
-  
+
   @keyframes steam {
     0% { transform: translateY(0px) rotate(-2deg); opacity: 0.7; }
     100% { transform: translateY(-10px) rotate(2deg); opacity: 1; }
   }
-  
+
   /* Card Hover Effects */
   .card-hover {
     transition: all 0.3s ease;
   }
-  
+
   .card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3);
   }
-  
+
   /* Price Styling */
   .price-old {
     text-decoration: line-through;
     color: var(--muted-foreground);
   }
-  
+
   /* Button Animations */
   .btn-primary {
     background: linear-gradient(135deg, hsl(43, 74%, 52%) 0%, hsl(43, 74%, 45%) 100%);
     transition: all 0.3s ease;
   }
-  
+
   .btn-primary:hover {
     background: linear-gradient(135deg, hsl(43, 74%, 58%) 0%, hsl(43, 74%, 50%) 100%);
     transform: translateY(-2px);
@@ -245,12 +245,12 @@
   /* RTL specific styles */
   [dir="rtl"] .text-left { text-align: right; }
   [dir="rtl"] .text-right { text-align: left; }
-  
+
   /* Add to cart button animation */
   .add-to-cart-animation {
     animation: addToCart 0.5s ease-in-out;
   }
-  
+
   @keyframes addToCart {
     0% { transform: scale(1); }
     50% { transform: scale(0.95); background-color: hsl(43, 74%, 62%); }
