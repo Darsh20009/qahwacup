@@ -116,16 +116,16 @@ export default function TableCheckout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50" dir="rtl">
+    <div className="min-h-screen bg-white" dir="rtl">
       <div className="max-w-2xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen flex flex-col justify-center">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-            <Coffee className="w-8 h-8 text-primary" />
+        <div className="mb-8 text-center bg-gradient-to-br from-amber-50 to-orange-100 p-8 rounded-2xl shadow-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-4 shadow-md">
+            <Coffee className="w-10 h-10 text-amber-600" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">
             إتمام الطلب
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-slate-700 font-semibold text-lg">
             طاولة رقم {tableNumber}
           </p>
         </div>
@@ -158,14 +158,14 @@ export default function TableCheckout() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">معلوماتك</CardTitle>
+        <Card className="shadow-lg bg-white border-2">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100">
+            <CardTitle className="text-2xl text-slate-800">معلوماتك</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-base flex items-center gap-2">
-                <User className="w-4 h-4" />
+              <Label htmlFor="name" className="text-base flex items-center gap-2 font-semibold text-slate-700">
+                <User className="w-5 h-5 text-amber-600" />
                 الاسم *
               </Label>
               <Input
@@ -173,15 +173,15 @@ export default function TableCheckout() {
                 placeholder="أدخل اسمك"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="text-lg h-12"
+                className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400"
                 data-testid="input-name"
                 autoFocus
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-base flex items-center gap-2">
-                <Phone className="w-4 h-4" />
+              <Label htmlFor="phone" className="text-base flex items-center gap-2 font-semibold text-slate-700">
+                <Phone className="w-5 h-5 text-amber-600" />
                 رقم الجوال (اختياري)
               </Label>
               <Input
@@ -190,14 +190,14 @@ export default function TableCheckout() {
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 maxLength={9}
-                className="text-lg h-12"
+                className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400"
                 data-testid="input-phone"
               />
             </div>
 
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <p className="text-sm text-muted-foreground text-center">
-                💳 سيتم الدفع عند الكاشير
+            <div className="bg-amber-50 border-2 border-amber-200 p-5 rounded-lg">
+              <p className="text-base text-slate-800 text-center font-semibold">
+                سيتم الدفع عند الكاشير
               </p>
             </div>
 
