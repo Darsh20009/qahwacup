@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -14,6 +14,7 @@ import {
   Truck,
   AlertCircle,
 } from "lucide-react";
+import { playNotificationSound } from "@/lib/notification-sounds";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +47,7 @@ export default function TableOrderTracking() {
   const [match, params] = useRoute("/table-order-tracking/:orderId");
   const { toast } = useToast();
   const orderId = params?.orderId;
+  const previousStatusRef = useRef<string | undefined>(undefined);
 
   // Fetch order details
   const { data: order, isLoading } = useQuery<IOrder>({
@@ -58,6 +60,42 @@ export default function TableOrderTracking() {
     enabled: !!orderId,
     refetchInterval: 5000, // Poll every 5 seconds
   });
+  
+  // Detect status changes and play notification sounds
+  useEffect(() => {
+    if (order && order.tableStatus && previousStatusRef.current && previousStatusRef.current !== order.tableStatus) {
+      // Status has changed! Play notification sound
+      const statusMessages: Record<string, string> = {
+        'payment_confirmed': 'تم تأكيد الدفع ✅',
+        'preparing': 'جاري تحضير طلبك ☕',
+        'ready': 'طلبك جاهز ✨',
+        'delivering_to_table': 'طلبك في الطريق 🚶',
+        'delivered': 'تم توصيل طلبك! 🎉',
+      };
+      
+      const message = statusMessages[order.tableStatus] || 'تم تحديث حالة طلبك';
+      
+      // Play different sounds for different status transitions
+      if (order.tableStatus === 'delivered') {
+        playNotificationSound('success', 0.6);
+      } else if (order.tableStatus === 'ready' || order.tableStatus === 'delivering_to_table') {
+        playNotificationSound('statusChange', 0.5);
+      } else {
+        playNotificationSound('statusChange', 0.4);
+      }
+      
+      toast({
+        title: '🔔 تحديث حالة الطلب',
+        description: message,
+        duration: 6000,
+        className: "bg-blue-600 text-white border-blue-700",
+      });
+    }
+    
+    if (order && order.tableStatus) {
+      previousStatusRef.current = order.tableStatus;
+    }
+  }, [order, toast]);
 
   // Cancel order mutation
   const cancelOrderMutation = useMutation({

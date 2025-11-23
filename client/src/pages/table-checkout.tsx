@@ -83,17 +83,23 @@ export default function TableCheckout() {
       sessionStorage.removeItem(`branchId_${tableId}`);
 
       toast({
-        title: "تم إرسال الطلب بنجاح! ✅",
-        description: "سيتم التواصل معك قريباً للدفع",
+        title: "✅ تم إرسال الطلب بنجاح!",
+        description: "طلبك قيد المراجعة من قبل الكاشير. سيتم إعلامك بالتحديثات",
+        duration: 7000,
+        className: "bg-green-600 text-white border-green-700",
       });
 
-      navigate(`/table-order-tracking/${order._id}`);
+      // Small delay before navigation to show the toast
+      setTimeout(() => {
+        navigate(`/table-order-tracking/${order._id}`);
+      }, 500);
     } catch (error) {
       console.error("Error submitting order:", error);
       toast({
-        title: "خطأ",
-        description: "فشل إرسال الطلب. حاول مرة أخرى",
+        title: "⚠️ خطأ في إرسال الطلب",
+        description: "حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى أو التواصل مع الموظفين",
         variant: "destructive",
+        duration: 8000,
       });
     } finally {
       setIsSubmitting(false);

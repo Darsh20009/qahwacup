@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { playNotificationSound } from "@/lib/notification-sounds";
 
 interface Employee {
   _id: string;
@@ -45,7 +46,7 @@ interface IOrder {
 export default function CashierTableOrders() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [prevOrderCount, setPrevOrderCount] = useState<number>(0);
+  const previousOrderIdsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,20 +64,30 @@ export default function CashierTableOrders() {
     refetchInterval: 3000, // Poll every 3 seconds
   });
 
-  // Notify when new orders arrive
+  // Notify when new orders arrive with sound
   useEffect(() => {
-    if (unassignedOrders && unassignedOrders.length > prevOrderCount && prevOrderCount > 0) {
-      const newOrderCount = unassignedOrders.length - prevOrderCount;
-      toast({
-        title: `🔔 طلب جديد!`,
-        description: `لديك ${newOrderCount} ${newOrderCount === 1 ? 'طلب جديد' : 'طلبات جديدة'}`,
-        duration: 5000,
-      });
+    if (unassignedOrders && unassignedOrders.length > 0) {
+      const currentOrderIds = new Set(unassignedOrders.map(order => order._id));
+      
+      // Find truly new orders (IDs that weren't in previous set)
+      const newOrderIds = [...currentOrderIds].filter(id => !previousOrderIdsRef.current.has(id));
+      
+      if (newOrderIds.length > 0 && previousOrderIdsRef.current.size > 0) {
+        // Play notification sound for new orders
+        playNotificationSound('newOrder', 0.6);
+        
+        toast({
+          title: `🔔 طلب جديد من الطاولة!`,
+          description: `لديك ${newOrderIds.length} ${newOrderIds.length === 1 ? 'طلب جديد' : 'طلبات جديدة'}`,
+          duration: 6000,
+          className: "bg-green-600 text-white border-green-700",
+        });
+      }
+      
+      // Update the ref with current order IDs
+      previousOrderIdsRef.current = currentOrderIds;
     }
-    if (unassignedOrders) {
-      setPrevOrderCount(unassignedOrders.length);
-    }
-  }, [unassignedOrders, prevOrderCount, toast]);
+  }, [unassignedOrders, toast]);
 
   // Fetch cashier's assigned orders
   const { data: myOrders } = useQuery<IOrder[]>({
@@ -107,8 +118,12 @@ export default function CashierTableOrders() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/orders/table/unassigned"] });
       queryClient.invalidateQueries({ queryKey: ["/api/cashier", employee?._id, "orders"] });
+      
+      // Play success sound when accepting order
+      playNotificationSound('success', 0.5);
+      
       toast({
-        title: "تم استلام الطلب",
+        title: "✅ تم استلام الطلب",
         description: "تم استلام الطلب بنجاح",
       });
     },
@@ -160,10 +175,19 @@ export default function CashierTableOrders() {
       if (!response.ok) throw new Error("Failed to update status");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cashier", employee?._id, "orders"] });
+      
+      // Play different sounds based on status
+      if (variables.status === 'delivered') {
+        playNotificationSound('success', 0.5);
+      } else {
+        playNotificationSound('statusChange', 0.4);
+      }
+      
       toast({
-        title: "تم تحديث حالة الطلب",
+        title: "✅ تم تحديث حالة الطلب",
+        description: getStatusDescription(variables.status),
       });
     },
     onError: () => {
@@ -174,6 +198,23 @@ export default function CashierTableOrders() {
       });
     },
   });
+  
+  const getStatusDescription = (status: string) => {
+    switch (status) {
+      case "payment_confirmed":
+        return "تم تأكيد الدفع";
+      case "preparing":
+        return "الطلب قيد التحضير";
+      case "ready":
+        return "الطلب جاهز للتقديم";
+      case "delivered":
+        return "تم تقديم الطلب للعميل";
+      case "cancelled":
+        return "تم إلغاء الطلب";
+      default:
+        return "تم تحديث الحالة";
+    }
+  };
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
