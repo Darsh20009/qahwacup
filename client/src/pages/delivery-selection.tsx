@@ -32,12 +32,10 @@ export default function DeliverySelectionPage() {
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [dineIn, setDineIn] = useState<boolean>(false);
 
-  // Fetch branches
+  // Fetch branches (already filtered by backend to only active branches)
   const { data: branches = [], isLoading } = useQuery<Branch[]>({
     queryKey: ["/api/branches"],
   });
-
-  const activeBranches = branches.filter(b => b.isActive === 1);
 
   const handleContinue = () => {
     // Validate cart is not empty
@@ -60,7 +58,7 @@ export default function DeliverySelectionPage() {
       return;
     }
     
-    const branch = activeBranches.find(b => b._id === selectedBranchId);
+    const branch = branches.find(b => b._id === selectedBranchId);
     if (!branch) return;
 
     setDeliveryInfo({
@@ -95,7 +93,7 @@ export default function DeliverySelectionPage() {
               
               {isLoading ? (
                 <p className="text-muted-foreground" dir="rtl">جارٍ التحميل...</p>
-              ) : activeBranches.length === 0 ? (
+              ) : branches.length === 0 ? (
                 <p className="text-muted-foreground" dir="rtl">لا توجد فروع متاحة حالياً</p>
               ) : (
                 <>
@@ -104,7 +102,7 @@ export default function DeliverySelectionPage() {
                       <SelectValue placeholder="اختر الفرع" />
                     </SelectTrigger>
                     <SelectContent>
-                      {activeBranches.map((branch) => (
+                      {branches.map((branch) => (
                         <SelectItem key={branch._id} value={branch._id}>
                           <div className="flex flex-col items-start gap-1" dir="rtl">
                             <span className="font-semibold">{branch.nameAr}</span>
@@ -124,7 +122,7 @@ export default function DeliverySelectionPage() {
                   
                   {/* Selected Branch Details */}
                   {selectedBranchId && (() => {
-                    const selectedBranch = activeBranches.find(b => b._id === selectedBranchId);
+                    const selectedBranch = branches.find(b => b._id === selectedBranchId);
                     if (!selectedBranch) return null;
                     
                     return (
