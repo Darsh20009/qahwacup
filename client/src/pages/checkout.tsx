@@ -44,7 +44,7 @@ export default function CheckoutPage() {
  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number} | null>(null);
  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
  const [isRegistering, setIsRegistering] = useState(false);
- const { customer } = useCustomer();
+ const { customer, setCustomer } = useCustomer();
 
  // Calculate total drinks from all orders
  const { data: customerOrders = [] } = useQuery<Order[]>({
@@ -88,6 +88,9 @@ export default function CheckoutPage() {
  if (customer?.name && customer?.phone) {
  setCustomerName(customer.name);
  setCustomerPhone(customer.phone);
+ if (customer?.email) {
+ setCustomerEmail(customer.email);
+ }
  setIsRegisteredCustomer(true);
  return;
  }
@@ -415,6 +418,15 @@ export default function CheckoutPage() {
  if (registerResponse.ok) {
  const newCustomer = await registerResponse.json();
  activeCustomerId = newCustomer.id;
+ 
+ // تسجيل الدخول التلقائي بحفظ بيانات المستخدم في CustomerContext
+ setCustomer({
+ id: newCustomer.id,
+ name: newCustomer.name,
+ phone: newCustomer.phone,
+ email: newCustomer.email
+ } as any);
+ 
  toast({
  title: "تم التسجيل بنجاح!",
  description: "أهلاً وسهلاً بك في قهوة كوب!",
