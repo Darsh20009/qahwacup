@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCartStore } from "@/lib/cart-store";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import PaymentMethods from "@/components/payment-methods";
 import FileUpload from "@/components/file-upload";
 import { generatePDF } from "@/lib/pdf-generator";
@@ -144,6 +144,9 @@ export default function CheckoutPage() {
  clearCart();
  setShowSuccessPage(true);
 
+ // تحديث قائمة الطلبات في لوحة المدير
+ queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+
  // Generate loyalty codes for the order
  if (data.id) {
  generateCodesMutation.mutate(data.id);
@@ -162,8 +165,8 @@ export default function CheckoutPage() {
  .then(res => res.json())
  .then(customerData => {
  if (customerData && !customerData.error) {
- // This will trigger a re-render and update orders
- window.location.reload();
+ // تحديث بيانات العميل
+ setCustomer(customerData);
  }
  })
  .catch(err => console.error("Failed to sync customer:", err));
