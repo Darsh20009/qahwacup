@@ -53,3 +53,9 @@ The UI/UX emphasizes a modern, attractive design, especially evident in the QR c
 - ✅ **Resolved undefined orderId issue**: Now properly returns `id` field instead of `_id` from MongoDB documents
 - ✅ **Table order tracking now works**: Customers can successfully track their table orders after placement
 - **Impact**: Order ID is now correctly extracted from URL parameters and used to fetch order details
+
+## Additional Fix: Items Parsing in Table Order Tracking (November 23, 2025 - Version 7.1)
+- ✅ **Parse items from JSON string**: When fetching order, convert `items` from JSON string to array in query function
+- ✅ **Add safety checks**: Added conditions to ensure `order.items` exists and is an array before rendering
+- ✅ **Show loading state**: Display "جاري تحميل تفاصيل الطلب..." while order items are being loaded
+- **Result**: Table order details now display correctly without "order.items.map is not a function" error

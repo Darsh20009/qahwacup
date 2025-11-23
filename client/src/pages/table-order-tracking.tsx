@@ -55,7 +55,24 @@ export default function TableOrderTracking() {
     queryFn: async () => {
       const response = await fetch(`/api/orders/${orderId}`);
       if (!response.ok) throw new Error("Order not found");
-      return response.json();
+      const data = await response.json();
+      
+      // Parse items if they're stored as JSON string
+      if (data.items && typeof data.items === 'string') {
+        try {
+          data.items = JSON.parse(data.items);
+        } catch (e) {
+          console.error("Error parsing order items:", e);
+          data.items = [];
+        }
+      }
+      
+      // Ensure items is an array
+      if (!Array.isArray(data.items)) {
+        data.items = [];
+      }
+      
+      return data;
     },
     enabled: !!orderId,
     refetchInterval: 5000, // Poll every 5 seconds
@@ -257,23 +274,29 @@ export default function TableOrderTracking() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {order.items.map((item: any, index: number) => (
-                <div key={index} className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">{item.nameAr}</p>
-                    <p className="text-sm text-muted-foreground">
-                      الكمية: {item.quantity}
-                    </p>
+              {order && Array.isArray(order.items) && order.items.length > 0 ? (
+                <>
+                  {order.items.map((item: any, index: number) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">{item.nameAr}</p>
+                        <p className="text-sm text-muted-foreground">
+                          الكمية: {item.quantity}
+                        </p>
+                      </div>
+                      <p className="font-bold">
+                        {(item.price * item.quantity).toFixed(2)} ر.س
+                      </p>
+                    </div>
+                  ))}
+                  <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
+                    <span>الإجمالي</span>
+                    <span>{order.totalAmount.toFixed(2)} ر.س</span>
                   </div>
-                  <p className="font-bold">
-                    {(item.price * item.quantity).toFixed(2)} ر.س
-                  </p>
-                </div>
-              ))}
-              <div className="border-t pt-3 flex justify-between items-center font-bold text-lg">
-                <span>الإجمالي</span>
-                <span>{order.totalAmount.toFixed(2)} ر.س</span>
-              </div>
+                </>
+              ) : (
+                <p className="text-center text-muted-foreground">جاري تحميل تفاصيل الطلب...</p>
+              )}
             </div>
           </CardContent>
         </Card>
