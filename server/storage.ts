@@ -72,6 +72,7 @@ export interface IStorage {
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | undefined>;
   activateEmployee(phone: string, fullName: string, password: string): Promise<Employee | undefined>;
+  resetEmployeePasswordByUsername(username: string, newPassword: string): Promise<boolean>;
   getEmployees(): Promise<Employee[]>;
   getActiveCashiers(): Promise<Employee[]>;
 
@@ -362,6 +363,16 @@ export class DBStorage implements IStorage {
     employee.updatedAt = new Date();
     await employee.save();
     return employee;
+  }
+
+  async resetEmployeePasswordByUsername(username: string, newPassword: string): Promise<boolean> {
+    const employee = await this.getEmployeeByUsername(username);
+    if (!employee) return false;
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await EmployeeModel.updateOne({ username }, { password: hashedPassword });
+    
+    return true;
   }
 
   async getEmployees(): Promise<Employee[]> {

@@ -274,6 +274,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reset employee password by username
+  app.post("/api/employees/reset-password-by-username", async (req, res) => {
+    try {
+      const { username, newPassword } = req.body;
+
+      if (!username || !newPassword) {
+        return res.status(400).json({ error: "اسم المستخدم وكلمة المرور الجديدة مطلوبان" });
+      }
+
+      // Validate password
+      if (newPassword.length < 4) {
+        return res.status(400).json({ error: "كلمة المرور يجب أن تكون على الأقل 4 أحرف" });
+      }
+
+      const success = await storage.resetEmployeePasswordByUsername(username, newPassword);
+
+      if (!success) {
+        return res.status(404).json({ error: "الموظف غير موجود" });
+      }
+
+      res.json({ message: "تم تغيير كلمة المرور بنجاح" });
+    } catch (error) {
+      console.error("Error resetting employee password:", error);
+      res.status(500).json({ error: "فشل تغيير كلمة المرور" });
+    }
+  });
+
   // DISCOUNT CODE ROUTES
 
   // Create discount code

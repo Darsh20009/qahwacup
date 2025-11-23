@@ -43,6 +43,8 @@ import TableOrderTracking from "@/pages/table-order-tracking";
 import TableReservation from "@/pages/table-reservation";
 import CashierTableOrders from "@/pages/cashier-table-orders";
 import CashierTables from "@/pages/cashier-tables";
+import EmployeeForgotPassword from "@/pages/employee-forgot-password";
+import ManagerForgotPassword from "@/pages/manager-forgot-password";
 
 function Router() {
  return (
@@ -69,6 +71,7 @@ function Router() {
  <Route path="/product/:id" component={ProductDetails} />
  <Route path="/employee/gateway" component={EmployeeGateway} />
  <Route path="/employee/login" component={EmployeeLogin} />
+ <Route path="/employee/forgot-password" component={EmployeeForgotPassword} />
  <Route path="/employee/activate" component={EmployeeActivation} />
  <Route path="/employee/dashboard" component={EmployeeDashboard} />
  <Route path="/employee/cashier" component={EmployeeCashier} />
@@ -79,6 +82,8 @@ function Router() {
  <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
  <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
  <Route path="/manager" component={ManagerLogin} />
+ <Route path="/manager/forgot-password" component={ManagerForgotPassword} />
+ <Route path="/manager/login" component={ManagerLogin} />
  <Route path="/manager/employees" component={ManagerEmployees} />
  <Route path="/manager/drivers" component={ManagerDrivers} />
  <Route path="/manager/dashboard" component={ManagerDashboard} />

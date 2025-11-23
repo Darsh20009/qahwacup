@@ -117,6 +117,16 @@ export default function ManagerLogin() {
  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
  </button>
  </div>
+ <div className="flex justify-end">
+ <button
+ type="button"
+ onClick={() => setLocation("/manager/forgot-password")}
+ className="text-xs text-purple-500 hover:text-purple-400 underline"
+ data-testid="link-forgot-password"
+ >
+ نسيت كلمة المرور؟
+ </button>
+ </div>
  {error && (
  <p className="text-red-500 text-sm text-right" data-testid="text-error">
  {error}
