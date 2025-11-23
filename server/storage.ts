@@ -880,6 +880,10 @@ export class DBStorage implements IStorage {
   }
 
   async getBranches(): Promise<Branch[]> {
+    return await BranchModel.find({ isActive: 1 }).sort({ createdAt: -1 });
+  }
+
+  async getAllBranches(): Promise<Branch[]> {
     return await BranchModel.find().sort({ createdAt: -1 });
   }
 
@@ -903,7 +907,11 @@ export class DBStorage implements IStorage {
   }
 
   async deleteBranch(id: string): Promise<boolean> {
-    const result = await BranchModel.findByIdAndDelete(id);
+    const result = await BranchModel.findByIdAndUpdate(
+      id,
+      { isActive: 0, updatedAt: new Date() },
+      { new: true }
+    );
     return !!result;
   }
 

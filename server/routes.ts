@@ -2386,6 +2386,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/branches/all", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const branches = await storage.getAllBranches();
+      res.json(branches);
+    } catch (error) {
+      console.error("Error fetching all branches:", error);
+      res.status(500).json({ error: "Failed to fetch branches" });
+    }
+  });
+
   app.get("/api/branches/:id", async (req, res) => {
     try {
       const { id } = req.params;
@@ -2872,8 +2882,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reservedFor: {
           customerName,
           customerPhone,
+          reservationDate: new Date(),
+          reservationTime: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+          numberOfGuests: 2,
           reservedAt: new Date(),
-          reservedBy: employeeId
+          reservedBy: employeeId,
+          status: 'confirmed' as const
         }
       });
 
