@@ -80,6 +80,11 @@ export default function EmployeeOrders() {
  refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
  });
 
+ const { data: allBranches = [] } = useQuery<any[]>({
+ queryKey: ["/api/branches"],
+ enabled: !!employee,
+ });
+
  // Helper to get normalized order ID
  const getOrderId = (order: Order) => order.id?.toString() || order._id?.toString() || '';
 
@@ -406,10 +411,16 @@ export default function EmployeeOrders() {
  {activeOrders.map((order) => {
  const customerInfo = order.customerInfo as any;
  const items = (order.items as OrderItemData[]) || [];
+ const branch = allBranches.find(b => b._id === order.branchId);
  
  return (
  <Card key={order.id} className="bg-[#1a1410] border-amber-500/10">
  <CardContent className="p-4">
+ {branch && (
+ <p className="text-xs bg-gradient-to-r from-amber-600 to-amber-700 text-white px-2 py-1 rounded mb-3 inline-block">
+ {branch.nameAr}
+ </p>
+ )}
  <div className="flex items-start justify-between mb-4">
  <div className="flex items-center gap-3">
  {getStatusIcon(order.status)}
@@ -570,12 +581,16 @@ export default function EmployeeOrders() {
  const customerInfo = order.customerInfo as any;
  const items = (order.items as OrderItemData[]) || [];
  const itemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
+ const branch = allBranches.find(b => b._id === order.branchId);
  
  return (
- <div 
- key={order.id} 
- className="bg-[#1a1410] rounded-lg p-3 flex items-center justify-between"
- >
+ <div key={order.id}>
+ {branch && (
+ <p className="text-xs bg-gradient-to-r from-amber-600 to-amber-700 text-white px-2 py-1 rounded mb-2 inline-block">
+ {branch.nameAr}
+ </p>
+ )}
+ <div className="bg-[#1a1410] rounded-lg p-3 flex items-center justify-between">
  <div className="flex items-center gap-3">
  {getStatusIcon(order.status)}
  <div className="text-right">
@@ -592,6 +607,7 @@ export default function EmployeeOrders() {
  {parseFloat(order.totalAmount).toFixed(2)} ريال
  </p>
  {getStatusBadge(order.status)}
+ </div>
  </div>
  </div>
  );
