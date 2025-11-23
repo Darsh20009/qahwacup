@@ -1,211 +1,50 @@
 # قهوة كوب - Coffee Shop Management System
 
-## نظرة عامة
-نظام متكامل لإدارة المقهى مع نظام استلام من الفروع، إدارة الطلبات، وبطاقات الولاء.
+## Overview
+قهوة كوب is a comprehensive coffee shop management system designed to streamline operations from order placement to loyalty programs. It supports in-store pickups, table ordering, and robust management of products, branches, employees, and loyalty cards. The system aims to enhance customer experience through efficient service and engaging loyalty features, while providing administrators with powerful tools for managing the business.
 
-## الميزات الرئيسية
+## User Preferences
+- All texts are in Arabic with English support for data.
+- The system fully supports RTL.
+- I want iterative development.
+- Ask before making major changes.
+- Provide detailed explanations for complex solutions.
 
-### ✅ الميزات المكتملة:
-1. **نظام إدارة المنتجات** - إضافة، تعديل، حذف منتجات القهوة
-2. **نظام الطلبات** - إنشاء وتتبع الطلبات (استلام من الفرع فقط)
-3. **إدارة الفروع** - إضافة، تعديل، حذف الفروع مع دعم الموقع الجغرافي
-4. **بطاقات الولاء** - نظام نقاط وكوبونات
-5. **إدارة الموظفين** - حسابات للكاشير والمدير
-6. **أكواد الخصم** - نظام خصومات متقدم
-7. **المكونات** - إدارة مكونات المشروبات
-8. **نظام الدفع** - دفع نقدي، بطاقة، أو إلكتروني مع رفع الإيصال
+## System Architecture
 
-### 🚀 تحديثات نوفمبر 2025:
+### UI/UX Decisions
+The UI/UX emphasizes a modern, attractive design, especially evident in the QR card and employee badge designs.
+- **QR Cards:** Feature a modern, attractive beige color scheme with warm tones (beige, light brown, gold), including a site logo (☕ in a gold gradient circle), golden borders, corner decorations, and professional print-ready quality. Enhanced QR codes ensure easy scanning.
+- **Employee Badges:** Utilize warm beige gradients and a horizontal, three-column layout (employee photo, info, QR code for location) with creative elements like golden corner ornaments, a golden strip at the bottom, soft shadows, and the ☕ logo. The backside includes terms of use, responsibilities, and benefits.
+- **Password Fields:** All password input fields across various pages include show/hide password icons for improved usability.
 
-#### نظام إدارة الطاولات والطلبات:
-- ✅ **إنشاء الطاولات**: المدير يمكنه إنشاء طاولات مع QR codes
-- ✅ **الطلب من الطاولة**: العملاء يمسحون QR code ويطلبون كضيوف (اسم فقط)
-- ✅ **تتبع الطلب**: العميل يتتبع حالة طلبه في الوقت الفعلي
-- ✅ **إدارة الكاشير**: الكاشير يستلم ويدير طلبات الطاولات
-- ✅ **دورة حياة الطلب الكاملة**: pending → payment_confirmed → preparing → delivering_to_table → delivered/cancelled
-- ✅ **الأمان**: الطلب من الطاولات للضيوف فقط لحماية نقاط الولاء
-- ✅ **حجز الطاولات**: الكاشير يمكنه حجز طاولات للعملاء مع إدخال عدد الضيوف
-- ✅ **إشعارات صوتية**: الكاشير يتلقى إشعارات صوتية عند وصول طلبات جديدة
+### Technical Implementations
+- **Table Management:** Managers can create tables with QR codes. Customers scan QR codes to order as guests (name only). Cashiers manage table orders with real-time tracking and audio notifications for new orders.
+- **Order Lifecycle:** Comprehensive order status tracking: `pending` → `payment_confirmed` → `preparing` → `delivering_to_table` → `delivered`/`cancelled`.
+- **Branch Management:** Supports soft deletion of branches (`isActive: 0`) to hide them from customers while remaining visible to managers. Includes optional Google Maps links for branches.
+- **Authentication & Employee Management:** Implemented "Forgot Password" flows for employees and managers. New seeded employees have a default password "1234" and are auto-activated.
+- **Customer Registration:** For unregistered customers, phone number (9 digits starting with 5) and email (with format validation) are mandatory. An option to "create an account" during checkout allows automatic account creation with a password (min. 6 characters) and show/hide functionality.
+- **Order Visibility:** All regular and table orders are consolidated in the order management view. Managers and employees can see all orders from all branches, with the branch name displayed above each order.
+- **Geolocation:** Uses Point-in-Polygon for geographic area validation and Haversine Distance for distance calculations, though current coordinates are approximate.
 
-#### نظام الاستلام من الفروع:
-- ✅ **استلام من الفرع فقط**: تم إزالة خيار التوصيل
-- ✅ **اختيار الفرع**: العميل يختار الفرع للاستلام منه
-- ✅ **معلومات الموقع**: عرض موقع الفرع على الخريطة (إذا توفر)
-- ✅ **روابط الخريطة**: رابط مباشر لفتح الموقع في تطبيقات الخرائط
+### Feature Specifications
+- **Product Management:** Add, modify, delete coffee products.
+- **Order System:** Create and track orders (pickup from branch only).
+- **Loyalty Cards:** Points and coupon system.
+- **Employee Management:** Cashier and manager accounts.
+- **Discount Codes:** Advanced discount system.
+- **Ingredients Management:** Manage beverage components.
+- **Payment System:** Cash, card, or electronic payment with receipt upload.
+- **In-Store Pickup:** Customers select a pickup branch, with optional map links.
+- **Table Reservations:** Cashiers can reserve tables for customers, specifying the number of guests.
+- **Security:** Table ordering is guest-only to protect loyalty points. Registered customers use the main app/website to earn points. Phone number search is cashier-only with authentication.
+- **High Print Quality:** Designs are created with high canvas sizes (e.g., 1000x1200 for QR cards) for professional printing.
 
-#### إدارة الفروع المحسّنة (نوفمبر 23، 2025):
-- ✅ **Soft Delete للفروع**: حذف الفروع الآن "ناعم" (isActive: 0) بدلاً من الحذف النهائي
-- ✅ **إخفاء الفروع غير النشطة**: الفروع المحذوفة لا تظهر للعملاء
-- ✅ **لوحة المدير**: المديرون يمكنهم رؤية جميع الفروع (نشطة وغير نشطة) عبر `/api/admin/branches/all`
-- ✅ **رابط Google Maps**: إضافة رابط خريطة Google Maps اختياري لكل فرع
-- ✅ **عرض رابط الخريطة**: عرض زر "عرض على الخريطة" عند توفر الرابط
+### System Design Choices
+- **Backend:** Node.js with Express.js for the server-side, MongoDB with Mongoose for database management, Zod for schema validation, and bcryptjs for password hashing.
+- **Frontend:** React with TypeScript for the user interface, Vite as the build tool, TanStack Query for data fetching, shadcn/ui for UI components, Tailwind CSS for styling, and Wouter for routing.
 
-#### تحسينات المصادقة وإدارة الطلبات (نوفمبر 23، 2025):
-- ✅ **Show/Hide Password**: إضافة أيقونات العين على جميع حقول كلمة المرور (7 صفحات)
-- ✅ **Forgot Password للموظفين**: صفحة `/employee/forgot-password` بتدفق ثنائي الخطوات
-- ✅ **Forgot Password للمديرين**: صفحة `/manager/forgot-password` بتدفق ثنائي الخطوات
-- ✅ **إعادة تعيين كلمة المرور**: API endpoint `/api/employees/reset-password-by-username`
-- ✅ **إصلاح الوصول إلى الطلبات**: الموظفون يمكنهم الآن رؤية طلبات العملاء في إدارة الطلبات
-
-#### تحسينات بطاقة QR وتصميم الطاولات (نوفمبر 23، 2025):
-- ✅ **بطاقة QR بلون بيج**: تصميم عصري وجذاب بألوان دافئة (بيج، بني فاتح، ذهبي)
-- ✅ **شعار الموقع مبداعي**: لوجو ☕ في دائرة ملونة بتدرج ذهبي على رأس البطاقة
-- ✅ **تحسينات مرئية**: حدود ذهبية، ديكورات زاوية، وتصميم احترافي للطباعة
-- ✅ **QR code محسّن**: خط مظلم على خلفية بيج فاتحة لسهولة المسح
-- ✅ **معلومات واضحة**: اسم الطاولة، تعليمات بالعربية والإنجليزية
-- ✅ **جودة طباعة عالية**: حجم canvas كبير (1000x1200) لطباعة احترافية
-
-## البنية التقنية
-
-### Backend:
-- **Node.js + Express**: Server-side
-- **MongoDB + Mongoose**: قاعدة البيانات
-- **Zod**: Schema validation
-- **bcryptjs**: تشفير كلمات المرور
-
-### Frontend:
-- **React + TypeScript**: واجهة المستخدم
-- **Vite**: Build tool
-- **TanStack Query**: Data fetching
-- **shadcn/ui**: UI components
-- **Tailwind CSS**: Styling
-- **Wouter**: Routing
-
-### Geo Services:
-- **Point-in-Polygon Algorithm**: للتحقق من المناطق الجغرافية
-- **Haversine Distance**: لحساب المسافات
-
-## API Endpoints
-
-### Branches:
-- `GET /api/branches` - قائمة الفروع النشطة فقط (للعملاء)
-- `GET /api/admin/branches/all` - قائمة جميع الفروع (للمديرين)
-- `POST /api/branches` - إنشاء فرع جديد
-- `PATCH /api/branches/:id` - تعديل فرع
-- `DELETE /api/branches/:id` - حذف فرع (soft delete)
-
-### Tables:
-- `GET /api/tables` - قائمة جميع الطاولات
-- `POST /api/tables` - إنشاء طاولة جديدة
-- `POST /api/tables/:id/reserve` - حجز طاولة (للموظفين)
-- `POST /api/tables/:id/release` - تحرير حجز طاولة
-- `PATCH /api/tables/:id` - تعديل طاولة
-- `DELETE /api/tables/:id` - حذف طاولة
-- `GET /api/tables/qr/:qrToken` - الحصول على معلومات طاولة من QR token
-
-### Table Orders:
-- `GET /api/cashier/table-orders` - قائمة طلبات الطاولات (للكاشير)
-- `PATCH /api/orders/:id/table-status` - تحديث حالة طلب طاولة
-- `GET /api/orders/tracking/:orderNumber` - تتبع طلب بواسطة رقم الطلب
-- `PATCH /api/orders/:id/cancel` - إلغاء طلب
-
-### Delivery Zones:
-- `GET /api/delivery-zones` - قائمة المناطق
-- `POST /api/delivery-zones/validate` - التحقق من نقطة جغرافية
-
-### Drivers:
-- `GET /api/drivers` - قائمة السائقين المتاحين
-- `PATCH /api/drivers/:id/availability` - تحديث حالة التوفر
-- `PATCH /api/drivers/:id/location` - تحديث الموقع
-
-### Delivery Orders:
-- `PATCH /api/orders/:id/assign-driver` - تعيين سائق
-- `PATCH /api/orders/:id/start-delivery` - بدء التوصيل
-- `PATCH /api/orders/:id/complete-delivery` - إتمام التوصيل
-- `GET /api/delivery/active-orders` - الطلبات النشطة
-- `GET /api/drivers/:id/orders` - طلبات سائق محدد
-
-## Environment Variables
-```
-MONGODB_URI=<MongoDB connection string>
-NODE_ENV=development
-PORT=5000
-```
-
-## التشغيل
-```bash
-npm run dev  # يشغل Frontend + Backend معاً
-```
-
-## الحالة الحالية
-
-### ✅ مكتمل:
-1. نظام إدارة الطاولات الكامل (المدير، الكاشير، العميل)
-2. نظام QR codes للطلب من الطاولات
-3. دورة حياة الطلب الكاملة مع حالة delivering_to_table
-4. نظام الطلب كضيف (أمان محسّن)
-5. تتبع الطلبات في الوقت الفعلي
-6. إلغاء الطلبات قبل تأكيد الدفع
-7. Schema updates للتوصيل والسائقين
-8. Storage layer مع دوال CRUD كاملة
-9. Geo utilities (isPointInPolygon, calculateDistance)
-10. API routes للتوصيل والطاولات
-11. Seeding للمناطق الجغرافية
-12. DeliveryMethodSelector component
-13. Soft delete للفروع مع فلترة للعملاء (نوفمبر 23، 2025)
-14. حجز الطاولات من قبل الموظفين مع validation (نوفمبر 23، 2025)
-15. إشعارات صوتية للكاشير عند وصول طلبات جديدة (نوفمبر 23، 2025)
-16. تصميم بطاقة QR جديد بلون بيج مبداعي (نوفمبر 23، 2025)
-17. إصلاح مشكلة الطلب من الطاولة والتأكد من ظهوره في إدارة الطلبات (نوفمبر 23، 2025)
-
-#### تحسينات المصادقة والتسجيل (نوفمبر 23، 2025 - الإصدار 2):
-- ✅ **رقم الجوال إجباري**: العملاء الغير مسجلين يجب أن يدخلوا رقم جوالهم (9 أرقام تبدأ بـ 5)
-- ✅ **البريد الالكتروني إجباري**: حقل بريد إلكتروني مطلوب مع التحقق من الصيغة
-- ✅ **خيار التسجيل**: زر اختيار "إنشاء حساب" للعملاء الجدد
-- ✅ **إنشاء كلمة سر**: حقل كلمة سر مع أيقونة إظهار/إخفاء (6 أحرف على الأقل)
-- ✅ **تسجيل تلقائي عند الدفع**: العملاء الذين يختارون التسجيل سيتم إنشاء حسابهم تلقائياً
-- ✅ **التحقق من البيانات**: تحقق كامل من الصيغة والطول لكل الحقول
-
-#### عرض جميع الطلبات مع اسم الفرع (نوفمبر 23، 2025 - الإصدار 3):
-- ✅ **دمج جميع الطلبات**: عرض الطلبات العادية وطلبات الطاولات معاً في إدارة الطلبات
-- ✅ **جميع المديرين يرون جميع الطلبات**: جميع الطلبات من جميع الفروع متاحة
-- ✅ **جميع الموظفين يرون جميع الطلبات**: الكاشيرون يرون الطلبات العادية وطلبات الطاولات
-- ✅ **عرض اسم الفرع**: اسم فرع الاستلام يظهر فوق كل طلب في لوحة المدير وإدارة الطلبات
-- ✅ **دمج البيانات من endpoints منفصلة**: `/api/orders` + `/api/orders/table` → عرض موحد
-
-#### إصلاح المصادقة وتسجيل الدخول للموظفين (نوفمبر 23، 2025 - الإصدار 4):
-- ✅ **كلمات مرور افتراضية للموظفين المزروعين**: جميع الموظفين الجدد يمتلكون كلمة المرور الافتراضية "1234"
-  - manager1: أحمد محمد (مدير عام)
-  - cashier1: خالد سعيد (كاشير)
-  - cashier2: محمد علي (كاشير)
-  - cashier3: عبدالله حسن (كاشير)
-- ✅ **تفعيل تلقائي للموظفين**: جميع الموظفين المزروعين لديهم `isActivated: 1` ويمكنهم تسجيل الدخول فوراً
-- ✅ **تحديث البيانات الأساسية**: البيانات الأساسية الآن تحدّث كلمات المرور للموظفين الموجودين بدلاً من تخطيهم
-- ✅ **ترتيب الروتس الصحيح**: تم إصلاح ترتيب المسارات في Express (الروتات المحددة قبل الروتات العامة)
-  - `/api/orders/table` قبل `/api/orders/:id` لتجنب خطأ Cast to ObjectId
-
-#### تحسين بطاقة الموظف (نوفمبر 23، 2025 - الإصدار 5):
-- ✅ **ألوان بيج دافئة**: استخدام تدرج بيج جميل (#f5e6d3, #edd9c3, #e8ccb5)
-- ✅ **تصميم أفقي ثلاثي الأعمدة**: 
-  - العمود الأيسر: صورة الموظف (دائرية)
-  - العمود الأوسط: معلومات الموظف (الاسم، الوظيفة، البيانات الشخصية)
-  - العمود الأيمن: QR Code للموقع
-- ✅ **عناصر إبداعية**:
-  - زخارف زاوية بتدرجات ذهبية
-  - شريط ذهبي في الأسفل
-  - ظلال ناعمة (shadow-2xl)
-  - شعار قهوة كوب مبداعي
-- ✅ **جانب خلفي متقدم**: شروط الاستخدام، المسؤوليات، والمزايا
-- ✅ **سهل الطباعة**: تصميم احترافي ومتوافق مع جودة الطباعة العالية
-
-### ⏳ قيد التطوير:
-1. دمج DeliveryMethodSelector في checkout flow
-2. صفحة اختيار العنوان مع خريطة
-3. لوحة تحكم المدير (إدارة السائقين والمناطق)
-4. واجهة رفع إيصال الدفع
-5. تحسينات الأداء
-6. تحسينات التوافق مع الجوال
-
-## ملاحظات هامة:
-
-### الأمان:
-- **الطلب من الطاولات**: ضيوف فقط (اسم فقط، بدون رقم هاتف) لحماية نقاط الولاء
-- **العملاء المسجلين**: يستخدمون التطبيق/الموقع الرئيسي للطلب والحصول على النقاط
-- **البحث بالرقم**: متاح فقط للكاشير في الواجهة الرئيسية مع مصادقة
-
-### التقنيات:
-- إحداثيات المناطق حالياً تقريبية (مركز بريدة: 26.3260, 43.9750)
-- يُنصح بالحصول على إحداثيات دقيقة من بلدية بريدة أو OSM
-- جميع النصوص بالعربية مع دعم الإنجليزية للبيانات
-- النظام يدعم RTL بشكل كامل
-- QR codes مولدة بواسطة qrcode library
+## External Dependencies
+- **MongoDB:** Database for storing application data.
+- **Google Maps:** Used for displaying branch locations and providing navigation links.
+- **qrcode library:** For generating QR codes.

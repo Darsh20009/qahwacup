@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface IOrder {
-  _id: string;
+  id: string;
   orderNumber: string;
   items: any[];
   totalAmount: number;
@@ -36,7 +36,7 @@ interface IOrder {
   tableStatus?: string;
   tableNumber?: string;
   customerInfo?: {
-    name: string;
+    customerName: string;
     phone?: string;
   };
   createdAt: Date;
@@ -285,7 +285,7 @@ export default function TableOrderTracking() {
               <CardTitle>معلومات العميل</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="font-medium">{order.customerInfo.name}</p>
+              <p className="font-medium">{order.customerInfo.customerName}</p>
               {order.customerInfo.phone && order.customerInfo.phone !== "guest" && (
                 <p className="text-sm text-muted-foreground">
                   الهاتف: {order.customerInfo.phone}

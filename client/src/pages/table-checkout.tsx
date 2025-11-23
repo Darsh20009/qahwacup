@@ -91,7 +91,7 @@ export default function TableCheckout() {
 
       // Small delay before navigation to show the toast
       setTimeout(() => {
-        navigate(`/table-order-tracking/${order._id}`);
+        navigate(`/table-order-tracking/${order.id}`);
       }, 500);
     } catch (error) {
       console.error("Error submitting order:", error);
