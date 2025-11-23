@@ -59,3 +59,10 @@ The UI/UX emphasizes a modern, attractive design, especially evident in the QR c
 - ✅ **Add safety checks**: Added conditions to ensure `order.items` exists and is an array before rendering
 - ✅ **Show loading state**: Display "جاري تحميل تفاصيل الطلب..." while order items are being loaded
 - **Result**: Table order details now display correctly without "order.items.map is not a function" error
+
+## Latest Fix: Order Status Not Displaying (November 23, 2025 - Version 7.2)
+- ✅ **Fixed status field mapping**: Backend stores both `status` and `tableStatus` fields
+- ✅ **Updated Frontend logic**: Now uses `tableStatus || status` fallback to display order status
+- ✅ **Fixed notification detection**: Updated useEffect to check both status fields
+- **Result**: Order status now displays correctly instead of "غير معروف" (unknown)
+- **Impact**: Status changes are now properly detected and displayed in real-time

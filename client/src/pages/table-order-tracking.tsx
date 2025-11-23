@@ -80,7 +80,9 @@ export default function TableOrderTracking() {
   
   // Detect status changes and play notification sounds
   useEffect(() => {
-    if (order && order.tableStatus && previousStatusRef.current && previousStatusRef.current !== order.tableStatus) {
+    const currentStatus = order?.tableStatus || order?.status;
+    
+    if (order && currentStatus && previousStatusRef.current && previousStatusRef.current !== currentStatus) {
       // Status has changed! Play notification sound
       const statusMessages: Record<string, string> = {
         'payment_confirmed': 'تم تأكيد الدفع ✅',
@@ -90,12 +92,12 @@ export default function TableOrderTracking() {
         'delivered': 'تم توصيل طلبك! 🎉',
       };
       
-      const message = statusMessages[order.tableStatus] || 'تم تحديث حالة طلبك';
+      const message = statusMessages[currentStatus] || 'تم تحديث حالة طلبك';
       
       // Play different sounds for different status transitions
-      if (order.tableStatus === 'delivered') {
+      if (currentStatus === 'delivered') {
         playNotificationSound('success', 0.6);
-      } else if (order.tableStatus === 'ready' || order.tableStatus === 'delivering_to_table') {
+      } else if (currentStatus === 'ready' || currentStatus === 'delivering_to_table') {
         playNotificationSound('statusChange', 0.5);
       } else {
         playNotificationSound('statusChange', 0.4);
@@ -109,8 +111,8 @@ export default function TableOrderTracking() {
       });
     }
     
-    if (order && order.tableStatus) {
-      previousStatusRef.current = order.tableStatus;
+    if (order && currentStatus) {
+      previousStatusRef.current = currentStatus;
     }
   }, [order, toast]);
 
@@ -225,9 +227,11 @@ export default function TableOrderTracking() {
     );
   }
 
-  const statusInfo = getStatusInfo(order.tableStatus);
+  // Use tableStatus if available, otherwise fall back to status
+  const currentStatus = order.tableStatus || order.status;
+  const statusInfo = getStatusInfo(currentStatus);
   const StatusIcon = statusInfo.icon;
-  const canCancel = order.tableStatus === "pending";
+  const canCancel = currentStatus === "pending";
 
   return (
     <div className="min-h-screen bg-background p-4" dir="rtl">
