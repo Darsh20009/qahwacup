@@ -48,3 +48,8 @@ The UI/UX emphasizes a modern, attractive design, especially evident in the QR c
 - **MongoDB:** Database for storing application data.
 - **Google Maps:** Used for displaying branch locations and providing navigation links.
 - **qrcode library:** For generating QR codes.
+## Latest Fix: GET /api/orders/:id Serialization (November 23, 2025 - Version 7)
+- ✅ **Fixed serializeDoc() missing in GET endpoint**: Added `serializeDoc()` to convert `_id` to `id` in `/api/orders/:id` response
+- ✅ **Resolved undefined orderId issue**: Now properly returns `id` field instead of `_id` from MongoDB documents
+- ✅ **Table order tracking now works**: Customers can successfully track their table orders after placement
+- **Impact**: Order ID is now correctly extracted from URL parameters and used to fetch order details

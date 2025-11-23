@@ -1871,11 +1871,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Order not found" });
       }
 
+      // Serialize the order (converts _id to id and removes MongoDB internals)
+      const serializedOrder = serializeDoc(order);
+
       // Get order items
       const orderItems = await storage.getOrderItems(id);
 
       res.json({
-        ...order,
+        ...serializedOrder,
         orderItems
       });
     } catch (error) {
