@@ -85,8 +85,8 @@ export default function ManagerDashboard() {
  enabled: !!manager,
  });
 
- // Filter orders by branch for non-admin managers
- const orders = isAdmin ? allOrders : allOrders.filter(order => order.branchId === managerBranchId);
+ // جميع المديرين يرون جميع الطلبات بغض النظر عن الفرع
+ const orders = allOrders;
 
  const { data: allBranches = [] } = useQuery<any[]>({
  queryKey: ["/api/branches"],
@@ -663,6 +663,7 @@ export default function ManagerDashboard() {
  <div className="space-y-3 max-h-[600px] overflow-y-auto">
  {orders.slice().reverse().map((order: any) => {
  const employee = employees.find(e => e._id === order.employeeId);
+ const branch = allBranches.find(b => b._id === order.branchId);
  const statusColors = {
  'pending': 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
  'payment_confirmed': 'bg-blue-500/10 border-blue-500/30 text-blue-400',
@@ -678,6 +679,11 @@ export default function ManagerDashboard() {
  className="p-4 bg-stone-800/30 rounded-lg border border-amber-500/10"
  data-testid={`order-${order._id}`}
  >
+ {branch && (
+ <p className="text-xs bg-gradient-to-r from-amber-600 to-amber-700 text-white px-2 py-1 rounded mb-2 inline-block">
+ {branch.nameAr}
+ </p>
+ )}
  <div className="flex justify-between items-start mb-3">
  <div>
  <p className="font-semibold text-amber-400">#{order.orderNumber}</p>
