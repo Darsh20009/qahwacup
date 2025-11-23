@@ -14,7 +14,7 @@ import FileUpload from "@/components/file-upload";
 import { generatePDF } from "@/lib/pdf-generator";
 import { customerStorage } from "@/lib/customer-storage";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check, Store, Truck, MapPin, Edit, ShoppingBag } from "lucide-react";
+import { CreditCard, FileText, MessageCircle, CheckCircle, Coffee, Clock, Star, User, Gift, Sparkles, Award, Copy, Check, Store, Truck, MapPin, Edit, ShoppingBag, Eye, EyeOff } from "lucide-react";
 import type { PaymentMethodInfo, PaymentMethod, Order } from "@shared/schema";
 
 export default function CheckoutPage() {
@@ -30,6 +30,10 @@ export default function CheckoutPage() {
  const [transferOwnerName, setTransferOwnerName] = useState("");
  const [isSameAsCustomer, setIsSameAsCustomer] = useState(true);
  const [customerPhone, setCustomerPhone] = useState("");
+ const [customerEmail, setCustomerEmail] = useState("");
+ const [customerPassword, setCustomerPassword] = useState("");
+ const [showPassword, setShowPassword] = useState(false);
+ const [wantToRegister, setWantToRegister] = useState(false);
  const [loyaltyCodes, setLoyaltyCodes] = useState<any[]>([]);
  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
  const [useFreeDrink, setUseFreeDrink] = useState(false);
@@ -39,6 +43,7 @@ export default function CheckoutPage() {
  const [discountCode, setDiscountCode] = useState("");
  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number} | null>(null);
  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
+ const [isRegistering, setIsRegistering] = useState(false);
  const { customer } = useCustomer();
 
  // Calculate total drinks from all orders
@@ -243,6 +248,69 @@ export default function CheckoutPage() {
  return;
  }
 
+ // For non-registered customers, phone and email are mandatory
+ if (!isRegisteredCustomer) {
+ if (!customerPhone.trim()) {
+ toast({
+ variant: "destructive",
+ title: "رقم الجوال مطلوب",
+ description: "الرجاء إدخال رقم جوالك (9 أرقام تبدأ بـ 5)",
+ });
+ return;
+ }
+
+ // Validate phone format
+ if (!/^5\d{8}$/.test(customerPhone.trim())) {
+ toast({
+ variant: "destructive",
+ title: "رقم جوال غير صحيح",
+ description: "الرجاء إدخال 9 أرقام تبدأ بـ 5",
+ });
+ return;
+ }
+
+ if (!customerEmail.trim()) {
+ toast({
+ variant: "destructive",
+ title: "البريد الإلكتروني مطلوب",
+ description: "الرجاء إدخال بريدك الإلكتروني",
+ });
+ return;
+ }
+
+ // Validate email format
+ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+ if (!emailRegex.test(customerEmail.trim())) {
+ toast({
+ variant: "destructive",
+ title: "البريد الإلكتروني غير صحيح",
+ description: "الرجاء إدخال بريد إلكتروني صحيح",
+ });
+ return;
+ }
+
+ // If customer wants to register, validate password
+ if (wantToRegister) {
+ if (!customerPassword.trim()) {
+ toast({
+ variant: "destructive",
+ title: "كلمة السر مطلوبة",
+ description: "الرجاء إدخال كلمة سر قوية",
+ });
+ return;
+ }
+
+ if (customerPassword.length < 6) {
+ toast({
+ variant: "destructive",
+ title: "كلمة السر ضعيفة",
+ description: "كلمة السر يجب أن تكون 6 أحرف على الأقل",
+ });
+ return;
+ }
+ }
+ }
+
  // Validate transfer owner name for non-cash payments
  if (selectedPaymentMethod !== 'cash' && selectedPaymentMethod !== 'qahwa-card' && !isSameAsCustomer && !transferOwnerName.trim()) {
  toast({
@@ -329,8 +397,52 @@ export default function CheckoutPage() {
  // Get or create customer ID
  let activeCustomerId = customer?.id;
 
+ // If customer wants to register, register first
+ if (!activeCustomerId && wantToRegister && customerPhone && customerEmail && customerPassword) {
+ try {
+ setIsRegistering(true);
+ const registerResponse = await fetch("/api/customers/register", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({
+ name: customerName.trim(),
+ phone: customerPhone.trim(),
+ email: customerEmail.trim(),
+ password: customerPassword
+ })
+ });
+
+ if (registerResponse.ok) {
+ const newCustomer = await registerResponse.json();
+ activeCustomerId = newCustomer.id;
+ toast({
+ title: "تم التسجيل بنجاح!",
+ description: "أهلاً وسهلاً بك في قهوة كوب!",
+ });
+ } else {
+ const errorData = await registerResponse.json();
+ toast({
+ variant: "destructive",
+ title: "خطأ في التسجيل",
+ description: errorData.error || "حدث خطأ أثناء التسجيل",
+ });
+ setIsRegistering(false);
+ return;
+ }
+ } catch (error) {
+ console.error("Registration error:", error);
+ toast({
+ variant: "destructive",
+ title: "خطأ في التسجيل",
+ description: "حدث خطأ أثناء التسجيل",
+ });
+ setIsRegistering(false);
+ return;
+ }
+ }
+
  // If user is authenticated but we need to ensure customer exists in backend
- if (customerPhone && !activeCustomerId) {
+ if (customerPhone && !activeCustomerId && !wantToRegister) {
  try {
  const authResponse = await fetch("/api/customers/auth", {
  method: "POST",
@@ -349,6 +461,7 @@ export default function CheckoutPage() {
  console.error("Authentication error:", error);
  }
  }
+ setIsRegistering(false);
 
  // Calculate number of free drinks used
  const usedFreeDrinks = isQahwaCardPayment ? Object.values(selectedFreeItems).reduce((sum, val) => sum + val, 0) : 0;
@@ -1023,7 +1136,7 @@ ${itemsWithPrices}
 
  <div className="space-y-2">
  <Label htmlFor="customer-phone" className="text-sm font-semibold text-slate-600">
- رقم الهاتف (9 أرقام تبدأ بـ 5 - اختياري)
+ رقم الجوال (9 أرقام تبدأ بـ 5 - {isRegisteredCustomer ? "محفوظ" : "مطلوب"}) *
  </Label>
  <Input
  id="customer-phone"
@@ -1034,8 +1147,79 @@ ${itemsWithPrices}
  className="text-right"
  data-testid="input-customer-phone"
  disabled={isRegisteredCustomer}
+ required={!isRegisteredCustomer}
  />
  </div>
+
+ <div className="space-y-2">
+ <Label htmlFor="customer-email" className="text-sm font-semibold text-slate-600">
+ البريد الإلكتروني ({isRegisteredCustomer ? "محفوظ" : "مطلوب"}) *
+ </Label>
+ <Input
+ id="customer-email"
+ type="email"
+ placeholder="your@email.com"
+ value={customerEmail}
+ onChange={(e) => setCustomerEmail(e.target.value)}
+ className="text-right"
+ data-testid="input-customer-email"
+ disabled={isRegisteredCustomer}
+ required={!isRegisteredCustomer}
+ />
+ </div>
+
+ {!isRegisteredCustomer && (
+ <div className="space-y-2">
+ <Label htmlFor="want-register" className="text-sm font-semibold text-slate-600">
+ هل تريد إنشاء حساب؟
+ </Label>
+ <div className="flex items-center space-x-3 space-x-reverse p-3 rounded-lg border border-blue-200 bg-blue-50">
+ <input
+ type="checkbox"
+ id="want-register"
+ checked={wantToRegister}
+ onChange={(e) => setWantToRegister(e.target.checked)}
+ className="w-4 h-4 text-blue-600 rounded"
+ data-testid="checkbox-want-register"
+ />
+ <label htmlFor="want-register" className="text-sm text-slate-700 cursor-pointer">
+ نعم، أريد التسجيل والحصول على نقاط
+ </label>
+ </div>
+ </div>
+ )}
+
+ {!isRegisteredCustomer && wantToRegister && (
+ <div className="space-y-2">
+ <Label htmlFor="customer-password" className="text-sm font-semibold text-slate-600">
+ كلمة السر (6 أحرف على الأقل) *
+ </Label>
+ <div className="relative">
+ <Input
+ id="customer-password"
+ type={showPassword ? "text" : "password"}
+ placeholder="أدخل كلمة سرقوية"
+ value={customerPassword}
+ onChange={(e) => setCustomerPassword(e.target.value)}
+ className="text-right pr-10"
+ data-testid="input-customer-password"
+ required={wantToRegister}
+ />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-700"
+ data-testid="button-toggle-password"
+ >
+ {showPassword ? (
+ <EyeOff className="w-4 h-4" />
+ ) : (
+ <Eye className="w-4 h-4" />
+ )}
+ </button>
+ </div>
+ </div>
+ )}
  </div>
 
  {/* Free Drinks Counter for Registered Users */}
