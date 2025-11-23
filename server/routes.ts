@@ -1814,7 +1814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all orders (branch-filtered for managers)
-  app.get("/api/orders", requireAuth, requireManager, async (req: AuthRequest, res) => {
+  app.get("/api/orders", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { limit, offset } = req.query;
       const limitNum = limit ? parseInt(limit as string) : undefined;
@@ -1874,7 +1874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get table orders (branch-filtered for managers)
-  app.get("/api/orders/table", requireAuth, requireManager, async (req: AuthRequest, res) => {
+  app.get("/api/orders/table", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { status } = req.query;
       const allOrders = await storage.getTableOrders(status as string | undefined);
