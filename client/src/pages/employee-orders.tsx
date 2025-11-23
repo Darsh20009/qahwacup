@@ -75,10 +75,22 @@ export default function EmployeeOrders() {
  }
  }, [setLocation]);
 
- const { data: orders = [], isLoading, refetch } = useQuery<Order[]>({
+ const { data: regularOrders = [], isLoading: isLoadingRegular, refetch: refetchRegular } = useQuery<Order[]>({
  queryKey: ["/api/orders"],
- refetchInterval: 3000, // Refetch every 3 seconds for real-time updates
+ refetchInterval: 3000,
  });
+
+ const { data: tableOrders = [], isLoading: isLoadingTable, refetch: refetchTable } = useQuery<Order[]>({
+ queryKey: ["/api/orders/table"],
+ refetchInterval: 3000,
+ });
+
+ const isLoading = isLoadingRegular || isLoadingTable;
+ const orders = [...regularOrders, ...tableOrders];
+ const refetch = () => {
+ refetchRegular();
+ refetchTable();
+ };
 
  const { data: allBranches = [] } = useQuery<any[]>({
  queryKey: ["/api/branches"],
