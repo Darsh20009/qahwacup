@@ -2854,7 +2854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reserve a table
   app.post("/api/tables/:id/reserve", async (req, res) => {
     try {
-      const { customerName, customerPhone, employeeId } = req.body;
+      const { customerName, customerPhone, employeeId, numberOfGuests, reservationDate, reservationTime } = req.body;
       
       if (!customerName || !customerPhone || !employeeId) {
         return res.status(400).json({ error: "Customer name, phone, and employee ID required" });
@@ -2877,14 +2877,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Cannot reserve tables in other branches" });
       }
 
+      // Use provided values or defaults for immediate reservations
+      const guests = numberOfGuests ? parseInt(numberOfGuests) : 2;
+      const resDate = reservationDate ? new Date(reservationDate) : new Date();
+      const resTime = reservationTime || new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
       const table = await storage.updateTable(req.params.id, {
         isOccupied: 1,
         reservedFor: {
           customerName,
           customerPhone,
-          reservationDate: new Date(),
-          reservationTime: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
-          numberOfGuests: 2,
+          reservationDate: resDate,
+          reservationTime: resTime,
+          numberOfGuests: guests,
           reservedAt: new Date(),
           reservedBy: employeeId,
           status: 'confirmed' as const

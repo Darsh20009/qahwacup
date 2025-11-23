@@ -44,6 +44,7 @@ export default function CashierTables() {
   const [reserveDialogOpen, setReserveDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [numberOfGuests, setNumberOfGuests] = useState("2");
   const [employeeBranchId, setEmployeeBranchId] = useState<string>("");
 
   // Get current employee info from localStorage
@@ -83,13 +84,19 @@ export default function CashierTables() {
 
   // Reserve table mutation
   const reserveTableMutation = useMutation({
-    mutationFn: async ({ tableId, customerName, customerPhone }: { 
+    mutationFn: async ({ tableId, customerName, customerPhone, numberOfGuests }: { 
       tableId: string; 
       customerName: string; 
       customerPhone: string;
+      numberOfGuests: number;
     }) => {
       const employeeData = localStorage.getItem("currentEmployee");
       const employee = employeeData ? JSON.parse(employeeData) : null;
+      
+      // For immediate reservations, send current date/time explicitly
+      const now = new Date();
+      const reservationDate = now.toISOString();
+      const reservationTime = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
       
       const response = await fetch(`/api/tables/${tableId}/reserve`, {
         method: "POST",
@@ -97,6 +104,9 @@ export default function CashierTables() {
         body: JSON.stringify({
           customerName,
           customerPhone,
+          numberOfGuests,
+          reservationDate,
+          reservationTime,
           employeeId: employee?._id || employee?.id,
         }),
       });
@@ -117,6 +127,7 @@ export default function CashierTables() {
       setReserveDialogOpen(false);
       setCustomerName("");
       setCustomerPhone("");
+      setNumberOfGuests("2");
       setSelectedTable(null);
     },
     onError: (error: Error) => {
@@ -131,10 +142,13 @@ export default function CashierTables() {
   // Release table mutation
   const releaseTableMutation = useMutation({
     mutationFn: async (tableId: string) => {
+      const employeeData = localStorage.getItem("currentEmployee");
+      const employee = employeeData ? JSON.parse(employeeData) : null;
+      
       const response = await fetch(`/api/tables/${tableId}/release`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employeeId: employee?._id }),
+        body: JSON.stringify({ employeeId: employee?._id || employee?.id }),
       });
       
       if (!response.ok) {
@@ -192,10 +206,21 @@ export default function CashierTables() {
       return;
     }
 
+    const guests = parseInt(numberOfGuests);
+    if (isNaN(guests) || guests < 1 || guests > 20) {
+      toast({
+        title: "عدد غير صحيح",
+        description: "الرجاء إدخال عدد صحيح من الضيوف (1-20)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     reserveTableMutation.mutate({
       tableId: selectedTable._id,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
+      numberOfGuests: guests,
     });
   };
 
@@ -364,6 +389,19 @@ export default function CashierTables() {
                   data-testid="input-customer-phone"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="number-of-guests">عدد الضيوف *</Label>
+                <Input
+                  id="number-of-guests"
+                  type="number"
+                  placeholder="2"
+                  value={numberOfGuests}
+                  onChange={(e) => setNumberOfGuests(e.target.value)}
+                  min="1"
+                  max="20"
+                  data-testid="input-number-of-guests"
+                />
+              </div>
               <div className="flex gap-2">
                 <Button
                   onClick={handleSubmitReservation}
@@ -379,6 +417,7 @@ export default function CashierTables() {
                     setReserveDialogOpen(false);
                     setCustomerName("");
                     setCustomerPhone("");
+                    setNumberOfGuests("2");
                   }}
                   className="flex-1"
                   data-testid="button-cancel-reserve"
