@@ -64,7 +64,7 @@ export default function TableCheckout() {
         branchId: branchId,
         tableStatus: "pending",
         customerInfo: {
-          name: customerName.trim(),
+          customerName: customerName.trim(),
           phone: customerPhone.trim() || "guest",
         },
       };
