@@ -5,13 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, UserPlus } from "lucide-react";
+import { Coffee, UserPlus, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function EmployeeActivation() {
  const [, setLocation] = useLocation();
  const { toast } = useToast();
  const [isLoading, setIsLoading] = useState(false);
+ const [showPassword, setShowPassword] = useState(false);
+ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
  e.preventDefault();
@@ -120,32 +122,50 @@ export default function EmployeeActivation() {
  <Label htmlFor="password" className="text-gray-300">
  كلمة المرور الجديدة 
  </Label>
+ <div className="relative">
  <Input
  id="password"
  name="password"
- type="password"
+ type={showPassword ? "text" : "password"}
  required
  minLength={4}
  placeholder="أدخل كلمة مرور قوية"
- className="bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500"
+ className="bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 pl-10"
  data-testid="input-password"
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute left-3 top-3 text-amber-500 hover:text-amber-400"
+ >
+ {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+ </button>
+ </div>
  </div>
 
  <div>
  <Label htmlFor="confirmPassword" className="text-gray-300">
  تأكيد كلمة المرور
  </Label>
+ <div className="relative">
  <Input
  id="confirmPassword"
  name="confirmPassword"
- type="password"
+ type={showConfirmPassword ? "text" : "password"}
  required
  minLength={4}
  placeholder="أعد إدخال كلمة المرور"
- className="bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500"
+ className="bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 pl-10"
  data-testid="input-confirm-password"
  />
+ <button
+ type="button"
+ onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+ className="absolute left-3 top-3 text-amber-500 hover:text-amber-400"
+ >
+ {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+ </button>
+ </div>
  </div>
  </div>
 

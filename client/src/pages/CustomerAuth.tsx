@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, Phone, User, Lock, Mail } from "lucide-react";
+import { Coffee, Phone, User, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +18,7 @@ export default function CustomerAuth() {
  const [name, setName] = useState("");
  const [email, setEmail] = useState("");
  const [password, setPassword] = useState("");
+ const [showPassword, setShowPassword] = useState(false);
  const [loading, setLoading] = useState(false);
  const [mode, setMode] = useState<"login" | "register">("login");
 
@@ -212,16 +213,26 @@ export default function CustomerAuth() {
  <Lock className="w-4 h-4" />
  كلمة المرور
  </Label>
+ <div className="relative">
  <Input
  id="login-password"
- type="password"
+ type={showPassword ? "text" : "password"}
  placeholder="أدخل كلمة المرور"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
- className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+ className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30 pl-10"
  data-testid="input-password"
  required
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute left-3 top-2.5 text-amber-400 hover:text-amber-300"
+ data-testid="button-toggle-password"
+ >
+ {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+ </button>
+ </div>
  <button
  type="button"
  onClick={() => navigate("/forgot-password")}
@@ -321,16 +332,26 @@ export default function CustomerAuth() {
  <Lock className="w-4 h-4" />
  كلمة المرور
  </Label>
+ <div className="relative">
  <Input
  id="register-password"
- type="password"
+ type={showPassword ? "text" : "password"}
  placeholder="أدخل كلمة المرور (4 أحرف على الأقل)"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
- className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+ className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30 pl-10"
  data-testid="input-password-register"
  required
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute left-3 top-2.5 text-amber-400 hover:text-amber-300"
+ data-testid="button-toggle-password-register"
+ >
+ {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+ </button>
+ </div>
  </div>
 
  <Button

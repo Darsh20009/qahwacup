@@ -3,11 +3,12 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coffee, Lock } from "lucide-react";
+import { Coffee, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function EmployeeGateway() {
  const [, setLocation] = useLocation();
  const [password, setPassword] = useState("");
+ const [showPassword, setShowPassword] = useState(false);
  const [error, setError] = useState("");
 
  const handleSubmit = (e: React.FormEvent) => {
@@ -47,14 +48,22 @@ export default function EmployeeGateway() {
  <div className="relative">
  <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
- type="password"
+ type={showPassword ? "text" : "password"}
  placeholder="كلمة المرور العامة"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
- className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
+ className="pr-10 pl-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
  data-testid="input-gateway-password"
  autoFocus
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute left-3 top-3 text-amber-500 hover:text-amber-400"
+ data-testid="button-toggle-password"
+ >
+ {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+ </button>
  </div>
  {error && (
  <p className="text-red-500 text-sm text-right" data-testid="text-error">

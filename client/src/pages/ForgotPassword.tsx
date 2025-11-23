@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coffee, Mail, ArrowRight } from "lucide-react";
+import { Coffee, Mail, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +15,8 @@ export default function ForgotPassword() {
  const [phone, setPhone] = useState("");
  const [newPassword, setNewPassword] = useState("");
  const [confirmPassword, setConfirmPassword] = useState("");
+ const [showNewPassword, setShowNewPassword] = useState(false);
+ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
  const [loading, setLoading] = useState(false);
  const [step, setStep] = useState<'email' | 'phone' | 'password'>('email');
  const [verifiedEmail, setVerifiedEmail] = useState("");
@@ -276,30 +278,50 @@ export default function ForgotPassword() {
  <form onSubmit={handlePasswordSubmit} className="space-y-5">
  <div className="space-y-2">
  <Label htmlFor="newPassword" className="text-amber-100">كلمة المرور الجديدة </Label>
+ <div className="relative">
  <Input
  id="newPassword"
- type="password"
+ type={showNewPassword ? "text" : "password"}
  placeholder="أدخل كلمة المرور الجديدة "
  value={newPassword}
  onChange={(e) => setNewPassword(e.target.value)}
- className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+ className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30 pl-10"
  data-testid="input-new-password"
  required
  />
+ <button
+ type="button"
+ onClick={() => setShowNewPassword(!showNewPassword)}
+ className="absolute left-3 top-2.5 text-amber-400 hover:text-amber-300"
+ data-testid="button-toggle-new-password"
+ >
+ {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+ </button>
+ </div>
  </div>
 
  <div className="space-y-2">
  <Label htmlFor="confirmPassword" className="text-amber-100">تأكيد كلمة المرور</Label>
+ <div className="relative">
  <Input
  id="confirmPassword"
- type="password"
+ type={showConfirmPassword ? "text" : "password"}
  placeholder="أدخل كلمة المرور مرة أخرى"
  value={confirmPassword}
  onChange={(e) => setConfirmPassword(e.target.value)}
- className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30"
+ className="bg-stone-800/50 border-amber-900/50 text-amber-50 placeholder:text-amber-200/40 focus:border-amber-600 focus:ring-amber-600/30 pl-10"
  data-testid="input-confirm-password"
  required
  />
+ <button
+ type="button"
+ onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+ className="absolute left-3 top-2.5 text-amber-400 hover:text-amber-300"
+ data-testid="button-toggle-confirm-password"
+ >
+ {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+ </button>
+ </div>
  <p className="text-xs text-amber-200/50 mt-1">
  كلمة المرور يجب أن تكون 4 أحرف على الأقل
  </p>

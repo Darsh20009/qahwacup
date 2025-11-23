@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coffee, User, Lock, Loader2 } from "lucide-react";
+import { Coffee, User, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import type { Employee } from "@shared/schema";
 
@@ -12,6 +12,7 @@ export default function EmployeeLogin() {
  const [, setLocation] = useLocation();
  const [username, setUsername] = useState("");
  const [password, setPassword] = useState("");
+ const [showPassword, setShowPassword] = useState(false);
  const [error, setError] = useState("");
 
  const loginMutation = useMutation({
@@ -93,14 +94,22 @@ export default function EmployeeLogin() {
  <div className="relative">
  <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
- type="password"
+ type={showPassword ? "text" : "password"}
  placeholder="كلمة المرور"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
- className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
+ className="pr-10 pl-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
  data-testid="input-password"
  disabled={loginMutation.isPending}
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute left-3 top-3 text-amber-500 hover:text-amber-400"
+ data-testid="button-toggle-password"
+ >
+ {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+ </button>
  </div>
  {error && (
  <p className="text-red-500 text-sm text-right" data-testid="text-error">
