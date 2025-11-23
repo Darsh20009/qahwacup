@@ -1670,26 +1670,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get order by ID
-  app.get("/api/orders/:id", async (req, res) => {
+  // Get pending table orders (for cashier) - MOST SPECIFIC FIRST
+  app.get("/api/orders/table/pending", async (req, res) => {
     try {
-      const { id } = req.params;
-      const order = await storage.getOrder(id);
+      const orders = await storage.getPendingTableOrders();
+      const coffeeItems = await storage.getCoffeeItems();
 
-      if (!order) {
-        return res.status(404).json({ error: "Order not found" });
-      }
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            orderItems = [];
+          }
+        }
+        
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
 
-      // Get order items
-      const orderItems = await storage.getOrderItems(id);
-
-      res.json({
-        ...order,
-        orderItems
+        return {
+          ...serializedOrder,
+          items
+        };
       });
+
+      res.json(enrichedOrders);
     } catch (error) {
-      console.error("Error fetching order:", error);
-      res.status(500).json({ error: "Failed to fetch order" });
+      console.error("Error fetching pending table orders:", error);
+      res.status(500).json({ error: "Failed to fetch pending table orders" });
+    }
+  });
+
+  // Get table orders (branch-filtered for managers)
+  app.get("/api/orders/table", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { status } = req.query;
+      const allOrders = await storage.getTableOrders(status as string | undefined);
+
+      // Filter by branch for non-admin managers
+      const orders = filterByBranch(allOrders, req.employee);
+
+      const coffeeItems = await storage.getCoffeeItems();
+
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            orderItems = [];
+          }
+        }
+        
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      res.json(enrichedOrders);
+    } catch (error) {
+      console.error("Error fetching table orders:", error);
+      res.status(500).json({ error: "Failed to fetch table orders" });
     }
   });
 
@@ -1718,6 +1798,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching order by number:", error);
       res.status(500).json({ error: "فشل في جلب معلومات الطلب" });
+    }
+  });
+
+  // Get all orders (branch-filtered for managers)
+  app.get("/api/orders", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { limit, offset } = req.query;
+      const limitNum = limit ? parseInt(limit as string) : undefined;
+      const offsetNum = offset ? parseInt(offset as string) : undefined;
+
+      const allOrders = await storage.getOrders(limitNum, offsetNum);
+
+      // Filter by branch for non-admin managers
+      const orders = filterByBranch(allOrders, req.employee);
+
+      const coffeeItems = await storage.getCoffeeItems();
+
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        // Parse items if they're stored as JSON string
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            console.error("Error parsing order items:", e);
+            orderItems = [];
+          }
+        }
+        
+        // Ensure orderItems is an array
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      return res.json(enrichedOrders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      return res.status(500).json({ error: "Failed to fetch orders" });
+    }
+  });
+
+  // Get order by ID - LEAST SPECIFIC (catch-all)
+  app.get("/api/orders/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const order = await storage.getOrder(id);
+
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      // Get order items
+      const orderItems = await storage.getOrderItems(id);
+
+      res.json({
+        ...order,
+        orderItems
+      });
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      res.status(500).json({ error: "Failed to fetch order" });
     }
   });
 
@@ -1810,170 +1973,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ error: "Failed to update order status" });
-    }
-  });
-
-  // Get all orders (branch-filtered for managers)
-  app.get("/api/orders", requireAuth, async (req: AuthRequest, res) => {
-    try {
-      const { limit, offset } = req.query;
-      const limitNum = limit ? parseInt(limit as string) : undefined;
-      const offsetNum = offset ? parseInt(offset as string) : undefined;
-
-      const allOrders = await storage.getOrders(limitNum, offsetNum);
-
-      // Filter by branch for non-admin managers
-      const orders = filterByBranch(allOrders, req.employee);
-
-      const coffeeItems = await storage.getCoffeeItems();
-
-      // Enrich orders with coffee item details
-      const enrichedOrders = orders.map(order => {
-        const serializedOrder = serializeDoc(order);
-        
-        // Parse items if they're stored as JSON string
-        let orderItems = serializedOrder.items;
-        if (typeof orderItems === 'string') {
-          try {
-            orderItems = JSON.parse(orderItems);
-          } catch (e) {
-            console.error("Error parsing order items:", e);
-            orderItems = [];
-          }
-        }
-        
-        // Ensure orderItems is an array
-        if (!Array.isArray(orderItems)) {
-          orderItems = [];
-        }
-        
-        const items = orderItems.map((item: any) => {
-          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
-          return {
-            ...item,
-            coffeeItem: coffeeItem ? {
-              nameAr: coffeeItem.nameAr,
-              nameEn: coffeeItem.nameEn,
-              price: coffeeItem.price,
-              imageUrl: coffeeItem.imageUrl
-            } : null
-          };
-        });
-
-        return {
-          ...serializedOrder,
-          items
-        };
-      });
-
-      return res.json(enrichedOrders);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      return res.status(500).json({ error: "Failed to fetch orders" });
-    }
-  });
-
-  // Get table orders (branch-filtered for managers)
-  app.get("/api/orders/table", requireAuth, async (req: AuthRequest, res) => {
-    try {
-      const { status } = req.query;
-      const allOrders = await storage.getTableOrders(status as string | undefined);
-
-      // Filter by branch for non-admin managers
-      const orders = filterByBranch(allOrders, req.employee);
-
-      const coffeeItems = await storage.getCoffeeItems();
-
-      // Enrich orders with coffee item details
-      const enrichedOrders = orders.map(order => {
-        const serializedOrder = serializeDoc(order);
-        
-        let orderItems = serializedOrder.items;
-        if (typeof orderItems === 'string') {
-          try {
-            orderItems = JSON.parse(orderItems);
-          } catch (e) {
-            orderItems = [];
-          }
-        }
-        
-        if (!Array.isArray(orderItems)) {
-          orderItems = [];
-        }
-        
-        const items = orderItems.map((item: any) => {
-          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
-          return {
-            ...item,
-            coffeeItem: coffeeItem ? {
-              nameAr: coffeeItem.nameAr,
-              nameEn: coffeeItem.nameEn,
-              price: coffeeItem.price,
-              imageUrl: coffeeItem.imageUrl
-            } : null
-          };
-        });
-
-        return {
-          ...serializedOrder,
-          items
-        };
-      });
-
-      res.json(enrichedOrders);
-    } catch (error) {
-      console.error("Error fetching table orders:", error);
-      res.status(500).json({ error: "Failed to fetch table orders" });
-    }
-  });
-
-  // Get pending table orders (for cashier)
-  // TODO: Add employee authentication middleware before production
-  app.get("/api/orders/table/pending", async (req, res) => {
-    try {
-      const orders = await storage.getPendingTableOrders();
-      const coffeeItems = await storage.getCoffeeItems();
-
-      // Enrich orders with coffee item details
-      const enrichedOrders = orders.map(order => {
-        const serializedOrder = serializeDoc(order);
-        
-        let orderItems = serializedOrder.items;
-        if (typeof orderItems === 'string') {
-          try {
-            orderItems = JSON.parse(orderItems);
-          } catch (e) {
-            orderItems = [];
-          }
-        }
-        
-        if (!Array.isArray(orderItems)) {
-          orderItems = [];
-        }
-        
-        const items = orderItems.map((item: any) => {
-          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
-          return {
-            ...item,
-            coffeeItem: coffeeItem ? {
-              nameAr: coffeeItem.nameAr,
-              nameEn: coffeeItem.nameEn,
-              price: coffeeItem.price,
-              imageUrl: coffeeItem.imageUrl
-            } : null
-          };
-        });
-
-        return {
-          ...serializedOrder,
-          items
-        };
-      });
-
-      res.json(enrichedOrders);
-    } catch (error) {
-      console.error("Error fetching pending table orders:", error);
-      res.status(500).json({ error: "Failed to fetch pending table orders" });
     }
   });
 

@@ -264,7 +264,8 @@ export async function seedEmployees() {
       role: "manager",
       phone: "501111111",
       jobTitle: "مدير عام",
-      isActivated: 0,
+      password: "1234",
+      isActivated: 1,
     },
     {
       username: "cashier1",
@@ -272,7 +273,8 @@ export async function seedEmployees() {
       role: "cashier",
       phone: "502222222",
       jobTitle: "كاشير",
-      isActivated: 0,
+      password: "1234",
+      isActivated: 1,
     },
     {
       username: "cashier2",
@@ -280,7 +282,8 @@ export async function seedEmployees() {
       role: "cashier",
       phone: "503333333",
       jobTitle: "كاشير",
-      isActivated: 0,
+      password: "1234",
+      isActivated: 1,
     },
     {
       username: "cashier3",
@@ -288,7 +291,8 @@ export async function seedEmployees() {
       role: "cashier",
       phone: "504444444",
       jobTitle: "كاشير",
-      isActivated: 0,
+      password: "1234",
+      isActivated: 1,
     },
   ];
 
@@ -300,10 +304,19 @@ export async function seedEmployees() {
         await storage.createEmployee(employee);
         console.log(`✅ Created employee: ${employee.fullName} (${employee.role}) - Phone: ${employee.phone}`);
       } else {
-        console.log(`ℹ️  Employee already exists: ${employee.fullName}`);
+        // Update existing employee with new password if provided
+        if (employee.password) {
+          await storage.updateEmployee(existing.id || existing._id?.toString(), {
+            password: employee.password,
+            isActivated: 1
+          });
+          console.log(`✅ Updated employee password: ${employee.fullName}`);
+        } else {
+          console.log(`ℹ️  Employee already exists: ${employee.fullName}`);
+        }
       }
     } catch (error) {
-      console.error(`❌ Error creating employee ${employee.fullName}:`, error);
+      console.error(`❌ Error creating/updating employee ${employee.fullName}:`, error);
     }
   }
 }
