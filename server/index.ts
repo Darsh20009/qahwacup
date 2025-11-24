@@ -38,15 +38,16 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || "qahwa-cup-secret-key-change-in-production",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: new SessionStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Allow in development (Replit uses iframe)
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "lax",
+      sameSite: "none",
+      path: "/",
     },
   })
 );
