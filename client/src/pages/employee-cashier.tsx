@@ -83,7 +83,12 @@ export default function EmployeeCashier() {
  useEffect(() => {
  const storedEmployee = localStorage.getItem("currentEmployee");
  if (storedEmployee) {
- setEmployee(JSON.parse(storedEmployee));
+ const parsed = JSON.parse(storedEmployee);
+ // Ensure employee has an _id field for compatibility
+ if (!parsed._id && parsed.id) {
+ parsed._id = parsed.id;
+ }
+ setEmployee(parsed);
  } else {
  setLocation("/employee/gateway");
  }

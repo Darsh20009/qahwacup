@@ -156,3 +156,31 @@ Remove all emojis from the application UI to enhance professional appearance and
 - Improved consistency across all pages and components
 - Better alignment with modern design principles
 - Maintains full functionality while improving visual professionalism
+
+## Bug Fix: Cashier ID Undefined Error (November 24, 2025 - Version 7.5)
+
+### Problem:
+When clicking "Accept" (قبول) button in cashier table orders panel, an error appeared saying "معرف الكاشير غير متاح" (Cashier ID is not available). This occurred because:
+1. Backend returns `id` field for employees
+2. Frontend code was looking for `_id` field
+3. Managers logging in as cashiers couldn't use the cashier interface
+
+### Solution:
+Updated employee data loading in localStorage to ensure compatibility:
+- In `cashier-table-orders.tsx`: Added conversion from `id` to `_id` for compatibility
+- In `employee-cashier.tsx`: Applied same fix for consistency
+- Now accepts both `id` and `_id` formats from the backend
+
+### Code Changes:
+```typescript
+// Check if employee has id but not _id, convert for compatibility
+if (!parsed._id && parsed.id) {
+  parsed._id = parsed.id;
+}
+```
+
+### Result:
+✅ Managers can now use cashier interface without errors
+✅ Accept/Reject buttons work correctly
+✅ All user roles can now work as cashiers
+✅ ID format compatibility maintained
