@@ -53,7 +53,7 @@ export default function ManagerDashboard() {
  const storedEmployee = localStorage.getItem("currentEmployee");
  if (storedEmployee) {
  const emp = JSON.parse(storedEmployee);
- if (emp.role !== "manager") {
+ if (emp.role !== "manager" && emp.role !== "admin") {
  setLocation("/employee/dashboard");
  return;
  }

@@ -29,7 +29,7 @@ export default function ManagerLogin() {
  return response.json() as Promise<Employee>;
  },
  onSuccess: (employee) => {
- if (employee.role !== "manager") {
+ if (employee.role !== "manager" && employee.role !== "admin") {
  setError("هذا الحساب ليس حساب مدير");
  setPassword("");
  return;
