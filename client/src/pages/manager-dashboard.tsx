@@ -119,6 +119,7 @@ export default function ManagerDashboard() {
  "Content-Type": "application/json",
  },
  body: JSON.stringify(payload),
+ credentials: "include",
  });
  if (!response.ok) {
  const error = await response.json();

@@ -118,9 +118,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fullName: employee.fullName,
       };
 
-      // Don't send password back
-      const { password: _, ...employeeData} = employee;
-      res.json(employeeData);
+      // Save session before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ error: "Failed to create session" });
+        }
+
+        // Don't send password back
+        const { password: _, ...employeeData} = employee;
+        res.json(employeeData);
+      });
     } catch (error) {
       console.error("Error during employee login:", error);
       res.status(500).json({ error: "Login failed" });
