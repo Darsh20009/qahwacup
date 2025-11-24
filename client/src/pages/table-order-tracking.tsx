@@ -85,11 +85,11 @@ export default function TableOrderTracking() {
     if (order && currentStatus && previousStatusRef.current && previousStatusRef.current !== currentStatus) {
       // Status has changed! Play notification sound
       const statusMessages: Record<string, string> = {
-        'payment_confirmed': 'تم تأكيد الدفع ✅',
-        'preparing': 'جاري تحضير طلبك ☕',
-        'ready': 'طلبك جاهز ✨',
-        'delivering_to_table': 'طلبك في الطريق 🚶',
-        'delivered': 'تم توصيل طلبك! 🎉',
+        'payment_confirmed': 'تم تأكيد الدفع',
+        'preparing': 'جاري تحضير طلبك',
+        'ready': 'طلبك جاهز',
+        'delivering_to_table': 'طلبك في الطريق',
+        'delivered': 'تم توصيل طلبك',
       };
       
       const message = statusMessages[currentStatus] || 'تم تحديث حالة طلبك';
@@ -104,7 +104,7 @@ export default function TableOrderTracking() {
       }
       
       toast({
-        title: '🔔 تحديث حالة الطلب',
+        title: 'تحديث حالة الطلب',
         description: message,
         duration: 6000,
         className: "bg-blue-600 text-white border-blue-700",

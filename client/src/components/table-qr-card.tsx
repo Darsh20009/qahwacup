@@ -77,7 +77,7 @@ export function TableQRCard({ tableNumber, qrToken, branchName, tableUrl }: Tabl
       ctx.font = "bold 120px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("☕", logoX, logoY);
+      ctx.fillText("C", logoX, logoY);
 
       // Cafe name with elegant styling
       ctx.fillStyle = "#8B6F47";

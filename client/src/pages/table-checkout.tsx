@@ -83,7 +83,7 @@ export default function TableCheckout() {
       sessionStorage.removeItem(`branchId_${tableId}`);
 
       toast({
-        title: "✅ تم إرسال الطلب بنجاح!",
+        title: "تم إرسال الطلب بنجاح",
         description: "طلبك قيد المراجعة من قبل الكاشير. سيتم إعلامك بالتحديثات",
         duration: 7000,
         className: "bg-green-600 text-white border-green-700",
@@ -96,7 +96,7 @@ export default function TableCheckout() {
     } catch (error) {
       console.error("Error submitting order:", error);
       toast({
-        title: "⚠️ خطأ في إرسال الطلب",
+        title: "خطأ في إرسال الطلب",
         description: "حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى أو التواصل مع الموظفين",
         variant: "destructive",
         duration: 8000,

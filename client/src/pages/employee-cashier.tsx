@@ -116,7 +116,7 @@ export default function EmployeeCashier() {
  : 0;
  
  toast({
- title: "✅ عميل مسجل",
+ title: "عميل مسجل",
  description: `مرحباً ${data.customer.name}! لديك ${data.customer.points || 0} نقطة${availableStamps > 0 ? ` و ${availableStamps} أختام متاحة` : ''}`,
  className: "bg-green-600 text-white",
  });
@@ -261,7 +261,7 @@ export default function EmployeeCashier() {
  setShowRegisterDialog(false);
  
  toast({
- title: "✅ تم تسجيل العميل بنجاح",
+ title: "تم تسجيل العميل بنجاح",
  description: `تم تسجيل ${customer.name} في النظام. يمكن للعميل تفعيل الحساب لاحقاً عبر نظام استعادة كلمة المرور.`,
  className: "bg-green-600 text-white",
  });
@@ -700,7 +700,7 @@ export default function EmployeeCashier() {
 
  {showRegisterDialog && customerPhone.length === 9 && (
  <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 space-y-3">
- <p className="text-blue-300 text-sm text-right">❓ عميل غير مسجل - يمكنك تسجيله الآن</p>
+ <p className="text-blue-300 text-sm text-right">عميل غير مسجل - يمكنك تسجيله الآن</p>
  <div className="space-y-2">
  <Label className="text-gray-300 text-right block text-xs">
  البريد الإلكتروني (اختياري)
@@ -720,10 +720,10 @@ export default function EmployeeCashier() {
  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
  data-testid="button-register-customer"
  >
- {isRegisteringCustomer ? "جاري التسجيل..." : "✅ تسجيل العميل"}
+ {isRegisteringCustomer ? "جاري التسجيل..." : "تسجيل العميل"}
  </Button>
  <p className="text-xs text-gray-400 text-right">
- ℹ️ سيتمكن العميل من تفعيل حسابه لاحقاً عبر نظام استعادة كلمة المرور
+ سيتمكن العميل من تفعيل حسابه لاحقاً عبر نظام استعادة كلمة المرور
  </p>
  </div>
  )}
@@ -734,14 +734,14 @@ export default function EmployeeCashier() {
  <Badge variant="outline" className="border-purple-400 text-purple-300">
  {customerPoints} نقطة
  </Badge>
- <span className="text-purple-300 text-sm">💎 نقاط العميل</span>
+ <span className="text-purple-300 text-sm">نقاط العميل</span>
  </div>
  </div>
  )}
 
  {customerId && customerEmail && (
  <div className="text-xs text-gray-400 text-right">
- 📧 {customerEmail}
+ {customerEmail}
  </div>
  )}
 

@@ -78,7 +78,7 @@ export default function CashierTableOrders() {
         playNotificationSound('newOrder', 0.6);
         
         toast({
-          title: `🔔 طلب جديد من الطاولة!`,
+          title: `طلب جديد من الطاولة`,
           description: `لديك ${newOrderIds.length} ${newOrderIds.length === 1 ? 'طلب جديد' : 'طلبات جديدة'}`,
           duration: 6000,
           className: "bg-green-600 text-white border-green-700",
@@ -124,7 +124,7 @@ export default function CashierTableOrders() {
       playNotificationSound('success', 0.5);
       
       toast({
-        title: "✅ تم استلام الطلب",
+        title: "تم استلام الطلب",
         description: "تم استلام الطلب بنجاح",
       });
     },
@@ -187,7 +187,7 @@ export default function CashierTableOrders() {
       }
       
       toast({
-        title: "✅ تم تحديث حالة الطلب",
+        title: "تم تحديث حالة الطلب",
         description: getStatusDescription(variables.status),
       });
     },
@@ -220,19 +220,19 @@ export default function CashierTableOrders() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">طلب جديد 🆕</Badge>;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">طلب جديد</Badge>;
       case "payment_confirmed":
-        return <Badge className="bg-green-500 hover:bg-green-600 text-white">تم الدفع ✅</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600 text-white">تم الدفع</Badge>;
       case "preparing":
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">قيد التحضير ☕</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">قيد التحضير</Badge>;
       case "ready":
-        return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاهز للتقديم ✨</Badge>;
+        return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاهز للتقديم</Badge>;
       case "delivering_to_table":
-        return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاري التوصيل 🚶</Badge>;
+        return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">جاري التوصيل</Badge>;
       case "delivered":
-        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">تم التقديم 🎉</Badge>;
+        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">تم التقديم</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-600 hover:bg-red-700 text-white">ملغي ❌</Badge>;
+        return <Badge className="bg-red-600 hover:bg-red-700 text-white">ملغي</Badge>;
       default:
         return <Badge variant="secondary">غير معروف</Badge>;
     }

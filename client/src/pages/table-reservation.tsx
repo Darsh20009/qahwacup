@@ -172,7 +172,7 @@ export default function TableReservation() {
             </p>
             <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
               <p className="text-sm text-green-800">
-                ✅ ستصلك رسالة تأكيد على الرقم {customerPhone}
+                سيتم إرسال رسالة تأكيد على الرقم {customerPhone}
               </p>
             </div>
           </CardContent>
@@ -233,7 +233,7 @@ export default function TableReservation() {
                 {availableTables.length === 0 ? (
                   <div className="text-center py-8 bg-muted/50 rounded-lg">
                     <p className="text-muted-foreground">
-                      😔 لا توجد طاولات متاحة في هذا الفرع حالياً
+                      لا توجد طاولات متاحة في هذا الفرع حالياً
                     </p>
                   </div>
                 ) : (
@@ -345,7 +345,7 @@ export default function TableReservation() {
 
                 <div className="bg-muted/50 p-4 rounded-lg animate-in slide-in-from-top duration-500">
                   <p className="text-sm text-muted-foreground">
-                    📞 سنتواصل معك على رقم الجوال لتأكيد الحجز
+                    سنتواصل معك على رقم الجوال لتأكيد الحجز
                   </p>
                 </div>
 

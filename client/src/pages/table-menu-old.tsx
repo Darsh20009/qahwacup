@@ -82,7 +82,7 @@ export default function TableMenu() {
               setShowLoginDialog(false);
               
               toast({
-                title: "✅ تم تسجيل الدخول",
+                title: "تم تسجيل الدخول",
                 description: `مرحباً ${data.customer.name}! لديك ${data.customer.points || 0} نقطة`,
                 className: "bg-green-600 text-white",
               });
@@ -414,7 +414,7 @@ export default function TableMenu() {
             {!isGuest && customerId && (
               <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-green-300">✅ تم تسجيل الدخول</span>
+                  <span className="text-sm text-green-300">تم تسجيل الدخول</span>
                   <Badge variant="outline" className="border-green-400 text-green-300">
                     {customerPoints} نقطة
                   </Badge>
