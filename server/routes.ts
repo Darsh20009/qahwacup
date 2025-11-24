@@ -1801,7 +1801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all orders (branch-filtered for managers)
+  // Get all orders (all managers see all orders regardless of branch)
   app.get("/api/orders", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { limit, offset } = req.query;
@@ -1810,8 +1810,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allOrders = await storage.getOrders(limitNum, offsetNum);
 
-      // Filter by branch for non-admin managers
-      const orders = filterByBranch(allOrders, req.employee);
+      // All managers see all orders regardless of branch
+      const orders = allOrders;
 
       const coffeeItems = await storage.getCoffeeItems();
 
