@@ -105,10 +105,13 @@ export default function CashierTableOrders() {
   // Assign order to cashier mutation
   const assignOrderMutation = useMutation({
     mutationFn: async (orderId: string) => {
+      if (!employee?._id) {
+        throw new Error("معرف الكاشير غير متاح. يرجى تسجيل الدخول مجدداً");
+      }
       const response = await fetch(`/api/orders/${orderId}/assign-cashier`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cashierId: employee?._id }),
+        body: JSON.stringify({ cashierId: employee._id }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -168,6 +171,9 @@ export default function CashierTableOrders() {
   // Update order status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      if (!employee?._id) {
+        throw new Error("معرف الكاشير غير متاح. يرجى تسجيل الدخول مجدداً");
+      }
       const response = await fetch(`/api/orders/${orderId}/table-status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
