@@ -27,7 +27,7 @@ interface Employee {
 }
 
 interface IOrder {
-  _id: string;
+  id: string;
   orderNumber: string;
   items: any[];
   totalAmount: number;
@@ -36,7 +36,8 @@ interface IOrder {
   tableNumber?: string;
   assignedCashierId?: string;
   customerInfo?: {
-    name: string;
+    customerName: string;
+    name?: string;
     phone?: string;
   };
   createdAt: Date;
@@ -67,7 +68,7 @@ export default function CashierTableOrders() {
   // Notify when new orders arrive with sound
   useEffect(() => {
     if (unassignedOrders && unassignedOrders.length > 0) {
-      const currentOrderIds = new Set(unassignedOrders.map(order => order._id));
+      const currentOrderIds = new Set(unassignedOrders.map(order => order.id));
       
       // Find truly new orders (IDs that weren't in previous set)
       const newOrderIds = [...currentOrderIds].filter(id => !previousOrderIdsRef.current.has(id));
@@ -303,7 +304,7 @@ export default function CashierTableOrders() {
                     {unassignedOrders.map((order) => {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       return (
-                        <Card key={order._id} className="border-2">
+                        <Card key={order.id} className="border-2">
                           <CardContent className="p-4">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                               <div className="flex-1 space-y-2">
@@ -317,12 +318,12 @@ export default function CashierTableOrders() {
                                 {order.customerInfo && (
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <User className="w-4 h-4" />
-                                    <span>{order.customerInfo.name}</span>
+                                    <span>{order.customerInfo.customerName || order.customerInfo.name}</span>
                                   </div>
                                 )}
                                 <div className="text-sm">
                                   <span className="font-medium">العناصر:</span>{" "}
-                                  {order.items.map((item: any) => `${item.nameAr} (${item.quantity})`).join(", ")}
+                                  {Array.isArray(order.items) ? order.items.map((item: any) => `${item.nameAr} (${item.quantity})`).join(", ") : "لا توجد عناصر"}
                                 </div>
                                 <div className="font-bold text-lg">
                                   {order.totalAmount.toFixed(2)} ر.س
@@ -330,10 +331,10 @@ export default function CashierTableOrders() {
                               </div>
                               <div className="flex flex-col sm:flex-row gap-2">
                                 <Button
-                                  onClick={() => assignOrderMutation.mutate(order._id)}
+                                  onClick={() => assignOrderMutation.mutate(order.id)}
                                   disabled={assignOrderMutation.isPending || rejectOrderMutation.isPending}
                                   className="bg-green-600 hover:bg-green-700"
-                                  data-testid={`button-accept-${order._id}`}
+                                  data-testid={`button-accept-${order.id}`}
                                 >
                                   <CheckCircle className="w-4 h-4 ml-1" />
                                   قبول
@@ -342,11 +343,11 @@ export default function CashierTableOrders() {
                                   variant="destructive"
                                   onClick={() => {
                                     if (confirm(`هل أنت متأكد من رفض طلب الطاولة ${order.tableNumber}؟`)) {
-                                      rejectOrderMutation.mutate(order._id);
+                                      rejectOrderMutation.mutate(order.id);
                                     }
                                   }}
                                   disabled={assignOrderMutation.isPending || rejectOrderMutation.isPending}
-                                  data-testid={`button-reject-${order._id}`}
+                                  data-testid={`button-reject-${order.id}`}
                                 >
                                   <XCircle className="w-4 h-4 ml-1" />
                                   رفض
@@ -379,7 +380,7 @@ export default function CashierTableOrders() {
                     {myOrders.map((order) => {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       return (
-                        <Card key={order._id} className="border-2">
+                        <Card key={order.id} className="border-2">
                           <CardContent className="p-4">
                             <div className="space-y-4">
                               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -394,12 +395,12 @@ export default function CashierTableOrders() {
                                   {order.customerInfo && (
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                       <User className="w-4 h-4" />
-                                      <span>{order.customerInfo.name}</span>
+                                      <span>{order.customerInfo.customerName || order.customerInfo.name}</span>
                                     </div>
                                   )}
                                   <div className="text-sm">
                                     <span className="font-medium">العناصر:</span>{" "}
-                                    {order.items.map((item: any) => `${item.nameAr} (${item.quantity})`).join(", ")}
+                                    {Array.isArray(order.items) ? order.items.map((item: any) => `${item.nameAr} (${item.quantity})`).join(", ") : "لا توجد عناصر"}
                                   </div>
                                   <div className="font-bold text-lg">
                                     {order.totalAmount.toFixed(2)} ر.س
@@ -415,12 +416,12 @@ export default function CashierTableOrders() {
                                     value={order.tableStatus}
                                     onValueChange={(value) =>
                                       updateStatusMutation.mutate({
-                                        orderId: order._id,
+                                        orderId: order.id,
                                         status: value,
                                       })
                                     }
                                   >
-                                    <SelectTrigger data-testid={`select-status-${order._id}`}>
+                                    <SelectTrigger data-testid={`select-status-${order.id}`}>
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>

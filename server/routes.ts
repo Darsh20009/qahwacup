@@ -3362,6 +3362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { OrderModel } = await import("@shared/schema");
       const { status } = req.query;
+      const coffeeItems = await storage.getCoffeeItems();
       
       const query: any = {
         assignedCashierId: req.params.cashierId,
@@ -3373,7 +3374,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const orders = await OrderModel.find(query).sort({ createdAt: -1 });
-      res.json(orders);
+
+      // Serialize orders and parse items
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            orderItems = [];
+          }
+        }
+        
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      res.json(enrichedOrders);
     } catch (error) {
       console.error("Error fetching cashier orders:", error);
       res.status(500).json({ error: "Failed to fetch cashier orders" });
@@ -3384,14 +3422,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/orders/table/unassigned", async (req, res) => {
     try {
       const { OrderModel } = await import("@shared/schema");
+      const coffeeItems = await storage.getCoffeeItems();
       
       const orders = await OrderModel.find({
         orderType: 'table',
-        tableStatus: 'pending',
+        $or: [
+          { tableStatus: 'pending' },
+          { status: 'pending', tableStatus: { $exists: false } }
+        ],
         assignedCashierId: { $exists: false }
       }).sort({ createdAt: 1 });
 
-      res.json(orders);
+      // Serialize orders and parse items
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            orderItems = [];
+          }
+        }
+        
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      res.json(enrichedOrders);
     } catch (error) {
       console.error("Error fetching unassigned orders:", error);
       res.status(500).json({ error: "Failed to fetch unassigned orders" });

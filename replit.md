@@ -66,3 +66,43 @@ The UI/UX emphasizes a modern, attractive design, especially evident in the QR c
 - ✅ **Fixed notification detection**: Updated useEffect to check both status fields
 - **Result**: Order status now displays correctly instead of "غير معروف" (unknown)
 - **Impact**: Status changes are now properly detected and displayed in real-time
+## Latest Fix: Orders Not Displaying in Cashier Panel (November 24, 2025 - Version 7.3)
+
+### Problems Identified:
+1. ✅ **Unassigned Orders Endpoint Issue**: `/api/orders/table/unassigned` was searching for `tableStatus: 'pending'` but orders were stored with `status: 'pending'`
+2. ✅ **Customer Name Field Mismatch**: Frontend searched for `customerInfo.name` but API sent `customerInfo.customerName`
+3. ✅ **Order ID Mismatch**: Frontend used `_id` but API serialized to `id`
+4. ✅ **Items Parsing Error**: Frontend expected items as array but some endpoints returned JSON strings
+5. ✅ **Type Definitions Out of Sync**: Local TypeScript interface didn't match API response
+
+### Solutions Applied:
+
+#### Backend Changes (server/routes.ts):
+- Fixed `/api/orders/table/unassigned` query to use `$or` condition:
+  - Searches for `tableStatus: 'pending'` OR
+  - `status: 'pending'` with no `tableStatus` (for backward compatibility)
+- Enhanced `/api/cashier/:cashierId/orders` endpoint:
+  - Added `serializeDoc()` to convert `_id` to `id`
+  - Parse `items` from JSON string to array
+  - Enrich items with coffee details
+
+#### Frontend Changes (client/src/pages/cashier-table-orders.tsx):
+- Updated `IOrder` interface:
+  - Changed `_id: string` to `id: string`
+  - Updated `customerInfo` to include both `customerName` and fallback `name`
+- Fixed all usages:
+  - `order._id` → `order.id`
+  - `order.customerInfo.name` → `order.customerInfo.customerName || order.customerInfo.name`
+  - Added safety check: `Array.isArray(order.items)` before mapping
+
+### Result:
+✅ Unassigned table orders now display correctly in cashier panel
+✅ Customer names show properly
+✅ Items parse and display without errors
+✅ Order IDs work correctly for mutations (accept/reject)
+✅ No TypeScript errors
+
+### Impact:
+- Cashiers can now see pending table orders
+- Accept/Reject buttons work properly
+- Table order management is fully functional
