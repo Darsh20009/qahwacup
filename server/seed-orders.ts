@@ -86,7 +86,7 @@ async function seedOrders() {
 
       // Randomly assign customer if available
       const customerId = customers.length > 0 && Math.random() > 0.3 
-        ? customers[Math.floor(Math.random() * customers.length)]._id.toString()
+        ? (customers[Math.floor(Math.random() * customers.length)]._id as any).toString()
         : undefined;
 
       const orderData: any = {
@@ -95,8 +95,8 @@ async function seedOrders() {
         totalAmount: total,
         status,
         paymentMethod,
-        employeeId: employee._id.toString(),
-        branchId: branch._id.toString(),
+        employeeId: (employee._id as any).toString(),
+        branchId: (branch._id as any).toString(),
         orderType: Math.random() > 0.5 ? "dine-in" : "regular",
         customerInfo: customerId ? undefined : {
           name: `عميل ${i + 1}`,
