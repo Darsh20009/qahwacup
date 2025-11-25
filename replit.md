@@ -185,6 +185,44 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Smart Reservation Time Window (November 25, 2025 - Version 8)
+
+### Feature Overview:
+Implemented a sophisticated time-window system for table reservations where the system automatically manages reservation lifecycle based on timing:
+
+### Business Logic:
+- **Booking Window**: -30 minutes before reservation time to +5 minutes after
+  - Opens 30 mins before: Customers can place regular orders even if table is reserved
+  - Active period: -30 to +5 minutes - requires reservation phone verification
+  - Expires after +5 mins: Auto-cancellation if not approved by staff
+  
+### Frontend Implementation (client/src/pages/table-menu.tsx):
+1. **Added time-window checker function**: `checkReservationWindow(reservationTime)` 
+   - Calculates time difference between now and reservation time
+   - Returns: `valid` | `before_window` | `after_window`
+
+2. **Three distinct reservation states**:
+   - `before_window` (-30+ mins): Shows amber message "الحجز لم يبدأ بعد" - allows normal order
+   - `valid` (-30 to +5 mins): Shows blue verification - requires phone entry
+   - `after_window` (+5+ mins): Shows red message "انتهت فترة الحجز" - allows normal order
+
+3. **Updated checkout logic**: 
+   - Auto-detects reservation status on table load
+   - Shows appropriate UI message based on time window
+   - Handles both reservation verification and normal orders seamlessly
+
+### Backend Support (already in place):
+- `/api/tables/:id/reserve`: Creates reservation with `reservationTime`
+- `/api/tables/:id/approve-reservation`: Manual approval by staff
+- `/api/tables/:id/cancel-reservation`: Manual cancellation by staff
+- Automatic expiration logic in cashier-tables.tsx
+
+### User Experience Flow:
+1. **30+ minutes before**: Customer can order without reservation verification
+2. **Within 30 mins**: Customer must verify reservation with phone number
+3. **After 5 mins**: Reservation automatically expires, customer can order normally
+4. **Staff can approve/cancel** at any time during valid window
+
 ## CRITICAL FIX: Branch-Restricted Table Access (November 25, 2025 - Version 7.6)
 
 ### Problem:

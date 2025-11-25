@@ -18,6 +18,8 @@ interface ITable {
   reservedFor?: {
     customerName: string;
     customerPhone: string;
+    reservationTime?: string;
+    status?: string;
   };
 }
 
@@ -36,8 +38,27 @@ export default function TableMenuNew() {
   const [selectedStrength, setSelectedStrength] = useState<CoffeeStrengthType | "all">("all");
   const [reservationPhoneVerified, setReservationPhoneVerified] = useState(false);
   const [reservationPhoneInput, setReservationPhoneInput] = useState("");
+  const [reservationStatus, setReservationStatus] = useState<"valid" | "before_window" | "after_window" | null>(null);
 
   const qrToken = params?.qrToken;
+
+  // Helper function to check reservation time window
+  const checkReservationWindow = (reservationTime: string | undefined) => {
+    if (!reservationTime) return "valid";
+
+    const reservation = new Date(reservationTime);
+    const now = new Date();
+    const diffMinutes = (reservation.getTime() - now.getTime()) / (1000 * 60);
+
+    // Window: -30 minutes before to +5 minutes after
+    if (diffMinutes >= -30 && diffMinutes <= 5) {
+      return "valid";
+    } else if (diffMinutes < -30) {
+      return "after_window"; // More than 30 mins have passed
+    } else {
+      return "before_window"; // Reservation is more than 30 mins in future
+    }
+  };
 
   // Fetch table info
   const { data: table, isLoading: tableLoading } = useQuery<ITable>({
@@ -49,6 +70,14 @@ export default function TableMenuNew() {
       return response.json();
     },
   });
+
+  // Check reservation window status when table data loads
+  useEffect(() => {
+    if (table?.reservedFor?.reservationTime) {
+      const status = checkReservationWindow(table.reservedFor.reservationTime);
+      setReservationStatus(status as any);
+    }
+  }, [table]);
 
   // Fetch menu items
   const { data: coffeeItems = [], isLoading: menuLoading } = useQuery<CoffeeItem[]>({
@@ -128,33 +157,56 @@ export default function TableMenuNew() {
       return;
     }
 
-    // If table is reserved, verify reservation phone number - ONLY if it has actual reservation data
-    if (table?.reservedFor?.customerName && !reservationPhoneVerified) {
-      const phoneToVerify = reservationPhoneInput.trim();
-      if (!phoneToVerify) {
+    // If table is reserved, check time window and verify phone
+    if (table?.reservedFor?.customerName) {
+      if (reservationStatus === "after_window") {
         toast({
-          title: "التحقق من الحجز",
-          description: "الرجاء إدخال رقم الجوال المسجل في الحجز",
+          title: "انتهاء فترة الحجز",
+          description: "آسفون، فترة الحجز قد انتهت. يمكنك عمل طلب عادي جديد.",
           variant: "destructive",
         });
+        // Clear reservation and allow normal order
         return;
       }
 
-      // Verify against reservation phone
-      const reservationPhone = table.reservedFor.customerPhone.replace(/^0/, "");
-      const inputPhone = phoneToVerify.replace(/^0/, "");
-      
-      if (reservationPhone !== inputPhone && reservationPhone !== phoneToVerify) {
+      if (reservationStatus === "before_window") {
         toast({
-          title: "خطأ في التحقق",
-          description: "رقم الجوال غير مطابق للحجز",
-          variant: "destructive",
+          title: "الحجز في وقت لاحق",
+          description: "الحجز لم يبدأ بعد. يمكنك عمل طلب عادي الآن.",
         });
+        // Allow normal order without reservation verification
+        setReservationPhoneVerified(true);
         return;
       }
-      
-      setReservationPhoneVerified(true);
-      return;
+
+      // For "valid" window, verify phone number
+      if (!reservationPhoneVerified) {
+        const phoneToVerify = reservationPhoneInput.trim();
+        if (!phoneToVerify) {
+          toast({
+            title: "التحقق من الحجز",
+            description: "الرجاء إدخال رقم الجوال المسجل في الحجز",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Verify against reservation phone
+        const reservationPhone = table.reservedFor.customerPhone.replace(/^0/, "");
+        const inputPhone = phoneToVerify.replace(/^0/, "");
+        
+        if (reservationPhone !== inputPhone && reservationPhone !== phoneToVerify) {
+          toast({
+            title: "خطأ في التحقق",
+            description: "رقم الجوال غير مطابق للحجز",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        setReservationPhoneVerified(true);
+        return;
+      }
     }
 
     // Update table occupancy when checking out
@@ -252,45 +304,67 @@ export default function TableMenuNew() {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 relative z-10">
-        {/* Reservation Phone Verification - Only show if table is actually reserved */}
-        {table?.reservedFor?.customerName && !reservationPhoneVerified && (
+        {/* Reservation Status - Show appropriate message based on time window */}
+        {table?.reservedFor?.customerName && (
           <div className="mb-8 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-            <h3 className="font-bold text-lg mb-3 text-blue-900">التحقق من الحجز</h3>
-            <p className="text-sm text-blue-800 mb-3">هذه الطاولة محجوزة باسم: <strong>{table.reservedFor.customerName}</strong></p>
-            <div className="flex gap-2">
-              <input
-                type="tel"
-                placeholder="أدخل رقم الجوال المسجل في الحجز"
-                value={reservationPhoneInput}
-                onChange={(e) => setReservationPhoneInput(e.target.value)}
-                className="flex-1 px-3 py-2 border border-blue-300 rounded-lg"
-                maxLength={9}
-              />
-              <Button
-                onClick={() => {
-                  const phoneToVerify = reservationPhoneInput.trim();
-                  const reservationPhone = table.reservedFor!.customerPhone.replace(/^0/, "");
-                  const inputPhone = phoneToVerify.replace(/^0/, "");
-                  
-                  if (reservationPhone === inputPhone || reservationPhone === phoneToVerify) {
-                    setReservationPhoneVerified(true);
-                    toast({
-                      title: "تم التحقق",
-                      description: "تم التحقق من الحجز بنجاح",
-                    });
-                  } else {
-                    toast({
-                      title: "خطأ",
-                      description: "رقم الجوال غير مطابق",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                تحقق
-              </Button>
-            </div>
+            {reservationStatus === "after_window" ? (
+              <>
+                <h3 className="font-bold text-lg mb-3 text-red-900">⏰ انتهت فترة الحجز</h3>
+                <p className="text-sm text-red-800 mb-3">
+                  الحجز لـ: <strong>{table.reservedFor.customerName}</strong> قد انتهت فترته.
+                </p>
+                <p className="text-sm text-red-700">يمكنك تقديم طلب عادي جديد.</p>
+              </>
+            ) : reservationStatus === "before_window" ? (
+              <>
+                <h3 className="font-bold text-lg mb-3 text-amber-900">ℹ️ الحجز لم يبدأ بعد</h3>
+                <p className="text-sm text-amber-800 mb-3">
+                  هناك حجز باسم: <strong>{table.reservedFor.customerName}</strong>
+                </p>
+                <p className="text-sm text-amber-700">يمكنك تقديم طلب عادي حالياً.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="font-bold text-lg mb-3 text-blue-900">التحقق من الحجز</h3>
+                <p className="text-sm text-blue-800 mb-3">هذه الطاولة محجوزة باسم: <strong>{table.reservedFor.customerName}</strong></p>
+                {!reservationPhoneVerified && (
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      placeholder="أدخل رقم الجوال المسجل في الحجز"
+                      value={reservationPhoneInput}
+                      onChange={(e) => setReservationPhoneInput(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-blue-300 rounded-lg"
+                      maxLength={9}
+                    />
+                    <Button
+                      onClick={() => {
+                        const phoneToVerify = reservationPhoneInput.trim();
+                        const reservationPhone = table.reservedFor!.customerPhone.replace(/^0/, "");
+                        const inputPhone = phoneToVerify.replace(/^0/, "");
+                        
+                        if (reservationPhone === inputPhone || reservationPhone === phoneToVerify) {
+                          setReservationPhoneVerified(true);
+                          toast({
+                            title: "تم التحقق",
+                            description: "تم التحقق من الحجز بنجاح",
+                          });
+                        } else {
+                          toast({
+                            title: "خطأ",
+                            description: "رقم الجوال غير مطابق",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      تحقق
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
