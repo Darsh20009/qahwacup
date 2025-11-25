@@ -34,6 +34,8 @@ export default function TableMenuNew() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStrength, setSelectedStrength] = useState<CoffeeStrengthType | "all">("all");
+  const [reservationPhoneVerified, setReservationPhoneVerified] = useState(false);
+  const [reservationPhoneInput, setReservationPhoneInput] = useState("");
 
   const qrToken = params?.qrToken;
 
@@ -116,7 +118,7 @@ export default function TableMenuNew() {
     return cart.reduce((total, ci) => total + ci.item.price * ci.quantity, 0);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) {
       toast({
         title: "السلة فارغة",
@@ -125,6 +127,49 @@ export default function TableMenuNew() {
       });
       return;
     }
+
+    // If table is reserved, verify reservation phone number
+    if (table?.reservedFor && !reservationPhoneVerified) {
+      const phoneToVerify = reservationPhoneInput.trim();
+      if (!phoneToVerify) {
+        toast({
+          title: "التحقق من الحجز",
+          description: "الرجاء إدخال رقم الجوال المسجل في الحجز",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Verify against reservation phone
+      const reservationPhone = table.reservedFor.customerPhone.replace(/^0/, "");
+      const inputPhone = phoneToVerify.replace(/^0/, "");
+      
+      if (reservationPhone !== inputPhone && reservationPhone !== phoneToVerify) {
+        toast({
+          title: "خطأ في التحقق",
+          description: "رقم الجوال غير مطابق للحجز",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setReservationPhoneVerified(true);
+      return;
+    }
+
+    // Update table occupancy when checking out
+    if (table?._id) {
+      try {
+        await fetch(`/api/tables/${table._id}/occupancy`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isOccupied: 1 }),
+        });
+      } catch (error) {
+        console.error("Error updating table occupancy:", error);
+      }
+    }
+
     sessionStorage.setItem(`cart_${table?._id}`, JSON.stringify(cart));
     sessionStorage.setItem(`branchId_${table?._id}`, table?.branchId || "");
     navigate(`/table-checkout/${table?._id}/${table?.tableNumber}`);
@@ -207,6 +252,48 @@ export default function TableMenuNew() {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 relative z-10">
+        {/* Reservation Phone Verification */}
+        {table?.reservedFor && !reservationPhoneVerified && (
+          <div className="mb-8 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+            <h3 className="font-bold text-lg mb-3 text-blue-900">التحقق من الحجز</h3>
+            <p className="text-sm text-blue-800 mb-3">هذه الطاولة محجوزة باسم: <strong>{table.reservedFor.customerName}</strong></p>
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                placeholder="أدخل رقم الجوال المسجل في الحجز"
+                value={reservationPhoneInput}
+                onChange={(e) => setReservationPhoneInput(e.target.value)}
+                className="flex-1 px-3 py-2 border border-blue-300 rounded-lg"
+                maxLength={9}
+              />
+              <Button
+                onClick={() => {
+                  const phoneToVerify = reservationPhoneInput.trim();
+                  const reservationPhone = table.reservedFor!.customerPhone.replace(/^0/, "");
+                  const inputPhone = phoneToVerify.replace(/^0/, "");
+                  
+                  if (reservationPhone === inputPhone || reservationPhone === phoneToVerify) {
+                    setReservationPhoneVerified(true);
+                    toast({
+                      title: "تم التحقق",
+                      description: "تم التحقق من الحجز بنجاح",
+                    });
+                  } else {
+                    toast({
+                      title: "خطأ",
+                      description: "رقم الجوال غير مطابق",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                تحقق
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Menu Section */}
         <section className="mb-12 sm:mb-16 md:mb-20">
           <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-in fade-in-0 slide-in-from-bottom-10 duration-1000">

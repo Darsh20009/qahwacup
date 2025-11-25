@@ -2698,10 +2698,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // TABLE MANAGEMENT ROUTES - إدارة الطاولات
   
-  app.get("/api/tables", async (req, res) => {
+  // Get tables for current employee's branch only
+  app.get("/api/tables", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const { branchId } = req.query;
-      const tables = await storage.getTables(branchId as string);
+      // Use employee's branch ID - not from query string (security measure)
+      const branchId = req.employee?.branchId;
+      
+      if (!branchId) {
+        return res.status(400).json({ error: "Employee branch not assigned" });
+      }
+      
+      const tables = await storage.getTables(branchId);
       res.json(tables);
     } catch (error) {
       console.error("Error fetching tables:", error);

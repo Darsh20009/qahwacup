@@ -296,57 +296,82 @@ export default function CashierTables() {
             {tables.map((table) => (
               <Card
                 key={table._id}
-                className={`hover-elevate cursor-pointer transition-all border-2 ${
+                className={`hover-elevate cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                   table.isOccupied
-                    ? "bg-gradient-to-br from-red-50 to-red-100 border-red-300 dark:from-red-950 dark:to-red-900"
-                    : "bg-gradient-to-br from-emerald-50 to-green-100 border-emerald-300 dark:from-emerald-950 dark:to-green-900"
+                    ? "bg-gradient-to-br from-red-100 via-red-50 to-orange-100 border-2 border-red-400 shadow-lg shadow-red-200/50 dark:from-red-900 dark:via-red-950 dark:to-orange-900"
+                    : "bg-gradient-to-br from-emerald-100 via-green-50 to-teal-100 border-2 border-emerald-400 shadow-lg shadow-emerald-200/50 dark:from-emerald-900 dark:via-green-950 dark:to-teal-900"
                 }`}
                 data-testid={`card-table-${table.tableNumber}`}
               >
-                <CardContent className="p-6 text-center space-y-3">
-                  <div className="text-3xl font-bold text-amber-900">
-                    {table.tableNumber}
+                <CardContent className="p-4 sm:p-6 text-center space-y-3">
+                  {/* Table Number - Large and Bold */}
+                  <div className="relative">
+                    <div className={`text-4xl sm:text-5xl font-bold ${
+                      table.isOccupied 
+                        ? "text-red-700 dark:text-red-300" 
+                        : "text-emerald-700 dark:text-emerald-300"
+                    }`}>
+                      {table.tableNumber}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">الطاولة</div>
                   </div>
                   
                   {table.isOccupied && table.reservedFor ? (
-                    <div className="space-y-2">
-                      <Badge variant="destructive" className="text-xs">
-                        محجوزة
-                      </Badge>
-                      <div className="text-xs space-y-1 bg-white/50 rounded-md p-2">
-                        <div className="flex items-center justify-center gap-1">
-                          <User className="w-3 h-3" />
-                          <span className="font-medium">{table.reservedFor.customerName}</span>
+                    <div className="space-y-3">
+                      {/* Reserved Badge */}
+                      <div className="flex justify-center">
+                        <Badge className="bg-red-600 hover:bg-red-700 text-white animate-pulse px-3 py-1">
+                          محجوزة حالياً
+                        </Badge>
+                      </div>
+                      
+                      {/* Customer Info */}
+                      <div className="bg-white/70 dark:bg-slate-800/70 rounded-lg p-3 space-y-2 backdrop-blur">
+                        <div className="flex items-center justify-center gap-2 text-sm">
+                          <User className="w-4 h-4 text-red-600" />
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">{table.reservedFor.customerName}</span>
                         </div>
-                        <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                          <Phone className="w-3 h-3" />
-                          <span dir="ltr">{table.reservedFor.customerPhone}</span>
+                        <div className="flex items-center justify-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                          <Phone className="w-3 h-3 text-red-600" />
+                          <span className="font-mono" dir="ltr">{table.reservedFor.customerPhone}</span>
                         </div>
                       </div>
+                      
+                      {/* Release Button */}
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="destructive"
                         onClick={() => handleReleaseTable(table)}
-                        className="w-full"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white transition-all"
                         data-testid={`button-release-${table.tableNumber}`}
                       >
                         <XCircle className="w-3 h-3 ml-1" />
-                        تحرير
+                        تحرير الطاولة
                       </Button>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 text-xs">
-                        متاحة
-                      </Badge>
+                    <div className="space-y-3">
+                      {/* Available Badge */}
+                      <div className="flex justify-center">
+                        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1">
+                          متاحة الآن
+                        </Badge>
+                      </div>
+                      
+                      {/* Empty State Info */}
+                      <div className="text-xs text-muted-foreground py-2">
+                        جاهزة للحجز
+                      </div>
+                      
+                      {/* Reserve Button */}
                       <Button
                         size="sm"
                         onClick={() => handleReserveTable(table)}
-                        className="w-full bg-green-600 hover:bg-green-700"
+                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white transition-all shadow-md hover:shadow-lg"
                         data-testid={`button-reserve-${table.tableNumber}`}
                       >
-                        <CheckCircle2 className="w-3 h-3 ml-1" />
-                        حجز
+                        <CheckCircle2 className="w-4 h-4 ml-1" />
+                        حجز الطاولة
                       </Button>
                     </div>
                   )}
