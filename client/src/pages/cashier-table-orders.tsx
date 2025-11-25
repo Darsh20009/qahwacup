@@ -296,7 +296,7 @@ export default function CashierTableOrders() {
   const filteredMyOrders = myOrders || [];
 
   return (
-    <div className="min-h-screen bg-[#0f0d0a] p-4" dir="rtl">
+    <div className="min-h-screen p-4 bg-[#e3e1c5] text-[#111112]" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
