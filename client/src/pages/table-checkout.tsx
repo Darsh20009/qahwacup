@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, User, Phone, Loader } from "lucide-react";
+import { Coffee, ArrowRight, User, Phone, Loader, CheckCircle } from "lucide-react";
 
 interface CartItem {
   item: {
@@ -25,9 +25,23 @@ export default function TableCheckout() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
+  const [isLoggedInCustomer, setIsLoggedInCustomer] = useState(false);
 
   const tableId = params?.tableId;
   const tableNumber = params?.tableNumber;
+
+  // Auto-fill customer data if logged in
+  useEffect(() => {
+    const savedPhone = localStorage.getItem("customer-phone");
+    const savedName = localStorage.getItem("customer-name");
+    const customerId = localStorage.getItem("customer-id");
+
+    if (savedPhone && savedName && customerId) {
+      setCustomerPhone(savedPhone);
+      setCustomerName(savedName);
+      setIsLoggedInCustomer(true);
+    }
+  }, []);
   
   const cart: CartItem[] = JSON.parse(sessionStorage.getItem(`cart_${tableId}`) || "[]");
   const branchId = sessionStorage.getItem(`branchId_${tableId}`) || "";
@@ -215,6 +229,15 @@ export default function TableCheckout() {
             <CardTitle className="text-2xl text-slate-800">معلوماتك</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
+            {isLoggedInCustomer && (
+              <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-green-800">عميل مسجل</p>
+                  <p className="text-sm text-green-700">تم ملء بيانات حسابك تلقائياً</p>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-base flex items-center gap-2 font-semibold text-slate-700">
                 <User className="w-5 h-5 text-amber-600" />
@@ -225,9 +248,10 @@ export default function TableCheckout() {
                 placeholder="أدخل اسمك"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400"
+                disabled={isLoggedInCustomer}
+                className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400 disabled:bg-slate-100 disabled:cursor-not-allowed"
                 data-testid="input-name"
-                autoFocus
+                autoFocus={!isLoggedInCustomer}
               />
             </div>
 
@@ -243,9 +267,9 @@ export default function TableCheckout() {
                   value={customerPhone}
                   onChange={(e) => handlePhoneChange(e.target.value)}
                   maxLength={9}
-                  className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400"
+                  disabled={isSearchingCustomer || isLoggedInCustomer}
+                  className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400 disabled:bg-slate-100 disabled:cursor-not-allowed"
                   data-testid="input-phone"
-                  disabled={isSearchingCustomer}
                 />
                 {isSearchingCustomer && (
                   <div className="absolute left-3 top-1/2 -translate-y-1/2">
