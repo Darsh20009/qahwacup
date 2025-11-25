@@ -608,6 +608,40 @@ export default function EmployeeOrders() {
  </div>
 
  <div className="flex flex-col gap-2">
+ {(order as any).tableNumber ? (
+ <div className="flex gap-2 flex-wrap">
+ <Button
+ variant="outline"
+ size="sm"
+ className="bg-green-600 hover:bg-green-700 text-white border-green-700"
+ data-testid={`button-accept-table-${order.id}`}
+ >
+ ✓ قبول
+ </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ className="bg-red-600 hover:bg-red-700 text-white border-red-700"
+ onClick={() => {
+ if (confirm(`هل أنت متأكد من رفض طلب الطاولة؟`)) {
+ }
+ }}
+ data-testid={`button-reject-table-${order.id}`}
+ >
+ ✕ رفض
+ </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ className="bg-blue-600 hover:bg-blue-700 text-white border-blue-700"
+ onClick={() => setLocation("/employee/table-orders")}
+ data-testid={`button-manage-tables-${order.id}`}
+ >
+ إدارة الطاولات
+ </Button>
+ </div>
+ ) : (
+ <>
  <Select 
  value={order.status} 
  onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
@@ -628,30 +662,32 @@ export default function EmployeeOrders() {
  </SelectContent>
  </Select>
  {order.status === "pending" && (
-  <div className="flex gap-2">
-  <Button
-   variant="outline"
-   size="sm"
-   className="bg-green-600 hover:bg-green-700 text-white border-green-700"
-   onClick={() => handleStatusChange(order.id, "payment_confirmed")}
-   data-testid={`button-accept-${order.id}`}
-  >
-   ✓ قبول
-  </Button>
-  <Button
-   variant="outline"
-   size="sm"
-   className="bg-red-600 hover:bg-red-700 text-white border-red-700"
-   onClick={() => {
-    if (confirm(`هل أنت متأكد من رفض هذا الطلب؟`)) {
-     handleStatusChange(order.id, "cancelled");
-    }
-   }}
-   data-testid={`button-reject-${order.id}`}
-  >
-   ✕ رفض
-  </Button>
-  </div>
+ <div className="flex gap-2">
+ <Button
+ variant="outline"
+ size="sm"
+ className="bg-green-600 hover:bg-green-700 text-white border-green-700"
+ onClick={() => handleStatusChange(order.id, "payment_confirmed")}
+ data-testid={`button-accept-${order.id}`}
+ >
+ ✓ قبول
+ </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ className="bg-red-600 hover:bg-red-700 text-white border-red-700"
+ onClick={() => {
+ if (confirm(`هل أنت متأكد من رفض هذا الطلب؟`)) {
+ handleStatusChange(order.id, "cancelled");
+ }
+ }}
+ data-testid={`button-reject-${order.id}`}
+ >
+ ✕ رفض
+ </Button>
+ </div>
+ )}
+ </>
  )}
  </div>
  </div>
