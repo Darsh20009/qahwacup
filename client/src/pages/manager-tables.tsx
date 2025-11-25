@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ interface IBranch {
 }
 
 export default function ManagerTables() {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [bulkCount, setBulkCount] = useState("10");
   const [selectedBranch, setSelectedBranch] = useState<string>("none");
@@ -284,6 +286,9 @@ export default function ManagerTables() {
             </h1>
             <p className="text-muted-foreground">إدارة طاولات المقهى وإنشاء رموز QR</p>
           </div>
+          <Button variant="outline" className="bg-[#944219]" onClick={() => setLocation("/manager/dashboard")}>
+            العودة للوحة التحكم
+          </Button>
         </div>
 
         {/* Bulk Create Section */}

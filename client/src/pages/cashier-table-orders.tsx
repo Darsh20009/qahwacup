@@ -427,7 +427,7 @@ export default function CashierTableOrders() {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       return (
                         <Card key={order.id} className="bg-[#1a1410] border-amber-500/10">
-                          <CardContent className="p-4 bg-[#757352]">
+                          <CardContent className="p-4">
                             <div className="space-y-4">
                               <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex-1 space-y-2">
