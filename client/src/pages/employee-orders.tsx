@@ -313,7 +313,7 @@ export default function EmployeeOrders() {
  </div>
  <div>
  <h1 className="text-2xl font-bold text-amber-500 flex items-center gap-2">
- إدارةالطلبات
+ إدارة الطلبات
  {newOrdersCount > 0 && <BellRing className="w-5 h-5 text-red-500 animate-pulse" />}
  </h1>
  <p className="text-gray-400 text-sm">الموظف: {employee.fullName}</p>
@@ -361,7 +361,7 @@ export default function EmployeeOrders() {
  <Filter className="text-amber-500 w-5 h-5" />
  <Select value={statusFilter} onValueChange={setStatusFilter}>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-filter">
- <SelectValue placeholder="فلترةحسب الحالة" />
+ <SelectValue placeholder="فلترة حسب الحالة" />
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="all">جميع الطلبات</SelectItem>
@@ -370,7 +370,7 @@ export default function EmployeeOrders() {
  <SelectItem value="payment_confirmed">تم تأكيد الدفع</SelectItem>
  <SelectItem value="in_progress">قيد التحضير</SelectItem>
  <SelectItem value="ready">جاهز للاستلام</SelectItem>
- <SelectItem value="completed_cancelled">المكتملةوالملغاة</SelectItem>
+ <SelectItem value="completed_cancelled">المكتملة والملغاة</SelectItem>
  <SelectItem value="completed">مكتملة</SelectItem>
  <SelectItem value="cancelled">ملغاة</SelectItem>
  </SelectContent>
