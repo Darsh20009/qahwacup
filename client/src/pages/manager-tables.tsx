@@ -68,16 +68,21 @@ export default function ManagerTables() {
     queryKey: ["/api/branches"],
   });
 
-  // Fetch tables (all branches for manager)
+  // Fetch tables - filter by selected branch
   const { data: tables = [], isLoading } = useQuery<ITable[]>({
-    queryKey: ["/api/tables"],
+    queryKey: ["/api/tables", selectedBranch],
     queryFn: async () => {
-      const response = await fetch("/api/tables", {
+      let url = "/api/tables";
+      if (selectedBranch) {
+        url += `?branchId=${selectedBranch}`;
+      }
+      const response = await fetch(url, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch tables");
       return response.json();
     },
+    enabled: !!selectedBranch, // Only fetch if branch is selected
   });
 
   // Create single table mutation
@@ -309,7 +314,11 @@ export default function ManagerTables() {
         <Card>
           <CardHeader>
             <CardTitle>الطاولات الحالية ({tables?.length || 0})</CardTitle>
-            <CardDescription>جميع الطاولات المتاحة في النظام</CardDescription>
+            <CardDescription>
+              {selectedBranch 
+                ? `طاولات الفرع المختار` 
+                : "اختر فرعاً لعرض الطاولات"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (

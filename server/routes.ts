@@ -2714,14 +2714,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(allTables);
       }
       
-      // Manager can see all tables or specific branch if requested
+      // Manager can only see tables from their own branch
+      // CRITICAL: Each branch must display ONLY its own 10 tables
       if (employee?.role === 'manager') {
-        if (queryBranchId) {
-          const tables = await storage.getTables(queryBranchId);
-          return res.json(tables);
+        const managerBranch = employee?.branchId;
+        
+        // If queryBranchId is provided, verify it matches manager's branch
+        if (queryBranchId && queryBranchId !== managerBranch) {
+          return res.status(403).json({ error: "Unauthorized: Cannot access other branches" });
         }
-        const allTables = await storage.getTables();
-        return res.json(allTables);
+        
+        const tables = await storage.getTables(managerBranch);
+        return res.json(tables);
       }
       
       // Other roles (cashier, etc.) see only their branch
@@ -2853,7 +2857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate update data (partial schema validation)
       const { insertTableSchema } = await import("@shared/schema");
       const partialSchema = insertTableSchema.partial(); // Allow partial updates
-      const validatedData = partialSchema.parse(req.body);
+      const validatedData = partialSchema.parse(req.body) as any;
       
       const table = await storage.updateTable(req.params.id, validatedData);
       if (!table) {

@@ -184,3 +184,46 @@ if (!parsed._id && parsed.id) {
 ✅ Accept/Reject buttons work correctly
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
+
+## CRITICAL FIX: Branch-Restricted Table Access (November 25, 2025 - Version 7.6)
+
+### Problem:
+**CRITICAL REQUIREMENT NOT MET**: Each branch must display ONLY its own 10 tables. However, managers were able to access tables from ALL branches, including those outside their assigned branch.
+
+### Root Cause:
+In `/api/tables` GET endpoint (server/routes.ts, line 2717-2725):
+- Manager role check allowed access to any branch via `queryBranchId` parameter
+- API would return tables for ANY branch if manager requested it
+- Security vulnerability: Multi-branch managers could see unauthorized branch data
+
+### Solution Applied:
+**Updated `/api/tables` GET endpoint** in `server/routes.ts`:
+```typescript
+// Manager can only see tables from their own branch
+// CRITICAL: Each branch must display ONLY its own 10 tables
+if (employee?.role === 'manager') {
+  const managerBranch = employee?.branchId;
+  
+  // If queryBranchId is provided, verify it matches manager's branch
+  if (queryBranchId && queryBranchId !== managerBranch) {
+    return res.status(403).json({ error: "Unauthorized: Cannot access other branches" });
+  }
+  
+  const tables = await storage.getTables(managerBranch);
+  return res.json(tables);
+}
+```
+
+### Verification:
+✅ **Test Results:**
+- Manager login: Status 200 ✅
+- Get own branch tables: Status 200, Count: 10, All correct branchId ✅
+- Access different branch: Status 403 (Forbidden) ✅
+- Database: 40 tables total (10 per branch), all with correct branchId ✅
+
+### Impact:
+- ✅ Managers can ONLY see 10 tables from their assigned branch
+- ✅ Attempting to access other branch tables returns 403 Forbidden
+- ✅ CRITICAL REQUIREMENT: "Each branch must display ONLY its own 10 tables" - NOW SATISFIED
+- ✅ Security hardening: Branch isolation is enforced at API level
+- ✅ Admin role still has full access to all branches (as expected)
