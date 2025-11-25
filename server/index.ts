@@ -43,10 +43,10 @@ app.use(
       checkPeriod: 86400000, // prune expired entries every 24h
     }),
     cookie: {
-      secure: false, // Allow in development (Replit uses iframe)
+      secure: process.env.NODE_ENV === 'production', // true in production (HTTPS), false in development
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === 'production' ? "lax" : "none", // lax for production, none for development
       path: "/",
     },
   })
