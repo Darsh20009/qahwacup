@@ -143,7 +143,7 @@ export default function CashierTables() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tables", employeeBranchId] });
+      queryClient.refetchQueries({ queryKey: ["/api/tables", employeeBranchId] });
       toast({
         title: "تم حجز الطاولة",
         description: "تم حجز الطاولة بنجاح",
@@ -184,7 +184,7 @@ export default function CashierTables() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tables", employeeBranchId] });
+      queryClient.refetchQueries({ queryKey: ["/api/tables", employeeBranchId] });
       toast({
         title: "تم تحرير الطاولة",
         description: "الطاولة متاحة الآن",
@@ -215,7 +215,7 @@ export default function CashierTables() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tables", employeeBranchId] });
+      queryClient.refetchQueries({ queryKey: ["/api/tables", employeeBranchId] });
       toast({
         title: "تم تفعيل الحجز",
         description: "تم تفعيل الحجز بنجاح",
@@ -246,7 +246,7 @@ export default function CashierTables() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tables", employeeBranchId] });
+      queryClient.refetchQueries({ queryKey: ["/api/tables", employeeBranchId] });
       toast({
         title: "تم إلغاء الحجز",
         description: "تم إلغاء الحجز بنجاح",
