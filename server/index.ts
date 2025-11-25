@@ -52,6 +52,14 @@ app.use(
   })
 );
 
+// Debug middleware to log session state
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/orders')) {
+    console.log(`[DEBUG] ${req.method} ${req.path} - Session employee:`, req.session?.employee ? 'EXISTS' : 'MISSING');
+  }
+  next();
+});
+
 // Serve attached assets for both development and production
 app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
