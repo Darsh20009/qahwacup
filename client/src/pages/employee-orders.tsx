@@ -78,11 +78,13 @@ export default function EmployeeOrders() {
  const { data: regularOrders = [], isLoading: isLoadingRegular, refetch: refetchRegular } = useQuery<Order[]>({
  queryKey: ["/api/orders"],
  refetchInterval: 3000,
+ enabled: !!employee,
  });
 
  const { data: tableOrders = [], isLoading: isLoadingTable, refetch: refetchTable } = useQuery<Order[]>({
  queryKey: ["/api/orders/table"],
  refetchInterval: 3000,
+ enabled: !!employee,
  });
 
  const isLoading = isLoadingRegular || isLoadingTable;

@@ -83,6 +83,7 @@ export default function ManagerDashboard() {
  const { data: allOrders = [] } = useQuery<Order[]>({
  queryKey: ["/api/orders"],
  enabled: !!manager,
+ refetchInterval: !!manager ? 5000 : false,
  });
 
  // جميع المديرين يرون جميع الطلبات بغض النظر عن الفرع

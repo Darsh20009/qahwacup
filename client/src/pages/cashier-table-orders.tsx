@@ -68,6 +68,7 @@ export default function CashierTableOrders() {
   const { data: unassignedOrders } = useQuery<IOrder[]>({
     queryKey: ["/api/orders/table/unassigned"],
     refetchInterval: 3000, // Poll every 3 seconds
+    enabled: !!employee,
   });
 
   // Notify when new orders arrive with sound
