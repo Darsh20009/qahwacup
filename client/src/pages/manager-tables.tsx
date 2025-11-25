@@ -273,7 +273,7 @@ export default function ManagerTables() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4" dir="rtl">
+    <div className="min-h-screen p-4 bg-[#f0ecd8]" dir="rtl">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
