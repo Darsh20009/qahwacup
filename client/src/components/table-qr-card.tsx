@@ -19,177 +19,182 @@ export function TableQRCard({ tableNumber, qrToken, branchName, tableUrl }: Tabl
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Set canvas size (larger for better print quality)
+      // Set canvas size for premium print quality
       const width = 1000;
       const height = 1200;
       canvas.width = width;
       canvas.height = height;
 
-      // Beige gradient background (warm and inviting)
-      const gradient = ctx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, "#F5E6D3");
-      gradient.addColorStop(0.5, "#EDD5C1");
-      gradient.addColorStop(1, "#F5E6D3");
-      ctx.fillStyle = gradient;
+      // Clean white background
+      ctx.fillStyle = "#FFFFFF";
       ctx.fillRect(0, 0, width, height);
 
-      // Decorative top accent bar with gradient
+      // Luxury gradient border frame (top accent)
       const accentGradient = ctx.createLinearGradient(0, 0, width, 0);
-      accentGradient.addColorStop(0, "#8B6F47");
-      accentGradient.addColorStop(0.5, "#A0826D");
-      accentGradient.addColorStop(1, "#8B6F47");
+      accentGradient.addColorStop(0, "#1a1a1a");
+      accentGradient.addColorStop(0.5, "#D4AF37");
+      accentGradient.addColorStop(1, "#1a1a1a");
       ctx.fillStyle = accentGradient;
-      ctx.fillRect(0, 0, width, 20);
+      ctx.fillRect(0, 0, width, 15);
 
-      // Premium border
-      ctx.strokeStyle = "#8B6F47";
-      ctx.lineWidth = 12;
-      ctx.strokeRect(25, 25, width - 50, height - 50);
+      // Thin elegant border
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(30, 30, width - 60, height - 60);
 
-      // Inner golden border
-      ctx.strokeStyle = "#C9A961";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(45, 45, width - 90, height - 90);
+      // Premium decorative line
+      ctx.strokeStyle = "#1a1a1a";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(40, 40, width - 80, height - 80);
+      ctx.setLineDash([]);
 
-      // Logo/Brand circle at top
-      const logoRadius = 70;
+      // Logo circle - minimal and elegant
+      const logoRadius = 55;
       const logoX = width / 2;
-      const logoY = 120;
+      const logoY = 110;
 
-      // Logo background circle with gradient
-      const logoGradient = ctx.createRadialGradient(logoX, logoY, 0, logoX, logoY, logoRadius);
-      logoGradient.addColorStop(0, "#C9A961");
-      logoGradient.addColorStop(1, "#8B6F47");
-      ctx.fillStyle = logoGradient;
+      // Gold circle background
+      ctx.fillStyle = "#D4AF37";
       ctx.beginPath();
       ctx.arc(logoX, logoY, logoRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Logo border
-      ctx.strokeStyle = "#F5E6D3";
-      ctx.lineWidth = 4;
+      // White circle border
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(logoX, logoY, logoRadius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Draw coffee cup icon inside circle
-      ctx.fillStyle = "#F5E6D3";
-      ctx.font = "bold 120px Arial";
+      // Coffee cup icon
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = "bold 100px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("C", logoX, logoY);
+      ctx.fillText("☕", logoX, logoY);
 
-      // Cafe name with elegant styling
-      ctx.fillStyle = "#8B6F47";
-      ctx.font = "bold 80px Cairo, Arial, sans-serif";
+      // Cafe name - bold and clean
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = "bold 72px 'Segoe UI', Cairo, Arial, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("قهوة كوب", width / 2, 280);
+      ctx.fillText("قهوة كوب", width / 2, 240);
 
-      // Elegant tagline
-      ctx.fillStyle = "#A0826D";
-      ctx.font = "italic 36px Cairo, Arial, sans-serif";
-      ctx.fillText("تجربة القهوة الأصيلة", width / 2, 330);
-
-      // Decorative separator
-      ctx.strokeStyle = "#C9A961";
+      // Elegant separator line
+      ctx.strokeStyle = "#D4AF37";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(150, 380);
-      ctx.lineTo(width - 150, 380);
+      ctx.moveTo(200, 290);
+      ctx.lineTo(width - 200, 290);
       ctx.stroke();
 
-      // Table section with elegant design
-      const tableBoxY = 420;
-      const tableBoxHeight = 140;
+      // Table number section - premium styling
+      const tableBoxY = 330;
+      const tableBoxHeight = 160;
 
-      // Table background with gradient
-      const tableGradient = ctx.createLinearGradient(width / 2 - 220, tableBoxY, width / 2 + 220, tableBoxY + tableBoxHeight);
-      tableGradient.addColorStop(0, "#D9C7B8");
-      tableGradient.addColorStop(0.5, "#C9A961");
-      tableGradient.addColorStop(1, "#D9C7B8");
-      ctx.fillStyle = tableGradient;
-      ctx.fillRect(width / 2 - 220, tableBoxY, 440, tableBoxHeight);
+      // Subtle background for table section
+      ctx.fillStyle = "#F8F8F8";
+      ctx.fillRect(width / 2 - 240, tableBoxY, 480, tableBoxHeight);
 
-      // Table box border
-      ctx.strokeStyle = "#8B6F47";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(width / 2 - 220, tableBoxY, 440, tableBoxHeight);
+      // Gold border for table box
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(width / 2 - 240, tableBoxY, 480, tableBoxHeight);
 
-      // "TABLE" label
-      ctx.fillStyle = "#8B6F47";
-      ctx.font = "bold 32px Cairo, Arial, sans-serif";
+      // "TABLE" label - minimal
+      ctx.fillStyle = "#666666";
+      ctx.font = "28px 'Segoe UI', Cairo, Arial, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("الطاولة رقم", width / 2, tableBoxY + 40);
 
-      // Table number with large bold font
-      ctx.fillStyle = "#8B6F47";
-      ctx.font = "bold 100px Arial, sans-serif";
+      // Table number - LARGE and prominent
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 140px Arial, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(tableNumber, width / 2, tableBoxY + 120);
 
       // Generate QR code
       try {
         const qrCodeDataUrl = await QRCode.toDataURL(tableUrl, {
-          width: 450,
-          margin: 2,
+          width: 420,
+          margin: 1,
           color: {
-            dark: "#8B6F47",
-            light: "#F5E6D3",
+            dark: "#1a1a1a",
+            light: "#FFFFFF",
           },
           errorCorrectionLevel: "H",
         });
 
         const qrImage = new Image();
         qrImage.onload = () => {
-          // QR code container
-          const qrY = 590;
-          const qrSize = 450;
+          // QR code positioning
+          const qrY = 530;
+          const qrSize = 420;
           const qrX = (width - qrSize) / 2;
 
-          // QR background with soft shadow effect
+          // White background for QR
           ctx.fillStyle = "#FFFFFF";
-          ctx.fillRect(qrX - 30, qrY - 30, qrSize + 60, qrSize + 60);
+          ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
 
-          // QR border - elegant frame
-          ctx.strokeStyle = "#8B6F47";
-          ctx.lineWidth = 8;
-          ctx.strokeRect(qrX - 25, qrY - 25, qrSize + 50, qrSize + 50);
-
-          // Inner border accent
-          ctx.strokeStyle = "#C9A961";
-          ctx.lineWidth = 2;
+          // Gold accent border
+          ctx.strokeStyle = "#D4AF37";
+          ctx.lineWidth = 3;
           ctx.strokeRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
 
           // Draw QR code
           ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
-          // Decorative corner elements
-          const cornerSize = 35;
-          ctx.fillStyle = "#C9A961";
-          
-          // Corner decorations
-          for (let i = 0; i < 4; i++) {
-            const cornerX = i % 2 === 0 ? qrX - 25 : qrX + qrSize + 25;
-            const cornerY = i < 2 ? qrY - 25 : qrY + qrSize + 25;
-            ctx.fillRect(cornerX - cornerSize/2, cornerY - 4, cornerSize, 8);
-            ctx.fillRect(cornerX - 4, cornerY - cornerSize/2, 8, cornerSize);
-          }
+          // Subtle corner accents (minimal)
+          ctx.fillStyle = "#D4AF37";
+          const cornerLen = 25;
+          const cornerW = 3;
 
-          // Main instruction text
-          ctx.fillStyle = "#8B6F47";
-          ctx.font = "bold 42px Cairo, Arial, sans-serif";
+          // Top left
+          ctx.fillRect(qrX - 20, qrY - 20, cornerLen, cornerW);
+          ctx.fillRect(qrX - 20, qrY - 20, cornerW, cornerLen);
+
+          // Top right
+          ctx.fillRect(qrX + qrSize + 20 - cornerLen, qrY - 20, cornerLen, cornerW);
+          ctx.fillRect(qrX + qrSize + 20 - cornerW, qrY - 20, cornerW, cornerLen);
+
+          // Bottom left
+          ctx.fillRect(qrX - 20, qrY + qrSize + 20 - cornerW, cornerLen, cornerW);
+          ctx.fillRect(qrX - 20, qrY + qrSize + 20 - cornerLen, cornerW, cornerLen);
+
+          // Bottom right
+          ctx.fillRect(qrX + qrSize + 20 - cornerLen, qrY + qrSize + 20 - cornerW, cornerLen, cornerW);
+          ctx.fillRect(qrX + qrSize + 20 - cornerW, qrY + qrSize + 20 - cornerLen, cornerW, cornerLen);
+
+          // Main instruction - clean typography
+          ctx.fillStyle = "#1a1a1a";
+          ctx.font = "bold 44px 'Segoe UI', Cairo, Arial, sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText("امسح الكود للطلب", width / 2, 1080);
+          ctx.fillText("امسح الكود للطلب", width / 2, 1000);
 
-          // Secondary instruction with smaller font
-          ctx.fillStyle = "#A0826D";
-          ctx.font = "28px Cairo, Arial, sans-serif";
-          ctx.fillText("Scan the QR to Order", width / 2, 1125);
+          // English translation - subtle
+          ctx.fillStyle = "#999999";
+          ctx.font = "24px 'Segoe UI', Arial, sans-serif";
+          ctx.fillText("Scan to Order", width / 2, 1040);
+
+          // Decorative separator
+          ctx.strokeStyle = "#D4AF37";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(300, 1070);
+          ctx.lineTo(width - 300, 1070);
+          ctx.stroke();
 
           // Branch name at bottom
-          ctx.fillStyle = "#8B6F47";
-          ctx.font = "bold 32px Cairo, Arial, sans-serif";
-          ctx.fillText(branchName, width / 2, 1175);
+          ctx.fillStyle = "#1a1a1a";
+          ctx.font = "bold 36px 'Segoe UI', Cairo, Arial, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(branchName, width / 2, 1130);
+
+          // Powered by text - minimal
+          ctx.fillStyle = "#CCCCCC";
+          ctx.font = "16px 'Segoe UI', Arial, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Powered by QahwaCup", width / 2, 1170);
         };
         qrImage.src = qrCodeDataUrl;
       } catch (error) {
@@ -204,7 +209,7 @@ export function TableQRCard({ tableNumber, qrToken, branchName, tableUrl }: Tabl
     <div className="flex flex-col items-center gap-4">
       <canvas
         ref={canvasRef}
-        className="max-w-full h-auto border-4 border-amber-900 rounded-lg shadow-2xl"
+        className="max-w-full h-auto rounded-lg shadow-lg"
       />
     </div>
   );
