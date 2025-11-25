@@ -57,6 +57,7 @@ export default function EmployeeIngredientsManagement() {
  const response = await fetch(`/api/ingredients/${id}/availability`, {
  method: "PATCH",
  headers: { "Content-Type": "application/json" },
+ credentials: 'include',
  body: JSON.stringify({ isAvailable }),
  });
  if (!response.ok) throw new Error("Failed to update ingredient");

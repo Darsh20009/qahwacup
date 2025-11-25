@@ -20,6 +20,7 @@ export default function EmployeeLogin() {
  const response = await fetch("/api/employees/login", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
+ credentials: 'include',
  body: JSON.stringify(credentials),
  });
  

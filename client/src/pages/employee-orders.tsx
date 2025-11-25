@@ -139,6 +139,7 @@ export default function EmployeeOrders() {
  const response = await fetch(`/api/orders/${orderId}/status`, {
  method: "PUT",
  headers: { "Content-Type": "application/json" },
+ credentials: 'include',
  body: JSON.stringify({ status, cancellationReason }),
  });
  

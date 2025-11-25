@@ -70,6 +70,7 @@ export default function EmployeeMenuManagement() {
  headers: {
  "Content-Type": "application/json",
  },
+ credentials: 'include',
  body: JSON.stringify({ isAvailable, availabilityStatus }),
  });
  

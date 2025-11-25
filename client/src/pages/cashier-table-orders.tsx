@@ -116,6 +116,7 @@ export default function CashierTableOrders() {
       const response = await fetch(`/api/orders/${orderId}/assign-cashier`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({ cashierId: employee._id }),
       });
       if (!response.ok) {
@@ -151,6 +152,7 @@ export default function CashierTableOrders() {
       const response = await fetch(`/api/orders/${orderId}/table-status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({ tableStatus: "cancelled" }),
       });
       if (!response.ok) throw new Error("Failed to reject order");
@@ -182,6 +184,7 @@ export default function CashierTableOrders() {
       const response = await fetch(`/api/orders/${orderId}/table-status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({ tableStatus: status }),
       });
       if (!response.ok) throw new Error("Failed to update status");
