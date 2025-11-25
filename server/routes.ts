@@ -1952,22 +1952,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Order not found" });
       }
 
+      // Serialize the order properly
+      const serializedOrder = serializeDoc(updatedOrder);
+
       // Send WhatsApp notification to customer
       try {
-        const customerInfo = typeof updatedOrder.customerInfo === 'string'
-          ? JSON.parse(updatedOrder.customerInfo)
-          : updatedOrder.customerInfo;
+        const customerInfo = typeof serializedOrder.customerInfo === 'string'
+          ? JSON.parse(serializedOrder.customerInfo)
+          : serializedOrder.customerInfo;
 
         const phoneNumber = customerInfo?.phoneNumber;
 
         if (phoneNumber && status !== 'pending') {
-          const message = getOrderStatusMessage(status, updatedOrder.orderNumber);
+          const message = getOrderStatusMessage(status, serializedOrder.orderNumber);
           // The WhatsApp URL generation logic should remain the same
           const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
 
           // Return WhatsApp URL in response so frontend can optionally use it
           return res.json({
-            ...updatedOrder,
+            ...serializedOrder,
             whatsappNotification: {
               url: whatsappUrl,
               message: message,
@@ -1980,7 +1983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Continue even if notification fails
       }
 
-      res.json(updatedOrder);
+      res.json(serializedOrder);
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ error: "Failed to update order status" });
@@ -3320,7 +3323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update table order status (by cashier)
-  app.patch("/api/orders/:id/table-status", async (req, res) => {
+  app.patch("/api/orders/:id/table-status", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { tableStatus } = req.body;
       const { OrderModel } = await import("@shared/schema");
@@ -3358,7 +3361,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await order.save();
 
-      res.json(order);
+      // Serialize the response properly
+      const serializedOrder = serializeDoc(order);
+      res.json(serializedOrder);
     } catch (error) {
       console.error("Error updating table status:", error);
       res.status(500).json({ error: "فشل تحديث حالة الطلب" });
