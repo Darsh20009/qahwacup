@@ -75,24 +75,13 @@ export default function EmployeeOrders() {
  }
  }, [setLocation]);
 
- const { data: regularOrders = [], isLoading: isLoadingRegular, refetch: refetchRegular } = useQuery<Order[]>({
+ const { data: regularOrders = [], isLoading, refetch } = useQuery<Order[]>({
  queryKey: ["/api/orders"],
  refetchInterval: 3000,
  enabled: !!employee,
  });
 
- const { data: tableOrders = [], isLoading: isLoadingTable, refetch: refetchTable } = useQuery<Order[]>({
- queryKey: ["/api/orders/table"],
- refetchInterval: 3000,
- enabled: !!employee,
- });
-
- const isLoading = isLoadingRegular || isLoadingTable;
- const orders = [...regularOrders, ...tableOrders];
- const refetch = () => {
- refetchRegular();
- refetchTable();
- };
+ const orders = regularOrders;
 
  const { data: allBranches = [] } = useQuery<any[]>({
  queryKey: ["/api/branches"],
@@ -555,7 +544,7 @@ export default function EmployeeOrders() {
 
  <div className="flex flex-col gap-2">
  <Select 
- value={order.tableStatus || order.status} 
+ value={order.status} 
  onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
  >
  <SelectTrigger 
@@ -565,39 +554,21 @@ export default function EmployeeOrders() {
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
- {order.tableStatus ? (
-  <>
-  <SelectItem value="payment_confirmed">تم تأكيد الدفع</SelectItem>
-  <SelectItem value="preparing">قيد التحضير</SelectItem>
-  <SelectItem value="ready">جاهز للتقديم</SelectItem>
-  <SelectItem value="delivered">تم التقديم</SelectItem>
-  <SelectItem value="cancelled">إلغاء</SelectItem>
-  </>
- ) : (
-  <>
-  <SelectItem value="pending">إرسال الطلب</SelectItem>
-  <SelectItem value="payment_confirmed">تأكيد الدفع</SelectItem>
-  <SelectItem value="in_progress">جاري التحضير</SelectItem>
-  <SelectItem value="ready">جاهز للاستلام</SelectItem>
-  <SelectItem value="completed">مكتمل</SelectItem>
-  <SelectItem value="cancelled">ملغي</SelectItem>
-  </>
- )}
+ <SelectItem value="pending">إرسال الطلب</SelectItem>
+ <SelectItem value="payment_confirmed">تأكيد الدفع</SelectItem>
+ <SelectItem value="in_progress">جاري التحضير</SelectItem>
+ <SelectItem value="ready">جاهز للاستلام</SelectItem>
+ <SelectItem value="completed">مكتمل</SelectItem>
+ <SelectItem value="cancelled">ملغي</SelectItem>
  </SelectContent>
  </Select>
- {(order.status === "pending" || order.tableStatus === "payment_confirmed") && (
+ {order.status === "pending" && (
   <div className="flex gap-2">
   <Button
    variant="outline"
    size="sm"
    className="bg-green-600 hover:bg-green-700 text-white border-green-700"
-   onClick={() => {
-    if (order.tableStatus) {
-     handleStatusChange(order.id, "preparing" as any);
-    } else {
-     handleStatusChange(order.id, "payment_confirmed");
-    }
-   }}
+   onClick={() => handleStatusChange(order.id, "payment_confirmed")}
    data-testid={`button-accept-${order.id}`}
   >
    ✓ قبول
