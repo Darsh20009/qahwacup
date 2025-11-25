@@ -16,6 +16,13 @@ interface CartItem {
   quantity: number;
 }
 
+interface PendingOrder {
+  id: string;
+  orderNumber?: string;
+  status?: string;
+  totalAmount?: number;
+}
+
 export default function TableCheckout() {
   const [, navigate] = useLocation();
   const [match, params] = useRoute("/table-checkout/:tableId/:tableNumber");
@@ -26,6 +33,7 @@ export default function TableCheckout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [isLoggedInCustomer, setIsLoggedInCustomer] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<PendingOrder | null>(null);
 
   const tableId = params?.tableId;
   const tableNumber = params?.tableNumber;
@@ -53,6 +61,7 @@ export default function TableCheckout() {
   // Search for customer by phone
   const handlePhoneChange = async (phone: string) => {
     setCustomerPhone(phone);
+    setPendingOrder(null);
     
     // Only search if phone has 9 digits (complete)
     if (phone.trim().length === 9) {
@@ -61,12 +70,25 @@ export default function TableCheckout() {
         const response = await fetch(`/api/customers/by-phone/${phone.trim()}`);
         if (response.ok) {
           const customer = await response.json();
-          if (customer && customer.fullName) {
-            setCustomerName(customer.fullName);
-            toast({
-              title: "تم العثور على العميل",
-              description: `مرحباً ${customer.fullName}`,
-            });
+          if (customer) {
+            // Set customer name from either field
+            const name = customer.name || customer.fullName;
+            if (name) {
+              setCustomerName(name);
+              toast({
+                title: "تم العثور على العميل",
+                description: `مرحباً ${name}`,
+              });
+            }
+            
+            // Check for pending table order
+            if (customer.pendingTableOrder) {
+              setPendingOrder(customer.pendingTableOrder);
+              toast({
+                title: "لديك طلب معلق!",
+                description: "يمكنك متابعة طلبك السابق أو إنشاء طلب جديد",
+              });
+            }
           }
         }
       } catch (error) {
@@ -279,6 +301,21 @@ export default function TableCheckout() {
               </div>
             </div>
 
+            {pendingOrder && (
+              <div className="bg-blue-50 border-2 border-blue-300 p-4 rounded-lg">
+                <p className="text-sm text-blue-800 font-semibold mb-2">لديك طلب معلق:</p>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/table-order-tracking/${pendingOrder.id}`)}
+                  className="w-full mb-2 text-blue-600 border-blue-300"
+                  data-testid="button-track-pending-order"
+                >
+                  متابعة الطلب السابق
+                </Button>
+                <p className="text-xs text-blue-700">أو استمر بإنشاء طلب جديد أدناه</p>
+              </div>
+            )}
+
             <div className="bg-amber-50 border-2 border-amber-200 p-5 rounded-lg">
               <p className="text-base text-slate-800 text-center font-semibold">
                 سيتم الدفع عند الكاشير
@@ -293,7 +330,7 @@ export default function TableCheckout() {
             >
               {isSubmitting ? "جاري الإرسال..." : (
                 <>
-                  إرسال الطلب
+                  إرسال الطلب الجديد
                   <ArrowRight className="mr-2 w-5 h-5" />
                 </>
               )}

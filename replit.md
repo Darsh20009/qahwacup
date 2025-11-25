@@ -185,6 +185,52 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Complete Table Order Management System (November 25, 2025 - Version 8.2)
+
+### Four Major Issues Resolved:
+
+#### 1️⃣ **Automatic Table Occupancy Update**
+- **Problem**: When customer ordered from a table, the table wasn't marked as occupied
+- **Solution**: Added automatic table update when order is created
+  - In `server/routes.ts`: After creating order, if `tableId` exists, call `updateTableOccupancy(tableId, 1, orderId)`
+  - Table now shows: `isOccupied=1` with `currentOrderId` linking to the order
+  
+#### 2️⃣ **Order Tracking & Pending Order Detection**
+- **Problem**: Customer had to start from scratch even if they had a pending order
+- **Solution**: Enhanced customer lookup to fetch pending orders
+  - In `server/routes.ts GET /api/customers/by-phone`: Also searches for pending table orders
+  - Returns: `{ ...customerData, pendingTableOrder: {...} }` if order exists
+  - In `client/src/pages/table-checkout.tsx`: Shows alert when pending order found with quick-link button
+  
+#### 3️⃣ **Correct Customer Data Retrieval**
+- **Problem**: Customer data wasn't retrieved correctly when searching by phone
+- **Solution**: Fixed field mapping
+  - Now correctly reads customer `name` field (not just `fullName`)
+  - Validates 9-digit phone format properly
+  - Returns complete customer object with serialization
+  
+#### 4️⃣ **Table Order Visibility in Admin Panel**
+- **Problem**: Cashier couldn't see orders from tables without opening admin panel
+- **Solution**: Added order display in table management
+  - In `client/src/pages/cashier-tables.tsx`:
+    - New query fetches pending table orders (auto-refresh every 5 seconds)
+    - Shows "عرض طلب الطاولة" (View Table Order) button when order exists
+    - Quick link to `/table-order-tracking/{orderId}` without leaving table view
+
+### Files Modified:
+1. `server/routes.ts` - Table update + customer order lookup
+2. `server/storage.ts` - Storage layer unchanged (already had methods)
+3. `client/src/pages/table-checkout.tsx` - Pending order detection + UI
+4. `client/src/pages/cashier-tables.tsx` - Order visibility in table cards
+
+### User Experience Flow:
+1. **Customer scans QR** → Orders from table
+2. **System automatically** → Marks table occupied + links to order
+3. **Customer returns** → Enters phone → System finds pending order
+4. **Customer chooses** → Track existing order OR create new order
+5. **Cashier views** → Sees all pending orders in table cards
+6. **No need to leave** → Quick view button for any table's current order
+
 ## Table Release Bug Fix (November 25, 2025 - Version 8.1)
 
 ### Problem:

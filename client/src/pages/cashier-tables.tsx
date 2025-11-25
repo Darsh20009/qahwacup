@@ -36,6 +36,16 @@ interface ITable {
   };
 }
 
+interface IPendingOrder {
+  id: string;
+  tableNumber?: string;
+  customerInfo?: {
+    customerName: string;
+    customerPhone: string;
+  };
+  status: string;
+}
+
 interface IBranch {
   _id: string;
   nameAr: string;
@@ -91,6 +101,18 @@ export default function CashierTables() {
       return Array.isArray(data) ? data.filter((t: ITable) => t.branchId === employeeBranchId) : [];
     },
     enabled: !!employeeBranchId,
+    refetchInterval: 5000, // Auto-refresh every 5 seconds
+  });
+
+  // Fetch pending table orders
+  const { data: pendingOrders = [] } = useQuery<IPendingOrder[]>({
+    queryKey: ["/api/orders/table/pending"],
+    queryFn: async () => {
+      const response = await fetch(`/api/orders/table/pending`);
+      if (!response.ok) throw new Error("Failed to fetch orders");
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     refetchInterval: 5000, // Auto-refresh every 5 seconds
   });
 
@@ -497,6 +519,19 @@ export default function CashierTables() {
                         </div>
                       )}
                       
+                      {/* Pending Order Link */}
+                      {table.currentOrderId && pendingOrders.find(o => o.id === table.currentOrderId) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setLocation(`/table-order-tracking/${table.currentOrderId}`)}
+                          className="w-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                          data-testid={`button-order-${table.tableNumber}`}
+                        >
+                          عرض طلب الطاولة
+                        </Button>
+                      )}
+
                       {/* Release Button */}
                       <Button
                         size="sm"

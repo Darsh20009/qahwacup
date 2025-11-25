@@ -979,7 +979,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...customerData } = customer.toObject ? customer.toObject() : customer;
       const serializedCustomer = serializeDoc(customerData);
 
-      res.json(serializedCustomer);
+      // Also fetch pending table orders for this customer
+      let pendingOrder = null;
+      try {
+        const pendingOrders = await storage.getPendingTableOrders();
+        const custOrder = pendingOrders.find(o => 
+          o.customerInfo?.customerPhone === cleanPhone || 
+          (customer._id && o.customerId?.toString() === customer._id.toString())
+        );
+        if (custOrder) {
+          pendingOrder = serializeDoc(custOrder);
+        }
+      } catch (error) {
+        console.error("Error fetching pending orders:", error);
+      }
+
+      res.json({ 
+        ...serializedCustomer,
+        pendingTableOrder: pendingOrder 
+      });
     } catch (error) {
       console.error("Error fetching customer by phone:", error);
       res.status(500).json({ error: "فشل البحث عن العميل" });
@@ -1633,6 +1651,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const order = await storage.createOrder(orderData);
+
+      // Update table occupancy if this is a table order
+      if (tableId) {
+        try {
+          await storage.updateTableOccupancy(tableId, 1, order.id);
+        } catch (error) {
+          console.error("Error updating table occupancy:", error);
+          // Continue anyway - order was created successfully
+        }
+      }
 
       // Add stamps automatically if customer has loyalty card
       if (finalCustomerId) {
