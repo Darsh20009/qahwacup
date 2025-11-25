@@ -185,6 +185,21 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Table Number Display in Employee Orders (November 25, 2025 - Version 8.4)
+
+### Feature: عرض رقم الطاولة في الطلبات
+الآن عند عرض الطلبات في لوحة موظف المطبخ، تظهر معلومة واضحة أن الطلب من طاولة:
+- **Badge أزرق** يعرض: "طاولة 1"
+- **Icon الطاولة** (👥 Users icon)
+- **الموقع**: جانب رقم الطلب مباشرة
+
+### المنطق:
+- إذا كان الطلب يحتوي على `tableNumber`
+- تظهر Badge بزرقاء واضحة مع رقم الطاولة
+- يساعد الموظفين على التمييز بين:
+  - ✅ طلبات الطاولات (مع رقم)
+  - ✅ طلبات التسليم والاستلام (بدون رقم)
+
 ## Pending Order Display on Table Menu (November 25, 2025 - Version 8.3)
 
 ### New Feature: عرض الطلب المعلق عند سكن QR

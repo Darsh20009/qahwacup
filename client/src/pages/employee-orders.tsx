@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car } from "lucide-react";
+import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car, Users } from "lucide-react";
 import { OrderMeta } from "@/components/OrderMeta";
 import { playNotificationSound } from "@/lib/notification-sound";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
@@ -437,10 +437,18 @@ export default function EmployeeOrders() {
  <div className="flex items-start justify-between mb-4">
  <div className="flex items-center gap-3">
  {getStatusIcon(order.status)}
- <div className="text-right">
+ <div className="text-right flex-1">
+ <div className="flex items-center gap-2 mb-1">
  <h3 className="text-amber-500 font-bold text-lg" data-testid={`text-order-number-${order.id}`}>
  {order.orderNumber}
  </h3>
+ {(order as any).tableNumber && (
+ <Badge className="bg-blue-600 text-xs flex items-center gap-1">
+ <Users className="w-3 h-3" />
+ طاولة {(order as any).tableNumber}
+ </Badge>
+ )}
+ </div>
  <p className="text-gray-400 text-sm">
  {new Date(order.createdAt).toLocaleString('ar-SA')}
  </p>
