@@ -334,7 +334,7 @@ export default function CashierTables() {
                     <div className="text-xs text-muted-foreground mt-1">الطاولة</div>
                   </div>
                   
-                  {table.isOccupied && table.reservedFor ? (
+                  {table.reservedFor?.customerName ? (
                     <div className="space-y-3">
                       {/* Reserved Badge */}
                       <div className="flex justify-center">
