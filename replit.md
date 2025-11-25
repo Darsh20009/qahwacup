@@ -185,6 +185,24 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Pending Order Display on Table Menu (November 25, 2025 - Version 8.3)
+
+### New Feature: عرض الطلب المعلق عند سكن QR
+عندما يعود العميل لنفس الطاولة باستخدام QR code:
+1. **جلب الطلب المعلق تلقائياً** - في `table-menu.tsx`
+   - عند تحميل بيانات الطاولة، إذا كانت `currentOrderId` موجودة، نجلب الطلب من `/api/orders/{orderId}`
+2. **عرض رسالة تنبيه واضحة** - في أعلى المنيو
+   - رسالة: "لديك طلب معلق!"
+   - وصف: "لديك طلب تم طلبه سابقاً من هذه الطاولة ولا يزال في الانتظار"
+   - زر: "متابعة الطلب السابق" - ينقل العميل مباشرة إلى صفحة تتبع الطلب
+3. **تحديث الحالة** - عرض الرسالة فقط إذا كان الطلب لم يكتمل بعد
+
+### المنطق:
+- الطلب يظهر إذا:
+  - الطاولة تحتوي على `currentOrderId` ✅
+  - الطلب موجود ويمكن جلبه ✅
+  - حالة الطلب ليست `completed` ✅
+
 ## Complete Table Order Management System (November 25, 2025 - Version 8.2)
 
 ### Four Major Issues Resolved:

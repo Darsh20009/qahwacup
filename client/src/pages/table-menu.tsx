@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ShoppingCart, Flame, Snowflake, Star, Cake, Sprout, Zap, User, ArrowLeft } from "lucide-react";
+import { Coffee, ShoppingCart, Flame, Snowflake, Star, Cake, Sprout, Zap, User, ArrowLeft, AlertCircle } from "lucide-react";
 import { COFFEE_STRENGTH_CONFIG, getCoffeeStrengthConfig, filterCoffeeByStrength, type CoffeeStrengthType } from "@/lib/utils";
 import type { CoffeeItem } from "@shared/schema";
 
@@ -15,11 +15,21 @@ interface ITable {
   branchId: string;
   isActive: number;
   isOccupied: number;
+  currentOrderId?: string;
   reservedFor?: {
     customerName: string;
     customerPhone: string;
     reservationTime?: string;
     status?: string;
+  };
+}
+
+interface IPendingOrder {
+  id: string;
+  status: string;
+  tableNumber?: string;
+  customerInfo?: {
+    customerName: string;
   };
 }
 
@@ -78,6 +88,17 @@ export default function TableMenuNew() {
       setReservationStatus(status as any);
     }
   }, [table]);
+
+  // Fetch pending order if table has currentOrderId
+  const { data: pendingOrder } = useQuery<IPendingOrder>({
+    queryKey: ["/api/orders", table?._id],
+    enabled: !!table?.currentOrderId,
+    queryFn: async () => {
+      const response = await fetch(`/api/orders/${table?.currentOrderId}`);
+      if (!response.ok) throw new Error("Order not found");
+      return response.json();
+    },
+  });
 
   // Fetch menu items
   const { data: coffeeItems = [], isLoading: menuLoading } = useQuery<CoffeeItem[]>({
@@ -304,6 +325,30 @@ export default function TableMenuNew() {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 relative z-10">
+        {/* Pending Order Alert */}
+        {pendingOrder && pendingOrder.status !== 'completed' && (
+          <div className="mb-8 p-5 bg-amber-50 border-2 border-amber-400 rounded-lg shadow-md">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-bold text-lg text-amber-900 mb-2">لديك طلب معلق!</h3>
+                <p className="text-sm text-amber-800 mb-3">
+                  لديك طلب تم طلبه سابقاً من هذه الطاولة ولا يزال في الانتظار. يمكنك متابعة الطلب أو إنشاء طلب جديد.
+                </p>
+                <Button
+                  onClick={() => {
+                    navigate(`/table-order-tracking/${table?.currentOrderId}`);
+                  }}
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  data-testid="button-view-pending-order"
+                >
+                  متابعة الطلب السابق
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Reservation Status - Show appropriate message based on time window */}
         {table?.reservedFor?.customerName && (
           <div className="mb-8 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
