@@ -185,6 +185,54 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Added Branch Filter to Table Orders Management (November 25, 2025 - Version 8.7)
+
+### ✨ الميزة الجديدة: تصفية الطلبات حسب الفرع
+
+#### المكونات المضافة:
+1. **Select Dropdown** لاختيار الفرع
+   - يعرض "جميع الفروع" كخيار افتراضي
+   - قائمة بجميع الفروع المتاحة
+   - `data-testid="select-branch-filter"`
+
+2. **تصفية ديناميكية** للطلبات:
+   - **الطلبات الجديدة**: تصفية حسب الفرع المختار
+   - **طلباتي**: تصفية حسب الفرع المختار
+   - رسائل خطأ مخصصة: "لا توجد طلبات في هذا الفرع"
+
+3. **تحديث العداد**: 
+   - يعرض العدد الفعلي بناءً على الفرع المختار
+
+#### الملفات المعدلة:
+- `client/src/pages/cashier-table-orders.tsx`
+  - إضافة state: `selectedBranchId`
+  - إضافة دوال تصفية: `filteredUnassignedOrders`, `filteredMyOrders`
+  - إضافة UI للاختيار
+  - تحديث القوائم والعداد
+
+#### الكود المضاف:
+```typescript
+// State للفرع المختار
+const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+
+// تصفية الطلبات
+const filteredUnassignedOrders = selectedBranchId
+  ? unassignedOrders?.filter(order => order.branchId === selectedBranchId) || []
+  : unassignedOrders || [];
+
+const filteredMyOrders = selectedBranchId
+  ? myOrders?.filter(order => order.branchId === selectedBranchId) || []
+  : myOrders || [];
+```
+
+#### الاستخدام:
+1. ادخل صفحة إدارة طلبات الطاولات
+2. ستجد dropdown "تصفية حسب الفرع" بعد العنوان
+3. اختر أي فرع لرؤية الطلبات الخاصة به فقط
+4. اختر "جميع الفروع" للعودة لرؤية الكل
+
+---
+
 ## Fixed Status Options for Table Orders (November 25, 2025 - Version 8.6)
 
 ### Problem: خيارات الحالة كانت غير صحيحة لطلبات الطاولات

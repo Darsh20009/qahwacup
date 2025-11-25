@@ -54,6 +54,7 @@ interface IBranch {
 export default function CashierTableOrders() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const previousOrderIdsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
 
@@ -291,6 +292,15 @@ export default function CashierTableOrders() {
     }
   };
 
+  // Filter orders by selected branch
+  const filteredUnassignedOrders = selectedBranchId
+    ? unassignedOrders?.filter(order => order.branchId === selectedBranchId) || []
+    : unassignedOrders || [];
+
+  const filteredMyOrders = selectedBranchId
+    ? myOrders?.filter(order => order.branchId === selectedBranchId) || []
+    : myOrders || [];
+
   return (
     <div className="min-h-screen bg-background p-4" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -307,13 +317,31 @@ export default function CashierTableOrders() {
           </Button>
         </div>
 
+        {/* Branch Filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Label className="font-semibold">تصفية حسب الفرع:</Label>
+          <Select value={selectedBranchId || ""} onValueChange={(value) => setSelectedBranchId(value || null)}>
+            <SelectTrigger className="w-56" data-testid="select-branch-filter">
+              <SelectValue placeholder="اختر فرع" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">جميع الفروع</SelectItem>
+              {branches.map((branch) => (
+                <SelectItem key={branch._id} value={branch._id}>
+                  {branch.nameAr}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Tabs defaultValue="pending" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="pending">
-              طلبات جديدة ({unassignedOrders?.length || 0})
+              طلبات جديدة ({filteredUnassignedOrders.length})
             </TabsTrigger>
             <TabsTrigger value="my-orders">
-              طلباتي ({myOrders?.filter(o => o.tableStatus !== 'delivered' && o.tableStatus !== 'cancelled').length || 0})
+              طلباتي ({filteredMyOrders.filter(o => o.tableStatus !== 'delivered' && o.tableStatus !== 'cancelled').length})
             </TabsTrigger>
             <TabsTrigger value="tables">
               إدارة الطاولات
@@ -327,13 +355,13 @@ export default function CashierTableOrders() {
                 <CardTitle>الطلبات الجديدة</CardTitle>
               </CardHeader>
               <CardContent>
-                {!unassignedOrders || unassignedOrders.length === 0 ? (
+                {filteredUnassignedOrders.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    لا توجد طلبات جديدة
+                    {selectedBranchId ? "لا توجد طلبات جديدة في هذا الفرع" : "لا توجد طلبات جديدة"}
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {unassignedOrders.map((order) => {
+                    {filteredUnassignedOrders.map((order) => {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       const branch = branches.find(b => b._id === order.branchId);
                       return (
@@ -412,13 +440,13 @@ export default function CashierTableOrders() {
                 <CardTitle>طلباتي</CardTitle>
               </CardHeader>
               <CardContent>
-                {!myOrders || myOrders.length === 0 ? (
+                {filteredMyOrders.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    لا توجد طلبات مستلمة
+                    {selectedBranchId ? "لا توجد طلبات مستلمة في هذا الفرع" : "لا توجد طلبات مستلمة"}
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {myOrders.map((order) => {
+                    {filteredMyOrders.map((order) => {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       return (
                         <Card key={order.id} className="border-2">
