@@ -77,11 +77,13 @@ export default function CashierTables() {
   const { data: tables = [], isLoading } = useQuery<ITable[]>({
     queryKey: ["/api/tables", employeeBranchId],
     queryFn: async () => {
-      const response = await fetch("/api/tables", {
+      const response = await fetch(`/api/tables?branchId=${employeeBranchId}`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch tables");
-      return response.json();
+      const data = await response.json();
+      // Filter by branchId as additional safety check
+      return Array.isArray(data) ? data.filter((t: ITable) => t.branchId === employeeBranchId) : [];
     },
     enabled: !!employeeBranchId,
     refetchInterval: 5000, // Auto-refresh every 5 seconds

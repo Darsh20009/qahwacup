@@ -2702,23 +2702,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tables", requireAuth, async (req: AuthRequest, res) => {
     try {
       const employee = req.employee;
+      const queryBranchId = req.query.branchId as string;
       
-      // Admin can see all tables
+      // Admin can see all tables or specific branch if requested
       if (employee?.role === 'admin') {
+        if (queryBranchId) {
+          const tables = await storage.getTables(queryBranchId);
+          return res.json(tables);
+        }
         const allTables = await storage.getTables();
         return res.json(allTables);
       }
       
-      // Manager can see all tables
+      // Manager can see all tables or specific branch if requested
       if (employee?.role === 'manager') {
+        if (queryBranchId) {
+          const tables = await storage.getTables(queryBranchId);
+          return res.json(tables);
+        }
         const allTables = await storage.getTables();
         return res.json(allTables);
       }
       
       // Other roles (cashier, etc.) see only their branch
-      const branchId = employee?.branchId;
+      const branchId = queryBranchId || employee?.branchId;
       if (!branchId) {
         return res.status(400).json({ error: "Employee branch not assigned" });
+      }
+      
+      // Security: Non-managers can only see their own branch
+      if (branchId !== employee?.branchId) {
+        return res.status(403).json({ error: "Unauthorized: Cannot access other branches" });
       }
       
       const tables = await storage.getTables(branchId);
