@@ -521,30 +521,47 @@ export default function CashierTableOrders() {
 
                               {/* Status Controls */}
                               {order.tableStatus !== "delivered" && order.tableStatus !== "cancelled" && (
-                                <div className="border-t pt-4">
-                                  <Label className="text-sm mb-2 block">تحديث حالة الطلب:</Label>
-                                  <Select
-                                    value={order.tableStatus}
-                                    onValueChange={(value) =>
-                                      updateStatusMutation.mutate({
-                                        orderId: order.id,
-                                        status: value,
-                                      })
-                                    }
-                                  >
-                                    <SelectTrigger data-testid={`select-status-${order.id}`}>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="payment_confirmed">
-                                        تم تأكيد الدفع
-                                      </SelectItem>
-                                      <SelectItem value="preparing">قيد التحضير</SelectItem>
-                                      <SelectItem value="ready">جاهز للتقديم</SelectItem>
-                                      <SelectItem value="delivered">تم التقديم</SelectItem>
-                                      <SelectItem value="cancelled">إلغاء</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                <div className="border-t pt-4 space-y-3">
+                                  <div>
+                                    <Label className="text-sm mb-2 block">تحديث حالة الطلب:</Label>
+                                    <Select
+                                      value={order.tableStatus}
+                                      onValueChange={(value) =>
+                                        updateStatusMutation.mutate({
+                                          orderId: order.id,
+                                          status: value,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger data-testid={`select-status-${order.id}`}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="payment_confirmed">
+                                          تم تأكيد الدفع
+                                        </SelectItem>
+                                        <SelectItem value="preparing">قيد التحضير</SelectItem>
+                                        <SelectItem value="ready">جاهز للتقديم</SelectItem>
+                                        <SelectItem value="delivered">تم التقديم</SelectItem>
+                                        <SelectItem value="cancelled">إلغاء</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        if (confirm(`هل أنت متأكد من رفض طلب الطاولة ${order.tableNumber}؟`)) {
+                                          rejectOrderMutation.mutate(order.id);
+                                        }
+                                      }}
+                                      disabled={rejectOrderMutation.isPending}
+                                      data-testid={`button-reject-order-${order.id}`}
+                                    >
+                                      رفض الطلب
+                                    </Button>
+                                  </div>
                                 </div>
                               )}
                             </div>

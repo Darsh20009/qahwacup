@@ -555,7 +555,7 @@ export default function EmployeeOrders() {
 
  <div className="flex gap-2">
  <Select 
- value={order.status} 
+ value={order.tableStatus || order.status} 
  onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
  >
  <SelectTrigger 
@@ -565,12 +565,24 @@ export default function EmployeeOrders() {
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
- <SelectItem value="pending">إرسال الطلب</SelectItem>
- <SelectItem value="payment_confirmed">تأكيد الدفع</SelectItem>
- <SelectItem value="in_progress">جاري التحضير</SelectItem>
- <SelectItem value="ready">جاهز للاستلام</SelectItem>
- <SelectItem value="completed">مكتمل</SelectItem>
- <SelectItem value="cancelled">ملغي</SelectItem>
+ {order.tableStatus ? (
+  <>
+  <SelectItem value="payment_confirmed">تم تأكيد الدفع</SelectItem>
+  <SelectItem value="preparing">قيد التحضير</SelectItem>
+  <SelectItem value="ready">جاهز للتقديم</SelectItem>
+  <SelectItem value="delivered">تم التقديم</SelectItem>
+  <SelectItem value="cancelled">إلغاء</SelectItem>
+  </>
+ ) : (
+  <>
+  <SelectItem value="pending">إرسال الطلب</SelectItem>
+  <SelectItem value="payment_confirmed">تأكيد الدفع</SelectItem>
+  <SelectItem value="in_progress">جاري التحضير</SelectItem>
+  <SelectItem value="ready">جاهز للاستلام</SelectItem>
+  <SelectItem value="completed">مكتمل</SelectItem>
+  <SelectItem value="cancelled">ملغي</SelectItem>
+  </>
+ )}
  </SelectContent>
  </Select>
  </div>

@@ -167,9 +167,23 @@ export default function TableOrderTracking() {
       case "preparing":
         return {
           icon: ChefHat,
-          label: "جاري التحضير",
+          label: "قيد التحضير",
           description: "طلبك قيد التحضير الآن",
           color: "text-orange-500",
+        };
+      case "ready":
+        return {
+          icon: CheckCircle,
+          label: "جاهز للتقديم",
+          description: "طلبك جاهز والآن يتم تقديمه لك",
+          color: "text-green-500",
+        };
+      case "delivered":
+        return {
+          icon: CheckCircle,
+          label: "تم التقديم",
+          description: "تم تقديم طلبك بنجاح",
+          color: "text-green-500",
         };
       case "delivering_to_table":
         return {
@@ -177,13 +191,6 @@ export default function TableOrderTracking() {
           label: "جاري التوصيل",
           description: "طلبك في الطريق إلى طاولتك",
           color: "text-purple-500",
-        };
-      case "delivered":
-        return {
-          icon: CheckCircle,
-          label: "تم التوصيل",
-          description: "تم توصيل طلبك بنجاح",
-          color: "text-green-500",
         };
       case "cancelled":
         return {
