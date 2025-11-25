@@ -327,7 +327,7 @@ export default function CashierTableOrders() {
 
           {/* Unassigned Orders */}
           <TabsContent value="pending">
-            <Card className="bg-[#2d1f1a] border-amber-500/20">
+            <Card className="border-amber-500/20 bg-[#54513f]">
               <CardHeader>
                 <CardTitle className="text-amber-500 text-right">الطلبات الجديدة</CardTitle>
               </CardHeader>
@@ -412,7 +412,7 @@ export default function CashierTableOrders() {
 
           {/* My Orders */}
           <TabsContent value="my-orders">
-            <Card className="bg-[#2d1f1a] border-amber-500/20">
+            <Card className="border-amber-500/20 bg-[#54513f]">
               <CardHeader>
                 <CardTitle className="text-amber-500 text-right">طلباتي</CardTitle>
               </CardHeader>
@@ -512,7 +512,7 @@ export default function CashierTableOrders() {
 
           {/* Tables Management */}
           <TabsContent value="tables">
-            <Card className="bg-[#2d1f1a] border-amber-500/20">
+            <Card className="border-amber-500/20 bg-[#54513f]">
               <CardHeader>
                 <CardTitle className="text-amber-500 text-right">إدارة الطاولات</CardTitle>
               </CardHeader>
