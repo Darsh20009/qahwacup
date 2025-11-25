@@ -292,6 +292,35 @@ export default function CashierTableOrders() {
     }
   };
 
+  // Complete all orders mutation
+  const completeAllOrdersMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/orders/complete-all', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to complete all orders');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders/table/unassigned"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cashier", employee?._id, "orders"] });
+      toast({
+        title: "تم بنجاح",
+        description: data.message,
+        className: "bg-green-600 text-white",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل تحديث الطلبات",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter orders by selected branch
   const filteredUnassignedOrders = selectedBranchId
     ? unassignedOrders?.filter(order => order.branchId === selectedBranchId) || []
@@ -317,15 +346,15 @@ export default function CashierTableOrders() {
           </Button>
         </div>
 
-        {/* Branch Filter */}
+        {/* Branch Filter and Action Buttons */}
         <div className="flex flex-wrap items-center gap-3">
           <Label className="font-semibold">تصفية حسب الفرع:</Label>
-          <Select value={selectedBranchId || ""} onValueChange={(value) => setSelectedBranchId(value || null)}>
+          <Select value={selectedBranchId || "all"} onValueChange={(value) => setSelectedBranchId(value === "all" ? null : value)}>
             <SelectTrigger className="w-56" data-testid="select-branch-filter">
               <SelectValue placeholder="اختر فرع" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">جميع الفروع</SelectItem>
+              <SelectItem value="all">جميع الفروع</SelectItem>
               {branches.map((branch) => (
                 <SelectItem key={branch._id} value={branch._id}>
                   {branch.nameAr}
@@ -333,6 +362,19 @@ export default function CashierTableOrders() {
               ))}
             </SelectContent>
           </Select>
+
+          <Button 
+            onClick={() => {
+              if (confirm('هل تريد حقاً جعل جميع الطلبات مكتملة؟')) {
+                completeAllOrdersMutation.mutate();
+              }
+            }}
+            disabled={completeAllOrdersMutation.isPending}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            data-testid="button-complete-all-orders"
+          >
+            {completeAllOrdersMutation.isPending ? 'جاري المعالجة...' : 'جعل جميع الطلبات مكتملة'}
+          </Button>
         </div>
 
         <Tabs defaultValue="pending" className="space-y-4">

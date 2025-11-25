@@ -185,6 +185,129 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Added Admin Control Features (November 25, 2025 - Version 8.8)
+
+### ✨ جديد: أزرار التحكم الإدارية للطوارئ
+
+#### المميزات المضافة:
+
+##### 1. **زر جعل جميع الطلبات مكتملة** (Complete All Orders)
+**الموقع**: صفحة إدارة طلبات الطاولات (`cashier-table-orders.tsx`)
+- **الزر**: أخضر (bg-emerald-600)
+- **الوظيفة**: تحديث جميع الطلبات غير المكتملة إلى حالة "مكتمل"
+- **التأكيد**: رسالة تأكيد قبل التنفيذ
+- **الاستخدام**: للاختبار السريع والتطوير
+
+**API Endpoint:**
+```
+PATCH /api/orders/complete-all
+```
+- يحدّث جميع الطلبات التي ليست `completed` أو `cancelled`
+- يعيّن `status: 'completed'` و `tableStatus: 'delivered'`
+- يرجع عدد الطلبات المحدثة
+
+##### 2. **زر تنظيف جميع البيانات** (Clear All Data)
+**الموقع**: لوحة تحكم المدير (`manager-dashboard.tsx`)
+- **ظهور**: للمسؤولين فقط (`isAdmin`)
+- **الزر**: أحمر (destructive variant)
+- **الوظيفة**: حذف جميع الطلبات والعملاء من النظام
+- **التأكيد**: رسالة تحذير قبل التنفيذ
+- **الاستخدام**: للاختبار وتنظيف البيانات التطويرية
+
+**API Endpoint:**
+```
+DELETE /api/admin/clear-all-data
+```
+- **الأمان**: يتحقق من أن المستخدم `admin` فقط
+- يحذف جميع المستندات من collections:
+  - `Orders` - جميع الطلبات
+  - `Customers` - جميع العملاء
+- يرجع عدد المستندات المحذوفة
+
+#### الملفات المعدلة:
+
+##### Backend (server/routes.ts):
+- إضافة endpoint `PATCH /api/orders/complete-all`
+- إضافة endpoint `DELETE /api/admin/clear-all-data`
+- كلا الـ endpoints يتطلب مصادقة `requireAuth`
+
+##### Frontend:
+- `client/src/pages/cashier-table-orders.tsx`:
+  - إضافة mutation `completeAllOrdersMutation`
+  - إضافة زر أخضر مع تأكيد
+  - رسالة نجاح عند اكتمال العملية
+
+- `client/src/pages/manager-dashboard.tsx`:
+  - إضافة mutation `clearAllDataMutation`
+  - إضافة زر أحمر (إداري فقط)
+  - رسائل تحذير وتأكيد
+
+#### الكود المضاف:
+
+**Backend (server/routes.ts):**
+```typescript
+// Complete all orders
+app.patch("/api/orders/complete-all", requireAuth, async (req, res) => {
+  const { OrderModel } = await import("@shared/schema");
+  const result = await OrderModel.updateMany(
+    { $nor: [{ status: 'completed' }, { status: 'cancelled' }] },
+    { $set: { status: 'completed', tableStatus: 'delivered' } }
+  );
+  res.json({ success: true, message: `تم تحديث ${result.modifiedCount} طلب` });
+});
+
+// Clear all data (admin only)
+app.delete("/api/admin/clear-all-data", requireAuth, async (req, res) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: "Admin only" });
+  const { OrderModel, CustomerModel } = await import("@shared/schema");
+  const deletedOrders = await OrderModel.deleteMany({});
+  const deletedCustomers = await CustomerModel.deleteMany({});
+  res.json({ success: true, deletedOrders: deletedOrders.deletedCount, deletedCustomers: deletedCustomers.deletedCount });
+});
+```
+
+**Frontend UI (cashier-table-orders):**
+```typescript
+const completeAllOrdersMutation = useMutation({
+  mutationFn: () => fetch('/api/orders/complete-all', { method: 'PATCH' }),
+  onSuccess: (data) => {
+    queryClient.invalidateQueries({ queryKey: ["/api/orders/table/unassigned"] });
+    toast({ title: "تم بنجاح", description: data.message });
+  }
+});
+
+<Button 
+  onClick={() => confirm('هل تريد...') && completeAllOrdersMutation.mutate()}
+  disabled={completeAllOrdersMutation.isPending}
+  className="bg-emerald-600 hover:bg-emerald-700"
+  data-testid="button-complete-all-orders"
+>
+  جعل جميع الطلبات مكتملة
+</Button>
+```
+
+#### الاستخدام:
+
+1. **جعل الطلبات مكتملة**:
+   - اذهب إلى "إدارة طلبات الطاولات"
+   - انقر على الزر الأخضر "جعل جميع الطلبات مكتملة"
+   - اضغط "نعم" في رسالة التأكيد
+   - سيتم تحديث جميع الطلبات وستظهر رسالة النجاح
+
+2. **تنظيف البيانات** (الإداريين فقط):
+   - اذهب إلى "لوحة تحكم المدير"
+   - الزر الأحمر "تنظيف جميع البيانات" يظهر فقط للإداريين
+   - انقر على الزر وأكمل التأكيد
+   - سيتم حذف جميع الطلبات والعملاء
+
+#### الفائدة:
+
+✅ **للاختبار**: سهل تنظيف البيانات والبدء من جديد
+✅ **للديموجرافي**: جعل الطلبات مكتملة بنقرة واحدة
+✅ **للأمان**: التحقق من الأدوار والتأكيد من المستخدم
+
+---
+
 ## Added Branch Filter to Table Orders Management (November 25, 2025 - Version 8.7)
 
 ### ✨ الميزة الجديدة: تصفية الطلبات حسب الفرع

@@ -259,6 +259,36 @@ export default function ManagerDashboard() {
  }
  };
 
+
+// Clear all data mutation - admin only
+const clearAllDataMutation = useMutation({
+  mutationFn: async () => {
+    const response = await fetch('/api/admin/clear-all-data', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to clear data');
+    return response.json();
+  },
+  onSuccess: (data) => {
+    queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+    toast({
+      title: "تم بنجاح",
+      description: data.message,
+      className: "bg-red-600 text-white",
+    });
+  },
+  onError: () => {
+    toast({
+      title: "خطأ",
+      description: "فشل تنظيف البيانات",
+      variant: "destructive",
+    });
+  },
+});
+
  if (!manager) {
  return null;
  }
@@ -430,6 +460,20 @@ export default function ManagerDashboard() {
  >
  تسجيل الخروج
  </Button>
+ {isAdmin && (
+   <Button
+     variant="destructive"
+     onClick={() => {
+       if (confirm('تحذير: هذا سيحذف جميع الطلبات والعملاء! هل تريد المتابعة؟')) {
+         clearAllDataMutation.mutate();
+       }
+     }}
+     disabled={clearAllDataMutation.isPending}
+     data-testid="button-clear-all-data"
+   >
+     {clearAllDataMutation.isPending ? 'جاري الحذف...' : 'تنظيف جميع البيانات'}
+   </Button>
+ )}
  </div>
  </div>
 

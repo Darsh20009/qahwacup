@@ -3668,6 +3668,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete all orders - for testing/demo
+  app.patch("/api/orders/complete-all", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { OrderModel } = await import("@shared/schema");
+      
+      // Update all non-completed orders to completed
+      const result = await OrderModel.updateMany(
+        {
+          $nor: [
+            { status: 'completed' },
+            { status: 'cancelled' }
+          ]
+        },
+        {
+          $set: {
+            status: 'completed',
+            tableStatus: 'delivered'
+          }
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `تم تحديث ${result.modifiedCount} طلب إلى حالة مكتمل`,
+        modifiedCount: result.modifiedCount
+      });
+    } catch (error) {
+      console.error("Error completing all orders:", error);
+      res.status(500).json({ error: "Failed to complete all orders" });
+    }
+  });
+
+  // Clear all data - admin only
+  app.delete("/api/admin/clear-all-data", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Check if user is admin
+      const user = req.user as any;
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ error: "Only admins can clear all data" });
+      }
+
+      const { OrderModel, CustomerModel, CoffeeItemModel } = await import("@shared/schema");
+      
+      // Delete all data
+      const deletedOrders = await OrderModel.deleteMany({});
+      const deletedCustomers = await CustomerModel.deleteMany({});
+      
+      res.json({
+        success: true,
+        message: "تم حذف جميع البيانات بنجاح",
+        deletedOrders: deletedOrders.deletedCount,
+        deletedCustomers: deletedCustomers.deletedCount,
+      });
+    } catch (error) {
+      console.error("Error clearing all data:", error);
+      res.status(500).json({ error: "Failed to clear all data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
