@@ -60,10 +60,9 @@ export default function CashierTables() {
   const { data: tables = [], isLoading } = useQuery<ITable[]>({
     queryKey: ["/api/tables", employeeBranchId],
     queryFn: async () => {
-      const url = employeeBranchId 
-        ? `/api/tables?branchId=${employeeBranchId}`
-        : "/api/tables";
-      const response = await fetch(url);
+      const response = await fetch("/api/tables", {
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch tables");
       return response.json();
     },

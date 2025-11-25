@@ -2698,12 +2698,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // TABLE MANAGEMENT ROUTES - إدارة الطاولات
   
-  // Get tables for current employee's branch only
+  // Get tables - for managers/admins (all branches) or cashiers (their branch only)
   app.get("/api/tables", requireAuth, async (req: AuthRequest, res) => {
     try {
-      // Use employee's branch ID - not from query string (security measure)
-      const branchId = req.employee?.branchId;
+      const employee = req.employee;
       
+      // Admin can see all tables
+      if (employee?.role === 'admin') {
+        const allTables = await storage.getTables();
+        return res.json(allTables);
+      }
+      
+      // Manager can see all tables
+      if (employee?.role === 'manager') {
+        const allTables = await storage.getTables();
+        return res.json(allTables);
+      }
+      
+      // Other roles (cashier, etc.) see only their branch
+      const branchId = employee?.branchId;
       if (!branchId) {
         return res.status(400).json({ error: "Employee branch not assigned" });
       }

@@ -68,9 +68,16 @@ export default function ManagerTables() {
     queryKey: ["/api/branches"],
   });
 
-  // Fetch tables
-  const { data: tables, isLoading } = useQuery<ITable[]>({
+  // Fetch tables (all branches for manager)
+  const { data: tables = [], isLoading } = useQuery<ITable[]>({
     queryKey: ["/api/tables"],
+    queryFn: async () => {
+      const response = await fetch("/api/tables", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch tables");
+      return response.json();
+    },
   });
 
   // Create single table mutation

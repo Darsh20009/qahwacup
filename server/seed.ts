@@ -321,6 +321,34 @@ export async function seedEmployees() {
   }
 }
 
+export async function seedTables() {
+  console.log("📊 Seeding tables...");
+  
+  try {
+    // Get all branches
+    const branches = await storage.getBranches();
+    
+    for (const branch of branches) {
+      // Check if tables already exist for this branch
+      const existingTables = await storage.getTables(branch._id?.toString());
+      
+      if (existingTables && existingTables.length > 0) {
+        console.log(`ℹ️  Tables already exist for branch: ${branch.nameAr} (${existingTables.length} tables)`);
+      } else {
+        // Create 10 tables for each branch
+        try {
+          const createdTables = await storage.bulkCreateTables(10, branch._id?.toString());
+          console.log(`✅ Created ${createdTables.length} tables for branch: ${branch.nameAr}`);
+        } catch (error) {
+          console.error(`❌ Error creating tables for branch ${branch.nameAr}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error seeding tables:", error);
+  }
+}
+
 export async function runSeeds() {
   console.log("\n🌱 Starting database seeding...\n");
   
@@ -341,6 +369,9 @@ export async function runSeeds() {
   
   console.log("\n👥 Seeding employees...");
   await seedEmployees();
+  
+  console.log("\n📊 Seeding tables...");
+  await seedTables();
   
   console.log("\n✅ Seeding completed!\n");
 }
