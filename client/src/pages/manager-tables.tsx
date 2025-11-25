@@ -394,7 +394,7 @@ export default function ManagerTables() {
 
         {/* QR Code Dialog */}
         <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-[#fefffe]" dir="rtl">
             <DialogHeader>
               <DialogTitle>
                 بطاقة QR للطاولة {selectedTable?.tableNumber}
