@@ -252,8 +252,8 @@ export default function TableMenuNew() {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 relative z-10">
-        {/* Reservation Phone Verification */}
-        {table?.reservedFor && !reservationPhoneVerified && (
+        {/* Reservation Phone Verification - Only show if table is actually reserved */}
+        {table?.reservedFor?.customerName && !reservationPhoneVerified && (
           <div className="mb-8 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
             <h3 className="font-bold text-lg mb-3 text-blue-900">التحقق من الحجز</h3>
             <p className="text-sm text-blue-800 mb-3">هذه الطاولة محجوزة باسم: <strong>{table.reservedFor.customerName}</strong></p>
