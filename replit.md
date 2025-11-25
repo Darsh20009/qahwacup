@@ -185,6 +185,32 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Table Release Bug Fix (November 25, 2025 - Version 8.1)
+
+### Problem:
+When cashier clicked "تحرير الطاولة" (Release Table), the table would show the reservation still exists instead of clearing it immediately.
+
+### Root Cause:
+MongoDB wasn't properly removing the `reservedFor` and `currentOrderId` fields when set to `undefined`. These fields persisted in the database document.
+
+### Solution Applied:
+1. **Backend (server/routes.ts)**: Changed `undefined` to `null` for fields to be deleted
+2. **Storage Layer (server/storage.ts)**: Enhanced `updateTable()` to use MongoDB's `$unset` operator for proper field deletion:
+   ```typescript
+   // Convert null values to $unset operations
+   if (updateObj[key] === null) {
+     unsetObj[key] = 1;  // MongoDB will delete this field
+     delete updateObj[key];
+   }
+   ```
+
+### Frontend (already working):
+- `refetchQueries` ensures immediate UI refresh after release/approve/cancel operations
+- All mutations properly refetch table data
+
+### Result:
+✅ Tables now release correctly and immediately turn green (available) status
+
 ## Smart Reservation Time Window (November 25, 2025 - Version 8)
 
 ### Feature Overview:

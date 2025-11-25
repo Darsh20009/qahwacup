@@ -3063,8 +3063,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const table = await storage.updateTable(req.params.id, {
         isOccupied: 0,
-        reservedFor: undefined,
-        currentOrderId: undefined
+        reservedFor: null as any,
+        currentOrderId: null as any
       });
 
       if (!table) {

@@ -1164,9 +1164,33 @@ export class DBStorage implements IStorage {
   }
 
   async updateTable(id: string, updates: Partial<Table>): Promise<Table | undefined> {
+    // Build update object, handling null values to remove fields
+    const updateObj: any = { ...updates, updatedAt: new Date() };
+    const unsetObj: any = {};
+    
+    // Move null values to $unset for proper field removal
+    Object.keys(updateObj).forEach(key => {
+      if (updateObj[key] === null) {
+        unsetObj[key] = 1;
+        delete updateObj[key];
+      }
+    });
+    
+    // Build the final update query
+    const query: any = {};
+    if (Object.keys(updateObj).length > 0) {
+      query.$set = updateObj;
+    }
+    if (Object.keys(unsetObj).length > 0) {
+      query.$unset = unsetObj;
+    }
+    
+    // If query is empty, just return the table
+    const finalQuery = Object.keys(query).length === 0 ? updateObj : query;
+    
     const updated = await TableModel.findByIdAndUpdate(
       id,
-      { ...updates, updatedAt: new Date() },
+      finalQuery,
       { new: true }
     );
     return updated || undefined;
