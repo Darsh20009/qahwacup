@@ -63,6 +63,7 @@ export default function EmployeeOrders() {
  const [statusFilter, setStatusFilter] = useState<string>("all");
  const [searchQuery, setSearchQuery] = useState("");
  const [newOrdersCount, setNewOrdersCount] = useState(0);
+ const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
  const previousOrderIdsRef = useRef<Set<string>>(new Set());
  const { toast } = useToast();
 
@@ -193,6 +194,33 @@ export default function EmployeeOrders() {
  });
  };
 
+ const completeAllOrdersMutation = useMutation({
+ mutationFn: async () => {
+ const response = await fetch('/api/orders/complete-all', {
+ method: 'PATCH',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ });
+ if (!response.ok) throw new Error('Failed to complete all orders');
+ return response.json();
+ },
+ onSuccess: (data) => {
+ queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+ toast({
+ title: "تم بنجاح",
+ description: data.message,
+ className: "bg-green-600 text-white",
+ });
+ },
+ onError: (error: Error) => {
+ toast({
+ title: "خطأ",
+ description: error.message,
+ variant: "destructive",
+ });
+ },
+ });
+
  const getStatusBadge = (status: string) => {
  switch (status) {
  case "pending":
@@ -249,6 +277,11 @@ export default function EmployeeOrders() {
 
  // Apply filters
  const filteredOrders = orders.filter(order => {
+ // Branch filter
+ if (selectedBranchId && order.branchId !== selectedBranchId) {
+ return false;
+ }
+
  // Status filter
  if (statusFilter !== "all") {
  if (statusFilter === "active") {
@@ -330,6 +363,37 @@ export default function EmployeeOrders() {
  العودة
  </Button>
  </div>
+ </div>
+
+ {/* Branch Filter and Complete All Orders Button */}
+ <div className="flex flex-wrap items-center gap-3">
+ <Label className="font-semibold">تصفية حسب الفرع:</Label>
+ <Select value={selectedBranchId || "all"} onValueChange={(value) => setSelectedBranchId(value === "all" ? null : value)}>
+ <SelectTrigger className="w-56" data-testid="select-branch-filter">
+ <SelectValue placeholder="اختر فرع" />
+ </SelectTrigger>
+ <SelectContent>
+ <SelectItem value="all">جميع الفروع</SelectItem>
+ {allBranches.map((branch) => (
+ <SelectItem key={branch._id} value={branch._id}>
+ {branch.nameAr}
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+
+ <Button 
+ onClick={() => {
+ if (confirm('هل تريد حقاً جعل جميع الطلبات مكتملة؟')) {
+ completeAllOrdersMutation.mutate();
+ }
+ }}
+ disabled={completeAllOrdersMutation.isPending}
+ className="bg-emerald-600 hover:bg-emerald-700 text-white"
+ data-testid="button-complete-all-orders"
+ >
+ {completeAllOrdersMutation.isPending ? 'جاري المعالجة...' : 'جعل جميع الطلبات مكتملة'}
+ </Button>
  </div>
 
  {/* Filters */}

@@ -54,7 +54,6 @@ interface IBranch {
 export default function CashierTableOrders() {
   const [, setLocation] = useLocation();
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const previousOrderIdsRef = useRef<Set<string>>(new Set());
   const { toast } = useToast();
 
@@ -292,43 +291,9 @@ export default function CashierTableOrders() {
     }
   };
 
-  // Complete all orders mutation
-  const completeAllOrdersMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/orders/complete-all', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to complete all orders');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/orders/table/unassigned"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/cashier", employee?._id, "orders"] });
-      toast({
-        title: "تم بنجاح",
-        description: data.message,
-        className: "bg-green-600 text-white",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "خطأ",
-        description: "فشل تحديث الطلبات",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Filter orders by selected branch
-  const filteredUnassignedOrders = selectedBranchId
-    ? unassignedOrders?.filter(order => order.branchId === selectedBranchId) || []
-    : unassignedOrders || [];
-
-  const filteredMyOrders = selectedBranchId
-    ? myOrders?.filter(order => order.branchId === selectedBranchId) || []
-    : myOrders || [];
+  // No branch filtering needed here
+  const filteredUnassignedOrders = unassignedOrders || [];
+  const filteredMyOrders = myOrders || [];
 
   return (
     <div className="min-h-screen bg-background p-4" dir="rtl">
@@ -346,36 +311,6 @@ export default function CashierTableOrders() {
           </Button>
         </div>
 
-        {/* Branch Filter and Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3">
-          <Label className="font-semibold">تصفية حسب الفرع:</Label>
-          <Select value={selectedBranchId || "all"} onValueChange={(value) => setSelectedBranchId(value === "all" ? null : value)}>
-            <SelectTrigger className="w-56" data-testid="select-branch-filter">
-              <SelectValue placeholder="اختر فرع" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع الفروع</SelectItem>
-              {branches.map((branch) => (
-                <SelectItem key={branch._id} value={branch._id}>
-                  {branch.nameAr}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button 
-            onClick={() => {
-              if (confirm('هل تريد حقاً جعل جميع الطلبات مكتملة؟')) {
-                completeAllOrdersMutation.mutate();
-              }
-            }}
-            disabled={completeAllOrdersMutation.isPending}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            data-testid="button-complete-all-orders"
-          >
-            {completeAllOrdersMutation.isPending ? 'جاري المعالجة...' : 'جعل جميع الطلبات مكتملة'}
-          </Button>
-        </div>
 
         <Tabs defaultValue="pending" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
@@ -399,7 +334,7 @@ export default function CashierTableOrders() {
               <CardContent>
                 {filteredUnassignedOrders.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    {selectedBranchId ? "لا توجد طلبات جديدة في هذا الفرع" : "لا توجد طلبات جديدة"}
+                    لا توجد طلبات جديدة
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -484,7 +419,7 @@ export default function CashierTableOrders() {
               <CardContent>
                 {filteredMyOrders.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    {selectedBranchId ? "لا توجد طلبات مستلمة في هذا الفرع" : "لا توجد طلبات مستلمة"}
+                    لا توجد طلبات مستلمة
                   </div>
                 ) : (
                   <div className="space-y-4">
