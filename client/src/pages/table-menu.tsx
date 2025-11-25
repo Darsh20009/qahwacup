@@ -128,8 +128,8 @@ export default function TableMenuNew() {
       return;
     }
 
-    // If table is reserved, verify reservation phone number
-    if (table?.reservedFor && !reservationPhoneVerified) {
+    // If table is reserved, verify reservation phone number - ONLY if it has actual reservation data
+    if (table?.reservedFor?.customerName && !reservationPhoneVerified) {
       const phoneToVerify = reservationPhoneInput.trim();
       if (!phoneToVerify) {
         toast({
