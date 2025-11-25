@@ -296,13 +296,13 @@ export default function CashierTableOrders() {
   const filteredMyOrders = myOrders || [];
 
   return (
-    <div className="min-h-screen bg-background p-4" dir="rtl">
+    <div className="min-h-screen bg-[#0f0d0a] p-4" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">إدارة طلبات الطاولات</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold text-amber-500">إدارة طلبات الطاولات</h1>
+            <p className="text-gray-400">
               مرحباً {employee?.fullName}
             </p>
           </div>
@@ -327,13 +327,13 @@ export default function CashierTableOrders() {
 
           {/* Unassigned Orders */}
           <TabsContent value="pending">
-            <Card>
+            <Card className="bg-[#2d1f1a] border-amber-500/20">
               <CardHeader>
-                <CardTitle>الطلبات الجديدة</CardTitle>
+                <CardTitle className="text-amber-500 text-right">الطلبات الجديدة</CardTitle>
               </CardHeader>
               <CardContent>
                 {filteredUnassignedOrders.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-gray-400">
                     لا توجد طلبات جديدة
                   </div>
                 ) : (
@@ -342,7 +342,7 @@ export default function CashierTableOrders() {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       const branch = branches.find(b => b._id === order.branchId);
                       return (
-                        <Card key={order.id} className="border-2">
+                        <Card key={order.id} className="bg-[#1a1410] border-amber-500/10">
                           <CardContent className="p-4">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                               <div className="flex-1 space-y-2">
@@ -412,13 +412,13 @@ export default function CashierTableOrders() {
 
           {/* My Orders */}
           <TabsContent value="my-orders">
-            <Card>
+            <Card className="bg-[#2d1f1a] border-amber-500/20">
               <CardHeader>
-                <CardTitle>طلباتي</CardTitle>
+                <CardTitle className="text-amber-500 text-right">طلباتي</CardTitle>
               </CardHeader>
               <CardContent>
                 {filteredMyOrders.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-gray-400">
                     لا توجد طلبات مستلمة
                   </div>
                 ) : (
@@ -426,7 +426,7 @@ export default function CashierTableOrders() {
                     {filteredMyOrders.map((order) => {
                       const StatusIcon = getStatusIcon(order.tableStatus);
                       return (
-                        <Card key={order.id} className="border-2">
+                        <Card key={order.id} className="bg-[#1a1410] border-amber-500/10">
                           <CardContent className="p-4">
                             <div className="space-y-4">
                               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -439,16 +439,16 @@ export default function CashierTableOrders() {
                                     {getStatusBadge(order.tableStatus)}
                                   </div>
                                   {order.customerInfo && (
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-2 text-sm text-gray-400">
                                       <User className="w-4 h-4" />
                                       <span>{order.customerInfo.customerName || order.customerInfo.name}</span>
                                     </div>
                                   )}
-                                  <div className="text-sm">
+                                  <div className="text-sm text-white">
                                     <span className="font-medium">العناصر:</span>{" "}
                                     {Array.isArray(order.items) ? order.items.map((item: any) => `${item.nameAr} (${item.quantity})`).join(", ") : "لا توجد عناصر"}
                                   </div>
-                                  <div className="font-bold text-lg">
+                                  <div className="font-bold text-lg text-amber-500">
                                     {order.totalAmount.toFixed(2)} ر.س
                                   </div>
                                 </div>
@@ -456,9 +456,9 @@ export default function CashierTableOrders() {
 
                               {/* Status Controls */}
                               {order.tableStatus !== "delivered" && order.tableStatus !== "cancelled" && (
-                                <div className="border-t pt-4 space-y-3">
+                                <div className="border-t border-amber-500/20 pt-4 space-y-3">
                                   <div>
-                                    <Label className="text-sm mb-2 block">تحديث حالة الطلب:</Label>
+                                    <Label className="text-amber-400 text-sm mb-2 block">تحديث حالة الطلب:</Label>
                                     <Select
                                       value={order.tableStatus}
                                       onValueChange={(value) =>
@@ -512,13 +512,13 @@ export default function CashierTableOrders() {
 
           {/* Tables Management */}
           <TabsContent value="tables">
-            <Card>
+            <Card className="bg-[#2d1f1a] border-amber-500/20">
               <CardHeader>
-                <CardTitle>إدارة الطاولات</CardTitle>
+                <CardTitle className="text-amber-500 text-right">إدارة الطاولات</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-gray-400 mb-4">
                     لإدارة الطاولات، يرجى الذهاب إلى لوحة تحكم المدير
                   </p>
                   <Button onClick={() => setLocation("/manager/tables")}>
