@@ -2873,6 +2873,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle table active status
+  app.patch("/api/tables/:id/toggle-active", async (req, res) => {
+    try {
+      const table = await storage.getTable(req.params.id);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+      
+      const updated = await storage.updateTable(req.params.id, {
+        isActive: table.isActive ? 0 : 1
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error toggling table active status:", error);
+      res.status(500).json({ error: "Failed to toggle table status" });
+    }
+  });
+
   app.delete("/api/tables/:id", async (req, res) => {
     try {
       const deleted = await storage.deleteTable(req.params.id);

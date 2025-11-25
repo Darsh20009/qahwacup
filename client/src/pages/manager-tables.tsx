@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Table as TableIcon, Plus, Trash2, Download, QrCode } from "lucide-react";
+import { Table as TableIcon, Plus, Trash2, Download, QrCode, Power } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -139,11 +139,39 @@ export default function ManagerTables() {
     },
   });
 
+  // Toggle table active status mutation
+  const toggleActiveStatusMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/tables/${id}/toggle-active`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to toggle table status");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      toast({
+        title: "تم تحديث الحالة",
+        description: "تم تحديث حالة الطاولة بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل تحديث حالة الطاولة",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete table mutation
   const deleteTableMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/tables/${id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to delete table");
       return response.ok;
@@ -307,14 +335,17 @@ export default function ManagerTables() {
                         طاولة {table.tableNumber}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${table.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          {table.isActive ? (
-                            <Badge variant="default" className="bg-green-600 hover:bg-green-700">نشطة</Badge>
-                          ) : (
-                            <Badge variant="secondary">غير نشطة</Badge>
-                          )}
-                        </div>
+                        <Button
+                          size="sm"
+                          variant={table.isActive ? "default" : "outline"}
+                          onClick={() => toggleActiveStatusMutation.mutate(table._id)}
+                          disabled={toggleActiveStatusMutation.isPending}
+                          className="w-full justify-center"
+                          data-testid={`button-toggle-active-${table.tableNumber}`}
+                        >
+                          <Power className="w-3 h-3 ml-1" />
+                          {table.isActive ? "نشطة" : "غير نشطة"}
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -327,7 +358,7 @@ export default function ManagerTables() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button
                             size="sm"
                             variant="outline"
@@ -335,13 +366,18 @@ export default function ManagerTables() {
                             data-testid={`button-qr-${table.tableNumber}`}
                           >
                             <QrCode className="w-4 h-4 ml-1" />
-                            عرض QR
+                            QR
                           </Button>
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => deleteTableMutation.mutate(table._id)}
-                            disabled={table.isOccupied === 1}
+                            onClick={() => {
+                              if (window.confirm(`هل أنت متأكد من حذف الطاولة ${table.tableNumber}؟`)) {
+                                deleteTableMutation.mutate(table._id);
+                              }
+                            }}
+                            disabled={deleteTableMutation.isPending || table.isOccupied === 1}
+                            title={table.isOccupied === 1 ? "لا يمكن حذف طاولة مشغولة" : "حذف الطاولة"}
                             data-testid={`button-delete-${table.tableNumber}`}
                           >
                             <Trash2 className="w-4 h-4" />
