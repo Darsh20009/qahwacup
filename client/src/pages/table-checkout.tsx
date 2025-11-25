@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, User, Phone } from "lucide-react";
+import { Coffee, ArrowRight, User, Phone, Loader } from "lucide-react";
 
 interface CartItem {
   item: {
@@ -24,6 +24,7 @@ export default function TableCheckout() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
 
   const tableId = params?.tableId;
   const tableNumber = params?.tableNumber;
@@ -35,11 +36,56 @@ export default function TableCheckout() {
     return cart.reduce((total, ci) => total + ci.item.price * ci.quantity, 0);
   };
 
+  // Search for customer by phone
+  const handlePhoneChange = async (phone: string) => {
+    setCustomerPhone(phone);
+    
+    // Only search if phone has 9 digits (complete)
+    if (phone.trim().length === 9) {
+      setIsSearchingCustomer(true);
+      try {
+        const response = await fetch(`/api/customers/by-phone/${phone.trim()}`);
+        if (response.ok) {
+          const customer = await response.json();
+          if (customer && customer.fullName) {
+            setCustomerName(customer.fullName);
+            toast({
+              title: "تم العثور على العميل",
+              description: `مرحباً ${customer.fullName}`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error searching customer:", error);
+      } finally {
+        setIsSearchingCustomer(false);
+      }
+    }
+  };
+
   const handleSubmitOrder = async () => {
     if (!customerName || customerName.trim() === "") {
       toast({
         title: "خطأ",
         description: "الرجاء إدخال الاسم",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!customerPhone || customerPhone.trim() === "") {
+      toast({
+        title: "خطأ",
+        description: "رقم الجوال مطلوب",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (customerPhone.trim().length !== 9) {
+      toast({
+        title: "خطأ",
+        description: "رقم الجوال يجب أن يكون 9 أرقام",
         variant: "destructive",
       });
       return;
@@ -65,7 +111,7 @@ export default function TableCheckout() {
         tableStatus: "pending",
         customerInfo: {
           customerName: customerName.trim(),
-          phone: customerPhone.trim() || "guest",
+          customerPhone: customerPhone.trim(),
         },
       };
 
@@ -188,17 +234,25 @@ export default function TableCheckout() {
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-base flex items-center gap-2 font-semibold text-slate-700">
                 <Phone className="w-5 h-5 text-amber-600" />
-                رقم الجوال (اختياري)
+                رقم الجوال *
               </Label>
-              <Input
-                id="phone"
-                placeholder="5xxxxxxxx"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                maxLength={9}
-                className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400"
-                data-testid="input-phone"
-              />
+              <div className="relative">
+                <Input
+                  id="phone"
+                  placeholder="5xxxxxxxx"
+                  value={customerPhone}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  maxLength={9}
+                  className="text-lg h-14 bg-white border-2 border-slate-300 focus:border-amber-500 text-slate-900 placeholder:text-slate-400"
+                  data-testid="input-phone"
+                  disabled={isSearchingCustomer}
+                />
+                {isSearchingCustomer && (
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                    <Loader className="w-5 h-5 text-amber-600 animate-spin" />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="bg-amber-50 border-2 border-amber-200 p-5 rounded-lg">

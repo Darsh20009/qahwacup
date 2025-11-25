@@ -227,3 +227,46 @@ if (employee?.role === 'manager') {
 - ✅ CRITICAL REQUIREMENT: "Each branch must display ONLY its own 10 tables" - NOW SATISFIED
 - ✅ Security hardening: Branch isolation is enforced at API level
 - ✅ Admin role still has full access to all branches (as expected)
+
+## Enhancements: Phone Verification & Reservation Check (November 25, 2025 - Version 7.7)
+
+### Problems Fixed:
+1. ✅ **Reservation validation incorrect**: Form showed "التحقق من الحجز" (verify reservation) even for non-reserved tables
+2. ✅ **Phone field optional**: Phone was marked as "(اختياري)" but should be required for table orders
+3. ✅ **No customer data lookup**: System didn't automatically fetch customer data when phone was entered
+
+### Solutions Applied:
+
+#### Frontend Changes (client/src/pages/table-menu.tsx):
+- Updated reservation check: `table?.reservedFor?.customerName` instead of `table?.reservedFor`
+- Only shows verification form when table is **actually reserved** with customer data
+
+#### Frontend Changes (client/src/pages/table-checkout.tsx):
+- Made phone field **required** (added asterisk *)
+- Added `handlePhoneChange()` function to search for customer by phone
+- Added auto-fill: When customer enters 9-digit phone, system automatically fetches and fills customer name
+- Shows loading spinner during customer lookup
+- Added validation: Phone must be exactly 9 digits
+- Changed phone field from optional to required in form submission validation
+
+#### Backend Changes (server/routes.ts):
+- Added new GET endpoint: `/api/customers/by-phone/:phone` (lines 959-990)
+  - Validates phone format (9 digits starting with 5)
+  - Returns customer data if found, empty object if not found
+  - Does not expose password field
+  - Returns serialized customer data with proper ID format
+
+### Result:
+✅ **Reservation check**: Only shows verification form when table is reserved with actual customer data
+✅ **Phone field**: Now required with proper validation (9 digits)
+✅ **Customer lookup**: Auto-fetches customer name when phone is entered
+✅ **User experience**: Seamless, intuitive flow with loading indicator
+✅ **Data integrity**: Phone field properly validated before submission
+
+### User Flow:
+1. Customer enters phone (9 digits)
+2. System automatically searches for registered customer
+3. If found, customer name auto-fills (with toast: "تم العثور على العميل")
+4. If not found, customer can manually enter name
+5. All fields required for order submission
+6. Form validates before sending order

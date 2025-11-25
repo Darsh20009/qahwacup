@@ -953,6 +953,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET Customer by phone - for table menu to fetch customer data
+  app.get("/api/customers/by-phone/:phone", async (req, res) => {
+    try {
+      const phone = req.params.phone;
+
+      if (!phone) {
+        return res.status(400).json({ error: "رقم الجوال مطلوب" });
+      }
+
+      const cleanPhone = phone.trim().replace(/\s/g, '');
+      
+      // Validate phone format: must be 9 digits starting with 5
+      if (!/^5\d{8}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: "صيغة رقم الهاتف غير صحيحة" });
+      }
+
+      const customer = await storage.getCustomerByPhone(cleanPhone);
+      
+      if (!customer) {
+        // Customer not found - that's ok, just return empty
+        return res.json({});
+      }
+
+      const { password: _, ...customerData } = customer.toObject ? customer.toObject() : customer;
+      const serializedCustomer = serializeDoc(customerData);
+
+      res.json(serializedCustomer);
+    } catch (error) {
+      console.error("Error fetching customer by phone:", error);
+      res.status(500).json({ error: "فشل البحث عن العميل" });
+    }
+  });
+
   // Quick customer registration by cashier - تسجيل عميل سريع من الكاشير
   app.post("/api/customers/register-by-cashier", async (req, res) => {
     try {
