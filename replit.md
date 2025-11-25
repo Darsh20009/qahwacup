@@ -185,6 +185,27 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Fixed Status Options for Table Orders (November 25, 2025 - Version 8.6)
+
+### Problem: خيارات الحالة كانت غير صحيحة لطلبات الطاولات
+- **قبل**: كانت تعرض "في الانتظار" مع الخيارات العادية
+- **بعد**: الخيارات الصحيحة فقط لطلبات الطاولات
+
+### الخيارات الصحيحة الآن:
+1. ✅ تم تأكيد الدفع (payment_confirmed)
+2. ✅ قيد التحضير (preparing)
+3. ✅ جاهز للتقديم (ready)
+4. ✅ تم التقديم (delivered)
+5. ✅ إلغاء (cancelled)
+
+### الفرق بين الطلبات:
+| نوع الطلب | الخيارات |
+|---------|---------|
+| **طلبات عادية** | إرسال الطلب، تأكيد الدفع، جاري التحضير، جاهز للاستلام، مكتمل، ملغي |
+| **طلبات الطاولات** | تم تأكيد الدفع، قيد التحضير، جاهز للتقديم، تم التقديم، إلغاء |
+
+**الملف:** `client/src/pages/cashier-table-orders.tsx`
+
 ## Branch Name in New Table Orders (November 25, 2025 - Version 8.5)
 
 ### Feature: عرض اسم الفرع في الطلبات الجديدة

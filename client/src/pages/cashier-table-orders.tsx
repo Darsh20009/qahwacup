@@ -466,7 +466,6 @@ export default function CashierTableOrders() {
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="pending">في الانتظار</SelectItem>
                                       <SelectItem value="payment_confirmed">
                                         تم تأكيد الدفع
                                       </SelectItem>
