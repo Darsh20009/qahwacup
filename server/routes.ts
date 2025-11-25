@@ -1936,13 +1936,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid status" });
       }
 
-      // Verify branch access for non-admin users
+      // Verify branch access for non-admin/manager users
       const order = await storage.getOrder(id);
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      if (req.employee?.role !== "admin" && order.branchId !== req.employee?.branchId) {
+      // Only check branch access for cashiers, managers and admins can manage all orders
+      if (!["admin", "manager"].includes(req.employee?.role || "") && order.branchId !== req.employee?.branchId) {
         return res.status(403).json({ error: "Access denied - different branch" });
       }
 
