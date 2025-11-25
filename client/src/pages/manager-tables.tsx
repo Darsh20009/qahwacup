@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,7 @@ interface IBranch {
   address: string;
   city: string;
   isActive: number;
+  managerName?: string;
 }
 
 export default function ManagerTables() {
@@ -61,12 +62,35 @@ export default function ManagerTables() {
   const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<any>(null);
+  const [currentBranchName, setCurrentBranchName] = useState<string>("");
+  const [currentBranchManager, setCurrentBranchManager] = useState<string>("");
+  const [userBranchId, setUserBranchId] = useState<string>("");
   const qrCardRef = useRef<HTMLCanvasElement>(null);
+
+  // Get current user's branch from localStorage
+  useEffect(() => {
+    const employeeData = localStorage.getItem("currentEmployee");
+    if (employeeData) {
+      const employee = JSON.parse(employeeData);
+      setUserBranchId(employee.branchId || "");
+    }
+  }, []);
 
   // Fetch branches
   const { data: branches } = useQuery<IBranch[]>({
     queryKey: ["/api/branches"],
   });
+
+  // Update branch manager info when selectedBranch changes
+  useEffect(() => {
+    if (selectedBranch && branches) {
+      const branch = branches.find(b => b._id === selectedBranch);
+      if (branch) {
+        setCurrentBranchName(branch.nameAr);
+        setCurrentBranchManager(branch.managerName || "غير محدد");
+      }
+    }
+  }, [selectedBranch, branches]);
 
   // Fetch tables - filter by selected branch
   const { data: tables = [], isLoading } = useQuery<ITable[]>({
@@ -324,8 +348,22 @@ export default function ManagerTables() {
             {isLoading ? (
               <div className="text-center py-8">جاري التحميل...</div>
             ) : !tables || tables.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                لا توجد طاولات. أنشئ طاولات جديدة للبدء.
+              <div className="text-center py-8 space-y-4">
+                {selectedBranch && userBranchId && selectedBranch !== userBranchId ? (
+                  <div className="text-muted-foreground">
+                    <div className="text-lg font-semibold text-red-600 mb-2">
+                      ⛔ أنت لست مدير هذا الفرع
+                    </div>
+                    <div className="space-y-1">
+                      <p><span className="font-semibold">الفرع:</span> {currentBranchName}</p>
+                      <p><span className="font-semibold">مدير الفرع:</span> {currentBranchManager}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">
+                    لا توجد طاولات. أنشئ طاولات جديدة للبدء.
+                  </div>
+                )}
               </div>
             ) : (
               <Table>
