@@ -185,6 +185,22 @@ if (!parsed._id && parsed.id) {
 ✅ All user roles can now work as cashiers
 ✅ ID format compatibility maintained
 
+## Branch Name in New Table Orders (November 25, 2025 - Version 8.5)
+
+### Feature: عرض اسم الفرع في الطلبات الجديدة
+الآن في قسم "الطلبات الجديدة" في `cashier-table-orders.tsx` يظهر:
+- **Badge ذهبي** مع اسم الفرع
+- **Icon الموقع** (📍 MapPin icon)
+- **الموقع**: فوق رقم الطاولة مباشرة
+
+### التغييرات:
+1. ✅ إضافة `branchId` و `branchName` إلى `IOrder` interface
+2. ✅ جلب بيانات الفروع من `/api/branches`
+3. ✅ عرض اسم الفرع لكل طلب جديد
+4. ✅ تصميم متطابق مع `employee-orders.tsx`
+
+**الملف:** `client/src/pages/cashier-table-orders.tsx`
+
 ## Table Number Display in Employee Orders (November 25, 2025 - Version 8.4)
 
 ### Feature: عرض رقم الطاولة في الطلبات

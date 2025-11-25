@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Clock, CheckCircle, ChefHat, Truck, XCircle, User } from "lucide-react";
+import { Clock, CheckCircle, ChefHat, Truck, XCircle, User, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,6 +34,8 @@ interface IOrder {
   status: string;
   tableStatus?: string;
   tableNumber?: string;
+  branchId?: string;
+  branchName?: string;
   assignedCashierId?: string;
   customerInfo?: {
     customerName: string;
@@ -42,6 +44,11 @@ interface IOrder {
   };
   createdAt: Date;
   updatedAt: Date;
+}
+
+interface IBranch {
+  _id: string;
+  nameAr: string;
 }
 
 export default function CashierTableOrders() {
@@ -95,6 +102,16 @@ export default function CashierTableOrders() {
       previousOrderIdsRef.current = currentOrderIds;
     }
   }, [unassignedOrders, toast]);
+
+  // Fetch branches
+  const { data: branches = [] } = useQuery<IBranch[]>({
+    queryKey: ["/api/branches"],
+    queryFn: async () => {
+      const response = await fetch("/api/branches");
+      if (!response.ok) throw new Error("Failed to fetch branches");
+      return response.json();
+    },
+  });
 
   // Fetch cashier's assigned orders
   const { data: myOrders } = useQuery<IOrder[]>({
@@ -318,11 +335,20 @@ export default function CashierTableOrders() {
                   <div className="space-y-4">
                     {unassignedOrders.map((order) => {
                       const StatusIcon = getStatusIcon(order.tableStatus);
+                      const branch = branches.find(b => b._id === order.branchId);
                       return (
                         <Card key={order.id} className="border-2">
                           <CardContent className="p-4">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                               <div className="flex-1 space-y-2">
+                                {branch && (
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <MapPin className="w-4 h-4 text-amber-600" />
+                                    <span className="text-xs bg-gradient-to-r from-amber-600 to-amber-700 text-white px-2 py-1 rounded">
+                                      {branch.nameAr}
+                                    </span>
+                                  </div>
+                                )}
                                 <div className="flex items-center gap-2">
                                   <StatusIcon className="w-5 h-5" />
                                   <h3 className="font-bold text-lg">
