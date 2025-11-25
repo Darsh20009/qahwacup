@@ -257,6 +257,18 @@ export async function seedDeliveryZones() {
 }
 
 export async function seedEmployees() {
+  // Get branches first
+  const branches = await storage.getBranches();
+  const branchMap = new Map<string, string>();
+  
+  branches.forEach(branch => {
+    branchMap.set(branch.nameAr, branch._id?.toString() || '');
+  });
+
+  const tahliaBranchId = branchMap.get('فرع التحلية');
+  const olayaBranchId = branchMap.get('فرع العليا');
+  const malazBranchId = branchMap.get('فرع الملز');
+
   const employees: InsertEmployee[] = [
     {
       username: "manager1",
@@ -266,6 +278,7 @@ export async function seedEmployees() {
       jobTitle: "مدير عام",
       password: "1234",
       isActivated: 1,
+      branchId: tahliaBranchId, // Manager for Al-Tahlia branch
     },
     {
       username: "cashier1",
@@ -275,6 +288,7 @@ export async function seedEmployees() {
       jobTitle: "كاشير",
       password: "1234",
       isActivated: 1,
+      branchId: malazBranchId, // Cashier for Al-Malaz branch
     },
     {
       username: "cashier2",
@@ -284,6 +298,7 @@ export async function seedEmployees() {
       jobTitle: "كاشير",
       password: "1234",
       isActivated: 1,
+      branchId: olayaBranchId, // Cashier for Al-Olaya branch
     },
     {
       username: "cashier3",
@@ -293,6 +308,7 @@ export async function seedEmployees() {
       jobTitle: "كاشير",
       password: "1234",
       isActivated: 1,
+      branchId: tahliaBranchId, // Cashier for Al-Tahlia branch
     },
   ];
 
@@ -304,13 +320,14 @@ export async function seedEmployees() {
         await storage.createEmployee(employee);
         console.log(`✅ Created employee: ${employee.fullName} (${employee.role}) - Phone: ${employee.phone}`);
       } else {
-        // Update existing employee with new password if provided
+        // Update existing employee with new password and branchId if provided
         if (employee.password) {
           await storage.updateEmployee(existing.id || existing._id?.toString(), {
             password: employee.password,
-            isActivated: 1
+            isActivated: 1,
+            branchId: employee.branchId
           });
-          console.log(`✅ Updated employee password: ${employee.fullName}`);
+          console.log(`✅ Updated employee password: ${employee.fullName} - Branch: ${employee.branchId}`);
         } else {
           console.log(`ℹ️  Employee already exists: ${employee.fullName}`);
         }
