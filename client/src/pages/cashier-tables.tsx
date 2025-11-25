@@ -47,12 +47,29 @@ export default function CashierTables() {
   const [numberOfGuests, setNumberOfGuests] = useState("2");
   const [employeeBranchId, setEmployeeBranchId] = useState<string>("");
 
-  // Get current employee info from localStorage
+  // Get current employee info from localStorage or API
   useEffect(() => {
     const employeeData = localStorage.getItem("currentEmployee");
     if (employeeData) {
       const employee = JSON.parse(employeeData);
-      setEmployeeBranchId(employee.branchId || "");
+      if (employee.branchId) {
+        setEmployeeBranchId(employee.branchId);
+      } else if (employee._id || employee.id) {
+        // If branchId is not in localStorage, fetch employee data from API
+        fetch(`/api/employees/${employee._id || employee.id}`, {
+          credentials: "include"
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.branchId) {
+              setEmployeeBranchId(data.branchId);
+              // Update localStorage with branchId
+              const updated = { ...employee, branchId: data.branchId };
+              localStorage.setItem("currentEmployee", JSON.stringify(updated));
+            }
+          })
+          .catch(error => console.error("Failed to fetch employee:", error));
+      }
     }
   }, []);
 
