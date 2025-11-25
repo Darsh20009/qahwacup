@@ -58,7 +58,7 @@ interface IBranch {
 export default function ManagerTables() {
   const { toast } = useToast();
   const [bulkCount, setBulkCount] = useState("10");
-  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [selectedBranch, setSelectedBranch] = useState<string>("none");
   const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<any>(null);
@@ -83,7 +83,7 @@ export default function ManagerTables() {
 
   // Update branch manager info when selectedBranch changes
   useEffect(() => {
-    if (selectedBranch && branches) {
+    if (selectedBranch !== "none" && selectedBranch && branches) {
       const branch = branches.find(b => b._id === selectedBranch);
       if (branch) {
         setCurrentBranchName(branch.nameAr);
@@ -97,7 +97,7 @@ export default function ManagerTables() {
     queryKey: ["/api/tables", selectedBranch],
     queryFn: async () => {
       let url = "/api/tables";
-      if (selectedBranch) {
+      if (selectedBranch !== "none" && selectedBranch) {
         url += `?branchId=${selectedBranch}`;
       }
       const response = await fetch(url, {
@@ -106,7 +106,7 @@ export default function ManagerTables() {
       if (!response.ok) throw new Error("Failed to fetch tables");
       return response.json();
     },
-    enabled: !!selectedBranch, // Only fetch if branch is selected
+    enabled: selectedBranch !== "none" && !!selectedBranch, // Only fetch if branch is selected
   });
 
   // Create single table mutation
@@ -251,7 +251,7 @@ export default function ManagerTables() {
       });
       return;
     }
-    if (!selectedBranch) {
+    if (!selectedBranch || selectedBranch === "none") {
       toast({
         title: "خطأ",
         description: "يجب اختيار الفرع أولاً",

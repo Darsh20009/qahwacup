@@ -39,8 +39,8 @@ interface Table {
 export default function TableReservation() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [selectedBranch, setSelectedBranch] = useState("");
-  const [selectedTable, setSelectedTable] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("none");
+  const [selectedTable, setSelectedTable] = useState("none");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [reservationDate, setReservationDate] = useState("");
@@ -98,8 +98,8 @@ export default function TableReservation() {
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        setSelectedBranch("");
-        setSelectedTable("");
+        setSelectedBranch("none");
+        setSelectedTable("none");
         setCustomerName("");
         setCustomerPhone("");
         setReservationDate("");
@@ -224,7 +224,7 @@ export default function TableReservation() {
               </Select>
             </div>
 
-            {selectedBranch && (
+            {selectedBranch !== "none" && selectedBranch && (
               <div className="space-y-2 animate-in slide-in-from-top duration-500">
                 <Label htmlFor="table" className="text-base flex items-center gap-2">
                   <Coffee className="w-4 h-4" />
@@ -253,7 +253,7 @@ export default function TableReservation() {
               </div>
             )}
 
-            {selectedTable && (
+            {selectedTable !== "none" && selectedTable && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top duration-500">
                   <div className="space-y-2">
