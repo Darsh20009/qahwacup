@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, User, Phone, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowRight, User, Phone, CheckCircle2, XCircle, Clock, Check, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,8 +27,12 @@ interface ITable {
   reservedFor?: {
     customerName: string;
     customerPhone: string;
+    reservationDate: Date;
+    reservationTime: string;
+    numberOfGuests: number;
     reservedAt: Date;
     reservedBy: string;
+    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   };
 }
 
@@ -45,6 +49,7 @@ export default function CashierTables() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [numberOfGuests, setNumberOfGuests] = useState("2");
+  const [reservationDateTime, setReservationDateTime] = useState("");
   const [employeeBranchId, setEmployeeBranchId] = useState<string>("");
 
   // Get current employee info from localStorage or API
@@ -102,19 +107,20 @@ export default function CashierTables() {
 
   // Reserve table mutation
   const reserveTableMutation = useMutation({
-    mutationFn: async ({ tableId, customerName, customerPhone, numberOfGuests }: { 
+    mutationFn: async ({ tableId, customerName, customerPhone, numberOfGuests, reservationDateTime }: { 
       tableId: string; 
       customerName: string; 
       customerPhone: string;
       numberOfGuests: number;
+      reservationDateTime: string;
     }) => {
       const employeeData = localStorage.getItem("currentEmployee");
       const employee = employeeData ? JSON.parse(employeeData) : null;
       
-      // For immediate reservations, send current date/time explicitly
-      const now = new Date();
-      const reservationDate = now.toISOString();
-      const reservationTime = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+      // Parse the datetime from input
+      const dateTime = new Date(reservationDateTime);
+      const reservationDate = dateTime.toISOString();
+      const reservationTime = dateTime.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
       
       const response = await fetch(`/api/tables/${tableId}/reserve`, {
         method: "POST",
@@ -146,6 +152,7 @@ export default function CashierTables() {
       setCustomerName("");
       setCustomerPhone("");
       setNumberOfGuests("2");
+      setReservationDateTime("");
       setSelectedTable(null);
     },
     onError: (error: Error) => {
@@ -187,6 +194,68 @@ export default function CashierTables() {
       toast({
         title: "خطأ",
         description: error.message || "فشل تحرير الطاولة",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Approve reservation mutation
+  const approveReservationMutation = useMutation({
+    mutationFn: async (tableId: string) => {
+      const response = await fetch(`/api/tables/${tableId}/approve-reservation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to approve reservation");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables", employeeBranchId] });
+      toast({
+        title: "تم تفعيل الحجز",
+        description: "تم تفعيل الحجز بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل تفعيل الحجز",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Cancel reservation mutation
+  const cancelReservationMutation = useMutation({
+    mutationFn: async (tableId: string) => {
+      const response = await fetch(`/api/tables/${tableId}/cancel-reservation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to cancel reservation");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables", employeeBranchId] });
+      toast({
+        title: "تم إلغاء الحجز",
+        description: "تم إلغاء الحجز بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل إلغاء الحجز",
         variant: "destructive",
       });
     },
@@ -234,12 +303,35 @@ export default function CashierTables() {
       return;
     }
 
+    if (!reservationDateTime) {
+      toast({
+        title: "خطأ",
+        description: "الرجاء اختيار الميعاد",
+        variant: "destructive",
+      });
+      return;
+    }
+
     reserveTableMutation.mutate({
       tableId: selectedTable._id,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       numberOfGuests: guests,
+      reservationDateTime,
     });
+  };
+
+  // Get reservation status based on time
+  const getReservationStatus = (reservation: ITable["reservedFor"]) => {
+    if (!reservation || reservation.status !== 'pending') return reservation?.status;
+    
+    const reservationTime = new Date(reservation.reservationDate);
+    const now = new Date();
+    const diffMinutes = (reservationTime.getTime() - now.getTime()) / (1000 * 60);
+    
+    if (diffMinutes <= -5) return 'cancelled'; // Expired
+    if (diffMinutes >= -5 && diffMinutes <= 5) return 'auto-approve-soon';
+    return 'pending';
   };
 
   if (!employeeBranchId) {
@@ -336,11 +428,28 @@ export default function CashierTables() {
                   
                   {table.reservedFor?.customerName ? (
                     <div className="space-y-3">
-                      {/* Reserved Badge */}
-                      <div className="flex justify-center">
-                        <Badge className="bg-red-600 hover:bg-red-700 text-white animate-pulse px-3 py-1">
-                          محجوزة حالياً
-                        </Badge>
+                      {/* Reservation Status Badge */}
+                      <div className="flex justify-center gap-2 flex-wrap">
+                        {table.reservedFor.status === 'pending' && (
+                          <>
+                            <Badge className="bg-yellow-600 hover:bg-yellow-700 text-white animate-pulse px-3 py-1 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              معلقة
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">الميعاد: {table.reservedFor.reservationTime}</span>
+                          </>
+                        )}
+                        {table.reservedFor.status === 'confirmed' && (
+                          <Badge className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1">
+                            <Check className="w-3 h-3 ml-1" />
+                            مفعلة
+                          </Badge>
+                        )}
+                        {table.reservedFor.status === 'cancelled' && (
+                          <Badge className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1">
+                            ملغاة
+                          </Badge>
+                        )}
                       </div>
                       
                       {/* Customer Info */}
@@ -353,7 +462,40 @@ export default function CashierTables() {
                           <Phone className="w-3 h-3 text-red-600" />
                           <span className="font-mono" dir="ltr">{table.reservedFor.customerPhone}</span>
                         </div>
+                        {table.reservedFor.numberOfGuests && (
+                          <div className="flex items-center justify-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                            <span className="font-semibold">ضيوف:</span>
+                            <span>{table.reservedFor.numberOfGuests}</span>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Pending Reservation Action Buttons */}
+                      {table.reservedFor.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => approveReservationMutation.mutate(table._id)}
+                            disabled={approveReservationMutation.isPending}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            data-testid={`button-approve-${table.tableNumber}`}
+                          >
+                            <Check className="w-3 h-3 ml-1" />
+                            تفعيل
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => cancelReservationMutation.mutate(table._id)}
+                            disabled={cancelReservationMutation.isPending}
+                            className="flex-1"
+                            data-testid={`button-cancel-reserve-${table.tableNumber}`}
+                          >
+                            <X className="w-3 h-3 ml-1" />
+                            إلغاء
+                          </Button>
+                        </div>
+                      )}
                       
                       {/* Release Button */}
                       <Button
@@ -444,6 +586,17 @@ export default function CashierTables() {
                   max="20"
                   data-testid="input-number-of-guests"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reservation-datetime">الميعاد *</Label>
+                <Input
+                  id="reservation-datetime"
+                  type="datetime-local"
+                  value={reservationDateTime}
+                  onChange={(e) => setReservationDateTime(e.target.value)}
+                  data-testid="input-reservation-datetime"
+                />
+                <p className="text-xs text-muted-foreground">يتم تفعيل الحجز عند قدوم الميعاد قبله بـ 5 دقايق، والإلغاء تلقائياً بعد 5 دقايق من الميعاد</p>
               </div>
               <div className="flex gap-2">
                 <Button

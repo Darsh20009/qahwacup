@@ -3023,7 +3023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           numberOfGuests: guests,
           reservedAt: new Date(),
           reservedBy: employeeId,
-          status: 'confirmed' as const
+          status: 'pending' as const
         }
       });
 
@@ -3075,6 +3075,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error releasing table:", error);
       res.status(500).json({ error: "Failed to release table" });
+    }
+  });
+
+  // Approve a pending reservation
+  app.post("/api/tables/:id/approve-reservation", async (req, res) => {
+    try {
+      const table = await storage.getTable(req.params.id);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      if (!table.reservedFor || table.reservedFor.status !== 'pending') {
+        return res.status(400).json({ error: "No pending reservation to approve" });
+      }
+
+      const updatedTable = await storage.updateTable(req.params.id, {
+        reservedFor: {
+          ...table.reservedFor,
+          status: 'confirmed' as const
+        }
+      });
+
+      if (!updatedTable) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      res.json(updatedTable);
+    } catch (error) {
+      console.error("Error approving reservation:", error);
+      res.status(500).json({ error: "Failed to approve reservation" });
+    }
+  });
+
+  // Cancel a pending reservation
+  app.post("/api/tables/:id/cancel-reservation", async (req, res) => {
+    try {
+      const table = await storage.getTable(req.params.id);
+      if (!table) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      if (!table.reservedFor || table.reservedFor.status !== 'pending') {
+        return res.status(400).json({ error: "No pending reservation to cancel" });
+      }
+
+      const updatedTable = await storage.updateTable(req.params.id, {
+        reservedFor: {
+          ...table.reservedFor,
+          status: 'cancelled' as const
+        }
+      });
+
+      if (!updatedTable) {
+        return res.status(404).json({ error: "Table not found" });
+      }
+
+      res.json(updatedTable);
+    } catch (error) {
+      console.error("Error cancelling reservation:", error);
+      res.status(500).json({ error: "Failed to cancel reservation" });
     }
   });
 
