@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car } from "lucide-react";
 import { OrderMeta } from "@/components/OrderMeta";
+import { playNotificationSound } from "@/lib/notification-sound";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
 
 interface OrderItemData {
@@ -63,7 +64,6 @@ export default function EmployeeOrders() {
  const [searchQuery, setSearchQuery] = useState("");
  const [newOrdersCount, setNewOrdersCount] = useState(0);
  const previousOrderIdsRef = useRef<Set<string>>(new Set());
- const audioRef = useRef<HTMLAudioElement | null>(null);
  const { toast } = useToast();
 
  useEffect(() => {
@@ -113,11 +113,9 @@ export default function EmployeeOrders() {
  
  // Play notification sound
  try {
- const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWm98OihUBAKVKXh8bllHgU3ktjy0H4yBSp+zPLaizsKGGS58OylUhELTqPi8bRgGgU1j9ny04c6ByaByvDdjkMKGWOz7O+rWBYLUJ7i8bJcGQQyj9fyz4k8Byp4yPDejUQKF2Gy7O+sWBYLVqXi8LNaFwU0kNjy0ok6BSd1xfDdjEMMF2Cz7fCsWRcLUZ3h8K1XFgQyjdfyzoY4BSJvwO/eiD4MFVyx7fCuWRcLU53h8LBYFQMviM');
- audio.volume = 0.5;
- audio.play().catch(() => {});
+ playNotificationSound('new-order');
  } catch (err) {
- console.log('Notification sound failed');
+ console.log('Notification sound failed:', err);
  }
  
  // Show toast notification

@@ -1,18 +1,22 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { Coffee, MapPin, Truck, Check, Clock, Package, ExternalLink, Store } from "lucide-react";
+import { playNotificationSound } from "@/lib/notification-sound";
 import type { Order } from "@shared/schema";
 
 export default function OrderTrackingPage() {
  const [location] = useLocation();
  const [orderNumber, setOrderNumber] = useState("");
  const [trackingOrderNumber, setTrackingOrderNumber] = useState("");
+ const previousStatusRef = useRef<string>("");
+ const { toast } = useToast();
  
  useEffect(() => {
  const params = new URLSearchParams(window.location.search);
@@ -32,6 +36,7 @@ export default function OrderTrackingPage() {
  return res.json();
  },
  enabled: !!trackingOrderNumber,
+ refetchInterval: 5000,
  });
  
  const { data: branch } = useQuery<any>({
@@ -44,6 +49,27 @@ export default function OrderTrackingPage() {
  },
  enabled: !!order?.branchId,
  });
+
+ useEffect(() => {
+ if (order && order.status === 'ready' && previousStatusRef.current && previousStatusRef.current !== 'ready') {
+ try {
+ playNotificationSound('order-ready');
+ } catch (err) {
+ console.log('Notification sound failed:', err);
+ }
+ 
+ toast({
+ title: "طلبك جاهز!",
+ description: "يمكنك الآن استلام طلبك من الفرع",
+ className: "bg-green-600 text-white border-green-700",
+ duration: 10000,
+ });
+ }
+ 
+ if (order) {
+ previousStatusRef.current = order.status;
+ }
+ }, [order, toast]);
 
  const handleTrack = () => {
  setTrackingOrderNumber(orderNumber);
