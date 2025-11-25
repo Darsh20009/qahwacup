@@ -401,7 +401,7 @@ export default function CashierTables() {
 
         {/* Reserve Dialog */}
         <Dialog open={reserveDialogOpen} onOpenChange={setReserveDialogOpen}>
-          <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogContent className="sm:max-w-md bg-[#11936c]" dir="rtl">
             <DialogHeader>
               <DialogTitle>
                 حجز طاولة {selectedTable?.tableNumber}
