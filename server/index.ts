@@ -33,12 +33,17 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Trust proxy - required for Render and other reverse proxy services
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Session configuration
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "qahwa-cup-secret-key-change-in-production",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Changed to false for better security
     store: new SessionStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     }),
@@ -46,7 +51,7 @@ app.use(
       secure: process.env.NODE_ENV === 'production', // true in production (HTTPS), false in development
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: process.env.NODE_ENV === 'production' ? "lax" : "none", // lax for production, none for development
+      sameSite: 'lax', // Use lax for both environments
       path: "/",
     },
   })
@@ -54,8 +59,11 @@ app.use(
 
 // Debug middleware to log session state
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/orders')) {
-    console.log(`[DEBUG] ${req.method} ${req.path} - Session employee:`, req.session?.employee ? 'EXISTS' : 'MISSING');
+  if (req.path.startsWith('/api/orders') || req.path.startsWith('/api/employees/login')) {
+    console.log(`[SESSION DEBUG] ${req.method} ${req.path}`);
+    console.log(`  - Session ID:`, req.sessionID);
+    console.log(`  - Employee:`, req.session?.employee ? 'EXISTS' : 'MISSING');
+    console.log(`  - Cookie:`, req.headers.cookie ? 'PRESENT' : 'MISSING');
   }
   next();
 });
