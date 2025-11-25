@@ -9,11 +9,11 @@ import { storage } from "./storage";
 
 const SessionStore = MemoryStore(session);
 
-const MONGODB_URI = process.env.qahwa_MONGODB_URI || process.env.MONGODB_URI || "";
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 if (!MONGODB_URI) {
   console.error("❌ ERROR: MONGODB_URI environment variable is not set");
-  console.log("Please set qahwa_MONGODB_URI or MONGODB_URI in your environment");
+  console.log("Please set MONGODB_URI in your environment");
   process.exit(1);
 }
 

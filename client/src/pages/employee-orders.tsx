@@ -478,7 +478,7 @@ export default function EmployeeOrders() {
  orderId={order.id}
  deliveryType={order.deliveryType}
  paymentReceiptUrl={order.paymentReceiptUrl}
- deliveryAddress={order.deliveryAddress}
+ deliveryAddress={order.deliveryAddress as any}
  branchId={order.branchId}
  />
 
@@ -541,7 +541,7 @@ export default function EmployeeOrders() {
  <div className="text-right">
  <p className="text-gray-400 text-sm">الإجمالي</p>
  <p className="text-amber-500 font-bold text-xl" data-testid={`text-total-${order.id}`}>
- {parseFloat(order.totalAmount).toFixed(2)} ريال
+ {Number(order.totalAmount).toFixed(2)} ريال
  </p>
  </div>
 
@@ -617,7 +617,7 @@ export default function EmployeeOrders() {
  </div>
  <div className="flex items-center gap-3">
  <p className="text-white font-medium">
- {parseFloat(order.totalAmount).toFixed(2)} ريال
+ {Number(order.totalAmount).toFixed(2)} ريال
  </p>
  {getStatusBadge(order.status)}
  </div>
