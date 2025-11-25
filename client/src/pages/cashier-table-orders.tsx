@@ -306,7 +306,7 @@ export default function CashierTableOrders() {
               مرحباً {employee?.fullName}
             </p>
           </div>
-          <Button variant="outline" onClick={() => setLocation("/employee/dashboard")}>
+          <Button variant="outline" className="bg-[#944219]" onClick={() => setLocation("/employee/dashboard")}>
             العودة للوحة التحكم
           </Button>
         </div>
