@@ -553,7 +553,7 @@ export default function EmployeeOrders() {
  </p>
  </div>
 
- <div className="flex gap-2">
+ <div className="flex flex-col gap-2">
  <Select 
  value={order.tableStatus || order.status} 
  onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
@@ -585,6 +585,38 @@ export default function EmployeeOrders() {
  )}
  </SelectContent>
  </Select>
+ {(order.status === "pending" || order.tableStatus === "payment_confirmed") && (
+  <div className="flex gap-2">
+  <Button
+   variant="outline"
+   size="sm"
+   className="bg-green-600 hover:bg-green-700 text-white border-green-700"
+   onClick={() => {
+    if (order.tableStatus) {
+     handleStatusChange(order.id, "preparing" as any);
+    } else {
+     handleStatusChange(order.id, "payment_confirmed");
+    }
+   }}
+   data-testid={`button-accept-${order.id}`}
+  >
+   ✓ قبول
+  </Button>
+  <Button
+   variant="outline"
+   size="sm"
+   className="bg-red-600 hover:bg-red-700 text-white border-red-700"
+   onClick={() => {
+    if (confirm(`هل أنت متأكد من رفض هذا الطلب؟`)) {
+     handleStatusChange(order.id, "cancelled");
+    }
+   }}
+   data-testid={`button-reject-${order.id}`}
+  >
+   ✕ رفض
+  </Button>
+  </div>
+ )}
  </div>
  </div>
  </CardContent>
