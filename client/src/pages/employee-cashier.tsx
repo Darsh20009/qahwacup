@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone } from "lucide-react";
+import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone, Settings, Wifi, WifiOff } from "lucide-react";
 import QRScanner from "@/components/qr-scanner";
 import { ReceiptPrint } from "@/components/receipt-print";
 import type { Employee, CoffeeItem, PaymentMethod, LoyaltyCard } from "@shared/schema";
@@ -77,6 +79,8 @@ export default function EmployeeCashier() {
  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
  const [lastOrder, setLastOrder] = useState<any>(null);
  const [posConnected, setPosConnected] = useState(false);
+ const [isPosSettingsOpen, setIsPosSettingsOpen] = useState(false);
+ const [isTogglingPos, setIsTogglingPos] = useState(false);
  const [stampsToUse, setStampsToUse] = useState(0);
  const receiptRef = useRef<HTMLDivElement>(null);
  
@@ -473,6 +477,42 @@ export default function EmployeeCashier() {
  window.print();
  };
 
+ const handleTogglePosConnection = async () => {
+ setIsTogglingPos(true);
+ try {
+ const response = await fetch('/api/pos/toggle', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include'
+ });
+ 
+ if (response.ok) {
+ const data = await response.json();
+ setPosConnected(data.connected);
+ toast({
+ title: data.connected ? "تم الاتصال بجهاز POS" : "تم قطع الاتصال",
+ description: data.connected ? "الجهاز جاهز للدفع الإلكتروني" : "تم إيقاف الاتصال بجهاز POS",
+ className: data.connected ? "bg-green-600 text-white" : undefined,
+ });
+ } else {
+ toast({
+ title: "خطأ",
+ description: "فشل تغيير حالة الاتصال بجهاز POS",
+ variant: "destructive",
+ });
+ }
+ } catch (error) {
+ console.error('Error toggling POS:', error);
+ toast({
+ title: "خطأ",
+ description: "فشل الاتصال بالخادم",
+ variant: "destructive",
+ });
+ } finally {
+ setIsTogglingPos(false);
+ }
+ };
+
  const handleSubmitOrder = () => {
  if (orderItems.length === 0) {
  toast({
@@ -557,16 +597,76 @@ export default function EmployeeCashier() {
  <Search className="w-4 h-4 ml-2" />
  بحث برقم الهاتف
  </Button>
- <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2 hover-elevate">
+ <Dialog open={isPosSettingsOpen} onOpenChange={setIsPosSettingsOpen}>
+ <DialogTrigger asChild>
+ <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2 hover-elevate cursor-pointer" data-testid="pos-settings-trigger">
  <div className="flex items-center gap-2">
  <MonitorSmartphone className={`w-4 h-4 ${posConnected ? 'text-green-400' : 'text-gray-400'}`} />
  <span className="text-xs text-gray-400">جهاز POS:</span>
  <Badge variant="outline" className={posConnected ? "border-green-500/30 text-green-400" : "border-yellow-500/30 text-yellow-400"}>
  {posConnected ? "متصل" : "غير متصل"}
  </Badge>
+ <Settings className="w-3 h-3 text-gray-500" />
  </div>
- <p className="text-xs text-gray-500 mt-1">{posConnected ? "جاهز للدفع الإلكتروني" : "خيار POS متاح في طرق الدفع"}</p>
+ <p className="text-xs text-gray-500 mt-1">{posConnected ? "جاهز للدفع الإلكتروني" : "انقر للإعدادات"}</p>
  </div>
+ </DialogTrigger>
+ <DialogContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+ <DialogHeader>
+ <DialogTitle className="text-amber-500 flex items-center gap-2">
+ <MonitorSmartphone className="w-5 h-5" />
+ إعدادات جهاز نقاط البيع (POS)
+ </DialogTitle>
+ </DialogHeader>
+ <div className="space-y-6">
+ <div className="flex items-center justify-between p-4 bg-[#1a1410] rounded-lg border border-amber-500/20">
+ <div className="flex items-center gap-3">
+ {posConnected ? (
+ <Wifi className="w-6 h-6 text-green-400" />
+ ) : (
+ <WifiOff className="w-6 h-6 text-gray-400" />
+ )}
+ <div>
+ <p className="text-gray-200 font-medium">حالة الاتصال</p>
+ <p className={`text-sm ${posConnected ? 'text-green-400' : 'text-gray-500'}`}>
+ {posConnected ? 'متصل وجاهز للاستخدام' : 'غير متصل'}
+ </p>
+ </div>
+ </div>
+ <Switch
+ checked={posConnected}
+ onCheckedChange={handleTogglePosConnection}
+ disabled={isTogglingPos}
+ data-testid="switch-pos-connection"
+ />
+ </div>
+ 
+ <div className="space-y-3 p-4 bg-[#1a1410]/50 rounded-lg">
+ <h4 className="text-amber-500 font-medium flex items-center gap-2">
+ <Settings className="w-4 h-4" />
+ معلومات الجهاز
+ </h4>
+ <div className="grid grid-cols-2 gap-3 text-sm">
+ <div>
+ <p className="text-gray-500">نوع الاتصال</p>
+ <p className="text-gray-300">USB / شبكة محلية</p>
+ </div>
+ <div>
+ <p className="text-gray-500">حالة الجهاز</p>
+ <p className={posConnected ? 'text-green-400' : 'text-yellow-400'}>
+ {posConnected ? 'نشط' : 'في وضع الاستعداد'}
+ </p>
+ </div>
+ </div>
+ </div>
+
+ <div className="text-xs text-gray-500 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+ <p className="font-medium text-amber-500 mb-1">ملاحظة:</p>
+ <p>عند تفعيل جهاز POS، سيتم معالجة الدفعات الإلكترونية تلقائياً عبر الجهاز. تأكد من توصيل الجهاز بشكل صحيح قبل التفعيل.</p>
+ </div>
+ </div>
+ </DialogContent>
+ </Dialog>
  {lastOrder && (
  <Button
  onClick={handlePrintReceipt}

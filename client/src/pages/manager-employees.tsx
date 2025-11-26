@@ -356,6 +356,7 @@ export default function ManagerEmployees() {
  <SelectItem value="محاسب">محاسب</SelectItem>
  <SelectItem value="بائع">بائع</SelectItem>
  <SelectItem value="عارض">عارض</SelectItem>
+ <SelectItem value="سائق توصيل">سائق توصيل</SelectItem>
  <SelectItem value="مدير">مدير</SelectItem>
  </SelectContent>
  </Select>
@@ -376,6 +377,7 @@ export default function ManagerEmployees() {
  <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
  <SelectItem value="cashier">كاشير</SelectItem>
  <SelectItem value="accountant">محاسب</SelectItem>
+ <SelectItem value="driver">سائق توصيل</SelectItem>
  {isAdminOrOwner && <SelectItem value="manager">مدير فرع</SelectItem>}
  {currentManager?.role === "admin" && <SelectItem value="admin">مدير عام</SelectItem>}
  </SelectContent>

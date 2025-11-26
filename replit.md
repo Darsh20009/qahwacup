@@ -32,8 +32,9 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
 - **Enhanced Attendance Display:** Manager attendance page shows employee photos, branch names, location verification status (inside/outside branch), and distance from branch for both check-in and check-out.
 - **Employee Role Selection:** When creating employees, admins can select employee role (cashier, accountant, manager, admin) and assign them to specific branches.
 - **Branch Manager Assignment:** When creating a new branch, admins can either assign an existing manager or create a new manager account (without password - needs activation).
-- **POS Connection Status:** The cashier interface displays real-time POS device connection status with automatic refresh every 30 seconds.
+- **POS Connection Settings:** The cashier interface includes a POS settings dialog with toggle switch to connect/disconnect the POS device, real-time status monitoring, and connection information. Cashiers can click the POS status indicator to access settings.
 - **Automatic Tax Invoices:** Orders automatically send tax invoices via email (15% VAT) to customers who provide email addresses. Uses Maileroo SMTP integration.
+- **Driver Role Support:** Employee creation supports "driver" role (سائق توصيل) in both job title and system role dropdowns for delivery personnel management.
 
 ### Feature Specifications
 - **Product Management:** Add, modify, delete coffee products.

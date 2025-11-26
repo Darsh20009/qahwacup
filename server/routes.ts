@@ -211,9 +211,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Toggle POS connection (for testing/admin) - requires authentication
-  app.post("/api/pos/toggle", requireAuth, requireManager, (req: AuthRequest, res) => {
+  // Toggle POS connection (for cashiers and managers only) - requires authentication
+  app.post("/api/pos/toggle", requireAuth, (req: AuthRequest, res) => {
     try {
+      // Only allow cashiers, managers, and admins to toggle POS
+      const allowedRoles = ['cashier', 'manager', 'admin', 'owner'];
+      if (!req.employee || !allowedRoles.includes(req.employee.role)) {
+        return res.status(403).json({ error: "غير مصرح لك بتغيير حالة جهاز POS" });
+      }
+      
       posDeviceStatus.connected = !posDeviceStatus.connected;
       posDeviceStatus.lastCheck = Date.now();
       res.json({ 
