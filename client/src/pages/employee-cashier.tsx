@@ -492,17 +492,24 @@ export default function EmployeeCashier() {
  return;
  }
 
+ let finalTotal = parseFloat(calculateTotal());
+ if (paymentMethod === 'qahwa-card' && stampsToUse > 0) {
+ finalTotal = Math.max(0, finalTotal - (stampsToUse * 1));
+ }
+
  const orderData = {
  items: orderItems.map(item => ({
  coffeeItemId: item.coffeeItem.id,
  quantity: item.quantity,
  price: item.coffeeItem.price
  })),
- totalAmount: calculateTotal(),
+ totalAmount: finalTotal.toFixed(2),
  paymentMethod,
+ stampsUsed: paymentMethod === 'qahwa-card' ? stampsToUse : 0,
  customerInfo: {
  customerName: customerName,
- phoneNumber: customerPhone
+ phoneNumber: customerPhone,
+ customerEmail: customerEmail || undefined
  },
  customerId: customerId || undefined,
  employeeId: employee?.id,
@@ -871,10 +878,10 @@ export default function EmployeeCashier() {
  الأختام المستخدمة: {stampsToUse} ختم
  </p>
  <p className="text-amber-300 text-sm">
- قيمة الخصم: {(stampsToUse * 5).toFixed(2)} ريال (5 ريال لكل ختم)
+ قيمة الخصم: {(stampsToUse * 1).toFixed(2)} ريال (1 ريال لكل ختم)
  </p>
  <p className="text-amber-400 text-sm">
- السعر النهائي: {Math.max(0, calculateTotal() - (stampsToUse * 5)).toFixed(2)} ريال
+ السعر النهائي: {Math.max(0, calculateTotal() - (stampsToUse * 1)).toFixed(2)} ريال
  </p>
  </div>
  </div>
