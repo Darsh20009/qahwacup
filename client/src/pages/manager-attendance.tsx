@@ -40,12 +40,14 @@ interface AttendanceRecord {
   };
   branch?: {
     name: string;
+    nameAr?: string;
   };
 }
 
 interface Branch {
   id: string;
-  name: string;
+  name?: string;
+  nameAr?: string;
 }
 
 export default function ManagerAttendance() {
@@ -247,7 +249,7 @@ export default function ManagerAttendance() {
                     <SelectItem value="all">جميع الفروع</SelectItem>
                     {branches.map(branch => (
                       <SelectItem key={branch.id} value={branch.id}>
-                        {branch.name}
+                        {branch.nameAr || branch.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -305,10 +307,10 @@ export default function ManagerAttendance() {
                           <p className="text-gray-400 text-sm">
                             {record.employee?.jobTitle || 'موظف'}
                           </p>
-                          {record.branch?.name && (
+                          {(record.branch?.nameAr || record.branch?.name) && (
                             <p className="text-amber-500/70 text-xs flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
-                              {record.branch.name}
+                              {record.branch.nameAr || record.branch.name}
                             </p>
                           )}
                         </div>
