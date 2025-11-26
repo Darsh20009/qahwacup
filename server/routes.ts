@@ -4061,6 +4061,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clear all data - admin only
+  // Delete all cashier employees
+  app.delete("/api/admin/cashiers", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      if (!["admin", "manager"].includes(req.employee?.role || "")) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const employees = await storage.getAllEmployees();
+      const cashiers = employees.filter(e => e.role === 'cashier');
+      let deletedCount = 0;
+
+      for (const cashier of cashiers) {
+        try {
+          await storage.deleteEmployee(cashier.id || cashier._id?.toString());
+          deletedCount++;
+        } catch (error) {
+          console.error(`Error deleting cashier ${cashier.fullName}:`, error);
+        }
+      }
+
+      res.json({ message: `تم حذف ${deletedCount} موظفي كاشير`, deletedCount });
+    } catch (error) {
+      console.error("Error deleting cashiers:", error);
+      res.status(500).json({ error: "فشل في حذف الموظفين" });
+    }
+  });
+
   app.delete("/api/admin/clear-all-data", requireAuth, async (req: AuthRequest, res) => {
     try {
       // Check if user is admin
