@@ -87,23 +87,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // EMPLOYEE ROUTES
 
-  // Employee login (supports both username and employeeId)
+  // Employee login via QR code (uses only employee ID)
+  app.post("/api/employees/login-qr", async (req, res) => {
+    try {
+      const { employeeId } = req.body;
+
+      if (!employeeId) {
+        return res.status(400).json({ error: "Employee ID required" });
+      }
+
+      const employee = await storage.getEmployee(employeeId);
+
+      if (!employee) {
+        return res.status(401).json({ error: "Employee not found" });
+      }
+
+      // Create session (no password verification for QR)
+      req.session.employee = {
+        id: employee.id,
+        username: employee.username,
+        role: employee.role,
+        branchId: employee.branchId,
+        fullName: employee.fullName,
+      };
+
+      // Save session before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ error: "Failed to create session" });
+        }
+
+        // Don't send password back
+        const { password: _, ...employeeData} = employee;
+        res.json(employeeData);
+      });
+    } catch (error) {
+      console.error("Error during QR employee login:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Employee login via username/password
   app.post("/api/employees/login", async (req, res) => {
     try {
-      const { username, employeeId, password } = req.body;
+      const { username, password } = req.body;
 
-      if ((!username && !employeeId) || !password) {
-        return res.status(400).json({ error: "Credentials and password required" });
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password required" });
       }
 
-      let employee;
-      
-      // Support both username and employeeId login
-      if (employeeId) {
-        employee = await storage.getEmployee(employeeId);
-      } else {
-        employee = await storage.getEmployeeByUsername(username);
-      }
+      const employee = await storage.getEmployeeByUsername(username);
 
       if (!employee || !employee.password) {
         return res.status(401).json({ error: "Invalid credentials" });

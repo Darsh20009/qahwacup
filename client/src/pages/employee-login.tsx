@@ -19,8 +19,12 @@ export default function EmployeeLogin() {
   const qrScannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { username?: string; employeeId?: string; password: string }) => {
-      const response = await fetch("/api/employees/login", {
+    mutationFn: async (credentials: { username?: string; employeeId?: string; password?: string }) => {
+      // Determine which endpoint to use based on credentials
+      const isQRLogin = !!credentials.employeeId && !credentials.username;
+      const endpoint = isQRLogin ? "/api/employees/login-qr" : "/api/employees/login";
+      
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
@@ -74,10 +78,9 @@ export default function EmployeeLogin() {
             setError("");
             scanner.clear();
             setShowQRScanner(false);
-            // Auto-login with default password "1234"
+            // QR login (no password needed)
             loginMutation.mutate({
               employeeId: scannedEmployeeId,
-              password: "1234",
             });
           } else {
             setError("صيغة QR غير صحيحة");
