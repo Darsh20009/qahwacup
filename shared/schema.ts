@@ -119,6 +119,10 @@ export interface IEmployee extends Document {
   jobTitle: string;
   imageUrl?: string;
   shiftTime?: string;
+  shiftStartTime?: string;
+  shiftEndTime?: string;
+  workDays?: string[];
+  deviceBalance?: number;
   commissionPercentage?: number;
   isActivated: number;
   branchId?: string;
@@ -147,6 +151,10 @@ const EmployeeSchema = new Schema<IEmployee>({
   jobTitle: { type: String, required: true },
   imageUrl: { type: String },
   shiftTime: { type: String },
+  shiftStartTime: { type: String },
+  shiftEndTime: { type: String },
+  workDays: [{ type: String }],
+  deviceBalance: { type: Number, default: 0 },
   commissionPercentage: { type: Number, default: 0 },
   isActivated: { type: Number, default: 0, required: true },
   branchId: { type: String },
