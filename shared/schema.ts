@@ -747,6 +747,7 @@ export const insertEmployeeSchema = z.object({
   deviceBalance: z.union([z.string(), z.number()]).transform(val => typeof val === 'string' ? parseInt(val) : val).optional(),
   isActivated: z.number().optional(),
   branchId: z.string().optional(),
+  employmentNumber: z.string().optional(),
   vehicleType: z.string().optional(),
   vehiclePlateNumber: z.string().optional(),
   vehicleColor: z.string().optional(),

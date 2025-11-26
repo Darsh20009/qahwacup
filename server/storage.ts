@@ -340,16 +340,21 @@ export class DBStorage implements IStorage {
   }
 
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    // Generate employmentNumber if not provided
+    const employmentNumber = insertEmployee.employmentNumber || nanoid(10);
+    
     if (insertEmployee.password) {
       const hashedPassword = await bcrypt.hash(insertEmployee.password, 10);
       const newEmployee = await EmployeeModel.create({
         ...insertEmployee,
+        employmentNumber,
         password: hashedPassword,
       });
       return newEmployee;
     } else {
       const newEmployee = await EmployeeModel.create({
         ...insertEmployee,
+        employmentNumber,
       });
       return newEmployee;
     }
