@@ -96,6 +96,7 @@ export default function ManagerEmployees() {
  const formData = new FormData(e.currentTarget);
  
  const username = formData.get("username") as string;
+ const workDaysData = formData.getAll("workDays") as string[];
  const employeeData = {
  username: username,
  fullName: formData.get("fullName") as string,
@@ -103,6 +104,10 @@ export default function ManagerEmployees() {
  jobTitle: formData.get("jobTitle") as string,
  role: "cashier",
  shiftTime: formData.get("shiftTime") as string,
+ shiftStartTime: formData.get("shiftStartTime") as string || undefined,
+ shiftEndTime: formData.get("shiftEndTime") as string || undefined,
+ workDays: workDaysData.length > 0 ? workDaysData : undefined,
+ deviceBalance: parseInt(formData.get("deviceBalance") as string) || 0,
  commissionPercentage: parseFloat(formData.get("commissionPercentage") as string) || 0,
  imageUrl: formData.get("imageUrl") as string || undefined,
  };
@@ -115,11 +120,16 @@ export default function ManagerEmployees() {
  if (!editingEmployee) return;
 
  const formData = new FormData(e.currentTarget);
+ const workDaysData = formData.getAll("workDays") as string[];
  const employeeData = {
  fullName: formData.get("fullName") as string,
  phone: formData.get("phone") as string,
  jobTitle: formData.get("jobTitle") as string,
  shiftTime: formData.get("shiftTime") as string,
+ shiftStartTime: formData.get("shiftStartTime") as string || undefined,
+ shiftEndTime: formData.get("shiftEndTime") as string || undefined,
+ workDays: workDaysData.length > 0 ? workDaysData : undefined,
+ deviceBalance: parseInt(formData.get("deviceBalance") as string) || 0,
  commissionPercentage: parseFloat(formData.get("commissionPercentage") as string) || 0,
  imageUrl: formData.get("imageUrl") as string || undefined,
  };
@@ -230,13 +240,56 @@ export default function ManagerEmployees() {
 
  <div className="grid grid-cols-2 gap-4">
  <div>
- <Label htmlFor="shiftTime" className="text-gray-300">وقت الدوام</Label>
+ <Label htmlFor="shiftStartTime" className="text-gray-300">وقت بداية الدوام</Label>
  <Input
- id="shiftTime"
- name="shiftTime"
- placeholder="مثال: 8:00 ص - 4:00 م"
+ id="shiftStartTime"
+ name="shiftStartTime"
+ type="time"
  className="bg-[#1a1410] border-amber-500/30 text-white"
- data-testid="input-shifttime"
+ data-testid="input-shiftstart"
+ />
+ </div>
+ <div>
+ <Label htmlFor="shiftEndTime" className="text-gray-300">وقت نهاية الدوام</Label>
+ <Input
+ id="shiftEndTime"
+ name="shiftEndTime"
+ type="time"
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ data-testid="input-shiftend"
+ />
+ </div>
+ </div>
+
+ <div>
+ <Label className="text-gray-300 block mb-2">أيام الدوام</Label>
+ <div className="grid grid-cols-3 gap-2">
+ {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
+ <label key={day} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+ <input
+ type="checkbox"
+ name="workDays"
+ value={day}
+ className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+ data-testid={`checkbox-workday-${day}`}
+ />
+ <span className="text-sm">{day}</span>
+ </label>
+ ))}
+ </div>
+ </div>
+
+ <div className="grid grid-cols-2 gap-4">
+ <div>
+ <Label htmlFor="deviceBalance" className="text-gray-300">رصيد الأجهزة</Label>
+ <Input
+ id="deviceBalance"
+ name="deviceBalance"
+ type="number"
+ min="0"
+ defaultValue="0"
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ data-testid="input-devicebalance"
  />
  </div>
  <div>
@@ -422,20 +475,65 @@ export default function ManagerEmployees() {
  </SelectContent>
  </Select>
  </div>
+ </div>
+
+ <div className="grid grid-cols-2 gap-4">
  <div>
- <Label htmlFor="edit-shiftTime" className="text-gray-300">وقت الدوام</Label>
+ <Label htmlFor="edit-shiftStartTime" className="text-gray-300">وقت بداية الدوام</Label>
  <Input
- id="edit-shiftTime"
- name="shiftTime"
- defaultValue={editingEmployee.shiftTime}
- placeholder="مثال: 8:00 ص - 4:00 م"
+ id="edit-shiftStartTime"
+ name="shiftStartTime"
+ type="time"
+ defaultValue={editingEmployee.shiftStartTime}
  className="bg-[#1a1410] border-amber-500/30 text-white"
- data-testid="input-edit-shifttime"
+ data-testid="input-edit-shiftstart"
+ />
+ </div>
+ <div>
+ <Label htmlFor="edit-shiftEndTime" className="text-gray-300">وقت نهاية الدوام</Label>
+ <Input
+ id="edit-shiftEndTime"
+ name="shiftEndTime"
+ type="time"
+ defaultValue={editingEmployee.shiftEndTime}
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ data-testid="input-edit-shiftend"
  />
  </div>
  </div>
 
+ <div>
+ <Label className="text-gray-300 block mb-2">أيام الدوام</Label>
+ <div className="grid grid-cols-3 gap-2">
+ {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
+ <label key={day} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+ <input
+ type="checkbox"
+ name="workDays"
+ value={day}
+ defaultChecked={editingEmployee.workDays?.includes(day)}
+ className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+ data-testid={`checkbox-edit-workday-${day}`}
+ />
+ <span className="text-sm">{day}</span>
+ </label>
+ ))}
+ </div>
+ </div>
+
  <div className="grid grid-cols-2 gap-4">
+ <div>
+ <Label htmlFor="edit-deviceBalance" className="text-gray-300">رصيد الأجهزة</Label>
+ <Input
+ id="edit-deviceBalance"
+ name="deviceBalance"
+ type="number"
+ min="0"
+ defaultValue={editingEmployee.deviceBalance || 0}
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ data-testid="input-edit-devicebalance"
+ />
+ </div>
  <div>
  <Label htmlFor="edit-commissionPercentage" className="text-gray-300">نسبةالعمولة(%)</Label>
  <Input
@@ -450,6 +548,8 @@ export default function ManagerEmployees() {
  data-testid="input-edit-commission"
  />
  </div>
+ </div>
+
  <div>
  <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصورة </Label>
  <Input
@@ -461,7 +561,6 @@ export default function ManagerEmployees() {
  className="bg-[#1a1410] border-amber-500/30 text-white"
  data-testid="input-edit-imageurl"
  />
- </div>
  </div>
 
  <div className="flex justify-end gap-2">
