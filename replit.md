@@ -30,6 +30,10 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
 - **Phone Verification & Reservation Check:** Enhanced phone input for customer lookup and auto-fill, and accurate reservation verification logic for tables.
 - **Attendance Location Verification:** Check-in/out requires employee to be within 100 meters of their assigned branch. Distance is calculated using Haversine formula and stored with each attendance record (isAtBranch, distanceFromBranch fields).
 - **Enhanced Attendance Display:** Manager attendance page shows employee photos, branch names, location verification status (inside/outside branch), and distance from branch for both check-in and check-out.
+- **Employee Role Selection:** When creating employees, admins can select employee role (cashier, accountant, manager, admin) and assign them to specific branches.
+- **Branch Manager Assignment:** When creating a new branch, admins can either assign an existing manager or create a new manager account (without password - needs activation).
+- **POS Connection Status:** The cashier interface displays real-time POS device connection status with automatic refresh every 30 seconds.
+- **Automatic Tax Invoices:** Orders automatically send tax invoices via email (15% VAT) to customers who provide email addresses. Uses Maileroo SMTP integration.
 
 ### Feature Specifications
 - **Product Management:** Add, modify, delete coffee products.

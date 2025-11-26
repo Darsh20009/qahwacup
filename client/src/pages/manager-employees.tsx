@@ -9,9 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, Plus, User, Phone, Clock, Percent, LogOut, Edit, Upload, X } from "lucide-react";
+import { Coffee, Plus, User, Phone, Clock, Percent, LogOut, Edit, Upload, X, MapPin, Shield } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Employee } from "@shared/schema";
+
+interface Branch {
+ _id: string;
+ nameAr: string;
+ nameEn?: string;
+}
 
 export default function ManagerEmployees() {
  const [, setLocation] = useLocation();
@@ -28,6 +34,8 @@ export default function ManagerEmployees() {
  const fileInputRef = useRef<HTMLInputElement>(null);
  const editFileInputRef = useRef<HTMLInputElement>(null);
  const [isUploadingImage, setIsUploadingImage] = useState(false);
+ const [selectedRole, setSelectedRole] = useState<string>("cashier");
+ const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
  // Get current manager info
  useEffect(() => {
@@ -51,6 +59,12 @@ export default function ManagerEmployees() {
  },
  });
 
+ // Get branches for admin to assign employees
+ const { data: branches = [] } = useQuery<Branch[]>({
+ queryKey: ["/api/branches"],
+ enabled: !!currentManager && isAdminOrOwner,
+ });
+
  const createEmployeeMutation = useMutation({
  mutationFn: async (data: any) => {
  const res = await apiRequest("POST", "/api/employees", data);
@@ -59,6 +73,11 @@ export default function ManagerEmployees() {
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
  setIsAddDialogOpen(false);
+ setSelectedRole("cashier");
+ setSelectedBranchId("");
+ setImagePreview(null);
+ setSelectedImage(null);
+ setUploadedImageUrl(null);
  toast({
  title: "تم إضافة الموظف",
  description: "تم إضافة الموظف بنجاح. يمكنه الآن إنشاء كلمة المرور الخاصةبه.",
@@ -109,13 +128,26 @@ export default function ManagerEmployees() {
  const shiftStartTime = formData.get("shiftStartTime") as string;
  const shiftEndTime = formData.get("shiftEndTime") as string;
  
+ // Determine branch ID - admin can select, manager uses their branch
+ const branchId = isAdminOrOwner && selectedBranchId ? selectedBranchId : currentManager?.branchId;
+ 
+ // Validate manager role requires a branch
+ if (selectedRole === "manager" && !branchId) {
+ toast({
+ variant: "destructive",
+ title: "خطأ",
+ description: "يجب تحديد الفرع عند إنشاء مدير",
+ });
+ return;
+ }
+ 
  const employeeData = {
  username: username,
  fullName: formData.get("fullName") as string,
  phone: formData.get("phone") as string,
  jobTitle: formData.get("jobTitle") as string,
- role: "cashier",
- branchId: currentManager?.branchId,
+ role: selectedRole,
+ branchId: branchId,
  shiftTime: shiftStartTime && shiftEndTime ? `${shiftStartTime}-${shiftEndTime}` : undefined,
  shiftStartTime: shiftStartTime || undefined,
  shiftEndTime: shiftEndTime || undefined,
@@ -324,9 +356,51 @@ export default function ManagerEmployees() {
  <SelectItem value="محاسب">محاسب</SelectItem>
  <SelectItem value="بائع">بائع</SelectItem>
  <SelectItem value="عارض">عارض</SelectItem>
+ <SelectItem value="مدير">مدير</SelectItem>
  </SelectContent>
  </Select>
  </div>
+ </div>
+
+ {/* Role and Branch Selection - Admin only */}
+ <div className="grid grid-cols-2 gap-4">
+ <div>
+ <Label className="text-gray-300 flex items-center gap-1">
+ <Shield className="w-4 h-4" />
+ الدور في النظام *
+ </Label>
+ <Select value={selectedRole} onValueChange={setSelectedRole}>
+ <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-role">
+ <SelectValue placeholder="اختر الدور" />
+ </SelectTrigger>
+ <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+ <SelectItem value="cashier">كاشير</SelectItem>
+ <SelectItem value="accountant">محاسب</SelectItem>
+ {isAdminOrOwner && <SelectItem value="manager">مدير فرع</SelectItem>}
+ {currentManager?.role === "admin" && <SelectItem value="admin">مدير عام</SelectItem>}
+ </SelectContent>
+ </Select>
+ </div>
+ {isAdminOrOwner && (
+ <div>
+ <Label className="text-gray-300 flex items-center gap-1">
+ <MapPin className="w-4 h-4" />
+ الفرع {selectedRole === "manager" ? "*" : ""}
+ </Label>
+ <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+ <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-branch">
+ <SelectValue placeholder="اختر الفرع" />
+ </SelectTrigger>
+ <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+ {branches.map((branch) => (
+ <SelectItem key={branch._id} value={branch._id}>
+ {branch.nameAr}
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+ </div>
+ )}
  </div>
 
  <div className="grid grid-cols-2 gap-4">

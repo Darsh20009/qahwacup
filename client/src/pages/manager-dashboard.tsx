@@ -47,6 +47,13 @@ export default function ManagerDashboard() {
  latitude: 24.7136,
  longitude: 46.6753,
  });
+ const [managerAssignmentType, setManagerAssignmentType] = useState<"existing" | "new">("existing");
+ const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+ const [newManagerForm, setNewManagerForm] = useState({
+ fullName: "",
+ username: "",
+ phone: "",
+ });
  const { toast } = useToast();
 
  useEffect(() => {
@@ -119,8 +126,15 @@ export default function ManagerDashboard() {
  // Filter branches for non-admin managers
  const branches = isAdmin ? allBranches : allBranches.filter(branch => branch._id === managerBranchId);
 
+ // Get available managers (employees with manager role) for branch assignment
+ const availableManagers = allEmployees.filter(emp => 
+ emp.role === "manager" || emp.role === "admin"
+ );
+
  const createBranchMutation = useMutation({
- mutationFn: async (branchData: typeof branchForm) => {
+ mutationFn: async (branchData: typeof branchForm & { 
+ managerAssignment?: { type: "existing" | "new"; managerId?: string; newManager?: typeof newManagerForm } 
+ }) => {
  const payload: any = {
  nameAr: branchData.nameAr,
  nameEn: branchData.nameEn || undefined,
@@ -134,6 +148,7 @@ export default function ManagerDashboard() {
  longitude: branchData.longitude,
  },
  isActive: 1,
+ managerAssignment: branchData.managerAssignment,
  };
 
  const response = await fetch("/api/branches", {
@@ -152,6 +167,7 @@ export default function ManagerDashboard() {
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/branches"] });
+ queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
  setIsAddBranchOpen(false);
  setBranchForm({
  nameAr: "",
@@ -164,6 +180,9 @@ export default function ManagerDashboard() {
  latitude: 24.7136,
  longitude: 46.6753,
  });
+ setManagerAssignmentType("existing");
+ setSelectedManagerId("");
+ setNewManagerForm({ fullName: "", username: "", phone: "" });
  toast({
  title: "تم إضافة الفرع بنجاح",
  description: "تم إضافة الفرع الجديد إلى النظام",
@@ -213,7 +232,27 @@ export default function ManagerDashboard() {
  });
  return;
  }
- createBranchMutation.mutate(branchForm);
+ 
+ // Validate manager assignment
+ if (managerAssignmentType === "new" && (!newManagerForm.fullName || !newManagerForm.username || !newManagerForm.phone)) {
+ toast({
+ title: "بيانات المدير ناقصة",
+ description: "الرجاء إدخال جميع بيانات المدير الجديد",
+ variant: "destructive",
+ });
+ return;
+ }
+ 
+ const payload = {
+ ...branchForm,
+ managerAssignment: managerAssignmentType === "new" 
+ ? { type: "new" as const, newManager: newManagerForm }
+ : selectedManagerId 
+ ? { type: "existing" as const, managerId: selectedManagerId }
+ : undefined
+ };
+ 
+ createBranchMutation.mutate(payload);
  };
 
  const handleExportData = () => {
@@ -886,15 +925,96 @@ const clearAllDataMutation = useMutation({
  data-testid="input-branch-phone"
  />
  </div>
+ {/* Manager Assignment Section */}
+ <div className="space-y-4 border border-amber-500/30 rounded-lg p-4 bg-[#1a1410]/50">
+ <Label className="text-amber-500 font-semibold flex items-center gap-2">
+ <UserCheck className="w-4 h-4" />
+ تعيين مدير الفرع
+ </Label>
+ 
+ <div className="flex gap-4">
+ <label className="flex items-center gap-2 cursor-pointer">
+ <input
+ type="radio"
+ name="managerType"
+ checked={managerAssignmentType === "existing"}
+ onChange={() => setManagerAssignmentType("existing")}
+ className="w-4 h-4 text-amber-500"
+ data-testid="radio-existing-manager"
+ />
+ <span className="text-gray-300">تعيين مدير موجود</span>
+ </label>
+ <label className="flex items-center gap-2 cursor-pointer">
+ <input
+ type="radio"
+ name="managerType"
+ checked={managerAssignmentType === "new"}
+ onChange={() => setManagerAssignmentType("new")}
+ className="w-4 h-4 text-amber-500"
+ data-testid="radio-new-manager"
+ />
+ <span className="text-gray-300">إنشاء مدير جديد</span>
+ </label>
+ </div>
+ 
+ {managerAssignmentType === "existing" ? (
  <div className="grid gap-2">
- <Label htmlFor="managerName" className="text-gray-300">اسم المدير</Label>
+ <Label className="text-gray-300">اختر المدير</Label>
+ <Select value={selectedManagerId} onValueChange={setSelectedManagerId}>
+ <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-existing-manager">
+ <SelectValue placeholder="اختر مديراً موجوداً" />
+ </SelectTrigger>
+ <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+ {availableManagers.length === 0 ? (
+ <SelectItem value="none" disabled>لا يوجد مديرون متاحون</SelectItem>
+ ) : (
+ availableManagers.map((emp) => (
+ <SelectItem key={emp._id || emp.id} value={emp._id || emp.id || ""}>
+ {emp.fullName} - {emp.role === "admin" ? "مدير عام" : "مدير"}
+ </SelectItem>
+ ))
+ )}
+ </SelectContent>
+ </Select>
+ {availableManagers.length === 0 && (
+ <p className="text-xs text-amber-500/70">لا يوجد مديرون متاحون. يمكنك إنشاء مدير جديد.</p>
+ )}
+ </div>
+ ) : (
+ <div className="space-y-3">
+ <div className="grid gap-2">
+ <Label className="text-gray-300">اسم المدير الكامل *</Label>
  <Input
- id="managerName"
- value={branchForm.managerName}
- onChange={(e) => setBranchForm({ ...branchForm, managerName: e.target.value })}
+ value={newManagerForm.fullName}
+ onChange={(e) => setNewManagerForm({ ...newManagerForm, fullName: e.target.value })}
  className="bg-[#1a1410] border-amber-500/30 text-white"
  placeholder="مثال: أحمد محمد"
+ data-testid="input-new-manager-name"
  />
+ </div>
+ <div className="grid gap-2">
+ <Label className="text-gray-300">اسم المستخدم *</Label>
+ <Input
+ value={newManagerForm.username}
+ onChange={(e) => setNewManagerForm({ ...newManagerForm, username: e.target.value })}
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ placeholder="مثال: ahmed_manager"
+ data-testid="input-new-manager-username"
+ />
+ </div>
+ <div className="grid gap-2">
+ <Label className="text-gray-300">رقم الهاتف *</Label>
+ <Input
+ value={newManagerForm.phone}
+ onChange={(e) => setNewManagerForm({ ...newManagerForm, phone: e.target.value })}
+ className="bg-[#1a1410] border-amber-500/30 text-white"
+ placeholder="مثال: 0501234567"
+ data-testid="input-new-manager-phone"
+ />
+ </div>
+ <p className="text-xs text-amber-500/70">سيتم إنشاء المدير بدون كلمة مرور. يمكنه تفعيل حسابه لاحقاً.</p>
+ </div>
+ )}
  </div>
  <div className="grid gap-2">
  <Label htmlFor="mapsUrl" className="text-gray-300">رابط Google Maps</Label>

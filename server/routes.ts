@@ -39,15 +39,20 @@ function getOrderStatusMessage(status: string, orderNumber: string): string {
 }
 
 // Maileroo Email Configuration
-const transporter = nodemailer.createTransport({
+const mailerooApiKey = process.env.MAILEROO_API_KEY;
+const transporter = mailerooApiKey ? nodemailer.createTransport({
   host: 'smtp.maileroo.com',
   port: 465,
   secure: true,
   auth: {
     user: 'info@qahwakup.com',
-    pass: process.env.MAILEROO_API_KEY || '4752c6cec31f75043510f014cf30efa6862da3c485034cfaadf9b64b0107209e'
+    pass: mailerooApiKey
   }
-});
+}) : null;
+
+if (!transporter) {
+  console.warn("⚠️ MAILEROO_API_KEY not set - Email functionality will be disabled");
+}
 
 // Generate Tax Invoice HTML
 function generateInvoiceHTML(invoiceNumber: string, data: any): string {
@@ -133,6 +138,11 @@ function generateInvoiceHTML(invoiceNumber: string, data: any): string {
 
 // Send invoice via email
 async function sendInvoiceEmail(to: string, invoiceNumber: string, invoiceData: any): Promise<boolean> {
+  if (!transporter) {
+    console.log(`⚠️ Email not configured - Invoice ${invoiceNumber} not sent to ${to}`);
+    return false;
+  }
+  
   try {
     const htmlContent = generateInvoiceHTML(invoiceNumber, invoiceData);
     
@@ -201,8 +211,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Toggle POS connection (for testing/admin)
-  app.post("/api/pos/toggle", (req, res) => {
+  // Toggle POS connection (for testing/admin) - requires authentication
+  app.post("/api/pos/toggle", requireAuth, requireManager, (req: AuthRequest, res) => {
     try {
       posDeviceStatus.connected = !posDeviceStatus.connected;
       posDeviceStatus.lastCheck = Date.now();
@@ -2787,62 +2797,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/branches", async (req, res) => {
+  app.post("/api/branches", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const { insertBranchSchema } = await import("@shared/schema");
-      const validatedData = insertBranchSchema.parse(req.body);
+      const { managerAssignment, ...branchData } = req.body;
+      const validatedData = insertBranchSchema.parse(branchData);
       const branch = await storage.createBranch(validatedData);
       
-      // Auto-create manager for the branch
       const branchId = (branch as any)._id.toString();
-      const branchNameSlug = validatedData.nameAr.replace(/\s+/g, '_').toLowerCase();
-      const managerUsername = `manager_${branchNameSlug}`;
-      const temporaryPassword = `manager${Math.random().toString(36).slice(-8)}`;
+      let managerInfo: any = null;
       
-      try {
-        // Check if manager username already exists
-        const existingManager = await storage.getEmployeeByUsername(managerUsername);
-        let finalUsername = managerUsername;
-        
-        if (existingManager) {
-          // Add random suffix if username exists
-          finalUsername = `${managerUsername}_${Math.random().toString(36).slice(-4)}`;
+      // Handle manager assignment based on type
+      if (managerAssignment) {
+        try {
+          if (managerAssignment.type === "existing" && managerAssignment.managerId) {
+            // Assign existing manager to the branch
+            const existingManager = await storage.getEmployee(managerAssignment.managerId);
+            if (existingManager) {
+              await storage.updateEmployee(managerAssignment.managerId, {
+                branchId: branchId,
+              });
+              await storage.updateBranch(branchId, {
+                managerName: existingManager.fullName,
+              });
+              managerInfo = {
+                id: managerAssignment.managerId,
+                fullName: existingManager.fullName,
+                message: 'تم تعيين المدير الموجود للفرع بنجاح.',
+              };
+            }
+          } else if (managerAssignment.type === "new" && managerAssignment.newManager) {
+            // Create new manager (without password - can activate later)
+            const newManagerData = managerAssignment.newManager;
+            
+            // Check if username already exists
+            const existingUser = await storage.getEmployeeByUsername(newManagerData.username);
+            if (existingUser) {
+              return res.status(400).json({ 
+                error: "اسم المستخدم موجود بالفعل",
+                field: "username" 
+              });
+            }
+            
+            const manager = await storage.createEmployee({
+              username: newManagerData.username,
+              password: null, // No password - must activate account
+              fullName: newManagerData.fullName,
+              role: 'manager',
+              phone: newManagerData.phone,
+              jobTitle: 'مدير الفرع',
+              isActivated: 0, // Not activated - needs password setup
+              branchId: branchId,
+            });
+            
+            await storage.updateBranch(branchId, {
+              managerName: newManagerData.fullName,
+            });
+            
+            managerInfo = {
+              id: (manager as any)._id.toString(),
+              username: newManagerData.username,
+              fullName: newManagerData.fullName,
+              message: 'تم إنشاء حساب المدير. يحتاج المدير لتفعيل حسابه عبر إنشاء كلمة المرور.',
+            };
+          }
+        } catch (managerError) {
+          console.error("Error with manager assignment:", managerError);
+          managerInfo = { error: 'تم إنشاء الفرع ولكن حدث خطأ في تعيين المدير' };
         }
+      } else {
+        // No manager assignment provided - auto-create manager (backward compatibility)
+        const branchNameSlug = validatedData.nameAr.replace(/\s+/g, '_').toLowerCase();
+        const managerUsername = `manager_${branchNameSlug}`;
+        const temporaryPassword = `manager${Math.random().toString(36).slice(-8)}`;
         
-        const manager = await storage.createEmployee({
-          username: finalUsername,
-          password: temporaryPassword,
-          fullName: `مدير ${validatedData.nameAr}`,
-          role: 'manager',
-          phone: validatedData.phone,
-          jobTitle: 'مدير الفرع',
-          isActivated: 1,
-          branchId: branchId,
-        });
-        
-        // Update branch with manager name
-        await storage.updateBranch(branchId, {
-          managerName: `مدير ${validatedData.nameAr}`,
-        });
-        
-        res.status(201).json({
-          branch,
-          manager: {
+        try {
+          const existingManager = await storage.getEmployeeByUsername(managerUsername);
+          let finalUsername = managerUsername;
+          
+          if (existingManager) {
+            finalUsername = `${managerUsername}_${Math.random().toString(36).slice(-4)}`;
+          }
+          
+          const manager = await storage.createEmployee({
+            username: finalUsername,
+            password: temporaryPassword,
+            fullName: `مدير ${validatedData.nameAr}`,
+            role: 'manager',
+            phone: validatedData.phone,
+            jobTitle: 'مدير الفرع',
+            isActivated: 1,
+            branchId: branchId,
+          });
+          
+          await storage.updateBranch(branchId, {
+            managerName: `مدير ${validatedData.nameAr}`,
+          });
+          
+          managerInfo = {
             id: (manager as any)._id.toString(),
             username: finalUsername,
             temporaryPassword: temporaryPassword,
             fullName: `مدير ${validatedData.nameAr}`,
             message: 'تم إنشاء حساب المدير تلقائياً. يرجى حفظ اسم المستخدم وكلمة المرور المؤقتة.',
-          },
-        });
-      } catch (managerError) {
-        console.error("Error creating manager for branch:", managerError);
-        // Return branch even if manager creation fails
-        res.status(201).json({
-          branch,
-          managerError: 'تم إنشاء الفرع ولكن فشل إنشاء حساب المدير',
-        });
+          };
+        } catch (autoCreateError) {
+          console.error("Error auto-creating manager:", autoCreateError);
+          managerInfo = { error: 'تم إنشاء الفرع ولكن فشل إنشاء حساب المدير التلقائي' };
+        }
       }
+      
+      res.status(201).json({
+        branch,
+        manager: managerInfo,
+      });
     } catch (error) {
       console.error("Error creating branch:", error);
       if (error instanceof Error && 'issues' in error) {
