@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Coffee, ArrowRight, Calendar, Clock, User, MapPin, 
   Camera, CheckCircle2, XCircle, AlertTriangle, Search,
-  Download, Filter
+  Download, Filter, Users
 } from "lucide-react";
 import type { Employee } from "@shared/schema";
 
@@ -37,6 +37,7 @@ interface AttendanceRecord {
     jobTitle: string;
     shiftTime: string;
     imageUrl?: string;
+    role?: string;
   };
   branch?: {
     name: string;
@@ -58,8 +59,11 @@ export default function ManagerAttendance() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
 
   useEffect(() => {
     const storedEmployee = localStorage.getItem("currentEmployee");
@@ -114,16 +118,19 @@ export default function ManagerAttendance() {
   };
 
   const filteredRecords = attendanceRecords.filter(record => {
-    if (!searchQuery) return true;
-    return record.employee?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           record.employee?.phone?.includes(searchQuery);
+    if (searchQuery && !record.employee?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !record.employee?.phone?.includes(searchQuery)) return false;
+    if (selectedRole !== 'all' && record.employee?.role !== selectedRole) return false;
+    if (selectedStatus !== 'all' && record.status !== selectedStatus) return false;
+    return true;
   });
 
   const stats = {
     total: filteredRecords.length,
     present: filteredRecords.filter(r => r.status === 'checked_in' || r.status === 'checked_out').length,
     late: filteredRecords.filter(r => r.isLate === 1).length,
-    checkedOut: filteredRecords.filter(r => r.status === 'checked_out').length
+    checkedOut: filteredRecords.filter(r => r.status === 'checked_out').length,
+    absent: filteredRecords.filter(r => r.status === 'absent').length
   };
 
   const formatTime = (dateString?: string) => {
@@ -134,13 +141,36 @@ export default function ManagerAttendance() {
     });
   };
 
+  const downloadReport = () => {
+    const csv = [
+      ['الاسم', 'الدور', 'الفرع', 'وقت الحضور', 'وقت الانصراف', 'الحالة', 'تأخير', 'الموقع', 'المسافة (متر)'].join(','),
+      ...filteredRecords.map(r => [
+        r.employee?.fullName || '',
+        r.employee?.jobTitle || '',
+        r.branch?.nameAr || '',
+        formatTime(r.checkInTime),
+        formatTime(r.checkOutTime),
+        r.status === 'checked_out' ? 'انصرف' : 'حاضر',
+        r.lateMinutes ? `${r.lateMinutes} دقيقة` : '-',
+        r.isAtBranch === 1 ? 'في الفرع' : 'خارج الفرع',
+        Math.round(r.distanceFromBranch || 0)
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `attendance-${selectedDate}.csv`;
+    link.click();
+  };
+
   if (!employee) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] p-4" dir="rtl">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
@@ -148,7 +178,7 @@ export default function ManagerAttendance() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-amber-500">سجل الحضور</h1>
-              <p className="text-gray-400 text-xs">إدارة حضور الموظفين</p>
+              <p className="text-gray-400 text-xs">إدارة حضور جميع الموظفين والمديرين</p>
             </div>
           </div>
           <Button
@@ -162,14 +192,14 @@ export default function ManagerAttendance() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-400" />
+                <Users className="w-5 h-5 text-blue-400" />
                 <div>
                   <p className="text-blue-400 text-2xl font-bold">{stats.total}</p>
-                  <p className="text-gray-400 text-xs">إجمالي السجلات</p>
+                  <p className="text-gray-400 text-xs">إجمالي</p>
                 </div>
               </div>
             </CardContent>
@@ -210,61 +240,121 @@ export default function ManagerAttendance() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-red-400" />
+                <div>
+                  <p className="text-red-400 text-2xl font-bold">{stats.absent}</p>
+                  <p className="text-gray-400 text-xs">غياب</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20 mb-6">
           <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3 items-center">
+                <div className="flex-1 min-w-[200px]">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="بحث بالاسم أو الهاتف..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pr-10 bg-[#1a1410] border-amber-500/20 text-white"
+                      data-testid="input-search"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-amber-500" />
                   <Input
-                    placeholder="بحث بالاسم أو الهاتف..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-10 bg-[#1a1410] border-amber-500/20 text-white"
-                    data-testid="input-search"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="bg-[#1a1410] border-amber-500/20 text-white w-40"
+                    data-testid="input-date"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-amber-500" />
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="bg-[#1a1410] border-amber-500/20 text-white w-40"
-                  data-testid="input-date"
-                />
-              </div>
+              <div className="flex flex-wrap gap-3">
+                {(employee.role === 'admin' || employee.role === 'owner') && (
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger className="w-40 bg-[#1a1410] border-amber-500/20 text-white" data-testid="select-branch">
+                      <Filter className="w-4 h-4 ml-2" />
+                      <SelectValue placeholder="جميع الفروع" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">جميع الفروع</SelectItem>
+                      {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id}>
+                          {branch.nameAr || branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
-              {(employee.role === 'admin' || employee.role === 'owner') && (
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger className="w-40 bg-[#1a1410] border-amber-500/20 text-white" data-testid="select-branch">
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="w-40 bg-[#1a1410] border-amber-500/20 text-white" data-testid="select-role">
                     <Filter className="w-4 h-4 ml-2" />
-                    <SelectValue placeholder="جميع الفروع" />
+                    <SelectValue placeholder="جميع الأدوار" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">جميع الفروع</SelectItem>
-                    {branches.map(branch => (
-                      <SelectItem key={branch.id} value={branch.id}>
-                        {branch.nameAr || branch.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">جميع الأدوار</SelectItem>
+                    <SelectItem value="cashier">كاشير</SelectItem>
+                    <SelectItem value="manager">مدير</SelectItem>
+                    <SelectItem value="admin">إدمن</SelectItem>
                   </SelectContent>
                 </Select>
-              )}
+
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-40 bg-[#1a1410] border-amber-500/20 text-white" data-testid="select-status">
+                    <Filter className="w-4 h-4 ml-2" />
+                    <SelectValue placeholder="جميع الحالات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الحالات</SelectItem>
+                    <SelectItem value="checked_in">حاضر</SelectItem>
+                    <SelectItem value="checked_out">انصرف</SelectItem>
+                    <SelectItem value="late">متأخر</SelectItem>
+                    <SelectItem value="absent">غياب</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  onClick={downloadReport}
+                  className="bg-amber-500 hover:bg-amber-600 text-white"
+                  data-testid="button-download-report"
+                >
+                  <Download className="w-4 h-4 ml-2" />
+                  تنزيل تقرير
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-[#2d1f1a] to-[#1a1410] border-amber-500/20">
           <CardHeader>
-            <CardTitle className="text-amber-500 flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              سجلات الحضور
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-amber-500 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                سجلات الحضور
+              </CardTitle>
+              <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as 'cards' | 'table')}>
+                <TabsList className="bg-[#1a1410]">
+                  <TabsTrigger value="cards">بطاقات</TabsTrigger>
+                  <TabsTrigger value="table">جدول</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -276,6 +366,106 @@ export default function ManagerAttendance() {
               <div className="text-center py-8">
                 <XCircle className="w-12 h-12 text-gray-500 mx-auto mb-2" />
                 <p className="text-gray-400">لا توجد سجلات حضور لهذا اليوم</p>
+              </div>
+            ) : viewMode === 'table' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-amber-500/20">
+                      <th className="text-right py-3 px-4 text-amber-500">الاسم</th>
+                      <th className="text-right py-3 px-4 text-amber-500">الدور</th>
+                      <th className="text-right py-3 px-4 text-amber-500">الفرع</th>
+                      <th className="text-right py-3 px-4 text-amber-500">وقت الحضور</th>
+                      <th className="text-right py-3 px-4 text-amber-500">وقت الانصراف</th>
+                      <th className="text-right py-3 px-4 text-amber-500">الحالة</th>
+                      <th className="text-right py-3 px-4 text-amber-500">الموقع/المسافة</th>
+                      <th className="text-right py-3 px-4 text-amber-500">الصور</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRecords.map((record) => (
+                      <tr key={record.id} className="border-b border-amber-500/10 hover:bg-[#2d1f1a]/50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            {record.employee?.imageUrl ? (
+                              <img 
+                                src={record.employee.imageUrl} 
+                                alt={record.employee.fullName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 bg-amber-500/30 rounded-full flex items-center justify-center text-xs">
+                                {record.employee?.fullName?.charAt(0) || '?'}
+                              </div>
+                            )}
+                            <span className="text-white">{record.employee?.fullName || 'موظف غير معروف'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-400">{record.employee?.jobTitle || 'موظف'}</td>
+                        <td className="py-3 px-4 text-gray-400 text-xs">{record.branch?.nameAr || record.branch?.name || '-'}</td>
+                        <td className="py-3 px-4 text-green-400">{formatTime(record.checkInTime)}</td>
+                        <td className="py-3 px-4 text-orange-400">{formatTime(record.checkOutTime)}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1">
+                            {record.isLate === 1 && (
+                              <Badge variant="destructive" className="text-xs">
+                                تأخير {record.lateMinutes}د
+                              </Badge>
+                            )}
+                            <Badge
+                              className={
+                                record.status === 'checked_out'
+                                  ? 'bg-green-500/20 text-green-400'
+                                  : record.status === 'checked_in'
+                                  ? 'bg-blue-500/20 text-blue-400'
+                                  : 'bg-gray-500/20 text-gray-400'
+                              }
+                            >
+                              {record.status === 'checked_out' ? 'انصرف' : 'حاضر'}
+                            </Badge>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            className={`text-xs ${
+                              record.isAtBranch === 1
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-red-500/20 text-red-400'
+                            }`}
+                          >
+                            {record.isAtBranch === 1 ? 'في الفرع' : `${Math.round(record.distanceFromBranch || 0)}م`}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex gap-2">
+                            {record.checkInPhoto && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedPhoto(record.checkInPhoto)}
+                                className="text-amber-500 p-0 h-auto text-xs"
+                                data-testid={`button-view-checkin-photo-${record.id}`}
+                              >
+                                <Camera className="w-3 h-3" />
+                              </Button>
+                            )}
+                            {record.checkOutPhoto && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedPhoto(record.checkOutPhoto!)}
+                                className="text-amber-500 p-0 h-auto text-xs"
+                                data-testid={`button-view-checkout-photo-${record.id}`}
+                              >
+                                <Camera className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="space-y-4">
