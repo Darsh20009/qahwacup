@@ -15,6 +15,7 @@ export default function EmployeeDashboard() {
  const [employee, setEmployee] = useState<Employee | null>(null);
  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
  const [cardPassword, setCardPassword] = useState<string>("");
+ const [generatedQRData, setGeneratedQRData] = useState<string>("");
  const cardRef = useRef<HTMLDivElement>(null);
 
  useEffect(() => {
@@ -22,15 +23,19 @@ export default function EmployeeDashboard() {
  if (storedEmployee) {
  const emp = JSON.parse(storedEmployee);
  setEmployee(emp);
+ // Load saved QR data from localStorage
+ const savedQRData = localStorage.getItem(`qr-data-${emp.id}`);
+ if (savedQRData) {
+ setGeneratedQRData(savedQRData);
+ generateQRCode(savedQRData);
+ }
  } else {
  setLocation("/employee/gateway");
  }
  }, [setLocation]);
 
- // Update QR code when password is entered
- useEffect(() => {
- if (employee && cardPassword) {
- const qrData = `${employee.username}:${cardPassword}`;
+ // Generate QR code from data
+ const generateQRCode = (qrData: string) => {
  QRCode.toDataURL(qrData, {
  width: 200,
  margin: 1,
@@ -41,8 +46,18 @@ export default function EmployeeDashboard() {
  }).then(url => {
  setQrCodeUrl(url);
  }).catch(err => console.error('QR generation error:', err));
- }
- }, [employee, cardPassword]);
+ };
+
+ // Create/Update badge with locked QR code
+ const handleCreateBadge = () => {
+ if (!employee || !cardPassword) return;
+ 
+ const qrData = `${employee.username}:${cardPassword}`;
+ setGeneratedQRData(qrData);
+ localStorage.setItem(`qr-data-${employee.id}`, qrData);
+ generateQRCode(qrData);
+ setCardPassword("");
+ };
 
  const handleLogout = () => {
  localStorage.removeItem("currentEmployee");
@@ -170,10 +185,12 @@ export default function EmployeeDashboard() {
 
  <TabsContent value="card">
  <div className="space-y-4">
- {/* Password Input for QR Code */}
+ {/* Password Input for Creating Badge */}
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardContent className="pt-6">
- <label className="text-amber-500 text-sm font-bold mb-2 block">أدخل كلمة المرور لتحديث QR الكود:</label>
+ <label className="text-amber-500 text-sm font-bold mb-2 block">إنشاء/تحديث بطاقة الموظف:</label>
+ <p className="text-gray-400 text-xs mb-3">البطاقة المطبوعة ستحتفظ بنفس QR الكود حتى لو تغيرت كلمة المرور</p>
+ <div className="space-y-3">
  <div className="relative">
  <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
  <Input
@@ -185,8 +202,17 @@ export default function EmployeeDashboard() {
  data-testid="input-card-password"
  />
  </div>
- {cardPassword && (
- <p className="text-green-500 text-xs mt-2">✓ QR الكود محدّث بـ: {employee?.username}:{cardPassword}</p>
+ <Button
+ onClick={handleCreateBadge}
+ disabled={!cardPassword}
+ className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold"
+ data-testid="button-create-badge"
+ >
+ إنشاء البطاقة
+ </Button>
+ </div>
+ {generatedQRData && (
+ <p className="text-green-500 text-xs mt-3">✓ تم إنشاء البطاقة بـ: {generatedQRData}</p>
  )}
  </CardContent>
  </Card>
