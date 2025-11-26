@@ -518,6 +518,15 @@ const clearAllDataMutation = useMutation({
  <div className="flex gap-2">
  <Button
  variant="outline"
+ onClick={() => setLocation("/manager/attendance")}
+ className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+ data-testid="button-attendance"
+ >
+ <UserCheck className="w-4 h-4 ml-2" />
+ الحضور
+ </Button>
+ <Button
+ variant="outline"
  onClick={() => setLocation("/employee/dashboard")}
  className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
  data-testid="button-back"
