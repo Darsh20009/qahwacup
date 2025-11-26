@@ -368,7 +368,10 @@ const clearAllDataMutation = useMutation({
  orderCount: empOrders.length,
  totalSales: empOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0),
  } as EmployeeWithStats;
- }).sort((a, b) => {
+ })
+ // إزالة الكاشيرين بدون طلبات، إبقاء المديرين والإداريين
+ .filter(emp => emp.role === 'manager' || emp.role === 'admin' || emp.orderCount > 0)
+ .sort((a, b) => {
  // ترتيب: المديرين أولاً، ثم المديرين العامين، ثم الكاشيرين
  const roleOrder = { 'admin': 0, 'manager': 1, 'cashier': 2 };
  const aRole = roleOrder[a.role as keyof typeof roleOrder] ?? 3;
