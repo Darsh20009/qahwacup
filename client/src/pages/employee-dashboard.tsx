@@ -21,8 +21,10 @@ export default function EmployeeDashboard() {
  const emp = JSON.parse(storedEmployee);
  setEmployee(emp);
  
- // Generate QR code with website URL
- QRCode.toDataURL('https://qahwa.ma3k.online', {
+ // Generate QR code with login credentials format: username:password
+ // Using a default password format since actual password isn't stored for security
+ const qrData = `${emp.username}:qahwa2025`;
+ QRCode.toDataURL(qrData, {
  width: 200,
  margin: 1,
  color: {
@@ -237,8 +239,8 @@ export default function EmployeeDashboard() {
  <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32" data-testid="img-qr-code" />
  )}
  </div>
- <p className="text-amber-900 text-xs font-bold">امسح للموقع</p>
- <p className="text-amber-700/60 text-xs">Scan Site</p>
+ <p className="text-amber-900 text-xs font-bold">امسح لتسجيل الدخول</p>
+ <p className="text-amber-700/60 text-xs">Scan Login</p>
  </div>
  </div>
 
