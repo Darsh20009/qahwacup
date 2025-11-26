@@ -76,6 +76,7 @@ export default function EmployeeCashier() {
  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number, reason: string} | null>(null);
  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
  const [lastOrder, setLastOrder] = useState<any>(null);
+ const [posConnected, setPosConnected] = useState(false);
  const receiptRef = useRef<HTMLDivElement>(null);
  
  const { toast } = useToast();
@@ -93,6 +94,28 @@ export default function EmployeeCashier() {
  setLocation("/employee/gateway");
  }
  }, [setLocation]);
+
+ // Check POS device connection
+ useEffect(() => {
+ const checkPosConnection = async () => {
+ try {
+ const response = await fetch('/api/pos/status', { method: 'GET' });
+ if (response.ok) {
+ const data = await response.json();
+ setPosConnected(data.connected === true);
+ } else {
+ setPosConnected(false);
+ }
+ } catch (error) {
+ setPosConnected(false);
+ }
+ };
+
+ // Check POS status every 30 seconds
+ checkPosConnection();
+ const interval = setInterval(checkPosConnection, 30000);
+ return () => clearInterval(interval);
+ }, []);
 
  // Check for existing customer when phone number is entered
  useEffect(() => {
@@ -518,13 +541,13 @@ export default function EmployeeCashier() {
  </Button>
  <div className="bg-[#2d1f1a] border border-amber-500/20 rounded-lg px-4 py-2 hover-elevate">
  <div className="flex items-center gap-2">
- <MonitorSmartphone className="w-4 h-4 text-gray-400" />
+ <MonitorSmartphone className={`w-4 h-4 ${posConnected ? 'text-green-400' : 'text-gray-400'}`} />
  <span className="text-xs text-gray-400">جهاز POS:</span>
- <Badge variant="outline" className="border-green-500/30 text-green-400">
- متصل
+ <Badge variant="outline" className={posConnected ? "border-green-500/30 text-green-400" : "border-yellow-500/30 text-yellow-400"}>
+ {posConnected ? "متصل" : "غير متصل"}
  </Badge>
  </div>
- <p className="text-xs text-gray-500 mt-1">جاهز للدفع الإلكتروني</p>
+ <p className="text-xs text-gray-500 mt-1">{posConnected ? "جاهز للدفع الإلكتروني" : "خيار POS متاح في طرق الدفع"}</p>
  </div>
  {lastOrder && (
  <Button

@@ -181,7 +181,38 @@ const upload = multer({
   }
 });
 
+// Simple POS device status tracker
+let posDeviceStatus = { connected: false, lastCheck: Date.now() };
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // POS STATUS ROUTES
+  app.get("/api/pos/status", (req, res) => {
+    try {
+      res.json({ 
+        connected: posDeviceStatus.connected,
+        lastCheck: posDeviceStatus.lastCheck
+      });
+    } catch (error) {
+      console.error("Error getting POS status:", error);
+      res.status(500).json({ error: "Failed to get POS status" });
+    }
+  });
+
+  // Toggle POS connection (for testing/admin)
+  app.post("/api/pos/toggle", (req, res) => {
+    try {
+      posDeviceStatus.connected = !posDeviceStatus.connected;
+      posDeviceStatus.lastCheck = Date.now();
+      res.json({ 
+        connected: posDeviceStatus.connected,
+        message: posDeviceStatus.connected ? "POS متصل الآن" : "POS غير متصل"
+      });
+    } catch (error) {
+      console.error("Error toggling POS:", error);
+      res.status(500).json({ error: "Failed to toggle POS" });
+    }
+  });
+
   // FILE UPLOAD ROUTES
   
   // Upload payment receipt
