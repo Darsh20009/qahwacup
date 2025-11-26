@@ -3769,6 +3769,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============== OWNER DASHBOARD ROUTES ==============
 
+  // Configure multer for employee image uploads
+  const employeeUploadsDir = path.join(import.meta.dirname, '..', 'attached_assets', 'employees');
+  const employeeStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, employeeUploadsDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = `${Date.now()}-${nanoid(8)}`;
+      cb(null, `employee-${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  });
+
+  const employeeUpload = multer({
+    storage: employeeStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|webp/;
+      const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimeType = allowedTypes.test(file.mimetype);
+
+      if (ext && mimeType) {
+        cb(null, true);
+      } else {
+        cb(new Error('نوع الملف غير مسموح. فقط صور (JPG, PNG, WEBP)'));
+      }
+    }
+  });
+
+  // Upload employee image
+  app.post("/api/upload-employee-image", requireAuth, requireManager, employeeUpload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "لم يتم رفع صورة" });
+      }
+
+      const fileUrl = `/attached_assets/employees/${req.file.filename}`;
+      res.json({ url: fileUrl, filename: req.file.filename });
+    } catch (error) {
+      console.error("Error uploading employee image:", error);
+      res.status(500).json({ error: "فشل رفع الصورة" });
+    }
+  });
+
   // Configure multer for drink image uploads
   const drinksUploadsDir = path.join(import.meta.dirname, '..', 'attached_assets', 'drinks');
   const drinksStorage = multer.diskStorage({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, Plus, User, Phone, Clock, Percent, LogOut, Edit } from "lucide-react";
+import { Coffee, Plus, User, Phone, Clock, Percent, LogOut, Edit, Upload, X } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Employee } from "@shared/schema";
 
@@ -19,6 +19,15 @@ export default function ManagerEmployees() {
  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
  const [currentManager, setCurrentManager] = useState<any>(null);
+ const [selectedImage, setSelectedImage] = useState<File | null>(null);
+ const [imagePreview, setImagePreview] = useState<string | null>(null);
+ const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+ const [editSelectedImage, setEditSelectedImage] = useState<File | null>(null);
+ const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+ const [editUploadedImageUrl, setEditUploadedImageUrl] = useState<string | null>(null);
+ const fileInputRef = useRef<HTMLInputElement>(null);
+ const editFileInputRef = useRef<HTMLInputElement>(null);
+ const [isUploadingImage, setIsUploadingImage] = useState(false);
 
  // Get current manager info
  useEffect(() => {
@@ -109,7 +118,7 @@ export default function ManagerEmployees() {
  workDays: workDaysData.length > 0 ? workDaysData : undefined,
  deviceBalance: parseInt(formData.get("deviceBalance") as string) || 0,
  commissionPercentage: parseFloat(formData.get("commissionPercentage") as string) || 0,
- imageUrl: formData.get("imageUrl") as string || undefined,
+ imageUrl: uploadedImageUrl || undefined,
  };
 
  createEmployeeMutation.mutate(employeeData);
@@ -131,10 +140,88 @@ export default function ManagerEmployees() {
  workDays: workDaysData.length > 0 ? workDaysData : undefined,
  deviceBalance: parseInt(formData.get("deviceBalance") as string) || 0,
  commissionPercentage: parseFloat(formData.get("commissionPercentage") as string) || 0,
- imageUrl: formData.get("imageUrl") as string || undefined,
+ imageUrl: editUploadedImageUrl || editingEmployee.imageUrl || undefined,
  };
 
  updateEmployeeMutation.mutate({ id: editingEmployee.id || '', data: employeeData });
+ };
+
+ const handleImageUpload = async (file: File) => {
+ if (!file) return;
+ 
+ const preview = URL.createObjectURL(file);
+ setImagePreview(preview);
+ setSelectedImage(file);
+
+ setIsUploadingImage(true);
+ try {
+ const formData = new FormData();
+ formData.append('image', file);
+ const response = await fetch('/api/upload-employee-image', {
+ method: 'POST',
+ body: formData,
+ credentials: 'include'
+ });
+
+ if (response.ok) {
+ const data = await response.json();
+ setUploadedImageUrl(data.url);
+ toast({
+ title: "تم رفع الصورة",
+ description: "تم رفع صورة الموظف بنجاح"
+ });
+ } else {
+ throw new Error('فشل الرفع');
+ }
+ } catch (error) {
+ toast({
+ title: "خطأ",
+ description: "فشل رفع الصورة",
+ variant: "destructive"
+ });
+ setImagePreview(null);
+ setSelectedImage(null);
+ }
+ setIsUploadingImage(false);
+ };
+
+ const handleEditImageUpload = async (file: File) => {
+ if (!file) return;
+ 
+ const preview = URL.createObjectURL(file);
+ setEditImagePreview(preview);
+ setEditSelectedImage(file);
+
+ setIsUploadingImage(true);
+ try {
+ const formData = new FormData();
+ formData.append('image', file);
+ const response = await fetch('/api/upload-employee-image', {
+ method: 'POST',
+ body: formData,
+ credentials: 'include'
+ });
+
+ if (response.ok) {
+ const data = await response.json();
+ setEditUploadedImageUrl(data.url);
+ toast({
+ title: "تم رفع الصورة",
+ description: "تم رفع صورة الموظف بنجاح"
+ });
+ } else {
+ throw new Error('فشل الرفع');
+ }
+ } catch (error) {
+ toast({
+ title: "خطأ",
+ description: "فشل رفع الصورة",
+ variant: "destructive"
+ });
+ setEditImagePreview(null);
+ setEditSelectedImage(null);
+ }
+ setIsUploadingImage(false);
  };
 
  return (
@@ -309,15 +396,53 @@ export default function ManagerEmployees() {
  </div>
 
  <div>
- <Label htmlFor="imageUrl" className="text-gray-300">رابط الصورة </Label>
- <Input
- id="imageUrl"
- name="imageUrl"
- type="url"
- placeholder="https://example.com/image.jpg"
- className="bg-[#1a1410] border-amber-500/30 text-white"
- data-testid="input-imageurl"
+ <Label htmlFor="employeeImage" className="text-gray-300">صورة الموظف</Label>
+ <div className="flex gap-2 items-end">
+ <div className="flex-1">
+ <input
+ ref={fileInputRef}
+ type="file"
+ accept="image/*"
+ className="hidden"
+ onChange={(e) => {
+ const file = e.currentTarget.files?.[0];
+ if (file) handleImageUpload(file);
+ }}
+ data-testid="input-employee-image"
  />
+ <Button
+ type="button"
+ variant="outline"
+ onClick={() => fileInputRef.current?.click()}
+ disabled={isUploadingImage}
+ className="w-full border-amber-500/30 text-amber-500"
+ >
+ <Upload className="w-4 h-4 ml-2" />
+ {isUploadingImage ? "جاري الرفع..." : "اختر صورة"}
+ </Button>
+ </div>
+ {imagePreview && (
+ <Button
+ type="button"
+ variant="outline"
+ size="icon"
+ onClick={() => {
+ setImagePreview(null);
+ setSelectedImage(null);
+ setUploadedImageUrl(null);
+ }}
+ className="border-red-500/30 text-red-500"
+ data-testid="button-remove-image"
+ >
+ <X className="w-4 h-4" />
+ </Button>
+ )}
+ </div>
+ {imagePreview && (
+ <div className="mt-2">
+ <img src={imagePreview} alt="معاينة" className="w-20 h-20 rounded-lg object-cover" />
+ </div>
+ )}
  </div>
 
  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -330,7 +455,12 @@ export default function ManagerEmployees() {
  <Button
  type="button"
  variant="outline"
- onClick={() => setIsAddDialogOpen(false)}
+ onClick={() => {
+ setIsAddDialogOpen(false);
+ setImagePreview(null);
+ setSelectedImage(null);
+ setUploadedImageUrl(null);
+ }}
  className="border-gray-600 text-gray-300"
  data-testid="button-cancel-add"
  >
@@ -551,23 +681,69 @@ export default function ManagerEmployees() {
  </div>
 
  <div>
- <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصورة </Label>
- <Input
- id="edit-imageUrl"
- name="imageUrl"
- type="url"
- defaultValue={editingEmployee.imageUrl}
- placeholder="https://example.com/image.jpg"
- className="bg-[#1a1410] border-amber-500/30 text-white"
- data-testid="input-edit-imageurl"
+ <Label htmlFor="edit-employeeImage" className="text-gray-300">صورة الموظف</Label>
+ <div className="flex gap-2 items-end">
+ <div className="flex-1">
+ <input
+ ref={editFileInputRef}
+ type="file"
+ accept="image/*"
+ className="hidden"
+ onChange={(e) => {
+ const file = e.currentTarget.files?.[0];
+ if (file) handleEditImageUpload(file);
+ }}
+ data-testid="input-edit-employee-image"
  />
+ <Button
+ type="button"
+ variant="outline"
+ onClick={() => editFileInputRef.current?.click()}
+ disabled={isUploadingImage}
+ className="w-full border-amber-500/30 text-amber-500"
+ >
+ <Upload className="w-4 h-4 ml-2" />
+ {isUploadingImage ? "جاري الرفع..." : "اختر صورة جديدة"}
+ </Button>
+ </div>
+ {editImagePreview && (
+ <Button
+ type="button"
+ variant="outline"
+ size="icon"
+ onClick={() => {
+ setEditImagePreview(null);
+ setEditSelectedImage(null);
+ setEditUploadedImageUrl(null);
+ }}
+ className="border-red-500/30 text-red-500"
+ data-testid="button-remove-edit-image"
+ >
+ <X className="w-4 h-4" />
+ </Button>
+ )}
+ </div>
+ {editImagePreview ? (
+ <div className="mt-2">
+ <img src={editImagePreview} alt="معاينة جديدة" className="w-20 h-20 rounded-lg object-cover" />
+ </div>
+ ) : editingEmployee.imageUrl ? (
+ <div className="mt-2">
+ <img src={editingEmployee.imageUrl} alt={editingEmployee.fullName} className="w-20 h-20 rounded-lg object-cover" />
+ </div>
+ ) : null}
  </div>
 
  <div className="flex justify-end gap-2">
  <Button
  type="button"
  variant="outline"
- onClick={() => setEditingEmployee(null)}
+ onClick={() => {
+ setEditingEmployee(null);
+ setEditImagePreview(null);
+ setEditSelectedImage(null);
+ setEditUploadedImageUrl(null);
+ }}
  className="border-gray-600 text-gray-300"
  data-testid="button-cancel-edit"
  >
