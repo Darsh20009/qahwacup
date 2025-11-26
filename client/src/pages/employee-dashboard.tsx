@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import * as QRCode from "qrcode";
+import { toDataURL } from "qrcode";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
 
@@ -30,7 +30,7 @@ export default function EmployeeDashboard() {
 
  // Generate QR code with employee ID only (permanent, never changes)
  const generateQRCode = (employeeId: string) => {
- QRCode.toDataURL(employeeId, {
+ toDataURL(employeeId, {
  width: 200,
  margin: 1,
  color: {
