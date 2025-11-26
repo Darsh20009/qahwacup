@@ -3845,7 +3845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload attendance photo
-  app.post("/api/upload-attendance-photo", requireAuth, attendanceUpload.single('photo'), (req, res) => {
+  app.post("/api/upload-attendance-photo", attendanceUpload.single('photo'), (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "لم يتم رفع صورة" });
@@ -4054,7 +4054,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get attendance records (for managers)
+  // Get attendance records (for managers and admins)
   app.get("/api/attendance", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const { AttendanceModel, EmployeeModel } = await import("@shared/schema");
@@ -4062,9 +4062,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const query: any = {};
 
-      // Filter by branch for non-admin/owner managers
+      // If manager: show attendance for their branch employees
+      // If admin/owner: show all attendance including managers
       if (req.employee?.role === 'manager' && req.employee?.branchId) {
         query.branchId = req.employee.branchId;
+      } else if (req.employee?.role === 'admin' || req.employee?.role === 'owner') {
+        // Admin can filter by branch if specified
+        if (branchId) {
+          query.branchId = branchId;
+        }
+        // Admin can also see manager attendance by filtering by role
+        // This will be handled by enrichment
       } else if (branchId) {
         query.branchId = branchId;
       }
@@ -4097,7 +4105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               fullName: employee.fullName,
               phone: employee.phone,
               jobTitle: employee.jobTitle,
-              shiftTime: employee.shiftTime
+              shiftTime: employee.shiftTime,
+              role: employee.role
             } : null
           };
         })
