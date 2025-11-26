@@ -106,15 +106,19 @@ export default function ManagerEmployees() {
  
  const username = formData.get("username") as string;
  const workDaysData = formData.getAll("workDays") as string[];
+ const shiftStartTime = formData.get("shiftStartTime") as string;
+ const shiftEndTime = formData.get("shiftEndTime") as string;
+ 
  const employeeData = {
  username: username,
  fullName: formData.get("fullName") as string,
  phone: formData.get("phone") as string,
  jobTitle: formData.get("jobTitle") as string,
  role: "cashier",
- shiftTime: formData.get("shiftTime") as string,
- shiftStartTime: formData.get("shiftStartTime") as string || undefined,
- shiftEndTime: formData.get("shiftEndTime") as string || undefined,
+ branchId: currentManager?.branchId,
+ shiftTime: shiftStartTime && shiftEndTime ? `${shiftStartTime}-${shiftEndTime}` : undefined,
+ shiftStartTime: shiftStartTime || undefined,
+ shiftEndTime: shiftEndTime || undefined,
  workDays: workDaysData.length > 0 ? workDaysData : undefined,
  deviceBalance: parseInt(formData.get("deviceBalance") as string) || 0,
  commissionPercentage: parseFloat(formData.get("commissionPercentage") as string) || 0,
