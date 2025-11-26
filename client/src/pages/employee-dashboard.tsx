@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
@@ -13,6 +14,7 @@ export default function EmployeeDashboard() {
  const [, setLocation] = useLocation();
  const [employee, setEmployee] = useState<Employee | null>(null);
  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+ const [cardPassword, setCardPassword] = useState<string>("");
  const cardRef = useRef<HTMLDivElement>(null);
 
  useEffect(() => {
@@ -20,10 +22,15 @@ export default function EmployeeDashboard() {
  if (storedEmployee) {
  const emp = JSON.parse(storedEmployee);
  setEmployee(emp);
- 
- // Generate QR code with login credentials format: username:password
- // Using a default password format since actual password isn't stored for security
- const qrData = `${emp.username}:qahwa2025`;
+ } else {
+ setLocation("/employee/gateway");
+ }
+ }, [setLocation]);
+
+ // Update QR code when password is entered
+ useEffect(() => {
+ if (employee && cardPassword) {
+ const qrData = `${employee.username}:${cardPassword}`;
  QRCode.toDataURL(qrData, {
  width: 200,
  margin: 1,
@@ -33,11 +40,9 @@ export default function EmployeeDashboard() {
  }
  }).then(url => {
  setQrCodeUrl(url);
- });
- } else {
- setLocation("/employee/gateway");
+ }).catch(err => console.error('QR generation error:', err));
  }
- }, [setLocation]);
+ }, [employee, cardPassword]);
 
  const handleLogout = () => {
  localStorage.removeItem("currentEmployee");
@@ -165,6 +170,27 @@ export default function EmployeeDashboard() {
 
  <TabsContent value="card">
  <div className="space-y-4">
+ {/* Password Input for QR Code */}
+ <Card className="bg-[#2d1f1a] border-amber-500/20">
+ <CardContent className="pt-6">
+ <label className="text-amber-500 text-sm font-bold mb-2 block">أدخل كلمة المرور لتحديث QR الكود:</label>
+ <div className="relative">
+ <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
+ <Input
+ type="password"
+ placeholder="أدخل كلمة المرور الحالية"
+ value={cardPassword}
+ onChange={(e) => setCardPassword(e.target.value)}
+ className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500"
+ data-testid="input-card-password"
+ />
+ </div>
+ {cardPassword && (
+ <p className="text-green-500 text-xs mt-2">✓ QR الكود محدّث بـ: {employee?.username}:{cardPassword}</p>
+ )}
+ </CardContent>
+ </Card>
+
  {/* Employee Card - Landscape Format */}
  <div ref={cardRef} className="space-y-4">
  {/* Front Side - Employee Info */}
