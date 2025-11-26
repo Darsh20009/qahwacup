@@ -4289,14 +4289,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لا يوجد موقع للفرع" });
       }
 
-      // Check if employee is within 100 meters of the branch
+      // Check if employee is within 250 meters of the branch
+      // Increased tolerance to account for GPS inaccuracy and branch size
       const branchLat = branch.location.latitude;
       const branchLng = branch.location.longitude;
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
-      if (distance > 100) {
+      if (distance > 250) {
         return res.status(400).json({ 
-          error: `يجب أن تكون داخل الفرع للتحضير. أنت على بعد ${Math.round(distance)} متر`,
+          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للتحضير. المسافة: ${Math.round(distance)} متر`,
           distance: Math.round(distance)
         });
       }
@@ -4327,7 +4328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lateMinutes = isLate ? Math.floor((now.getTime() - shiftStart.getTime()) / 60000) : 0;
 
       // Create attendance record with location verification
-      const isAtBranch = distance <= 100 ? 1 : 0;
+      const isAtBranch = distance <= 250 ? 1 : 0;
       const attendance = new AttendanceModel({
         employeeId: employeeId,
         branchId: employee.branchId,
@@ -4397,14 +4398,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لا يوجد موقع للفرع" });
       }
 
-      // Check if employee is within 100 meters of the branch
+      // Check if employee is within 250 meters of the branch
+      // Increased tolerance to account for GPS inaccuracy and branch size
       const branchLat = branch.location.latitude;
       const branchLng = branch.location.longitude;
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
-      if (distance > 100) {
+      if (distance > 250) {
         return res.status(400).json({ 
-          error: `يجب أن تكون داخل الفرع للانصراف. أنت على بعد ${Math.round(distance)} متر`,
+          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للانصراف. المسافة: ${Math.round(distance)} متر`,
           distance: Math.round(distance)
         });
       }
