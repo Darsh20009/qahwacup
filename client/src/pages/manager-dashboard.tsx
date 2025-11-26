@@ -92,8 +92,10 @@ export default function ManagerDashboard() {
  enabled: !!manager,
  });
 
- // Filter employees by branch for non-admin managers
- const employees = isAdmin ? allEmployees : allEmployees.filter(emp => emp.branchId === managerBranchId);
+ // For admin: show all employees + managers. For managers: show employees of their branch + all managers
+ const employees = isAdmin 
+   ? allEmployees 
+   : allEmployees.filter(emp => emp.branchId === managerBranchId || emp.role === 'manager' || emp.role === 'admin');
 
  const { data: customers = [] } = useQuery<Customer[]>({
  queryKey: ["/api/customers"],
@@ -356,6 +358,7 @@ const clearAllDataMutation = useMutation({
 
  const employeesWithStats: EmployeeWithStats[] = employees.map(emp => {
  const empId = emp._id?.toString() || emp.id?.toString();
+ // كل موظف يرى فقط طلباته الخاصة
  const empOrders = filteredOrders.filter(o => {
  const orderEmpId = o.employeeId?.toString();
  return orderEmpId === empId;
@@ -365,6 +368,14 @@ const clearAllDataMutation = useMutation({
  orderCount: empOrders.length,
  totalSales: empOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0),
  } as EmployeeWithStats;
+ }).sort((a, b) => {
+ // ترتيب: المديرين أولاً، ثم المديرين العامين، ثم الكاشيرين
+ const roleOrder = { 'admin': 0, 'manager': 1, 'cashier': 2 };
+ const aRole = roleOrder[a.role as keyof typeof roleOrder] ?? 3;
+ const bRole = roleOrder[b.role as keyof typeof roleOrder] ?? 3;
+ if (aRole !== bRole) return aRole - bRole;
+ // نفس الدور: ترتيب حسب المبيعات (الأعلى أولاً)
+ return (b.totalSales || 0) - (a.totalSales || 0);
  });
 
  // Prepare chart data
