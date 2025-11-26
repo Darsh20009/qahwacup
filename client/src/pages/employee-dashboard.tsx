@@ -28,15 +28,16 @@ export default function EmployeeDashboard() {
  // Generate QR code when employee is loaded
  useEffect(() => {
  if (employee?.id) {
- generateQRCode(employee.id);
+ // Use only first 8 characters of employee ID for QR code
+ generateQRCode(employee.id.slice(0, 8));
  }
  }, [employee?.id]);
 
- // Generate QR code with employee ID only (permanent, never changes)
- const generateQRCode = async (employeeId: string) => {
+ // Generate QR code with first 8 chars of employee ID only (permanent, never changes)
+ const generateQRCode = async (employeeIdShort: string) => {
  try {
  const QRCode = (await import('qrcode')).default;
- const url = await QRCode.toDataURL(employeeId, {
+ const url = await QRCode.toDataURL(employeeIdShort, {
  width: 200,
  margin: 1,
  color: {
