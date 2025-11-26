@@ -176,6 +176,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Verify session endpoint
+  app.get("/api/verify-session", (req: AuthRequest, res) => {
+    try {
+      if (!req.session.employee) {
+        return res.status(401).json({ error: "No active session" });
+      }
+
+      res.json({
+        success: true,
+        employee: req.session.employee
+      });
+    } catch (error) {
+      console.error("Error verifying session:", error);
+      res.status(500).json({ error: "Session verification failed" });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/employees/logout", (req: AuthRequest, res) => {
+    try {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Logout error:", err);
+          return res.status(500).json({ error: "Logout failed" });
+        }
+        res.json({ success: true });
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({ error: "Logout failed" });
+    }
+  });
+
   // Get employee by ID (branch-restricted for managers)
   app.get("/api/employees/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {

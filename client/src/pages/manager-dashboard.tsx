@@ -50,17 +50,37 @@ export default function ManagerDashboard() {
  const { toast } = useToast();
 
  useEffect(() => {
+ const checkSession = async () => {
  const storedEmployee = localStorage.getItem("currentEmployee");
  if (storedEmployee) {
  const emp = JSON.parse(storedEmployee);
  if (emp.role !== "manager" && emp.role !== "admin") {
+ localStorage.removeItem("currentEmployee");
  setLocation("/employee/dashboard");
  return;
  }
- setManager(emp);
- } else {
- setLocation("/employee/gateway");
+
+ // Verify session is still valid on backend
+ try {
+ const response = await fetch("/api/verify-session", { credentials: "include" });
+ if (!response.ok) {
+ // Session expired, clear localStorage and redirect
+ localStorage.removeItem("currentEmployee");
+ setLocation("/manager/login");
+ return;
  }
+ setManager(emp);
+ } catch (error) {
+ console.error("Session verification error:", error);
+ localStorage.removeItem("currentEmployee");
+ setLocation("/manager/login");
+ }
+ } else {
+ setLocation("/manager/login");
+ }
+ };
+
+ checkSession();
  }, [setLocation]);
 
  // For managers (not admin), filter by branchId
