@@ -11,6 +11,7 @@ import {
   Camera, CheckCircle2, XCircle, AlertTriangle, Search,
   Download, Filter, Users
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 import type { Employee } from "@shared/schema";
 
 interface AttendanceRecord {
@@ -142,26 +143,26 @@ export default function ManagerAttendance() {
   };
 
   const downloadReport = () => {
-    const csv = [
-      ['الاسم', 'الدور', 'الفرع', 'وقت الحضور', 'وقت الانصراف', 'الحالة', 'تأخير', 'الموقع', 'المسافة (متر)'].join(','),
-      ...filteredRecords.map(r => [
-        r.employee?.fullName || '',
-        r.employee?.jobTitle || '',
-        r.branch?.nameAr || '',
-        formatTime(r.checkInTime),
-        formatTime(r.checkOutTime),
-        r.status === 'checked_out' ? 'انصرف' : 'حاضر',
-        r.lateMinutes ? `${r.lateMinutes} دقيقة` : '-',
-        r.isAtBranch === 1 ? 'في الفرع' : 'خارج الفرع',
-        Math.round(r.distanceFromBranch || 0)
-      ].join(','))
-    ].join('\n');
+    const reportData = filteredRecords.map(r => ({
+      'الاسم': r.employee?.fullName || '',
+      'الدور': r.employee?.jobTitle || '',
+      'الفرع': r.branch?.nameAr || r.branch?.name || '',
+      'وقت الحضور': formatTime(r.checkInTime),
+      'وقت الانصراف': formatTime(r.checkOutTime),
+      'الحالة': r.status === 'checked_out' ? 'انصرف' : r.status === 'checked_in' ? 'حاضر' : 'غائب',
+      'تأخير (دقيقة)': r.lateMinutes ? r.lateMinutes : '-',
+      'الموقع عند الحضور': r.isAtBranch === 1 ? 'في الفرع' : 'خارج الفرع',
+      'المسافة (متر)': r.distanceFromBranch ? Math.round(r.distanceFromBranch) : 0,
+      'موقع الانصراف': r.checkOutIsAtBranch === 1 ? 'في الفرع' : r.checkOutTime ? 'خارج الفرع' : '-',
+      'مسافة الانصراف (متر)': r.checkOutDistanceFromBranch ? Math.round(r.checkOutDistanceFromBranch) : 0
+    }));
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `attendance-${selectedDate}.csv`;
-    link.click();
+    const worksheet = XLSX.utils.json_to_sheet(reportData, { header: 1 });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'سجل الحضور');
+    
+    const fileName = `سجل_حضور_${selectedDate}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   if (!employee) {
