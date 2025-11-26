@@ -350,13 +350,27 @@ export class DBStorage implements IStorage {
         employmentNumber,
         password: hashedPassword,
       });
-      return newEmployee;
+      // Convert _id to id
+      const result: any = {
+        ...newEmployee.toObject(),
+        id: newEmployee._id.toString(),
+      };
+      delete result._id;
+      delete result.__v;
+      return result;
     } else {
       const newEmployee = await EmployeeModel.create({
         ...insertEmployee,
         employmentNumber,
       });
-      return newEmployee;
+      // Convert _id to id
+      const result: any = {
+        ...newEmployee.toObject(),
+        id: newEmployee._id.toString(),
+      };
+      delete result._id;
+      delete result.__v;
+      return result;
     }
   }
 
@@ -365,8 +379,17 @@ export class DBStorage implements IStorage {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
     updates.updatedAt = new Date();
-    const employee = await EmployeeModel.findByIdAndUpdate(id, updates, { new: true });
-    return employee || undefined;
+    const employee = await EmployeeModel.findByIdAndUpdate(id, updates, { new: true }).lean();
+    if (!employee) return undefined;
+    
+    // Convert _id to id
+    const result: any = {
+      ...employee,
+      id: employee._id.toString(),
+    };
+    delete result._id;
+    delete result.__v;
+    return result;
   }
 
   async activateEmployee(phone: string, fullName: string, password: string): Promise<Employee | undefined> {
@@ -378,7 +401,16 @@ export class DBStorage implements IStorage {
     employee.isActivated = 1;
     employee.updatedAt = new Date();
     await employee.save();
-    return employee;
+    
+    // Convert _id to id
+    const obj = employee.toObject();
+    const result: any = {
+      ...obj,
+      id: employee._id.toString(),
+    };
+    delete result._id;
+    delete result.__v;
+    return result;
   }
 
   async resetEmployeePasswordByUsername(username: string, newPassword: string): Promise<boolean> {
