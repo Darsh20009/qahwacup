@@ -384,8 +384,9 @@ export async function runSeeds() {
   console.log("\n📍 Seeding delivery zones...");
   await seedDeliveryZones();
   
-  console.log("\n👥 Seeding employees...");
-  await seedEmployees();
+  // Employees will be added manually by admin through the system
+  // console.log("\n👥 Seeding employees...");
+  // await seedEmployees();
   
   console.log("\n📊 Seeding tables...");
   await seedTables();
