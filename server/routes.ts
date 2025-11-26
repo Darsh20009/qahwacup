@@ -40,11 +40,11 @@ function getOrderStatusMessage(status: string, orderNumber: string): string {
 
 // Maileroo Email Configuration
 const transporter = nodemailer.createTransport({
-  host: 'app.maileroo.com',
-  port: 587,
-  secure: false,
+  host: 'smtp.maileroo.com',
+  port: 465,
+  secure: true,
   auth: {
-    user: 'api',
+    user: 'info@qahwakup.com',
     pass: process.env.MAILEROO_API_KEY || '4752c6cec31f75043510f014cf30efa6862da3c485034cfaadf9b64b0107209e'
   }
 });
@@ -136,17 +136,20 @@ async function sendInvoiceEmail(to: string, invoiceNumber: string, invoiceData: 
   try {
     const htmlContent = generateInvoiceHTML(invoiceNumber, invoiceData);
     
-    await transporter.sendMail({
+    console.log(`📧 Attempting to send invoice ${invoiceNumber} to ${to}`);
+    
+    const result = await transporter.sendMail({
       from: 'info@qahwakup.com',
       to: to,
       subject: `فاتورة ضريبية - قهوة كوب - الرقم: ${invoiceNumber}`,
-      html: htmlContent
+      html: htmlContent,
+      replyTo: 'support@qahwakup.com'
     });
     
-    console.log(`Invoice sent successfully to ${to}`);
+    console.log(`✅ Invoice ${invoiceNumber} sent successfully to ${to}:`, result.response);
     return true;
   } catch (error) {
-    console.error('Error sending invoice email:', error);
+    console.error(`❌ Error sending invoice ${invoiceNumber} to ${to}:`, error);
     return false;
   }
 }
@@ -1952,7 +1955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate and send tax invoice if customer has email
-      if (customerInfo?.customerEmail) {
+      if (customerInfo && (customerInfo.customerEmail || customer?.email)) {
         try {
           const taxRate = 0.15;
           const invoiceSubtotal = parseFloat(totalAmount.toString()) / (1 + taxRate);
@@ -1971,25 +1974,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
             invoiceDate: new Date()
           };
           
-          await sendInvoiceEmail(customerInfo.customerEmail, invoiceNumber, invoiceData);
+          const customerEmail = customerInfo.customerEmail || customer?.email;
+          if (customerEmail && customerEmail.includes('@')) {
+            console.log(`💌 Sending invoice to: ${customerEmail}`);
+            await sendInvoiceEmail(customerEmail, invoiceNumber, invoiceData);
+          } else {
+            console.log(`⚠️ No valid email found. Customer email: ${customerInfo.customerEmail}, DB email: ${customer?.email}`);
+          }
           
           // Store invoice in database
-          await storage.createTaxInvoice({
-            orderId: order.id,
-            customerName: customerInfo.customerName,
-            customerPhone: customerInfo.phoneNumber,
-            customerEmail: customerInfo.customerEmail,
-            items: invoiceData.items,
-            subtotal: invoiceData.subtotal,
-            discountAmount: invoiceData.discountAmount,
-            taxAmount: invoiceTax,
-            totalAmount: parseFloat(totalAmount.toString()),
-            paymentMethod: paymentMethod
-          }, invoiceNumber);
+          try {
+            await storage.createTaxInvoice({
+              orderId: order.id,
+              customerName: customerInfo.customerName,
+              customerPhone: customerInfo.phoneNumber,
+              customerEmail: customerEmail,
+              items: invoiceData.items,
+              subtotal: invoiceData.subtotal,
+              discountAmount: invoiceData.discountAmount,
+              taxAmount: invoiceTax,
+              totalAmount: parseFloat(totalAmount.toString()),
+              paymentMethod: paymentMethod
+            }, invoiceNumber);
+          } catch (storageError) {
+            console.error("Error storing invoice in database:", storageError);
+          }
         } catch (invoiceError) {
-          console.error("Error generating/sending invoice:", invoiceError);
+          console.error("❌ Error generating/sending invoice:", invoiceError);
           // Don't fail order if invoice generation fails
         }
+      } else {
+        console.log(`ℹ️ Invoice not sent - No customer info or email provided`);
       }
       
       res.status(201).json(serializedOrder);
