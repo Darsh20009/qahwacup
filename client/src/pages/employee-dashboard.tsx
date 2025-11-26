@@ -42,8 +42,8 @@ export default function EmployeeDashboard() {
  width: 200,
  margin: 1,
  color: {
- dark: '#1a1410',
- light: '#f59e0b'
+ dark: '#000000',
+ light: '#FFFFFF'
  }
  });
  }
