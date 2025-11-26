@@ -64,8 +64,28 @@ export default function EmployeeDashboard() {
  return null;
  }
 
- const roleArabic = employee.role === "manager" ? "مدير" : "كاشير";
- const roleColor = employee.role === "manager" ? "bg-amber-500" : "bg-blue-500";
+ const getRoleArabic = (role: string) => {
+   switch(role) {
+     case "owner": return "صاحب الكافيه";
+     case "admin": return "مدير النظام";
+     case "manager": return "مدير فرع";
+     case "driver": return "سائق";
+     default: return "كاشير";
+   }
+ };
+
+ const getRoleColor = (role: string) => {
+   switch(role) {
+     case "owner": return "bg-red-600";
+     case "admin": return "bg-purple-600";
+     case "manager": return "bg-amber-500";
+     case "driver": return "bg-green-600";
+     default: return "bg-blue-500";
+   }
+ };
+
+ const roleArabic = getRoleArabic(employee.role || "cashier");
+ const roleColor = getRoleColor(employee.role || "cashier");
 
  return (
  <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] p-4">
@@ -377,7 +397,7 @@ export default function EmployeeDashboard() {
  </div>
  </Button>
 
- {employee.role === "manager" && (
+ {(employee.role === "manager" || employee.role === "owner" || employee.role === "admin") && (
  <>
  <Button
  size="lg"
