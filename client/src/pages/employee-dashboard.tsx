@@ -260,7 +260,13 @@ export default function EmployeeDashboard() {
  {/* Right Section - QR Code */}
  <div className="flex flex-col items-center space-y-2">
  <div className="bg-white p-3 rounded-xl shadow-md border-2 border-amber-600/30">
- <canvas ref={qrCanvasRef} className="w-32 h-32" data-testid="canvas-qr-code" />
+ <canvas 
+ ref={qrCanvasRef} 
+ width={200} 
+ height={200}
+ data-testid="canvas-qr-code" 
+ style={{ display: 'block' }}
+ />
  </div>
  <p className="text-amber-900 text-xs font-bold">امسح لتسجيل الدخول</p>
  <p className="text-amber-700/60 text-xs">Scan Login</p>
