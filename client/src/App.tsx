@@ -45,6 +45,9 @@ import CashierTableOrders from "@/pages/cashier-table-orders";
 import CashierTables from "@/pages/cashier-tables";
 import EmployeeForgotPassword from "@/pages/employee-forgot-password";
 import ManagerForgotPassword from "@/pages/manager-forgot-password";
+import EmployeeAttendance from "@/pages/employee-attendance";
+import ManagerAttendance from "@/pages/manager-attendance";
+import OwnerDashboard from "@/pages/owner-dashboard";
 
 function Router() {
  return (
@@ -88,6 +91,9 @@ function Router() {
  <Route path="/manager/drivers" component={ManagerDrivers} />
  <Route path="/manager/dashboard" component={ManagerDashboard} />
  <Route path="/manager/tables" component={ManagerTables} />
+ <Route path="/manager/attendance" component={ManagerAttendance} />
+ <Route path="/employee/attendance" component={EmployeeAttendance} />
+ <Route path="/owner/dashboard" component={OwnerDashboard} />
  <Route component={SplashScreen} />
  </Switch>
  );
