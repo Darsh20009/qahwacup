@@ -840,8 +840,23 @@ export default function EmployeeCashier() {
  <SelectItem value="ur">Ur Pay</SelectItem>
  <SelectItem value="barq">Barq</SelectItem>
  <SelectItem value="rajhi">تحويل بنك الراجحي</SelectItem>
+ {loyaltyCard && ((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) >= 10 && (
+ <SelectItem value="qahwa-card">
+ المشروبات المجانية ({Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)})
+ </SelectItem>
+ )}
  </SelectContent>
  </Select>
+ {paymentMethod === 'qahwa-card' && loyaltyCard && (
+ <div className="bg-amber-900/30 border border-amber-500/50 rounded-lg p-3 space-y-2 mt-2">
+ <p className="text-amber-300 text-sm">
+ المشروبات المجانية المتاحة: {Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)}
+ </p>
+ <p className="text-xs text-amber-400">
+ السعر: مجاني (بدلاً من {calculateTotal()} ريال)
+ </p>
+ </div>
+ )}
  </div>
 
  <div className="space-y-2 bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-500/20">
