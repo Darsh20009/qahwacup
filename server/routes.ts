@@ -1,12 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema } from "@shared/schema";
 import { requireAuth, requireManager, requireAdmin, filterByBranch, type AuthRequest } from "./middleware/auth";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import { nanoid } from "nanoid";
+import nodemailer from "nodemailer";
 
 // Helper function to serialize MongoDB documents
 function serializeDoc(doc: any): any {

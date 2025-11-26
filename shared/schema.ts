@@ -620,6 +620,40 @@ TableSchema.index({ tableNumber: 1, branchId: 1 }, { unique: true });
 
 export const TableModel = mongoose.model<ITable>("Table", TableSchema);
 
+export interface ITaxInvoice extends Document {
+  invoiceNumber: string;
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  items: any;
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  totalAmount: number;
+  paymentMethod: string;
+  invoiceDate: Date;
+  createdAt: Date;
+}
+
+const TaxInvoiceSchema = new Schema<ITaxInvoice>({
+  invoiceNumber: { type: String, required: true, unique: true },
+  orderId: { type: String, required: true },
+  customerName: { type: String, required: true },
+  customerPhone: { type: String, required: true },
+  customerEmail: { type: String },
+  items: { type: Schema.Types.Mixed, required: true },
+  subtotal: { type: Number, required: true },
+  discountAmount: { type: Number, default: 0 },
+  taxAmount: { type: Number, required: true },
+  totalAmount: { type: Number, required: true },
+  paymentMethod: { type: String, required: true },
+  invoiceDate: { type: Date, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+export const TaxInvoiceModel = mongoose.model<ITaxInvoice>("TaxInvoice", TaxInvoiceSchema);
+
 export interface IAttendance extends Document {
   employeeId: string;
   branchId: string;
@@ -1011,6 +1045,23 @@ export type InsertTable = z.infer<typeof insertTableSchema>;
 
 export type Attendance = IAttendance;
 export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
+
+export type TaxInvoice = ITaxInvoice;
+
+export const insertTaxInvoiceSchema = z.object({
+  orderId: z.string(),
+  customerName: z.string(),
+  customerPhone: z.string(),
+  customerEmail: z.string().optional(),
+  items: z.any(),
+  subtotal: z.number(),
+  discountAmount: z.number().default(0),
+  taxAmount: z.number(),
+  totalAmount: z.number(),
+  paymentMethod: z.string(),
+});
+
+export type InsertTaxInvoice = z.infer<typeof insertTaxInvoiceSchema>;
 
 export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
 
