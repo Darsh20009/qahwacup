@@ -28,6 +28,8 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
 - **Smart Reservation Time Window:** Table reservations include a time-window system (-30 minutes to +5 minutes from reservation time) that automatically manages reservation lifecycle and customer ordering options.
 - **Branch-Restricted Table Access:** Managers can only access tables within their assigned branch, with API-level enforcement of this security measure.
 - **Phone Verification & Reservation Check:** Enhanced phone input for customer lookup and auto-fill, and accurate reservation verification logic for tables.
+- **Attendance Location Verification:** Check-in/out requires employee to be within 100 meters of their assigned branch. Distance is calculated using Haversine formula and stored with each attendance record (isAtBranch, distanceFromBranch fields).
+- **Enhanced Attendance Display:** Manager attendance page shows employee photos, branch names, location verification status (inside/outside branch), and distance from branch for both check-in and check-out.
 
 ### Feature Specifications
 - **Product Management:** Add, modify, delete coffee products.
