@@ -77,6 +77,7 @@ export default function EmployeeCashier() {
  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
  const [lastOrder, setLastOrder] = useState<any>(null);
  const [posConnected, setPosConnected] = useState(false);
+ const [stampsToUse, setStampsToUse] = useState(0);
  const receiptRef = useRef<HTMLDivElement>(null);
  
  const { toast } = useToast();
@@ -840,21 +841,42 @@ export default function EmployeeCashier() {
  <SelectItem value="ur">Ur Pay</SelectItem>
  <SelectItem value="barq">Barq</SelectItem>
  <SelectItem value="rajhi">تحويل بنك الراجحي</SelectItem>
- {loyaltyCard && ((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) >= 10 && (
+ {loyaltyCard && ((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) > 0 && (
  <SelectItem value="qahwa-card">
- المشروبات المجانية ({Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)})
+ استخدام الأختام ({(loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)})
  </SelectItem>
  )}
  </SelectContent>
  </Select>
  {paymentMethod === 'qahwa-card' && loyaltyCard && (
- <div className="bg-amber-900/30 border border-amber-500/50 rounded-lg p-3 space-y-2 mt-2">
+ <div className="bg-amber-900/30 border border-amber-500/50 rounded-lg p-4 space-y-3 mt-2">
+ <div className="space-y-2">
+ <Label className="text-amber-300 text-sm">عدد الأختام المراد استخدامها</Label>
+ <div className="flex gap-2 items-center">
+ <Input
+ type="number"
+ min="0"
+ max={(loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)}
+ value={stampsToUse}
+ onChange={(e) => setStampsToUse(Math.min(parseInt(e.target.value) || 0, (loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)))}
+ className="bg-[#1a1410] border-amber-500/30 text-white text-center w-20"
+ data-testid="input-stamps-to-use"
+ />
+ <span className="text-amber-400 text-sm">من {(loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)}</span>
+ </div>
+ </div>
+ <div className="bg-[#1a1410] rounded p-2 space-y-1">
+ <p className="text-xs text-gray-400">تفاصيل الحسم:</p>
  <p className="text-amber-300 text-sm">
- المشروبات المجانية المتاحة: {Math.floor(((loyaltyCard.freeCupsEarned || 0) - (loyaltyCard.freeCupsRedeemed || 0)) / 10)}
+ الأختام المستخدمة: {stampsToUse} ختم
  </p>
- <p className="text-xs text-amber-400">
- السعر: مجاني (بدلاً من {calculateTotal()} ريال)
+ <p className="text-amber-300 text-sm">
+ قيمة الخصم: {(stampsToUse * 5).toFixed(2)} ريال (5 ريال لكل ختم)
  </p>
+ <p className="text-amber-400 text-sm">
+ السعر النهائي: {Math.max(0, calculateTotal() - (stampsToUse * 5)).toFixed(2)} ريال
+ </p>
+ </div>
  </div>
  )}
  </div>
