@@ -21,14 +21,17 @@ export default function EmployeeDashboard() {
  if (storedEmployee) {
  const emp = JSON.parse(storedEmployee);
  setEmployee(emp);
- // Generate QR with employee ID only (one-time, never changes)
- if (qrCanvasRef.current) {
- generateQRCode(emp.id);
- }
  } else {
  setLocation("/employee/gateway");
  }
  }, [setLocation]);
+
+ // Generate QR code when employee is loaded and canvas is ready
+ useEffect(() => {
+ if (employee?.id && qrCanvasRef.current) {
+ generateQRCode(employee.id);
+ }
+ }, [employee?.id]);
 
  // Generate QR code with employee ID only (permanent, never changes)
  const generateQRCode = async (employeeId: string) => {
@@ -43,7 +46,6 @@ export default function EmployeeDashboard() {
  light: '#f59e0b'
  }
  });
- setQrCodeUrl(qrCanvasRef.current.toDataURL());
  }
  } catch (err) {
  console.error('QR generation error:', err);
