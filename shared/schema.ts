@@ -127,6 +127,7 @@ export interface IEmployee extends Document {
   vehicleColor?: string;
   licenseNumber?: string;
   isAvailableForDelivery?: number;
+  employmentNumber: string;
   currentLocation?: {
     lat: number;
     lng: number;
@@ -154,6 +155,7 @@ const EmployeeSchema = new Schema<IEmployee>({
   vehicleColor: { type: String },
   licenseNumber: { type: String },
   isAvailableForDelivery: { type: Number, default: 0 },
+  employmentNumber: { type: String, required: true, unique: true },
   currentLocation: {
     lat: { type: Number },
     lng: { type: Number },
