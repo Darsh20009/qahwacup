@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { toDataURL } from "qrcode";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
 
@@ -15,6 +14,7 @@ export default function EmployeeDashboard() {
  const [employee, setEmployee] = useState<Employee | null>(null);
  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
  const cardRef = useRef<HTMLDivElement>(null);
+ const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
  useEffect(() => {
  const storedEmployee = localStorage.getItem("currentEmployee");
@@ -22,24 +22,32 @@ export default function EmployeeDashboard() {
  const emp = JSON.parse(storedEmployee);
  setEmployee(emp);
  // Generate QR with employee ID only (one-time, never changes)
+ if (qrCanvasRef.current) {
  generateQRCode(emp.id);
+ }
  } else {
  setLocation("/employee/gateway");
  }
  }, [setLocation]);
 
  // Generate QR code with employee ID only (permanent, never changes)
- const generateQRCode = (employeeId: string) => {
- toDataURL(employeeId, {
+ const generateQRCode = async (employeeId: string) => {
+ try {
+ const QRCode = (await import('qrcode')).default;
+ if (qrCanvasRef.current) {
+ await QRCode.toCanvas(qrCanvasRef.current, employeeId, {
  width: 200,
  margin: 1,
  color: {
  dark: '#1a1410',
  light: '#f59e0b'
  }
- }).then(url => {
- setQrCodeUrl(url);
- }).catch(err => console.error('QR generation error:', err));
+ });
+ setQrCodeUrl(qrCanvasRef.current.toDataURL());
+ }
+ } catch (err) {
+ console.error('QR generation error:', err);
+ }
  };
 
  const handleLogout = () => {
@@ -250,9 +258,7 @@ export default function EmployeeDashboard() {
  {/* Right Section - QR Code */}
  <div className="flex flex-col items-center space-y-2">
  <div className="bg-white p-3 rounded-xl shadow-md border-2 border-amber-600/30">
- {qrCodeUrl && (
- <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32" data-testid="img-qr-code" />
- )}
+ <canvas ref={qrCanvasRef} className="w-32 h-32" data-testid="canvas-qr-code" />
  </div>
  <p className="text-amber-900 text-xs font-bold">امسح لتسجيل الدخول</p>
  <p className="text-amber-700/60 text-xs">Scan Login</p>
