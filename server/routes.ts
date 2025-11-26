@@ -233,8 +233,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new employee (admin only)
-  app.post("/api/employees", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+  // Create new employee (admin and managers)
+  app.post("/api/employees", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertEmployeeSchema.parse(req.body);
 
