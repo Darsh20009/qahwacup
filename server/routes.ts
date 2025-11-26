@@ -4068,13 +4068,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      const employees = await storage.getAllEmployees();
-      const cashiers = employees.filter(e => e.role === 'cashier');
+      const employees = await storage.getEmployees();
+      const cashiers = employees.filter((e: any) => e.role === 'cashier');
       let deletedCount = 0;
 
+      const { EmployeeModel } = await import("@shared/schema");
+      
       for (const cashier of cashiers) {
         try {
-          await storage.deleteEmployee(cashier.id || cashier._id?.toString());
+          const employeeId = cashier.id || cashier._id?.toString();
+          await EmployeeModel.deleteOne({ _id: employeeId });
           deletedCount++;
         } catch (error) {
           console.error(`Error deleting cashier ${cashier.fullName}:`, error);
