@@ -493,8 +493,14 @@ export default function EmployeeCashier() {
  }
 
  let finalTotal = parseFloat(calculateTotal());
+ let stampDiscount = 0;
  if (paymentMethod === 'qahwa-card' && stampsToUse > 0) {
- finalTotal = Math.max(0, finalTotal - (stampsToUse * 1));
+ // كل 6 أختام = مشروب واحد مجاني
+ // متوسط سعر المشروب = إجمالي السعر / عدد المشروبات
+ const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+ const avgPricePerItem = totalItems > 0 ? parseFloat(calculateTotal()) / totalItems : 0;
+ stampDiscount = (stampsToUse * avgPricePerItem) / 6;
+ finalTotal = Math.max(0, finalTotal - stampDiscount);
  }
 
  const orderData = {
@@ -506,6 +512,7 @@ export default function EmployeeCashier() {
  totalAmount: finalTotal.toFixed(2),
  paymentMethod,
  stampsUsed: paymentMethod === 'qahwa-card' ? stampsToUse : 0,
+ stampDiscount: stampDiscount,
  customerInfo: {
  customerName: customerName,
  phoneNumber: customerPhone,
@@ -878,10 +885,21 @@ export default function EmployeeCashier() {
  الأختام المستخدمة: {stampsToUse} ختم
  </p>
  <p className="text-amber-300 text-sm">
- قيمة الخصم: {(stampsToUse * 1).toFixed(2)} ريال (1 ريال لكل ختم)
+ {(() => {
+ const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+ const avgPrice = totalItems > 0 ? parseFloat(calculateTotal()) / totalItems : 0;
+ const discount = (stampsToUse * avgPrice) / 6;
+ return `قيمة الخصم: ${discount.toFixed(2)} ريال (${stampsToUse} ÷ 6 = ${(stampsToUse/6).toFixed(2)} منتج)`;
+ })()}
  </p>
  <p className="text-amber-400 text-sm">
- السعر النهائي: {Math.max(0, calculateTotal() - (stampsToUse * 1)).toFixed(2)} ريال
+ {(() => {
+ const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+ const avgPrice = totalItems > 0 ? parseFloat(calculateTotal()) / totalItems : 0;
+ const discount = (stampsToUse * avgPrice) / 6;
+ const finalPrice = Math.max(0, parseFloat(calculateTotal()) - discount);
+ return `السعر النهائي: ${finalPrice.toFixed(2)} ريال`;
+ })()}
  </p>
  </div>
  </div>

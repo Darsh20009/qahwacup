@@ -1955,7 +1955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate and send tax invoice if customer has email
-      if (customerInfo && (customerInfo.customerEmail || customer?.email)) {
+      if (customerInfo && customerInfo.customerEmail) {
         try {
           const taxRate = 0.15;
           const invoiceSubtotal = parseFloat(totalAmount.toString()) / (1 + taxRate);
@@ -1974,12 +1974,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             invoiceDate: new Date()
           };
           
-          const customerEmail = customerInfo.customerEmail || customer?.email;
+          const customerEmail = customerInfo.customerEmail;
           if (customerEmail && customerEmail.includes('@')) {
             console.log(`💌 Sending invoice to: ${customerEmail}`);
             await sendInvoiceEmail(customerEmail, invoiceNumber, invoiceData);
           } else {
-            console.log(`⚠️ No valid email found. Customer email: ${customerInfo.customerEmail}, DB email: ${customer?.email}`);
+            console.log(`⚠️ No valid email found. Customer email: ${customerEmail}`);
           }
           
           // Store invoice in database
