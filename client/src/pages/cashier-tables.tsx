@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, User, Phone, CheckCircle2, XCircle, Clock, Check, X } from "lucide-react";
 import {
   Dialog,
@@ -61,25 +62,24 @@ export default function CashierTables() {
   const [numberOfGuests, setNumberOfGuests] = useState("2");
   const [reservationDateTime, setReservationDateTime] = useState("");
   const [employeeBranchId, setEmployeeBranchId] = useState<string>("");
+  const [employee, setEmployee] = useState<any>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
   // Get current employee info from localStorage or API
   useEffect(() => {
     const employeeData = localStorage.getItem("currentEmployee");
     if (employeeData) {
-      const employee = JSON.parse(employeeData);
-      if (employee.branchId) {
-        setEmployeeBranchId(employee.branchId);
-      } else if (employee._id || employee.id) {
-        // If branchId is not in localStorage, fetch employee data from API
-        fetch(`/api/employees/${employee._id || employee.id}`, {
-          credentials: "include"
-        })
+      const emp = JSON.parse(employeeData);
+      setEmployee(emp);
+      if (emp.branchId) {
+        setEmployeeBranchId(emp.branchId);
+      } else if (emp._id || emp.id) {
+        fetch(`/api/employees/${emp._id || emp.id}`, { credentials: "include" })
           .then(res => res.json())
           .then(data => {
             if (data.branchId) {
               setEmployeeBranchId(data.branchId);
-              // Update localStorage with branchId
-              const updated = { ...employee, branchId: data.branchId };
+              const updated = { ...emp, branchId: data.branchId };
               localStorage.setItem("currentEmployee", JSON.stringify(updated));
             }
           })
@@ -343,6 +343,11 @@ export default function CashierTables() {
     });
   };
 
+  // Fetch all branches
+  const { data: branches = [] } = useQuery<IBranch[]>({
+    queryKey: ["/api/branches"],
+  });
+
   // Get reservation status based on time
   const getReservationStatus = (reservation: ITable["reservedFor"]) => {
     if (!reservation || reservation.status !== 'pending') return reservation?.status;
@@ -356,7 +361,10 @@ export default function CashierTables() {
     return 'pending';
   };
 
-  if (!employeeBranchId) {
+  // For admin/owner, allow branch selection
+  const isAdminUser = employee?.role === "admin" || employee?.role === "owner";
+
+  if (!employeeBranchId && !isAdminUser) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
         <Card className="max-w-md">
@@ -370,6 +378,41 @@ export default function CashierTables() {
       </div>
     );
   }
+
+  if (isAdminUser && !selectedBranchId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center p-4" dir="rtl">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>اختر الفرع</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="اختر الفرع" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map(branch => (
+                  <SelectItem key={branch._id} value={branch._id}>
+                    {branch.nameAr}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={() => setSelectedBranchId(selectedBranchId)}
+              className="w-full"
+              disabled={!selectedBranchId}
+            >
+              متابعة
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const activeBranchId = selectedBranchId || employeeBranchId;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100" dir="rtl">
