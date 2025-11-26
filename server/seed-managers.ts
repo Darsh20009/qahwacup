@@ -53,6 +53,30 @@ async function seedManagersAndBranches() {
       createdBranches.push(branch);
     }
 
+    // Create or update owner account (cafe owner with full control)
+    const ownerPassword = await bcrypt.hash("owner123", 10);
+    let owner = await EmployeeModel.findOne({ username: "owner" });
+    if (!owner) {
+      owner = await EmployeeModel.create({
+        username: "owner",
+        password: ownerPassword,
+        fullName: "صاحب الكافيه",
+        role: "owner",
+        phone: "0500000099",
+        jobTitle: "المالك",
+        isActivated: 1,
+        commissionPercentage: 0,
+      });
+      console.log("✅ Created owner account (owner/owner123)");
+    } else {
+      owner.role = "owner";
+      owner.password = ownerPassword;
+      owner.fullName = "صاحب الكافيه";
+      owner.jobTitle = "المالك";
+      await owner.save();
+      console.log("✅ Updated owner account");
+    }
+
     // Create or update admin account (oversees all branches)
     const adminPassword = await bcrypt.hash("admin", 10);
     let admin = await EmployeeModel.findOne({ username: "admin" });
@@ -133,6 +157,7 @@ async function seedManagersAndBranches() {
     console.log("\n=== Seed Summary ===");
     console.log("Branches created:", createdBranches.length);
     console.log("\nAccounts:");
+    console.log("- Owner: owner / owner123 (صاحب الكافيه - full control)");
     console.log("- Admin: admin / admin (all branches)");
     console.log("- Olaya Branch: darwish / darwish123");
     console.log("- Malaz Branch: mohmmed / 123456");

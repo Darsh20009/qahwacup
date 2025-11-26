@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Coffee, ArrowRight, CheckCircle, XCircle, Plus, Edit2, Trash2, Sparkles } from "lucide-react";
+import { Coffee, ArrowRight, CheckCircle, XCircle, Plus, Edit2, Trash2, Sparkles, Upload, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getCoffeeImage } from "@/lib/coffee-images";
@@ -25,6 +25,13 @@ export default function EmployeeMenuManagement() {
  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
  const [editingItem, setEditingItem] = useState<CoffeeItem | null>(null);
  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+ const [selectedImage, setSelectedImage] = useState<File | null>(null);
+ const [imagePreview, setImagePreview] = useState<string | null>(null);
+ const [isUploadingImage, setIsUploadingImage] = useState(false);
+ const [editSelectedImage, setEditSelectedImage] = useState<File | null>(null);
+ const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+ const fileInputRef = useRef<HTMLInputElement>(null);
+ const editFileInputRef = useRef<HTMLInputElement>(null);
  const { toast } = useToast();
  const queryClient = useQueryClient();
 
@@ -174,9 +181,27 @@ export default function EmployeeMenuManagement() {
  });
  };
 
- const handleSubmitNewItem = (e: React.FormEvent<HTMLFormElement>) => {
+ const handleSubmitNewItem = async (e: React.FormEvent<HTMLFormElement>) => {
  e.preventDefault();
  const formData = new FormData(e.currentTarget);
+ 
+ let imageUrl: string | undefined = undefined;
+ 
+ if (selectedImage) {
+   setIsUploadingImage(true);
+   const uploadedUrl = await uploadImage(selectedImage);
+   setIsUploadingImage(false);
+   if (uploadedUrl) {
+     imageUrl = uploadedUrl;
+   } else {
+     toast({
+       title: "خطأ",
+       description: "فشل رفع الصورة، يرجى المحاولة مرة أخرى",
+       variant: "destructive"
+     });
+     return;
+   }
+ }
  
  const itemData = {
  id: nanoid(10),
@@ -186,20 +211,39 @@ export default function EmployeeMenuManagement() {
  price: parseFloat(formData.get("price") as string),
  oldPrice: formData.get("oldPrice") ? parseFloat(formData.get("oldPrice") as string) : undefined,
  category: formData.get("category") as string,
- imageUrl: formData.get("imageUrl") as string || undefined,
+ imageUrl: imageUrl,
  isAvailable: 1,
  availabilityStatus: "available",
  isNewProduct: 0,
  };
 
  createItemMutation.mutate(itemData);
+ resetImageState();
  };
 
- const handleSubmitEditItem = (e: React.FormEvent<HTMLFormElement>) => {
+ const handleSubmitEditItem = async (e: React.FormEvent<HTMLFormElement>) => {
  e.preventDefault();
  if (!editingItem) return;
  
  const formData = new FormData(e.currentTarget);
+ 
+ let imageUrl: string | undefined = editingItem.imageUrl;
+ 
+ if (editSelectedImage) {
+   setIsUploadingImage(true);
+   const uploadedUrl = await uploadImage(editSelectedImage);
+   setIsUploadingImage(false);
+   if (uploadedUrl) {
+     imageUrl = uploadedUrl;
+   } else {
+     toast({
+       title: "خطأ",
+       description: "فشل رفع الصورة، يرجى المحاولة مرة أخرى",
+       variant: "destructive"
+     });
+     return;
+   }
+ }
  
  const updates = {
  nameAr: formData.get("nameAr") as string,
@@ -208,10 +252,11 @@ export default function EmployeeMenuManagement() {
  price: parseFloat(formData.get("price") as string),
  oldPrice: formData.get("oldPrice") ? parseFloat(formData.get("oldPrice") as string) : undefined,
  category: formData.get("category") as string,
- imageUrl: formData.get("imageUrl") as string || undefined,
+ imageUrl: imageUrl,
  };
 
  updateItemMutation.mutate({ id: editingItem.id, updates });
+ resetEditImageState();
  };
 
  const handleEdit = (item: CoffeeItem) => {
@@ -232,6 +277,101 @@ export default function EmployeeMenuManagement() {
  const handleToggleNewProduct = (item: CoffeeItem) => {
  const newValue = item.isNewProduct === 1 ? 0 : 1;
  toggleNewProductMutation.mutate({ id: item.id, isNewProduct: newValue });
+ };
+
+ const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const file = e.target.files?.[0];
+   if (file) {
+     if (!file.type.startsWith('image/')) {
+       toast({
+         title: "خطأ",
+         description: "يرجى اختيار ملف صورة فقط",
+         variant: "destructive"
+       });
+       return;
+     }
+     if (file.size > 5 * 1024 * 1024) {
+       toast({
+         title: "خطأ",
+         description: "حجم الصورة يجب أن يكون أقل من 5 ميجابايت",
+         variant: "destructive"
+       });
+       return;
+     }
+     setSelectedImage(file);
+     const reader = new FileReader();
+     reader.onloadend = () => {
+       setImagePreview(reader.result as string);
+     };
+     reader.readAsDataURL(file);
+   }
+ };
+
+ const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const file = e.target.files?.[0];
+   if (file) {
+     if (!file.type.startsWith('image/')) {
+       toast({
+         title: "خطأ",
+         description: "يرجى اختيار ملف صورة فقط",
+         variant: "destructive"
+       });
+       return;
+     }
+     if (file.size > 5 * 1024 * 1024) {
+       toast({
+         title: "خطأ",
+         description: "حجم الصورة يجب أن يكون أقل من 5 ميجابايت",
+         variant: "destructive"
+       });
+       return;
+     }
+     setEditSelectedImage(file);
+     const reader = new FileReader();
+     reader.onloadend = () => {
+       setEditImagePreview(reader.result as string);
+     };
+     reader.readAsDataURL(file);
+   }
+ };
+
+ const uploadImage = async (file: File): Promise<string | null> => {
+   try {
+     const formData = new FormData();
+     formData.append('image', file);
+     
+     const response = await fetch('/api/upload-drink-image', {
+       method: 'POST',
+       body: formData,
+       credentials: 'include'
+     });
+     
+     if (!response.ok) {
+       throw new Error('فشل رفع الصورة');
+     }
+     
+     const data = await response.json();
+     return data.url;
+   } catch (error) {
+     console.error('Error uploading image:', error);
+     return null;
+   }
+ };
+
+ const resetImageState = () => {
+   setSelectedImage(null);
+   setImagePreview(null);
+   if (fileInputRef.current) {
+     fileInputRef.current.value = '';
+   }
+ };
+
+ const resetEditImageState = () => {
+   setEditSelectedImage(null);
+   setEditImagePreview(null);
+   if (editFileInputRef.current) {
+     editFileInputRef.current.value = '';
+   }
  };
 
  const categoryNames = {
@@ -363,15 +503,36 @@ export default function EmployeeMenuManagement() {
  />
  </div>
  <div>
- <Label htmlFor="imageUrl" className="text-gray-300">رابط الصورة </Label>
- <Input
- id="imageUrl"
- name="imageUrl"
- type="url"
- placeholder="https://example.com/image.jpg"
- className="bg-[#1a1410] border-amber-500/30 text-white"
- data-testid="input-image-url"
- />
+ <Label className="text-gray-300">صورة المشروب</Label>
+ <div className="mt-2">
+   <input
+     ref={fileInputRef}
+     type="file"
+     accept="image/*"
+     onChange={handleImageSelect}
+     className="hidden"
+     data-testid="input-image-file"
+   />
+   <div 
+     onClick={() => fileInputRef.current?.click()}
+     className="border-2 border-dashed border-amber-500/30 rounded-lg p-4 text-center cursor-pointer hover:border-amber-500/60 transition-colors"
+   >
+     {imagePreview ? (
+       <div className="relative">
+         <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
+         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+           <span className="text-white text-sm">انقر لتغيير الصورة</span>
+         </div>
+       </div>
+     ) : (
+       <div className="py-4">
+         <Upload className="w-8 h-8 text-amber-500/50 mx-auto mb-2" />
+         <p className="text-gray-400 text-sm">انقر لرفع صورة</p>
+         <p className="text-gray-500 text-xs mt-1">PNG, JPG حتى 5 ميجابايت</p>
+       </div>
+     )}
+   </div>
+ </div>
  </div>
  </div>
 
@@ -379,7 +540,7 @@ export default function EmployeeMenuManagement() {
  <Button
  type="button"
  variant="outline"
- onClick={() => setIsAddDialogOpen(false)}
+ onClick={() => { setIsAddDialogOpen(false); resetImageState(); }}
  className="border-gray-600 text-gray-300"
  data-testid="button-cancel"
  >
@@ -387,11 +548,11 @@ export default function EmployeeMenuManagement() {
  </Button>
  <Button
  type="submit"
- disabled={createItemMutation.isPending}
+ disabled={createItemMutation.isPending || isUploadingImage}
  className="bg-gradient-to-r from-green-500 to-green-700"
  data-testid="button-submit"
  >
- {createItemMutation.isPending ? "جاري الإضافة..." : "إضافة المشروب"}
+ {isUploadingImage ? "جاري رفع الصورة..." : createItemMutation.isPending ? "جاري الإضافة..." : "إضافة المشروب"}
  </Button>
  </div>
  </form>
@@ -458,7 +619,7 @@ export default function EmployeeMenuManagement() {
  <p className="text-gray-400 text-sm">{item.nameEn}</p>
  <div className="flex items-center gap-2 mt-1">
  <span className="text-amber-500 font-bold" data-testid={`text-price-${item.id}`}>
- {parseFloat(item.price).toFixed(2)} ريال
+ {parseFloat(String(item.price)).toFixed(2)} ريال
  </span>
  {item.coffeeStrength && item.coffeeStrength !== "classic" && (
  <Badge variant="outline" className="text-xs border-amber-500/30 text-gray-400">
@@ -661,16 +822,43 @@ export default function EmployeeMenuManagement() {
  />
  </div>
  <div>
- <Label htmlFor="edit-imageUrl" className="text-gray-300">رابط الصورة </Label>
- <Input
- id="edit-imageUrl"
- name="imageUrl"
- type="url"
- defaultValue={editingItem.imageUrl}
- placeholder="https://example.com/image.jpg"
- className="bg-[#1a1410] border-amber-500/30 text-white"
- data-testid="input-edit-image-url"
- />
+ <Label className="text-gray-300">صورة المشروب</Label>
+ <div className="mt-2">
+   <input
+     ref={editFileInputRef}
+     type="file"
+     accept="image/*"
+     onChange={handleEditImageSelect}
+     className="hidden"
+     data-testid="input-edit-image-file"
+   />
+   <div 
+     onClick={() => editFileInputRef.current?.click()}
+     className="border-2 border-dashed border-amber-500/30 rounded-lg p-4 text-center cursor-pointer hover:border-amber-500/60 transition-colors"
+   >
+     {editImagePreview ? (
+       <div className="relative">
+         <img src={editImagePreview} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
+         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+           <span className="text-white text-sm">انقر لتغيير الصورة</span>
+         </div>
+       </div>
+     ) : editingItem.imageUrl ? (
+       <div className="relative">
+         <img src={editingItem.imageUrl} alt="Current" className="w-full h-32 object-cover rounded-lg" />
+         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+           <span className="text-white text-sm">انقر لتغيير الصورة</span>
+         </div>
+       </div>
+     ) : (
+       <div className="py-4">
+         <Upload className="w-8 h-8 text-amber-500/50 mx-auto mb-2" />
+         <p className="text-gray-400 text-sm">انقر لرفع صورة</p>
+         <p className="text-gray-500 text-xs mt-1">PNG, JPG حتى 5 ميجابايت</p>
+       </div>
+     )}
+   </div>
+ </div>
  </div>
  </div>
 
@@ -681,6 +869,7 @@ export default function EmployeeMenuManagement() {
  onClick={() => {
  setIsEditDialogOpen(false);
  setEditingItem(null);
+ resetEditImageState();
  }}
  className="border-gray-600 text-gray-300"
  data-testid="button-edit-cancel"
@@ -689,11 +878,11 @@ export default function EmployeeMenuManagement() {
  </Button>
  <Button
  type="submit"
- disabled={updateItemMutation.isPending}
+ disabled={updateItemMutation.isPending || isUploadingImage}
  className="bg-gradient-to-r from-blue-500 to-blue-700"
  data-testid="button-edit-submit"
  >
- {updateItemMutation.isPending ? "جاري التحديث..." : "تحديث المشروب"}
+ {isUploadingImage ? "جاري رفع الصورة..." : updateItemMutation.isPending ? "جاري التحديث..." : "تحديث المشروب"}
  </Button>
  </div>
  </form>
