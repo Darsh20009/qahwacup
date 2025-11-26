@@ -495,10 +495,14 @@ export default function EmployeeCashier() {
  let finalTotal = parseFloat(calculateTotal());
  let stampDiscount = 0;
  if (paymentMethod === 'qahwa-card' && stampsToUse > 0) {
- // الختم الواحد = مشروب واحد مجاني (متوسط سعر المشروب)
- const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
- const avgPricePerItem = totalItems > 0 ? parseFloat(calculateTotal()) / totalItems : 0;
- stampDiscount = stampsToUse * avgPricePerItem;
+ // الختم = عنصر واحد مجاني - نختار أغلى العناصر
+ const itemPrices = orderItems.flatMap(item => 
+ Array(item.quantity).fill(item.coffeeItem.price)
+ ).sort((a, b) => b - a);
+ 
+ for (let i = 0; i < Math.min(stampsToUse, itemPrices.length); i++) {
+ stampDiscount += itemPrices[i];
+ }
  finalTotal = Math.max(0, finalTotal - stampDiscount);
  }
 
@@ -885,17 +889,29 @@ export default function EmployeeCashier() {
  </p>
  <p className="text-amber-300 text-sm">
  {(() => {
- const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
- const avgPrice = totalItems > 0 ? parseFloat(calculateTotal()) / totalItems : 0;
- const discount = stampsToUse * avgPrice;
- return `قيمة الخصم: ${discount.toFixed(2)} ريال (${stampsToUse} ختم = ${stampsToUse} مشروب مجاني)`;
+ const itemPrices = orderItems.flatMap(item => 
+ Array(item.quantity).fill(item.coffeeItem.price)
+ ).sort((a, b) => b - a);
+ 
+ let discount = 0;
+ const freeItems = [];
+ for (let i = 0; i < Math.min(stampsToUse, itemPrices.length); i++) {
+ discount += itemPrices[i];
+ freeItems.push(itemPrices[i]);
+ }
+ return `قيمة الخصم: ${discount.toFixed(2)} ريال (${stampsToUse} ختم = ${freeItems.length} عنصر مجاني)`;
  })()}
  </p>
  <p className="text-amber-400 text-sm">
  {(() => {
- const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
- const avgPrice = totalItems > 0 ? parseFloat(calculateTotal()) / totalItems : 0;
- const discount = stampsToUse * avgPrice;
+ const itemPrices = orderItems.flatMap(item => 
+ Array(item.quantity).fill(item.coffeeItem.price)
+ ).sort((a, b) => b - a);
+ 
+ let discount = 0;
+ for (let i = 0; i < Math.min(stampsToUse, itemPrices.length); i++) {
+ discount += itemPrices[i];
+ }
  const finalPrice = Math.max(0, parseFloat(calculateTotal()) - discount);
  return `السعر النهائي: ${finalPrice.toFixed(2)} ريال`;
  })()}
