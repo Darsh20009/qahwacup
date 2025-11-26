@@ -14,7 +14,6 @@ export default function EmployeeDashboard() {
  const [employee, setEmployee] = useState<Employee | null>(null);
  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
  const cardRef = useRef<HTMLDivElement>(null);
- const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
  useEffect(() => {
  const storedEmployee = localStorage.getItem("currentEmployee");
@@ -26,9 +25,9 @@ export default function EmployeeDashboard() {
  }
  }, [setLocation]);
 
- // Generate QR code when employee is loaded and canvas is ready
+ // Generate QR code when employee is loaded
  useEffect(() => {
- if (employee?.id && qrCanvasRef.current) {
+ if (employee?.id) {
  generateQRCode(employee.id);
  }
  }, [employee?.id]);
@@ -37,8 +36,7 @@ export default function EmployeeDashboard() {
  const generateQRCode = async (employeeId: string) => {
  try {
  const QRCode = (await import('qrcode')).default;
- if (qrCanvasRef.current) {
- await QRCode.toCanvas(qrCanvasRef.current, employeeId, {
+ const url = await QRCode.toDataURL(employeeId, {
  width: 200,
  margin: 1,
  color: {
@@ -46,7 +44,7 @@ export default function EmployeeDashboard() {
  light: '#FFFFFF'
  }
  });
- }
+ setQrCodeUrl(url);
  } catch (err) {
  console.error('QR generation error:', err);
  }
@@ -260,13 +258,18 @@ export default function EmployeeDashboard() {
  {/* Right Section - QR Code */}
  <div className="flex flex-col items-center space-y-2">
  <div className="bg-white p-3 rounded-xl shadow-md border-2 border-amber-600/30">
- <canvas 
- ref={qrCanvasRef} 
- width={200} 
- height={200}
- data-testid="canvas-qr-code" 
- style={{ display: 'block' }}
+ {qrCodeUrl ? (
+ <img 
+ src={qrCodeUrl}
+ alt="QR Code"
+ data-testid="img-qr-code"
+ className="w-32 h-32"
  />
+ ) : (
+ <div className="w-32 h-32 bg-gray-200 flex items-center justify-center rounded">
+ <p className="text-xs text-gray-500">جاري التحميل...</p>
+ </div>
+ )}
  </div>
  <p className="text-amber-900 text-xs font-bold">امسح لتسجيل الدخول</p>
  <p className="text-amber-700/60 text-xs">Scan Login</p>
