@@ -365,8 +365,12 @@ export default function CashierTables() {
     return 'pending';
   };
 
+  // Get current employee info
+  const employeeData = localStorage.getItem("currentEmployee");
+  const currentEmployee = employeeData ? JSON.parse(employeeData) : null;
+
   // For admin/owner, allow branch selection
-  const isAdminUser = employee?.role === "admin" || employee?.role === "owner";
+  const isAdminUser = currentEmployee?.role === "admin" || currentEmployee?.role === "owner";
 
   if (!employeeBranchId && !isAdminUser) {
     return (
