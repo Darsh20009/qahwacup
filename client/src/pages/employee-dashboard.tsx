@@ -395,6 +395,19 @@ export default function EmployeeDashboard() {
 
  <Button
  size="lg"
+ className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
+ onClick={() => setLocation("/employee/attendance")}
+ data-testid="button-attendance"
+ >
+ <Clock className="w-10 h-10" />
+ <div className="text-center">
+ <div className="font-bold text-lg">الحضور والانصراف</div>
+ <div className="text-sm opacity-90">تسجيل الوقت</div>
+ </div>
+ </Button>
+
+ <Button
+ size="lg"
  className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white"
  onClick={() => setLocation("/employee/menu-management")}
  data-testid="button-menu-management"
