@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,28 @@ export default function ManagerEmployees() {
  const { toast } = useToast();
  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+ const [currentManager, setCurrentManager] = useState<any>(null);
+
+ // Get current manager info
+ useEffect(() => {
+ const managerData = localStorage.getItem("currentEmployee");
+ if (managerData) {
+ setCurrentManager(JSON.parse(managerData));
+ }
+ }, []);
+
+ // Determine if current user is admin/owner
+ const isAdminOrOwner = currentManager?.role === "admin" || currentManager?.role === "owner";
+ const managerBranchId = currentManager?.branchId;
 
  const { data: employees = [], isLoading } = useQuery<Employee[]>({
  queryKey: ["/api/employees"],
+ enabled: !!currentManager,
+ select: (data: Employee[]) => {
+ // Admin/Owner see all employees, managers see only their branch employees
+ if (isAdminOrOwner) return data;
+ return data.filter(emp => emp.branchId === managerBranchId);
+ },
  });
 
  const createEmployeeMutation = useMutation({

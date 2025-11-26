@@ -62,7 +62,6 @@ export default function CashierTables() {
   const [numberOfGuests, setNumberOfGuests] = useState("2");
   const [reservationDateTime, setReservationDateTime] = useState("");
   const [employeeBranchId, setEmployeeBranchId] = useState<string>("");
-  const [employee, setEmployee] = useState<any>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
   // Get current employee info from localStorage or API
@@ -70,7 +69,6 @@ export default function CashierTables() {
     const employeeData = localStorage.getItem("currentEmployee");
     if (employeeData) {
       const emp = JSON.parse(employeeData);
-      setEmployee(emp);
       if (emp.branchId) {
         setEmployeeBranchId(emp.branchId);
       } else if (emp._id || emp.id) {
@@ -88,20 +86,25 @@ export default function CashierTables() {
     }
   }, []);
 
+  // Fetch all branches
+  const { data: allBranches = [] } = useQuery<IBranch[]>({
+    queryKey: ["/api/branches"],
+  });
+
   // Fetch tables for the cashier's branch
   const { data: tables = [], isLoading } = useQuery<ITable[]>({
-    queryKey: ["/api/tables", employeeBranchId],
+    queryKey: ["/api/tables", selectedBranchId || employeeBranchId],
     queryFn: async () => {
-      const response = await fetch(`/api/tables?branchId=${employeeBranchId}`, {
+      const branchId = selectedBranchId || employeeBranchId;
+      const response = await fetch(`/api/tables?branchId=${branchId}`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch tables");
       const data = await response.json();
-      // Filter by branchId as additional safety check
-      return Array.isArray(data) ? data.filter((t: ITable) => t.branchId === employeeBranchId) : [];
+      return Array.isArray(data) ? data.filter((t: ITable) => t.branchId === branchId) : [];
     },
-    enabled: !!employeeBranchId,
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
+    enabled: !!(selectedBranchId || employeeBranchId),
+    refetchInterval: 5000,
   });
 
   // Fetch pending table orders
@@ -113,18 +116,19 @@ export default function CashierTables() {
       const data = await response.json();
       return Array.isArray(data) ? data : [];
     },
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
+    refetchInterval: 5000,
   });
 
   // Get branch info
   const { data: branch } = useQuery<IBranch>({
-    queryKey: ["/api/branches", employeeBranchId],
+    queryKey: ["/api/branches", selectedBranchId || employeeBranchId],
     queryFn: async () => {
-      const response = await fetch(`/api/branches/${employeeBranchId}`);
+      const branchId = selectedBranchId || employeeBranchId;
+      const response = await fetch(`/api/branches/${branchId}`);
       if (!response.ok) throw new Error("Failed to fetch branch");
       return response.json();
     },
-    enabled: !!employeeBranchId,
+    enabled: !!(selectedBranchId || employeeBranchId),
   });
 
   // Reserve table mutation
