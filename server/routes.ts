@@ -4013,7 +4013,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isLate = now > shiftStart;
       const lateMinutes = isLate ? Math.floor((now.getTime() - shiftStart.getTime()) / 60000) : 0;
 
-      // Create attendance record
+      // Create attendance record with location verification
+      const isAtBranch = distance <= 100 ? 1 : 0;
       const attendance = new AttendanceModel({
         employeeId: employeeId,
         branchId: employee.branchId,
@@ -4026,7 +4027,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'checked_in',
         shiftDate: today,
         isLate: isLate ? 1 : 0,
-        lateMinutes: lateMinutes
+        lateMinutes: lateMinutes,
+        isAtBranch: isAtBranch,
+        distanceFromBranch: Math.round(distance)
       });
 
       await attendance.save();
@@ -4109,7 +4112,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لم تقم بالتحضير اليوم" });
       }
 
-      // Update attendance with check-out
+      // Update attendance with check-out and location verification
+      const checkOutIsAtBranch = distance <= 100 ? 1 : 0;
       attendance.checkOutTime = new Date();
       attendance.checkOutLocation = {
         lat: location.lat,
@@ -4117,6 +4121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       attendance.checkOutPhoto = photoUrl;
       attendance.status = 'checked_out';
+      attendance.checkOutIsAtBranch = checkOutIsAtBranch;
+      attendance.checkOutDistanceFromBranch = Math.round(distance);
       attendance.updatedAt = new Date();
 
       await attendance.save();
@@ -4135,7 +4141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get attendance records (for managers and admins)
   app.get("/api/attendance", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
-      const { AttendanceModel, EmployeeModel } = await import("@shared/schema");
+      const { AttendanceModel, EmployeeModel, BranchModel } = await import("@shared/schema");
       const { date, branchId, employeeId } = req.query;
 
       const query: any = {};
@@ -4171,11 +4177,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const attendances = await AttendanceModel.find(query).sort({ shiftDate: -1, checkInTime: -1 });
 
-      // Enrich with employee data
+      // Enrich with employee and branch data
       const enrichedAttendances = await Promise.all(
         attendances.map(async (attendance) => {
           const employee = await EmployeeModel.findOne({
             $or: [{ id: attendance.employeeId }, { _id: attendance.employeeId }]
+          });
+          const branch = await BranchModel.findOne({
+            $or: [{ id: attendance.branchId }, { _id: attendance.branchId }]
           });
           return {
             ...serializeDoc(attendance),
@@ -4184,7 +4193,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               phone: employee.phone,
               jobTitle: employee.jobTitle,
               shiftTime: employee.shiftTime,
-              role: employee.role
+              role: employee.role,
+              imageUrl: employee.imageUrl
+            } : null,
+            branch: branch ? {
+              name: branch.nameAr
             } : null
           };
         })

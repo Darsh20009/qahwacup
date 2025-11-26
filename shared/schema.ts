@@ -640,6 +640,10 @@ export interface IAttendance extends Document {
   notes?: string;
   isLate: number;
   lateMinutes?: number;
+  isAtBranch?: number;
+  distanceFromBranch?: number;
+  checkOutIsAtBranch?: number;
+  checkOutDistanceFromBranch?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -664,6 +668,10 @@ const AttendanceSchema = new Schema<IAttendance>({
   notes: { type: String },
   isLate: { type: Number, default: 0, required: true },
   lateMinutes: { type: Number },
+  isAtBranch: { type: Number, default: 1 },
+  distanceFromBranch: { type: Number, default: 0 },
+  checkOutIsAtBranch: { type: Number },
+  checkOutDistanceFromBranch: { type: Number },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

@@ -27,11 +27,19 @@ interface AttendanceRecord {
   shiftDate: string;
   isLate: number;
   lateMinutes?: number;
+  isAtBranch?: number;
+  distanceFromBranch?: number;
+  checkOutIsAtBranch?: number;
+  checkOutDistanceFromBranch?: number;
   employee?: {
     fullName: string;
     phone: string;
     jobTitle: string;
     shiftTime: string;
+    imageUrl?: string;
+  };
+  branch?: {
+    name: string;
   };
 }
 
@@ -277,11 +285,19 @@ export default function ManagerAttendance() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">
-                            {record.employee?.fullName?.charAt(0) || '?'}
-                          </span>
-                        </div>
+                        {record.employee?.imageUrl ? (
+                          <img 
+                            src={record.employee.imageUrl} 
+                            alt={record.employee.fullName}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-amber-500/50"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">
+                              {record.employee?.fullName?.charAt(0) || '?'}
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <h3 className="text-white font-bold">
                             {record.employee?.fullName || 'موظف غير معروف'}
@@ -289,29 +305,49 @@ export default function ManagerAttendance() {
                           <p className="text-gray-400 text-sm">
                             {record.employee?.jobTitle || 'موظف'}
                           </p>
+                          {record.branch?.name && (
+                            <p className="text-amber-500/70 text-xs flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {record.branch.name}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {record.isLate === 1 && (
-                          <Badge variant="destructive" className="text-xs">
-                            تأخير {record.lateMinutes} د
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          {record.isLate === 1 && (
+                            <Badge variant="destructive" className="text-xs">
+                              تأخير {record.lateMinutes} د
+                            </Badge>
+                          )}
+                          <Badge
+                            className={
+                              record.status === 'checked_out'
+                                ? 'bg-green-500/20 text-green-400'
+                                : record.status === 'checked_in'
+                                ? 'bg-blue-500/20 text-blue-400'
+                                : 'bg-gray-500/20 text-gray-400'
+                            }
+                          >
+                            {record.status === 'checked_out' ? 'انصرف' : 'حاضر'}
+                          </Badge>
+                        </div>
+                        {record.isAtBranch !== undefined && (
+                          <Badge
+                            className={
+                              record.isAtBranch === 1
+                                ? 'bg-green-500/20 text-green-400 text-xs'
+                                : 'bg-red-500/20 text-red-400 text-xs'
+                            }
+                          >
+                            <MapPin className="w-3 h-3 ml-1" />
+                            {record.isAtBranch === 1 ? 'في الفرع' : `خارج الفرع (${Math.round(record.distanceFromBranch || 0)}م)`}
                           </Badge>
                         )}
-                        <Badge
-                          className={
-                            record.status === 'checked_out'
-                              ? 'bg-green-500/20 text-green-400'
-                              : record.status === 'checked_in'
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-gray-500/20 text-gray-400'
-                          }
-                        >
-                          {record.status === 'checked_out' ? 'انصرف' : 'حاضر'}
-                        </Badge>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
                       <div>
                         <p className="text-gray-500">وقت الحضور</p>
                         <p className="text-green-400 font-medium flex items-center gap-1">
@@ -320,11 +356,24 @@ export default function ManagerAttendance() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500">وقت الانصراف</p>
-                        <p className="text-orange-400 font-medium flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatTime(record.checkOutTime)}
-                        </p>
+                        <p className="text-gray-500">موقع الحضور</p>
+                        {record.isAtBranch !== undefined ? (
+                          <p className={`font-medium flex items-center gap-1 ${record.isAtBranch === 1 ? 'text-green-400' : 'text-red-400'}`}>
+                            {record.isAtBranch === 1 ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3" />
+                                في الفرع
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3 h-3" />
+                                بعيد ({Math.round(record.distanceFromBranch || 0)}م)
+                              </>
+                            )}
+                          </p>
+                        ) : (
+                          <span className="text-gray-500">-</span>
+                        )}
                       </div>
                       <div>
                         <p className="text-gray-500">صورة الحضور</p>
@@ -339,6 +388,33 @@ export default function ManagerAttendance() {
                             <Camera className="w-3 h-3 ml-1" />
                             عرض
                           </Button>
+                        ) : (
+                          <span className="text-gray-500">-</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-gray-500">وقت الانصراف</p>
+                        <p className="text-orange-400 font-medium flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatTime(record.checkOutTime)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">موقع الانصراف</p>
+                        {record.checkOutTime && record.checkOutIsAtBranch !== undefined ? (
+                          <p className={`font-medium flex items-center gap-1 ${record.checkOutIsAtBranch === 1 ? 'text-green-400' : 'text-red-400'}`}>
+                            {record.checkOutIsAtBranch === 1 ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3" />
+                                في الفرع
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3 h-3" />
+                                بعيد ({Math.round(record.checkOutDistanceFromBranch || 0)}م)
+                              </>
+                            )}
+                          </p>
                         ) : (
                           <span className="text-gray-500">-</span>
                         )}
