@@ -21,16 +21,16 @@ export default function EmployeeDashboard() {
  if (storedEmployee) {
  const emp = JSON.parse(storedEmployee);
  setEmployee(emp);
- // Generate QR with username only (one-time, never changes)
- generateQRCode(emp.username);
+ // Generate QR with employee ID only (one-time, never changes)
+ generateQRCode(emp.id);
  } else {
  setLocation("/employee/gateway");
  }
  }, [setLocation]);
 
- // Generate QR code with username only (permanent, never changes)
- const generateQRCode = (username: string) => {
- QRCode.toDataURL(username, {
+ // Generate QR code with employee ID only (permanent, never changes)
+ const generateQRCode = (employeeId: string) => {
+ QRCode.toDataURL(employeeId, {
  width: 200,
  margin: 1,
  color: {
@@ -172,10 +172,10 @@ export default function EmployeeDashboard() {
  <Card className="bg-[#2d1f1a] border-amber-500/20">
  <CardContent className="pt-6">
  <p className="text-amber-500 text-sm font-bold mb-2 block">📋 معلومات البطاقة الثابتة:</p>
- <p className="text-gray-400 text-xs mb-3">QR الكود الموجود على البطاقة ثابت طول العمر ولا يتغير أبداً. عند تغيير كلمة المرور، النظام يعدّل كلمة المرور فقط لكن QR يبقى نفسه.</p>
+ <p className="text-gray-400 text-xs mb-3">QR الكود الموجود على البطاقة ثابت طول العمر ولا يتغير أبداً. المسح التلقائي للبطاقة يسجل دخول الموظف مباشرة.</p>
  <div className="bg-[#1a1410] border border-amber-500/20 rounded p-3 mt-3">
- <p className="text-amber-500 font-bold text-center text-lg">{employee?.username}</p>
- <p className="text-gray-500 text-xs text-center mt-1">QR يحتوي على اسم المستخدم فقط</p>
+ <p className="text-amber-500 font-bold text-center text-lg">{employee?.id?.slice(0, 8) || 'N/A'}</p>
+ <p className="text-gray-500 text-xs text-center mt-1">معرّف الموظف (Employee ID)</p>
  </div>
  </CardContent>
  </Card>

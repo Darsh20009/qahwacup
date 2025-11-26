@@ -87,16 +87,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // EMPLOYEE ROUTES
 
-  // Employee login
+  // Employee login (supports both username and employeeId)
   app.post("/api/employees/login", async (req, res) => {
     try {
-      const { username, password } = req.body;
+      const { username, employeeId, password } = req.body;
 
-      if (!username || !password) {
-        return res.status(400).json({ error: "Username and password required" });
+      if ((!username && !employeeId) || !password) {
+        return res.status(400).json({ error: "Credentials and password required" });
       }
 
-      const employee = await storage.getEmployeeByUsername(username);
+      let employee;
+      
+      // Support both username and employeeId login
+      if (employeeId) {
+        employee = await storage.getEmployee(employeeId);
+      } else {
+        employee = await storage.getEmployeeByUsername(username);
+      }
 
       if (!employee || !employee.password) {
         return res.status(401).json({ error: "Invalid credentials" });

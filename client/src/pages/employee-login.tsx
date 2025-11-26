@@ -19,7 +19,7 @@ export default function EmployeeLogin() {
   const qrScannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }) => {
+    mutationFn: async (credentials: { username?: string; employeeId?: string; password: string }) => {
       const response = await fetch("/api/employees/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,7 +38,7 @@ export default function EmployeeLogin() {
       setLocation("/employee/dashboard");
     },
     onError: () => {
-      setError("اسم المستخدم أو كلمة المرور غير صحيحة ");
+      setError("بيانات تسجيل الدخول غير صحيحة");
       setPassword("");
     },
   });
@@ -68,15 +68,17 @@ export default function EmployeeLogin() {
     scanner.render(
       (decodedText) => {
         try {
-          // QR code contains only username
-          const scannedUsername = decodedText.trim();
-          if (scannedUsername) {
-            setUsername(scannedUsername);
-            setPassword(""); // Clear password field, user will enter it
+          // QR code contains employee ID
+          const scannedEmployeeId = decodedText.trim();
+          if (scannedEmployeeId) {
             setError("");
             scanner.clear();
             setShowQRScanner(false);
-            // Focus on password field for user to enter password
+            // Auto-login with default password "1234"
+            loginMutation.mutate({
+              employeeId: scannedEmployeeId,
+              password: "1234",
+            });
           } else {
             setError("صيغة QR غير صحيحة");
           }
