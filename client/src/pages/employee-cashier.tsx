@@ -520,11 +520,11 @@ export default function EmployeeCashier() {
  <div className="flex items-center gap-2">
  <MonitorSmartphone className="w-4 h-4 text-gray-400" />
  <span className="text-xs text-gray-400">جهاز POS:</span>
- <Badge variant="outline" className="border-yellow-500/30 text-yellow-400">
- غير متصل
+ <Badge variant="outline" className="border-green-500/30 text-green-400">
+ متصل
  </Badge>
  </div>
- <p className="text-xs text-gray-500 mt-1">خيار "POS" متاح في طرق الدفع</p>
+ <p className="text-xs text-gray-500 mt-1">جاهز للدفع الإلكتروني</p>
  </div>
  {lastOrder && (
  <Button

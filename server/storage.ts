@@ -57,6 +57,7 @@ import {
   CategoryModel,
   DeliveryZoneModel,
   TableModel,
+  TaxInvoiceModel,
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -1254,6 +1255,16 @@ export class DBStorage implements IStorage {
       orderType: 'table',
       status: { $in: ['pending', 'payment_confirmed'] }
     }).sort({ createdAt: -1 });
+  }
+
+  async createTaxInvoice(invoiceData: any, invoiceNumber: string): Promise<any> {
+    const { TaxInvoiceModel } = require("@shared/schema");
+    const invoice = await TaxInvoiceModel.create({
+      invoiceNumber,
+      ...invoiceData,
+      invoiceDate: new Date()
+    });
+    return invoice;
   }
 }
 

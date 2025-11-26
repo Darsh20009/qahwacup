@@ -38,6 +38,119 @@ function getOrderStatusMessage(status: string, orderNumber: string): string {
   return statusMessages[status] || `تم تحديث حالة طلبك رقم ${orderNumber} إلى: ${status}`;
 }
 
+// Maileroo Email Configuration
+const transporter = nodemailer.createTransport({
+  host: 'app.maileroo.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'api',
+    pass: process.env.MAILEROO_API_KEY || '4752c6cec31f75043510f014cf30efa6862da3c485034cfaadf9b64b0107209e'
+  }
+});
+
+// Generate Tax Invoice HTML
+function generateInvoiceHTML(invoiceNumber: string, data: any): string {
+  const { customerName, customerPhone, items, subtotal, discountAmount, taxAmount, totalAmount, paymentMethod, invoiceDate } = data;
+  
+  const itemsHTML = items.map((item: any) => `
+    <tr>
+      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${item.coffeeItem?.nameAr || 'منتج'}</td>
+      <td style="padding: 8px; text-align: center; border-bottom: 1px solid #ddd;">${item.quantity}</td>
+      <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">${(Number(item.coffeeItem?.price || 0) * item.quantity).toFixed(2)} ريال</td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: Arial; direction: rtl; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid #8B5A2B; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { color: #8B5A2B; margin: 0; font-size: 28px; }
+        .header p { color: #666; margin: 5px 0; }
+        .invoice-info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 12px; }
+        .customer-info { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #8B5A2B; color: white; padding: 10px; text-align: right; }
+        .total-section { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 5px; }
+        .total-row { display: flex; justify-content: space-between; width: 200px; }
+        .total-row.grand { font-size: 18px; font-weight: bold; color: #8B5A2B; border-top: 2px solid #8B5A2B; padding-top: 10px; }
+        .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>قهوة كوب</h1>
+          <p>فاتورة ضريبية</p>
+        </div>
+        
+        <div class="invoice-info">
+          <div><strong>رقم الفاتورة:</strong> ${invoiceNumber}</div>
+          <div><strong>التاريخ:</strong> ${new Date(invoiceDate).toLocaleDateString('ar-SA')}</div>
+        </div>
+
+        <div class="customer-info">
+          <p><strong>بيانات العميل:</strong></p>
+          <p>الاسم: ${customerName}</p>
+          <p>الهاتف: ${customerPhone}</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th>الكمية</th>
+              <th>السعر</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHTML}
+          </tbody>
+        </table>
+
+        <div class="total-section">
+          <div class="total-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
+          ${discountAmount > 0 ? `<div class="total-row"><span>الخصم:</span><span>-${discountAmount.toFixed(2)} ريال</span></div>` : ''}
+          <div class="total-row"><span>الضريبة (15%):</span><span>${taxAmount.toFixed(2)} ريال</span></div>
+          <div class="total-row grand"><span>الإجمالي:</span><span>${totalAmount.toFixed(2)} ريال</span></div>
+          <div class="total-row"><span>طريقة الدفع:</span><span>${paymentMethod}</span></div>
+        </div>
+
+        <div class="footer">
+          <p>شكراً لتعاملك معنا | تم إصدار هذه الفاتورة من نظام قهوة كوب</p>
+          <p>© 2025 قهوة كوب - جميع الحقوق محفوظة</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// Send invoice via email
+async function sendInvoiceEmail(to: string, invoiceNumber: string, invoiceData: any): Promise<boolean> {
+  try {
+    const htmlContent = generateInvoiceHTML(invoiceNumber, invoiceData);
+    
+    await transporter.sendMail({
+      from: 'info@qahwakup.com',
+      to: to,
+      subject: `فاتورة ضريبية - قهوة كوب - الرقم: ${invoiceNumber}`,
+      html: htmlContent
+    });
+    
+    console.log(`Invoice sent successfully to ${to}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending invoice email:', error);
+    return false;
+  }
+}
+
 // Configure multer for file uploads
 const uploadsDir = path.join(import.meta.dirname, '..', 'attached_assets', 'receipts');
 const storage_multer = multer.diskStorage({
@@ -1804,6 +1917,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
           serializedOrder.items = JSON.parse(serializedOrder.items);
         } catch (e) {
           console.error("Error parsing order items:", e);
+        }
+      }
+      
+      // Generate and send tax invoice if customer has email
+      if (customerInfo?.customerEmail) {
+        try {
+          const taxRate = 0.15;
+          const invoiceSubtotal = parseFloat(totalAmount.toString()) / (1 + taxRate);
+          const invoiceTax = invoiceSubtotal * taxRate;
+          const invoiceNumber = `INV-${Date.now()}-${nanoid(6)}`;
+          
+          const invoiceData = {
+            customerName: customerInfo.customerName,
+            customerPhone: customerInfo.phoneNumber,
+            items: Array.isArray(items) ? items : JSON.parse(items),
+            subtotal: invoiceSubtotal - (parseFloat(discountPercentage?.toString() || '0') / 100 * invoiceSubtotal),
+            discountAmount: parseFloat(discountPercentage?.toString() || '0') / 100 * invoiceSubtotal,
+            taxAmount: invoiceTax,
+            totalAmount: parseFloat(totalAmount.toString()),
+            paymentMethod: paymentMethod,
+            invoiceDate: new Date()
+          };
+          
+          await sendInvoiceEmail(customerInfo.customerEmail, invoiceNumber, invoiceData);
+          
+          // Store invoice in database
+          await storage.createTaxInvoice({
+            orderId: order.id,
+            customerName: customerInfo.customerName,
+            customerPhone: customerInfo.phoneNumber,
+            customerEmail: customerInfo.customerEmail,
+            items: invoiceData.items,
+            subtotal: invoiceData.subtotal,
+            discountAmount: invoiceData.discountAmount,
+            taxAmount: invoiceTax,
+            totalAmount: parseFloat(totalAmount.toString()),
+            paymentMethod: paymentMethod
+          }, invoiceNumber);
+        } catch (invoiceError) {
+          console.error("Error generating/sending invoice:", invoiceError);
+          // Don't fail order if invoice generation fails
         }
       }
       
