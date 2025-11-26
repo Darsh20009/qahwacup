@@ -87,6 +87,7 @@ export default function EmployeeCashier() {
  const { toast } = useToast();
 
  useEffect(() => {
+ const loadEmployee = async () => {
  const storedEmployee = localStorage.getItem("currentEmployee");
  if (storedEmployee) {
  const parsed = JSON.parse(storedEmployee);
@@ -94,10 +95,29 @@ export default function EmployeeCashier() {
  if (!parsed._id && parsed.id) {
  parsed._id = parsed.id;
  }
+ 
+ // If employee doesn't have branchId, fetch it from server
+ if (!parsed.branchId) {
+ try {
+ const response = await fetch('/api/verify-session');
+ if (response.ok) {
+ const data = await response.json();
+ if (data.employee?.branchId) {
+ parsed.branchId = data.employee.branchId;
+ localStorage.setItem("currentEmployee", JSON.stringify(parsed));
+ }
+ }
+ } catch (error) {
+ console.error("Error fetching branch info:", error);
+ }
+ }
+ 
  setEmployee(parsed);
  } else {
  setLocation("/employee/gateway");
  }
+ };
+ loadEmployee();
  }, [setLocation]);
 
  // Check POS device connection
@@ -546,6 +566,17 @@ export default function EmployeeCashier() {
  finalTotal = Math.max(0, finalTotal - stampDiscount);
  }
 
+ // Ensure we have branchId from employee
+ if (!employee?.branchId) {
+ toast({
+ title: "خطأ",
+ description: "معلومات الفرع غير متوفرة. يرجى تسجيل الدخول مجدداً",
+ variant: "destructive",
+ });
+ setLocation("/employee/login");
+ return;
+ }
+
  const orderData = {
  items: orderItems.map(item => ({
  coffeeItemId: item.coffeeItem.id,
@@ -563,7 +594,7 @@ export default function EmployeeCashier() {
  },
  customerId: customerId || undefined,
  employeeId: employee?.id,
- branchId: employee?.branchId,
+ branchId: employee.branchId,
  tableNumber: tableNumber || undefined,
  status: "in_progress"
  };
