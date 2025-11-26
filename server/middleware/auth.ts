@@ -24,7 +24,7 @@ export function requireManager(req: AuthRequest, res: Response, next: NextFuncti
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  if (req.employee.role !== "manager" && req.employee.role !== "admin") {
+  if (req.employee.role !== "manager" && req.employee.role !== "admin" && req.employee.role !== "owner") {
     return res.status(403).json({ error: "Forbidden - Manager access required" });
   }
 
@@ -36,8 +36,8 @@ export function requireBranchAccess(req: AuthRequest, res: Response, next: NextF
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  // Admin has access to all branches
-  if (req.employee.role === "admin") {
+  // Owner and Admin have access to all branches
+  if (req.employee.role === "admin" || req.employee.role === "owner") {
     next();
     return;
   }
@@ -66,19 +66,31 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  if (req.employee.role !== "admin") {
+  if (req.employee.role !== "admin" && req.employee.role !== "owner") {
     return res.status(403).json({ error: "Forbidden - Admin access required" });
   }
 
   next();
 }
 
-// Filter data by branch for managers (admins see all)
+export function requireOwner(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.employee) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (req.employee.role !== "owner") {
+    return res.status(403).json({ error: "Forbidden - Owner access required" });
+  }
+
+  next();
+}
+
+// Filter data by branch for managers (admins and owners see all)
 export function filterByBranch<T extends { branchId?: string }>(
   data: T[],
   employee?: AuthRequest["employee"]
 ): T[] {
-  if (!employee || employee.role === "admin") {
+  if (!employee || employee.role === "admin" || employee.role === "owner") {
     return data;
   }
 

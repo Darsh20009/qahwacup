@@ -610,6 +610,59 @@ TableSchema.index({ tableNumber: 1, branchId: 1 }, { unique: true });
 
 export const TableModel = mongoose.model<ITable>("Table", TableSchema);
 
+export interface IAttendance extends Document {
+  employeeId: string;
+  branchId: string;
+  checkInTime: Date;
+  checkOutTime?: Date;
+  checkInLocation: {
+    lat: number;
+    lng: number;
+  };
+  checkOutLocation?: {
+    lat: number;
+    lng: number;
+  };
+  checkInPhoto: string;
+  checkOutPhoto?: string;
+  status: 'checked_in' | 'checked_out' | 'late' | 'absent';
+  shiftDate: Date;
+  notes?: string;
+  isLate: number;
+  lateMinutes?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AttendanceSchema = new Schema<IAttendance>({
+  employeeId: { type: String, required: true },
+  branchId: { type: String, required: true },
+  checkInTime: { type: Date, required: true },
+  checkOutTime: { type: Date },
+  checkInLocation: {
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true }
+  },
+  checkOutLocation: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
+  checkInPhoto: { type: String, required: true },
+  checkOutPhoto: { type: String },
+  status: { type: String, enum: ['checked_in', 'checked_out', 'late', 'absent'], default: 'checked_in', required: true },
+  shiftDate: { type: Date, required: true },
+  notes: { type: String },
+  isLate: { type: Number, default: 0, required: true },
+  lateMinutes: { type: Number },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+AttendanceSchema.index({ employeeId: 1, shiftDate: 1 });
+AttendanceSchema.index({ branchId: 1, shiftDate: 1 });
+
+export const AttendanceModel = mongoose.model<IAttendance>("Attendance", AttendanceSchema);
+
 export const insertCoffeeItemSchema = z.object({
   id: z.string(),
   nameAr: z.string(),
@@ -856,6 +909,28 @@ export const insertTableSchema = z.object({
   }).optional(),
 });
 
+export const insertAttendanceSchema = z.object({
+  employeeId: z.string(),
+  branchId: z.string(),
+  checkInTime: z.coerce.date(),
+  checkOutTime: z.coerce.date().optional(),
+  checkInLocation: z.object({
+    lat: z.number(),
+    lng: z.number()
+  }),
+  checkOutLocation: z.object({
+    lat: z.number(),
+    lng: z.number()
+  }).optional(),
+  checkInPhoto: z.string(),
+  checkOutPhoto: z.string().optional(),
+  status: z.enum(['checked_in', 'checked_out', 'late', 'absent']).optional(),
+  shiftDate: z.coerce.date(),
+  notes: z.string().optional(),
+  isLate: z.number().optional(),
+  lateMinutes: z.number().optional(),
+});
+
 export type CoffeeItem = ICoffeeItem;
 export type InsertCoffeeItem = z.infer<typeof insertCoffeeItemSchema>;
 
@@ -913,6 +988,9 @@ export type InsertDeliveryZone = z.infer<typeof insertDeliveryZoneSchema>;
 export type Table = ITable;
 export type InsertTable = z.infer<typeof insertTableSchema>;
 
+export type Attendance = IAttendance;
+export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
+
 export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
 
 export interface PaymentMethodInfo {
@@ -924,8 +1002,8 @@ export interface PaymentMethodInfo {
   requiresReceipt?: boolean;
 }
 
-export type EmployeeRole = 'manager' | 'cashier' | 'driver';
-export type JobTitle = 'كاشير' | 'محاسب' | 'بائع' | 'عارض' | 'سائق';
+export type EmployeeRole = 'owner' | 'admin' | 'manager' | 'cashier' | 'driver';
+export type JobTitle = 'كاشير' | 'محاسب' | 'بائع' | 'عارض' | 'سائق' | 'مدير' | 'مالك';
 
 export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
 

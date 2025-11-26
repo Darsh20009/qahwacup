@@ -3704,8 +3704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/clear-all-data", requireAuth, async (req: AuthRequest, res) => {
     try {
       // Check if user is admin
-      const user = req.user as any;
-      if (user?.role !== 'admin') {
+      if (req.employee?.role !== 'admin' && req.employee?.role !== 'owner') {
         return res.status(403).json({ error: "Only admins can clear all data" });
       }
 
@@ -3724,6 +3723,657 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error clearing all data:", error);
       res.status(500).json({ error: "Failed to clear all data" });
+    }
+  });
+
+  // ============== OWNER DASHBOARD ROUTES ==============
+
+  // Configure multer for drink image uploads
+  const drinksUploadsDir = path.join(import.meta.dirname, '..', 'attached_assets', 'drinks');
+  const drinksStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, drinksUploadsDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = `${Date.now()}-${nanoid(8)}`;
+      cb(null, `drink-${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  });
+
+  const drinkUpload = multer({
+    storage: drinksStorage,
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit for drink images
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|webp/;
+      const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimeType = allowedTypes.test(file.mimetype);
+
+      if (ext && mimeType) {
+        cb(null, true);
+      } else {
+        cb(new Error('نوع الملف غير مسموح. فقط صور (JPG, PNG, WEBP)'));
+      }
+    }
+  });
+
+  // Upload drink image
+  app.post("/api/upload-drink-image", requireAuth, requireManager, drinkUpload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "لم يتم رفع صورة" });
+      }
+
+      const fileUrl = `/attached_assets/drinks/${req.file.filename}`;
+      res.json({ url: fileUrl, filename: req.file.filename });
+    } catch (error) {
+      console.error("Error uploading drink image:", error);
+      res.status(500).json({ error: "فشل رفع الصورة" });
+    }
+  });
+
+  // Configure multer for attendance photo uploads
+  const attendanceUploadsDir = path.join(import.meta.dirname, '..', 'attached_assets', 'attendance');
+  const attendanceStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, attendanceUploadsDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = `${Date.now()}-${nanoid(8)}`;
+      cb(null, `attendance-${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  });
+
+  const attendanceUpload = multer({
+    storage: attendanceStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|webp/;
+      const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimeType = allowedTypes.test(file.mimetype);
+
+      if (ext && mimeType) {
+        cb(null, true);
+      } else {
+        cb(new Error('نوع الملف غير مسموح. فقط صور (JPG, PNG, WEBP)'));
+      }
+    }
+  });
+
+  // Upload attendance photo
+  app.post("/api/upload-attendance-photo", requireAuth, attendanceUpload.single('photo'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "لم يتم رفع صورة" });
+      }
+
+      const fileUrl = `/attached_assets/attendance/${req.file.filename}`;
+      res.json({ url: fileUrl, filename: req.file.filename });
+    } catch (error) {
+      console.error("Error uploading attendance photo:", error);
+      res.status(500).json({ error: "فشل رفع الصورة" });
+    }
+  });
+
+  // ============== ATTENDANCE ROUTES ==============
+
+  // Check-in employee
+  app.post("/api/attendance/check-in", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { AttendanceModel, BranchModel, EmployeeModel } = await import("@shared/schema");
+      const { location, photoUrl } = req.body;
+      const employeeId = req.employee?.id;
+
+      if (!employeeId) {
+        return res.status(401).json({ error: "غير مصرح" });
+      }
+
+      if (!location || !location.lat || !location.lng) {
+        return res.status(400).json({ error: "الموقع مطلوب للتحضير" });
+      }
+
+      if (!photoUrl) {
+        return res.status(400).json({ error: "صورة التحضير مطلوبة" });
+      }
+
+      // Get employee details
+      const employee = await EmployeeModel.findOne({ 
+        $or: [{ id: employeeId }, { _id: employeeId }]
+      });
+      
+      if (!employee) {
+        return res.status(404).json({ error: "الموظف غير موجود" });
+      }
+
+      // Get branch location
+      const branch = await BranchModel.findOne({ 
+        $or: [{ id: employee.branchId }, { _id: employee.branchId }]
+      });
+      
+      if (!branch || !branch.location) {
+        return res.status(400).json({ error: "لا يوجد موقع للفرع" });
+      }
+
+      // Check if employee is within 100 meters of the branch
+      const branchLat = branch.location.latitude;
+      const branchLng = branch.location.longitude;
+      const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
+
+      if (distance > 100) {
+        return res.status(400).json({ 
+          error: `يجب أن تكون داخل الفرع للتحضير. أنت على بعد ${Math.round(distance)} متر`,
+          distance: Math.round(distance)
+        });
+      }
+
+      // Check if already checked in today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const existingAttendance = await AttendanceModel.findOne({
+        employeeId: employeeId,
+        shiftDate: { $gte: today, $lt: tomorrow },
+        status: 'checked_in'
+      });
+
+      if (existingAttendance) {
+        return res.status(400).json({ error: "تم التحضير مسبقاً اليوم" });
+      }
+
+      // Check if late (assuming 8 AM start time, can be customized per employee)
+      const now = new Date();
+      const shiftStartHour = employee.shiftTime ? parseInt(employee.shiftTime.split('-')[0]) : 8;
+      const shiftStart = new Date(today);
+      shiftStart.setHours(shiftStartHour, 0, 0, 0);
+      
+      const isLate = now > shiftStart;
+      const lateMinutes = isLate ? Math.floor((now.getTime() - shiftStart.getTime()) / 60000) : 0;
+
+      // Create attendance record
+      const attendance = new AttendanceModel({
+        employeeId: employeeId,
+        branchId: employee.branchId,
+        checkInTime: now,
+        checkInLocation: {
+          lat: location.lat,
+          lng: location.lng
+        },
+        checkInPhoto: photoUrl,
+        status: 'checked_in',
+        shiftDate: today,
+        isLate: isLate ? 1 : 0,
+        lateMinutes: lateMinutes
+      });
+
+      await attendance.save();
+
+      res.json({
+        success: true,
+        message: isLate ? `تم التحضير بنجاح (متأخر ${lateMinutes} دقيقة)` : "تم التحضير بنجاح",
+        attendance: serializeDoc(attendance),
+        isLate,
+        lateMinutes
+      });
+    } catch (error) {
+      console.error("Error checking in:", error);
+      res.status(500).json({ error: "فشل التحضير" });
+    }
+  });
+
+  // Check-out employee
+  app.post("/api/attendance/check-out", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { AttendanceModel, BranchModel, EmployeeModel } = await import("@shared/schema");
+      const { location, photoUrl } = req.body;
+      const employeeId = req.employee?.id;
+
+      if (!employeeId) {
+        return res.status(401).json({ error: "غير مصرح" });
+      }
+
+      if (!location || !location.lat || !location.lng) {
+        return res.status(400).json({ error: "الموقع مطلوب للانصراف" });
+      }
+
+      if (!photoUrl) {
+        return res.status(400).json({ error: "صورة الانصراف مطلوبة" });
+      }
+
+      // Get employee details
+      const employee = await EmployeeModel.findOne({ 
+        $or: [{ id: employeeId }, { _id: employeeId }]
+      });
+      
+      if (!employee) {
+        return res.status(404).json({ error: "الموظف غير موجود" });
+      }
+
+      // Get branch location
+      const branch = await BranchModel.findOne({ 
+        $or: [{ id: employee.branchId }, { _id: employee.branchId }]
+      });
+      
+      if (!branch || !branch.location) {
+        return res.status(400).json({ error: "لا يوجد موقع للفرع" });
+      }
+
+      // Check if employee is within 100 meters of the branch
+      const branchLat = branch.location.latitude;
+      const branchLng = branch.location.longitude;
+      const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
+
+      if (distance > 100) {
+        return res.status(400).json({ 
+          error: `يجب أن تكون داخل الفرع للانصراف. أنت على بعد ${Math.round(distance)} متر`,
+          distance: Math.round(distance)
+        });
+      }
+
+      // Find today's check-in
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const attendance = await AttendanceModel.findOne({
+        employeeId: employeeId,
+        shiftDate: { $gte: today, $lt: tomorrow },
+        status: 'checked_in'
+      });
+
+      if (!attendance) {
+        return res.status(400).json({ error: "لم تقم بالتحضير اليوم" });
+      }
+
+      // Update attendance with check-out
+      attendance.checkOutTime = new Date();
+      attendance.checkOutLocation = {
+        lat: location.lat,
+        lng: location.lng
+      };
+      attendance.checkOutPhoto = photoUrl;
+      attendance.status = 'checked_out';
+      attendance.updatedAt = new Date();
+
+      await attendance.save();
+
+      res.json({
+        success: true,
+        message: "تم الانصراف بنجاح",
+        attendance: serializeDoc(attendance)
+      });
+    } catch (error) {
+      console.error("Error checking out:", error);
+      res.status(500).json({ error: "فشل الانصراف" });
+    }
+  });
+
+  // Get attendance records (for managers)
+  app.get("/api/attendance", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { AttendanceModel, EmployeeModel } = await import("@shared/schema");
+      const { date, branchId, employeeId } = req.query;
+
+      const query: any = {};
+
+      // Filter by branch for non-admin/owner managers
+      if (req.employee?.role === 'manager' && req.employee?.branchId) {
+        query.branchId = req.employee.branchId;
+      } else if (branchId) {
+        query.branchId = branchId;
+      }
+
+      // Filter by date
+      if (date) {
+        const targetDate = new Date(date as string);
+        targetDate.setHours(0, 0, 0, 0);
+        const nextDay = new Date(targetDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        query.shiftDate = { $gte: targetDate, $lt: nextDay };
+      }
+
+      // Filter by employee
+      if (employeeId) {
+        query.employeeId = employeeId;
+      }
+
+      const attendances = await AttendanceModel.find(query).sort({ shiftDate: -1, checkInTime: -1 });
+
+      // Enrich with employee data
+      const enrichedAttendances = await Promise.all(
+        attendances.map(async (attendance) => {
+          const employee = await EmployeeModel.findOne({
+            $or: [{ id: attendance.employeeId }, { _id: attendance.employeeId }]
+          });
+          return {
+            ...serializeDoc(attendance),
+            employee: employee ? {
+              fullName: employee.fullName,
+              phone: employee.phone,
+              jobTitle: employee.jobTitle,
+              shiftTime: employee.shiftTime
+            } : null
+          };
+        })
+      );
+
+      res.json(enrichedAttendances);
+    } catch (error) {
+      console.error("Error fetching attendance:", error);
+      res.status(500).json({ error: "فشل جلب سجلات الحضور" });
+    }
+  });
+
+  // Get my attendance status (for employee)
+  app.get("/api/attendance/my-status", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { AttendanceModel } = await import("@shared/schema");
+      const employeeId = req.employee?.id;
+
+      if (!employeeId) {
+        return res.status(401).json({ error: "غير مصرح" });
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const todayAttendance = await AttendanceModel.findOne({
+        employeeId: employeeId,
+        shiftDate: { $gte: today, $lt: tomorrow }
+      });
+
+      res.json({
+        hasCheckedIn: !!todayAttendance,
+        hasCheckedOut: todayAttendance?.status === 'checked_out',
+        attendance: todayAttendance ? serializeDoc(todayAttendance) : null
+      });
+    } catch (error) {
+      console.error("Error fetching attendance status:", error);
+      res.status(500).json({ error: "فشل جلب حالة الحضور" });
+    }
+  });
+
+  // Helper function to calculate distance between two coordinates (Haversine formula)
+  function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // Distance in meters
+  }
+
+  // ============== OWNER DATABASE MANAGEMENT ROUTES ==============
+
+  // Get database statistics (owner only)
+  app.get("/api/owner/database-stats", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      if (req.employee?.role !== 'owner' && req.employee?.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات غير كافية" });
+      }
+
+      const { 
+        OrderModel, CustomerModel, EmployeeModel, CoffeeItemModel, 
+        BranchModel, DiscountCodeModel, LoyaltyCardModel, TableModel,
+        AttendanceModel, IngredientModel, CategoryModel, DeliveryZoneModel
+      } = await import("@shared/schema");
+
+      const [
+        ordersCount, customersCount, employeesCount, coffeeItemsCount,
+        branchesCount, discountCodesCount, loyaltyCardsCount, tablesCount,
+        attendanceCount, ingredientsCount, categoriesCount, deliveryZonesCount,
+        todayOrders, totalRevenue
+      ] = await Promise.all([
+        OrderModel.countDocuments(),
+        CustomerModel.countDocuments(),
+        EmployeeModel.countDocuments(),
+        CoffeeItemModel.countDocuments(),
+        BranchModel.countDocuments(),
+        DiscountCodeModel.countDocuments(),
+        LoyaltyCardModel.countDocuments(),
+        TableModel.countDocuments(),
+        AttendanceModel.countDocuments(),
+        IngredientModel.countDocuments(),
+        CategoryModel.countDocuments(),
+        DeliveryZoneModel.countDocuments(),
+        OrderModel.countDocuments({
+          createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+        }),
+        OrderModel.aggregate([
+          { $match: { status: { $ne: 'cancelled' } } },
+          { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+        ])
+      ]);
+
+      res.json({
+        collections: {
+          orders: { count: ordersCount, nameAr: 'الطلبات' },
+          customers: { count: customersCount, nameAr: 'العملاء' },
+          employees: { count: employeesCount, nameAr: 'الموظفين' },
+          coffeeItems: { count: coffeeItemsCount, nameAr: 'المشروبات' },
+          branches: { count: branchesCount, nameAr: 'الفروع' },
+          discountCodes: { count: discountCodesCount, nameAr: 'أكواد الخصم' },
+          loyaltyCards: { count: loyaltyCardsCount, nameAr: 'بطاقات الولاء' },
+          tables: { count: tablesCount, nameAr: 'الطاولات' },
+          attendance: { count: attendanceCount, nameAr: 'سجلات الحضور' },
+          ingredients: { count: ingredientsCount, nameAr: 'المكونات' },
+          categories: { count: categoriesCount, nameAr: 'الفئات' },
+          deliveryZones: { count: deliveryZonesCount, nameAr: 'مناطق التوصيل' }
+        },
+        summary: {
+          todayOrders,
+          totalRevenue: totalRevenue[0]?.total || 0
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching database stats:", error);
+      res.status(500).json({ error: "فشل جلب إحصائيات قاعدة البيانات" });
+    }
+  });
+
+  // Get collection data (owner only)
+  app.get("/api/owner/collection/:collectionName", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      if (req.employee?.role !== 'owner' && req.employee?.role !== 'admin') {
+        return res.status(403).json({ error: "صلاحيات غير كافية" });
+      }
+
+      const { collectionName } = req.params;
+      const { page = '1', limit = '50' } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const skip = (pageNum - 1) * limitNum;
+
+      const models: Record<string, any> = {
+        orders: (await import("@shared/schema")).OrderModel,
+        customers: (await import("@shared/schema")).CustomerModel,
+        employees: (await import("@shared/schema")).EmployeeModel,
+        coffeeItems: (await import("@shared/schema")).CoffeeItemModel,
+        branches: (await import("@shared/schema")).BranchModel,
+        discountCodes: (await import("@shared/schema")).DiscountCodeModel,
+        loyaltyCards: (await import("@shared/schema")).LoyaltyCardModel,
+        tables: (await import("@shared/schema")).TableModel,
+        attendance: (await import("@shared/schema")).AttendanceModel,
+        ingredients: (await import("@shared/schema")).IngredientModel,
+        categories: (await import("@shared/schema")).CategoryModel,
+        deliveryZones: (await import("@shared/schema")).DeliveryZoneModel
+      };
+
+      const Model = models[collectionName];
+      if (!Model) {
+        return res.status(400).json({ error: "مجموعة غير صالحة" });
+      }
+
+      const [data, total] = await Promise.all([
+        Model.find().sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+        Model.countDocuments()
+      ]);
+
+      res.json({
+        data: data.map((doc: any) => {
+          const serialized = serializeDoc(doc);
+          // Remove password from employees
+          if (collectionName === 'employees') {
+            delete serialized.password;
+          }
+          return serialized;
+        }),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching collection data:", error);
+      res.status(500).json({ error: "فشل جلب البيانات" });
+    }
+  });
+
+  // Delete collection data (owner only)
+  app.delete("/api/owner/collection/:collectionName", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      if (req.employee?.role !== 'owner') {
+        return res.status(403).json({ error: "فقط المالك يمكنه حذف البيانات" });
+      }
+
+      const { collectionName } = req.params;
+      const { ids } = req.body; // Optional: specific IDs to delete
+
+      const models: Record<string, any> = {
+        orders: (await import("@shared/schema")).OrderModel,
+        customers: (await import("@shared/schema")).CustomerModel,
+        discountCodes: (await import("@shared/schema")).DiscountCodeModel,
+        loyaltyCards: (await import("@shared/schema")).LoyaltyCardModel,
+        attendance: (await import("@shared/schema")).AttendanceModel
+      };
+
+      const Model = models[collectionName];
+      if (!Model) {
+        return res.status(400).json({ error: "مجموعة غير صالحة أو محمية" });
+      }
+
+      let result;
+      if (ids && Array.isArray(ids) && ids.length > 0) {
+        result = await Model.deleteMany({ _id: { $in: ids } });
+      } else {
+        result = await Model.deleteMany({});
+      }
+
+      res.json({
+        success: true,
+        message: `تم حذف ${result.deletedCount} سجل`,
+        deletedCount: result.deletedCount
+      });
+    } catch (error) {
+      console.error("Error deleting collection data:", error);
+      res.status(500).json({ error: "فشل حذف البيانات" });
+    }
+  });
+
+  // Delete specific record (owner only)
+  app.delete("/api/owner/record/:collectionName/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      if (req.employee?.role !== 'owner') {
+        return res.status(403).json({ error: "فقط المالك يمكنه حذف البيانات" });
+      }
+
+      const { collectionName, id } = req.params;
+
+      const models: Record<string, any> = {
+        orders: (await import("@shared/schema")).OrderModel,
+        customers: (await import("@shared/schema")).CustomerModel,
+        employees: (await import("@shared/schema")).EmployeeModel,
+        coffeeItems: (await import("@shared/schema")).CoffeeItemModel,
+        branches: (await import("@shared/schema")).BranchModel,
+        discountCodes: (await import("@shared/schema")).DiscountCodeModel,
+        loyaltyCards: (await import("@shared/schema")).LoyaltyCardModel,
+        tables: (await import("@shared/schema")).TableModel,
+        attendance: (await import("@shared/schema")).AttendanceModel,
+        ingredients: (await import("@shared/schema")).IngredientModel,
+        categories: (await import("@shared/schema")).CategoryModel,
+        deliveryZones: (await import("@shared/schema")).DeliveryZoneModel
+      };
+
+      const Model = models[collectionName];
+      if (!Model) {
+        return res.status(400).json({ error: "مجموعة غير صالحة" });
+      }
+
+      const result = await Model.deleteOne({ _id: id });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: "السجل غير موجود" });
+      }
+
+      res.json({
+        success: true,
+        message: "تم حذف السجل بنجاح"
+      });
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      res.status(500).json({ error: "فشل حذف السجل" });
+    }
+  });
+
+  // Reset all data (owner only)
+  app.post("/api/owner/reset-database", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      if (req.employee?.role !== 'owner') {
+        return res.status(403).json({ error: "فقط المالك يمكنه إعادة تعيين قاعدة البيانات" });
+      }
+
+      const { confirmPhrase } = req.body;
+      
+      if (confirmPhrase !== 'احذف جميع البيانات') {
+        return res.status(400).json({ error: "عبارة التأكيد غير صحيحة" });
+      }
+
+      const { 
+        OrderModel, CustomerModel, DiscountCodeModel, LoyaltyCardModel, 
+        LoyaltyTransactionModel, AttendanceModel, CardCodeModel
+      } = await import("@shared/schema");
+
+      const results = await Promise.all([
+        OrderModel.deleteMany({}),
+        CustomerModel.deleteMany({}),
+        DiscountCodeModel.deleteMany({}),
+        LoyaltyCardModel.deleteMany({}),
+        LoyaltyTransactionModel.deleteMany({}),
+        AttendanceModel.deleteMany({}),
+        CardCodeModel.deleteMany({})
+      ]);
+
+      res.json({
+        success: true,
+        message: "تم حذف جميع بيانات العمليات بنجاح",
+        deleted: {
+          orders: results[0].deletedCount,
+          customers: results[1].deletedCount,
+          discountCodes: results[2].deletedCount,
+          loyaltyCards: results[3].deletedCount,
+          loyaltyTransactions: results[4].deletedCount,
+          attendance: results[5].deletedCount,
+          cardCodes: results[6].deletedCount
+        }
+      });
+    } catch (error) {
+      console.error("Error resetting database:", error);
+      res.status(500).json({ error: "فشل إعادة تعيين قاعدة البيانات" });
     }
   });
 
