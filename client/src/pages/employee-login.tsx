@@ -68,21 +68,15 @@ export default function EmployeeLogin() {
     scanner.render(
       (decodedText) => {
         try {
-          // Parse QR code data: expecting format like "username:password"
-          const [scannedUsername, scannedPassword] = decodedText.split(":");
-          if (scannedUsername && scannedPassword) {
+          // QR code contains only username
+          const scannedUsername = decodedText.trim();
+          if (scannedUsername) {
             setUsername(scannedUsername);
-            setPassword(scannedPassword);
+            setPassword(""); // Clear password field, user will enter it
             setError("");
             scanner.clear();
             setShowQRScanner(false);
-            // Auto-login after a short delay
-            setTimeout(() => {
-              loginMutation.mutate({
-                username: scannedUsername,
-                password: scannedPassword,
-              });
-            }, 500);
+            // Focus on password field for user to enter password
           } else {
             setError("صيغة QR غير صحيحة");
           }
