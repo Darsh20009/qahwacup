@@ -563,6 +563,7 @@ export default function EmployeeCashier() {
  },
  customerId: customerId || undefined,
  employeeId: employee?.id,
+ branchId: employee?.branchId,
  tableNumber: tableNumber || undefined,
  status: "in_progress"
  };
