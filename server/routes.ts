@@ -402,6 +402,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertEmployeeSchema.parse(req.body);
 
+      // For non-admin managers, enforce their branch ID
+      if (req.employee?.role !== "admin" && req.employee?.branchId) {
+        validatedData.branchId = req.employee.branchId;
+      }
+
       // Check if username already exists
       const existing = await storage.getEmployeeByUsername(validatedData.username);
       if (existing) {
