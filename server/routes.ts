@@ -403,8 +403,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertEmployeeSchema.parse(req.body);
 
       // For non-admin managers, enforce their branch ID
-      if (req.employee?.role !== "admin" && req.employee?.branchId) {
-        validatedData.branchId = req.employee.branchId;
+      if (req.employee?.role !== "admin") {
+        if (req.employee?.branchId) {
+          // Manager can only create employees in their branch
+          if (validatedData.branchId && validatedData.branchId !== req.employee.branchId) {
+            return res.status(403).json({ error: "Cannot create employee in different branch" });
+          }
+          validatedData.branchId = req.employee.branchId;
+        } else {
+          return res.status(403).json({ error: "Manager must have a branch assigned" });
+        }
       }
 
       // Check if username already exists
