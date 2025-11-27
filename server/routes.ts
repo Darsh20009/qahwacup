@@ -2157,6 +2157,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send invoice email on demand (for cashier)
+  app.post("/api/orders/:orderNumber/send-invoice", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { orderNumber } = req.params;
+      const { email } = req.body;
+
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ error: "البريد الإلكتروني غير صالح" });
+      }
+
+      // Validate that the employee has access (cashier or manager of the same branch)
+      const employee = req.employee;
+      if (!employee || !['cashier', 'manager', 'admin', 'owner'].includes(employee.role || '')) {
+        return res.status(403).json({ error: "غير مصرح لك بإرسال الفواتير" });
+      }
+
+      // Get order by number
+      const order = await storage.getOrderByNumber(orderNumber);
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+
+      const serializedOrder = serializeDoc(order);
+
+      // Check branch access for non-admin/owner roles
+      if (employee.role === 'cashier' || employee.role === 'manager') {
+        if (serializedOrder.branchId && employee.branchId && 
+            serializedOrder.branchId !== employee.branchId) {
+          return res.status(403).json({ error: "غير مصرح لك بالوصول لهذا الطلب" });
+        }
+      }
+      
+      // Parse items if stored as JSON string
+      let orderItems = serializedOrder.items;
+      if (typeof orderItems === 'string') {
+        try {
+          orderItems = JSON.parse(orderItems);
+        } catch (e) {
+          orderItems = [];
+        }
+      }
+
+      // Enrich items with coffee item details
+      const coffeeItems = await storage.getCoffeeItems();
+      const enrichedItems = Array.isArray(orderItems) ? orderItems.map((item: any) => {
+        const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+        return {
+          ...item,
+          coffeeItem: coffeeItem ? {
+            nameAr: coffeeItem.nameAr,
+            price: coffeeItem.price
+          } : { nameAr: 'منتج', price: item.price || '0' }
+        };
+      }) : [];
+
+      // Calculate totals - use stored values when available
+      const totalAmount = parseFloat(serializedOrder.totalAmount || '0');
+      const taxRate = 0.15;
+      const subtotalBeforeTax = totalAmount / (1 + taxRate);
+      const taxAmount = totalAmount - subtotalBeforeTax;
+      
+      // Get stored discount if any
+      const discountPercentage = parseFloat(serializedOrder.discountPercentage || '0');
+      const discountAmount = discountPercentage > 0 ? 
+        (subtotalBeforeTax / (1 - discountPercentage/100)) * (discountPercentage/100) : 0;
+      
+      // Generate invoice number using order number and creation time
+      const orderDate = new Date(serializedOrder.createdAt || Date.now());
+      const invoiceNumber = `INV-${orderNumber}`;
+
+      const invoiceData = {
+        customerName: serializedOrder.customerInfo?.customerName || 'عميل',
+        customerPhone: serializedOrder.customerInfo?.phoneNumber || '',
+        items: enrichedItems,
+        subtotal: subtotalBeforeTax,
+        discountAmount: discountAmount,
+        taxAmount: taxAmount,
+        totalAmount: totalAmount,
+        paymentMethod: serializedOrder.paymentMethod || 'cash',
+        invoiceDate: orderDate
+      };
+
+      const success = await sendInvoiceEmail(email, invoiceNumber, invoiceData);
+
+      if (success) {
+        res.json({ 
+          success: true, 
+          message: "تم إرسال الفاتورة بنجاح",
+          invoiceNumber: invoiceNumber 
+        });
+      } else {
+        res.status(500).json({ error: "فشل إرسال الفاتورة. تأكد من إعداد البريد الإلكتروني" });
+      }
+    } catch (error) {
+      console.error("Error sending invoice email:", error);
+      res.status(500).json({ error: "فشل إرسال الفاتورة" });
+    }
+  });
+
   // Get order by number - for public tracking
   app.get("/api/orders/number/:orderNumber", async (req, res) => {
     try {

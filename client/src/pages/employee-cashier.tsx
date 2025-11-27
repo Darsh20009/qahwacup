@@ -13,9 +13,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone, Settings, Wifi, WifiOff } from "lucide-react";
+import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone, Settings, Wifi, WifiOff, Mail, FileText } from "lucide-react";
 import QRScanner from "@/components/qr-scanner";
 import { ReceiptPrint } from "@/components/receipt-print";
+import { TaxInvoicePrint } from "@/components/tax-invoice-print";
 import type { Employee, CoffeeItem, PaymentMethod, LoyaltyCard } from "@shared/schema";
 
 interface OrderItem {
@@ -82,7 +83,12 @@ export default function EmployeeCashier() {
  const [isPosSettingsOpen, setIsPosSettingsOpen] = useState(false);
  const [isTogglingPos, setIsTogglingPos] = useState(false);
  const [stampsToUse, setStampsToUse] = useState(0);
+ const [isSendingEmail, setIsSendingEmail] = useState(false);
+ const [showEmailDialog, setShowEmailDialog] = useState(false);
+ const [emailToSend, setEmailToSend] = useState("");
+ const [showTaxInvoice, setShowTaxInvoice] = useState(false);
  const receiptRef = useRef<HTMLDivElement>(null);
+ const taxInvoiceRef = useRef<HTMLDivElement>(null);
  
  const { toast } = useToast();
 
@@ -497,6 +503,71 @@ export default function EmployeeCashier() {
  window.print();
  };
 
+ const handlePrintTaxInvoice = () => {
+ setShowTaxInvoice(true);
+ setTimeout(() => {
+ window.print();
+ setShowTaxInvoice(false);
+ }, 100);
+ };
+
+ const handleSendEmail = async () => {
+ if (!lastOrder?.orderNumber) {
+ toast({
+ title: "خطأ",
+ description: "لا يوجد طلب لإرسال الفاتورة",
+ variant: "destructive",
+ });
+ return;
+ }
+
+ const email = emailToSend || customerEmail;
+ if (!email || !email.includes('@')) {
+ toast({
+ title: "خطأ",
+ description: "يرجى إدخال بريد إلكتروني صحيح",
+ variant: "destructive",
+ });
+ return;
+ }
+
+ setIsSendingEmail(true);
+ try {
+ const response = await fetch(`/api/orders/${lastOrder.orderNumber}/send-invoice`, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ credentials: 'include',
+ body: JSON.stringify({ email })
+ });
+
+ if (response.ok) {
+ toast({
+ title: "تم الإرسال بنجاح",
+ description: `تم إرسال الفاتورة إلى ${email}`,
+ className: "bg-green-600 text-white",
+ });
+ setShowEmailDialog(false);
+ setEmailToSend("");
+ } else {
+ const data = await response.json();
+ toast({
+ title: "خطأ",
+ description: data.error || "فشل إرسال الفاتورة",
+ variant: "destructive",
+ });
+ }
+ } catch (error) {
+ console.error('Error sending email:', error);
+ toast({
+ title: "خطأ",
+ description: "فشل إرسال الفاتورة",
+ variant: "destructive",
+ });
+ } finally {
+ setIsSendingEmail(false);
+ }
+ };
+
  const handleTogglePosConnection = async () => {
  setIsTogglingPos(true);
  try {
@@ -700,14 +771,72 @@ export default function EmployeeCashier() {
  </DialogContent>
  </Dialog>
  {lastOrder && (
+ <>
  <Button
  onClick={handlePrintReceipt}
  className="bg-blue-600 hover:bg-blue-700 shadow-lg"
  data-testid="button-print-receipt"
  >
  <Printer className="w-4 h-4 ml-2" />
- طباعة الفاتورة 
+ طباعة الإيصال
  </Button>
+ <Button
+ onClick={handlePrintTaxInvoice}
+ className="bg-purple-600 hover:bg-purple-700 shadow-lg"
+ data-testid="button-print-tax-invoice"
+ >
+ <FileText className="w-4 h-4 ml-2" />
+ فاتورة ضريبية
+ </Button>
+ <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+ <DialogTrigger asChild>
+ <Button
+ className="bg-green-600 hover:bg-green-700 shadow-lg"
+ data-testid="button-send-email"
+ >
+ <Mail className="w-4 h-4 ml-2" />
+ إرسال بالبريد
+ </Button>
+ </DialogTrigger>
+ <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-right">
+ <DialogHeader>
+ <DialogTitle className="text-amber-500 text-right">إرسال الفاتورة بالبريد الإلكتروني</DialogTitle>
+ </DialogHeader>
+ <div className="space-y-4 py-4">
+ <div className="space-y-2">
+ <Label className="text-gray-300">البريد الإلكتروني</Label>
+ <Input
+ type="email"
+ value={emailToSend || customerEmail}
+ onChange={(e) => setEmailToSend(e.target.value)}
+ placeholder="example@email.com"
+ className="bg-[#1a1410] border-amber-500/30 text-white text-left"
+ dir="ltr"
+ data-testid="input-email-to-send"
+ />
+ </div>
+ <Button
+ onClick={handleSendEmail}
+ disabled={isSendingEmail}
+ className="w-full bg-green-600 hover:bg-green-700"
+ data-testid="button-confirm-send-email"
+ >
+ {isSendingEmail ? (
+ <>
+ <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
+ جاري الإرسال...
+ </>
+ ) : (
+ <>
+ <Mail className="w-4 h-4 ml-2" />
+ إرسال الفاتورة
+ </>
+ )}
+ </Button>
+ </div>
+ </DialogContent>
+ </Dialog>
+ </>
  )}
  <Button
  variant="outline"
@@ -1163,9 +1292,26 @@ export default function EmployeeCashier() {
  </div>
  </div>
 
- {lastOrder && (
+ {lastOrder && !showTaxInvoice && (
  <ReceiptPrint
  ref={receiptRef}
+ orderNumber={lastOrder.orderNumber}
+ customerName={lastOrder.customerName}
+ customerPhone={lastOrder.customerPhone}
+ items={lastOrder.items}
+ subtotal={lastOrder.subtotal}
+ discount={lastOrder.discount}
+ total={lastOrder.total}
+ paymentMethod={lastOrder.paymentMethod}
+ employeeName={lastOrder.employeeName}
+ tableNumber={lastOrder.tableNumber}
+ date={lastOrder.date}
+ />
+ )}
+ 
+ {lastOrder && showTaxInvoice && (
+ <TaxInvoicePrint
+ ref={taxInvoiceRef}
  orderNumber={lastOrder.orderNumber}
  customerName={lastOrder.customerName}
  customerPhone={lastOrder.customerPhone}
