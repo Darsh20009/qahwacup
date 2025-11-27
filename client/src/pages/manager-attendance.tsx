@@ -143,21 +143,35 @@ export default function ManagerAttendance() {
   };
 
   const downloadReport = () => {
-    const reportData = filteredRecords.map(r => ({
-      'الاسم': r.employee?.fullName || '',
-      'الدور': r.employee?.jobTitle || '',
-      'الفرع': r.branch?.nameAr || r.branch?.name || '',
-      'وقت الحضور': formatTime(r.checkInTime),
-      'وقت الانصراف': formatTime(r.checkOutTime),
-      'الحالة': r.status === 'checked_out' ? 'انصرف' : r.status === 'checked_in' ? 'حاضر' : 'غائب',
-      'تأخير (دقيقة)': r.lateMinutes ? r.lateMinutes : '-',
-      'الموقع عند الحضور': r.isAtBranch === 1 ? 'في الفرع' : 'خارج الفرع',
-      'المسافة (متر)': r.distanceFromBranch ? Math.round(r.distanceFromBranch) : 0,
-      'موقع الانصراف': r.checkOutIsAtBranch === 1 ? 'في الفرع' : r.checkOutTime ? 'خارج الفرع' : '-',
-      'مسافة الانصراف (متر)': r.checkOutDistanceFromBranch ? Math.round(r.checkOutDistanceFromBranch) : 0
-    }));
+    const reportData = filteredRecords.map(r => [
+      r.employee?.fullName || '',
+      r.employee?.jobTitle || '',
+      r.branch?.nameAr || r.branch?.name || '',
+      formatTime(r.checkInTime),
+      formatTime(r.checkOutTime),
+      r.status === 'checked_out' ? 'انصرف' : r.status === 'checked_in' ? 'حاضر' : 'غائب',
+      r.lateMinutes ? r.lateMinutes : '-',
+      r.isAtBranch === 1 ? 'في الفرع' : 'خارج الفرع',
+      r.distanceFromBranch ? Math.round(r.distanceFromBranch) : 0,
+      r.checkOutIsAtBranch === 1 ? 'في الفرع' : r.checkOutTime ? 'خارج الفرع' : '-',
+      r.checkOutDistanceFromBranch ? Math.round(r.checkOutDistanceFromBranch) : 0
+    ]);
 
-    const worksheet = XLSX.utils.json_to_sheet(reportData, { header: 1 });
+    const headers = [
+      'الاسم',
+      'الدور',
+      'الفرع',
+      'وقت الحضور',
+      'وقت الانصراف',
+      'الحالة',
+      'تأخير (دقيقة)',
+      'الموقع عند الحضور',
+      'المسافة (متر)',
+      'موقع الانصراف',
+      'مسافة الانصراف (متر)'
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...reportData]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'سجل الحضور');
     
