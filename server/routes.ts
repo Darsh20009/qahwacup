@@ -1766,7 +1766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create order
-  app.post("/api/orders", async (req, res) => {
+  app.post("/api/orders", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { 
         items, totalAmount, paymentMethod, paymentDetails, paymentReceiptUrl,
@@ -1881,16 +1881,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create order
-      // If branchId not provided, use the employee's branchId from the request body
-      let finalBranchId = branchId;
-      if (!finalBranchId && req.body.employeeId) {
-        try {
-          const employee = await storage.getEmployee(req.body.employeeId);
-          finalBranchId = employee?.branchId;
-        } catch (error) {
-          console.error("Error getting employee branch:", error);
-        }
-      }
+      // Use provided branchId or default to authenticated employee's branchId
+      let finalBranchId = branchId || req.employee?.branchId;
 
       const orderData: any = {
         customerId: finalCustomerId || null,
@@ -1905,7 +1897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deliveryType: deliveryType || null,
         deliveryAddress: deliveryAddress || null,
         deliveryFee: deliveryFee || 0,
-        branchId: finalBranchId || null,
+        branchId: finalBranchId,
         tableNumber: tableNumber || null,
         tableId: tableId || null,
         orderType: orderType || (tableNumber || tableId ? 'table' : 'regular'),
