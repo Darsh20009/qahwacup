@@ -424,14 +424,26 @@ export class DBStorage implements IStorage {
   }
 
   async getEmployees(): Promise<Employee[]> {
-    return await EmployeeModel.find();
+    const employees = await EmployeeModel.find().lean();
+    return employees.map((emp: any) => ({
+      ...emp,
+      id: emp._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
   }
 
   async getActiveCashiers(): Promise<Employee[]> {
-    return await EmployeeModel.find({ 
+    const cashiers = await EmployeeModel.find({ 
       role: 'cashier',
       isActivated: 1
-    });
+    }).lean();
+    return cashiers.map((emp: any) => ({
+      ...emp,
+      id: emp._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
   }
 
   async createDiscountCode(insertDiscountCode: InsertDiscountCode): Promise<DiscountCode> {

@@ -83,9 +83,14 @@ export default function ManagerEmployees() {
  queryKey: ["/api/employees"],
  enabled: !!currentManager,
  select: (data: Employee[]) => {
+ console.log("[DEBUG Frontend] Manager branchId:", managerBranchId);
+ console.log("[DEBUG Frontend] Employees received:", data.length);
+ console.log("[DEBUG Frontend] Employee branchIds:", data.map(e => ({ name: e.fullName, branchId: e.branchId })));
  // Admin/Owner see all employees, managers see only their branch employees
  if (isAdminOrOwner) return data;
- return data.filter(emp => emp.branchId === managerBranchId);
+ const filtered = data.filter(emp => emp.branchId === managerBranchId);
+ console.log("[DEBUG Frontend] Filtered employees:", filtered.length);
+ return filtered;
  },
  });
 
