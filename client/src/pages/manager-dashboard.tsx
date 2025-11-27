@@ -116,7 +116,7 @@ export default function ManagerDashboard() {
  });
 
  // جميع المديرين يرون جميع الطلبات بغض النظر عن الفرع
- const orders = allOrders;
+ const orders = isAdmin ? allOrders : allOrders.filter(order => order.branchId === managerBranchId);
 
  const { data: allBranches = [] } = useQuery<any[]>({
  queryKey: ["/api/branches"],
