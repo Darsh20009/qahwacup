@@ -388,9 +388,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied - different branch" });
       }
 
-      // Don't send password back
-      const { password: _, ...employeeData } = employee;
-      res.json(employeeData);
+      // Don't send password back, transform _id to id
+      const { password: _, _id, ...employeeData } = employee as any;
+      res.json({ ...employeeData, id: _id || employeeData.id });
     } catch (error) {
       console.error("Error fetching employee:", error);
       res.status(500).json({ error: "Failed to fetch employee" });
@@ -423,9 +423,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const employee = await storage.createEmployee(validatedData);
 
-      // Don't send password back
-      const { password: _, ...employeeData } = employee;
-      res.status(201).json(employeeData);
+      // Don't send password back, transform _id to id
+      const { password: _, _id, ...employeeData } = employee as any;
+      res.status(201).json({ ...employeeData, id: _id || employeeData.id });
     } catch (error) {
       console.error("Error creating employee:", error);
       if (error instanceof Error && 'issues' in error) {
@@ -443,10 +443,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Filter by branch for non-admin managers
       const employees = filterByBranch(allEmployees, req.employee);
 
-      // Don't send passwords back
+      // Don't send passwords back, transform _id to id for frontend
       const employeesData = employees.map(emp => {
-        const { password: _, ...data } = emp;
-        return data;
+        const { password: _, _id, ...data } = emp as any;
+        return { ...data, id: _id || data.id };
       });
 
       res.json(employeesData);
@@ -464,10 +464,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Filter by branch for non-admin managers
       const cashiers = filterByBranch(allCashiers, req.employee);
 
-      // Don't send passwords back
+      // Don't send passwords back, transform _id to id for frontend
       const cashiersData = cashiers.map(emp => {
-        const { password: _, ...data } = emp;
-        return data;
+        const { password: _, _id, ...data } = emp as any;
+        return { ...data, id: _id || data.id };
       });
 
       res.json(cashiersData);
@@ -500,9 +500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Employee not found" });
       }
 
-      // Don't send password back
-      const { password: _, ...employeeData } = updatedEmployee;
-      res.json(employeeData);
+      // Don't send password back, transform _id to id
+      const { password: _, _id, ...employeeData } = updatedEmployee as any;
+      res.json({ ...employeeData, id: _id || employeeData.id });
     } catch (error) {
       console.error("Error updating employee:", error);
       res.status(500).json({ error: "Failed to update employee" });
@@ -524,9 +524,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "الموظف غير موجود أو تم تفعيله مسبقاً" });
       }
 
-      // Don't send password back
-      const { password: _, ...employeeData } = employee;
-      res.json(employeeData);
+      // Don't send password back, transform _id to id
+      const { password: _, _id, ...employeeData } = employee as any;
+      res.json({ ...employeeData, id: _id || employeeData.id });
     } catch (error) {
       console.error("Error activating employee:", error);
       res.status(500).json({ error: "Failed to activate employee" });
