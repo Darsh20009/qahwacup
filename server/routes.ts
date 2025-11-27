@@ -439,15 +439,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/employees", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const allEmployees = await storage.getEmployees();
-
-      console.log("[DEBUG] Employee request by:", req.employee?.username, "role:", req.employee?.role, "branchId:", req.employee?.branchId);
-      console.log("[DEBUG] Total employees:", allEmployees.length);
       
       // Filter by branch for non-admin managers
       const employees = filterByBranch(allEmployees, req.employee);
-      
-      console.log("[DEBUG] Filtered employees:", employees.length);
-      console.log("[DEBUG] Employee branchIds:", allEmployees.map(e => ({ name: (e as any).fullName, branchId: (e as any).branchId })));
 
       // Don't send passwords back, transform _id to id for frontend
       const employeesData = employees.map(emp => {
