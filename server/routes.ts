@@ -2409,8 +2409,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      // Only check branch access for cashiers, managers and admins can manage all orders
-      if (!["admin", "manager"].includes(req.employee?.role || "") && order.branchId !== req.employee?.branchId) {
+      // Debug logging
+      console.log(`[ORDER UPDATE] Employee: ${req.employee?.username} (${req.employee?.role}) from branch ${req.employee?.branchId}, Order branchId: ${order.branchId}`);
+
+      // Managers and admins can update any order
+      // Cashiers can update orders from their branch OR orders without branchId (legacy orders)
+      const isManager = ["admin", "manager"].includes(req.employee?.role || "");
+      const isSameBranch = order.branchId === req.employee?.branchId;
+      const isLegacyOrder = !order.branchId; // Orders created before branchId requirement
+      
+      if (!isManager && !isSameBranch && !isLegacyOrder) {
+        console.log(`[ACCESS DENIED] Non-manager trying to update order from different branch. Order branch: ${order.branchId}, Employee branch: ${req.employee?.branchId}`);
         return res.status(403).json({ error: "Access denied - different branch" });
       }
 
