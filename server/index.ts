@@ -33,10 +33,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Trust proxy - required for Render and other reverse proxy services
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-}
+// Trust proxy - required for Render, Replit, and other reverse proxy services
+app.set('trust proxy', 1);
 
 // Session configuration
 app.use(

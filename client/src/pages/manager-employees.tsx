@@ -37,13 +37,43 @@ export default function ManagerEmployees() {
  const [selectedRole, setSelectedRole] = useState<string>("cashier");
  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
- // Get current manager info
+ // Get current manager info and verify session
  useEffect(() => {
+ const checkSession = async () => {
  const managerData = localStorage.getItem("currentEmployee");
  if (managerData) {
- setCurrentManager(JSON.parse(managerData));
+ const parsed = JSON.parse(managerData);
+ 
+ // Verify session is still valid on backend
+ try {
+ const response = await fetch("/api/verify-session", { credentials: "include" });
+ if (!response.ok) {
+ // Session expired, clear localStorage and redirect
+ localStorage.removeItem("currentEmployee");
+ setLocation("/employee/gateway");
+ return;
  }
- }, []);
+ // Update with server data if needed
+ const data = await response.json();
+ if (data.employee) {
+ const updatedManager = { ...parsed, ...data.employee };
+ localStorage.setItem("currentEmployee", JSON.stringify(updatedManager));
+ setCurrentManager(updatedManager);
+ } else {
+ setCurrentManager(parsed);
+ }
+ } catch (error) {
+ console.error("Session verification error:", error);
+ localStorage.removeItem("currentEmployee");
+ setLocation("/employee/gateway");
+ }
+ } else {
+ setLocation("/employee/gateway");
+ }
+ };
+
+ checkSession();
+ }, [setLocation]);
 
  // Determine if current user is admin/owner
  const isAdminOrOwner = currentManager?.role === "admin" || currentManager?.role === "owner";
