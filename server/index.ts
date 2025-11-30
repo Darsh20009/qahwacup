@@ -11,23 +11,33 @@ const SessionStore = MemoryStore(session);
 
 const MONGODB_URI = process.env.MONGODB_URI || "";
 
-if (!MONGODB_URI) {
-  console.error("❌ ERROR: MONGODB_URI environment variable is not set");
-  console.log("Please set MONGODB_URI in your environment");
-  process.exit(1);
-}
+// Track database connection status
+let isDbConnected = false;
 
-mongoose.connect(MONGODB_URI)
-  .then(async () => {
+// Connect to MongoDB in the background (don't block server startup)
+async function connectDatabase() {
+  if (!MONGODB_URI) {
+    console.error("❌ WARNING: MONGODB_URI environment variable is not set");
+    console.log("Database functionality will be unavailable");
+    return;
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URI);
+    isDbConnected = true;
     console.log("✅ MongoDB connected successfully");
     
+    // Run seeds in background after connection
     const { runSeeds } = await import("./seed");
     await runSeeds();
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error("❌ MongoDB connection error:", error);
-    process.exit(1);
-  });
+    // Don't exit - let the server continue running for health checks
+  }
+}
+
+// Start database connection in background
+connectDatabase();
 
 const app = express();
 app.use(express.json());
@@ -64,6 +74,16 @@ app.use((req, res, next) => {
     console.log(`  - Cookie:`, req.headers.cookie ? 'PRESENT' : 'MISSING');
   }
   next();
+});
+
+// Health check endpoint for Render and other hosting services
+// This must respond quickly without waiting for database
+app.get('/health', (_req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: isDbConnected ? 'connected' : 'connecting'
+  });
 });
 
 // Serve attached assets for both development and production
