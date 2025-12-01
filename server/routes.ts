@@ -1906,6 +1906,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const order = await storage.createOrder(orderData);
 
+      // Smart Inventory Deduction - deduct raw materials based on recipes
+      if (finalBranchId && items && items.length > 0) {
+        try {
+          const orderItems = items.map((item: any) => ({
+            coffeeItemId: item.id || item.coffeeItemId,
+            quantity: item.quantity || 1,
+          }));
+
+          const deductionResult = await storage.deductInventoryForOrder(
+            order.id,
+            finalBranchId,
+            orderItems,
+            req.employee?.username || 'system'
+          );
+
+          if (!deductionResult.success && deductionResult.errors.length > 0) {
+            console.warn("Inventory deduction warnings:", deductionResult.errors);
+          }
+
+          console.log(`Order ${order.orderNumber}: COGS = ${deductionResult.costOfGoods.toFixed(2)} SAR, Gross Profit = ${deductionResult.grossProfit.toFixed(2)} SAR`);
+        } catch (error) {
+          console.error("Error deducting inventory for order:", error);
+          // Continue with order - don't fail the order if inventory deduction fails
+        }
+      }
+
       // Update table occupancy if this is a table order
       if (tableId) {
         try {
@@ -2971,7 +2997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             const manager = await storage.createEmployee({
               username: newManagerData.username,
-              password: null, // No password - must activate account
+              password: undefined, // No password - must activate account
               fullName: newManagerData.fullName,
               role: 'manager',
               phone: newManagerData.phone,
@@ -5449,6 +5475,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching movements:", error);
       res.status(500).json({ error: "فشل في جلب حركات المخزون" });
+    }
+  });
+
+  // Calculate Order COGS (Cost of Goods Sold)
+  app.post("/api/inventory/calculate-cogs", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { items, branchId } = req.body;
+      
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: "العناصر مطلوبة" });
+      }
+      
+      const orderItems = items.map((item: any) => ({
+        coffeeItemId: item.id || item.coffeeItemId,
+        quantity: item.quantity || 1,
+      }));
+      
+      const finalBranchId = branchId || req.employee?.branchId;
+      const result = await storage.calculateOrderCOGS(orderItems, finalBranchId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error calculating COGS:", error);
+      res.status(500).json({ error: "فشل في حساب تكلفة البضاعة المباعة" });
+    }
+  });
+
+  // Get order COGS details
+  app.get("/api/orders/:id/cogs", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const order = await storage.getOrder(id);
+      
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+      
+      res.json({
+        orderId: id,
+        orderNumber: order.orderNumber,
+        totalAmount: order.totalAmount,
+        costOfGoods: order.costOfGoods || 0,
+        grossProfit: order.grossProfit || 0,
+        profitMargin: order.totalAmount > 0 ? ((order.grossProfit || 0) / order.totalAmount * 100).toFixed(2) : 0,
+        inventoryDeducted: order.inventoryDeducted === 1,
+        deductionDetails: order.inventoryDeductionDetails || [],
+      });
+    } catch (error) {
+      console.error("Error fetching order COGS:", error);
+      res.status(500).json({ error: "فشل في جلب تكلفة الطلب" });
     }
   });
 

@@ -277,6 +277,60 @@ export interface IStorage {
   // Stock Movements
   getStockMovements(branchId: string, rawItemId?: string, limit?: number): Promise<StockMovement[]>;
   createStockMovement(movement: InsertStockMovement): Promise<StockMovement>;
+
+  // Smart Inventory Deduction
+  deductInventoryForOrder(
+    orderId: string,
+    branchId: string,
+    items: Array<{ coffeeItemId: string; quantity: number }>,
+    createdBy: string
+  ): Promise<{
+    success: boolean;
+    costOfGoods: number;
+    grossProfit: number;
+    deductionDetails: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      quantity: number;
+      unit: string;
+      unitCost: number;
+      totalCost: number;
+    }>;
+    shortages: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      required: number;
+      available: number;
+      unit: string;
+    }>;
+    errors: string[];
+  }>;
+
+  calculateOrderCOGS(items: Array<{ coffeeItemId: string; quantity: number }>, branchId?: string): Promise<{
+    totalCost: number;
+    itemBreakdown: Array<{
+      coffeeItemId: string;
+      coffeeItemName: string;
+      quantity: number;
+      unitCost: number;
+      totalCost: number;
+      ingredients: Array<{
+        rawItemId: string;
+        rawItemName: string;
+        quantity: number;
+        unit: string;
+        unitCost: number;
+        totalCost: number;
+      }>;
+    }>;
+    shortages: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      required: number;
+      available: number;
+      unit: string;
+    }>;
+  }>;
 }
 
 export class DBStorage implements IStorage {
@@ -2022,6 +2076,354 @@ export class DBStorage implements IStorage {
       _id: undefined,
       __v: undefined,
     } as any;
+  }
+
+  private convertToBaseUnit(quantity: number, unit: string): { value: number; baseUnit: string } {
+    const conversions: Record<string, { factor: number; baseUnit: string }> = {
+      'kg': { factor: 1000, baseUnit: 'g' },
+      'g': { factor: 1, baseUnit: 'g' },
+      'liter': { factor: 1000, baseUnit: 'ml' },
+      'ml': { factor: 1, baseUnit: 'ml' },
+      'piece': { factor: 1, baseUnit: 'piece' },
+      'box': { factor: 1, baseUnit: 'box' },
+      'bag': { factor: 1, baseUnit: 'bag' },
+    };
+
+    const conversion = conversions[unit.toLowerCase()] || { factor: 1, baseUnit: unit };
+    return {
+      value: quantity * conversion.factor,
+      baseUnit: conversion.baseUnit,
+    };
+  }
+
+  async deductInventoryForOrder(
+    orderId: string,
+    branchId: string,
+    items: Array<{ coffeeItemId: string; quantity: number }>,
+    createdBy: string
+  ): Promise<{
+    success: boolean;
+    costOfGoods: number;
+    grossProfit: number;
+    deductionDetails: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      quantity: number;
+      unit: string;
+      unitCost: number;
+      totalCost: number;
+    }>;
+    shortages: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      required: number;
+      available: number;
+      unit: string;
+    }>;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+    const shortages: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      required: number;
+      available: number;
+      unit: string;
+    }> = [];
+    const deductionDetails: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      quantity: number;
+      unit: string;
+      unitCost: number;
+      totalCost: number;
+    }> = [];
+    let totalCostOfGoods = 0;
+
+    try {
+      const aggregatedRequirements: Map<string, {
+        rawItemId: string;
+        rawItemName: string;
+        quantity: number;
+        unit: string;
+        unitCost: number;
+      }> = new Map();
+
+      for (const item of items) {
+        const recipeItems = await RecipeItemModel.find({ coffeeItemId: item.coffeeItemId }).lean();
+
+        if (recipeItems.length === 0) {
+          continue;
+        }
+
+        for (const recipeItem of recipeItems) {
+          const rawItem = await RawItemModel.findById(recipeItem.rawItemId).lean();
+          if (!rawItem) {
+            errors.push(`Raw item not found: ${recipeItem.rawItemId}`);
+            continue;
+          }
+
+          const recipeUnit = recipeItem.unit || rawItem.unit;
+          const totalQuantityToDeduct = recipeItem.quantity * item.quantity;
+
+          const existing = aggregatedRequirements.get(recipeItem.rawItemId);
+          if (existing) {
+            existing.quantity += totalQuantityToDeduct;
+          } else {
+            aggregatedRequirements.set(recipeItem.rawItemId, {
+              rawItemId: recipeItem.rawItemId,
+              rawItemName: rawItem.nameAr || rawItem.nameEn || 'Unknown',
+              quantity: totalQuantityToDeduct,
+              unit: recipeUnit,
+              unitCost: rawItem.unitCost,
+            });
+          }
+        }
+      }
+
+      for (const [rawItemId, requirement] of aggregatedRequirements) {
+        const branchStock = await BranchStockModel.findOne({ branchId, rawItemId }).lean();
+        const availableQuantity = branchStock?.currentQuantity || 0;
+
+        if (availableQuantity < requirement.quantity) {
+          shortages.push({
+            rawItemId: requirement.rawItemId,
+            rawItemName: requirement.rawItemName,
+            required: requirement.quantity,
+            available: availableQuantity,
+            unit: requirement.unit,
+          });
+        }
+
+        const itemCost = requirement.quantity * requirement.unitCost;
+        totalCostOfGoods += itemCost;
+
+        deductionDetails.push({
+          rawItemId: requirement.rawItemId,
+          rawItemName: requirement.rawItemName,
+          quantity: requirement.quantity,
+          unit: requirement.unit,
+          unitCost: requirement.unitCost,
+          totalCost: itemCost,
+        });
+      }
+
+      const hasShortages = shortages.length > 0;
+
+      const successfulDeductions: string[] = [];
+      let allDeductionsSuccessful = true;
+
+      for (const detail of deductionDetails) {
+        try {
+          const currentStock = await BranchStockModel.findOne({ branchId, rawItemId: detail.rawItemId });
+          const availableQuantity = currentStock?.currentQuantity || 0;
+
+          const deductQuantity = Math.min(detail.quantity, availableQuantity);
+
+          if (deductQuantity > 0) {
+            await this.updateBranchStock(
+              branchId,
+              detail.rawItemId,
+              -deductQuantity,
+              createdBy,
+              'order_deduction',
+              `Order: ${orderId}${detail.quantity > availableQuantity ? ' (partial deduction)' : ''}`
+            );
+            successfulDeductions.push(detail.rawItemId);
+
+            if (deductQuantity < detail.quantity) {
+              errors.push(`${detail.rawItemName}: deducted ${deductQuantity} of ${detail.quantity} ${detail.unit} (insufficient stock)`);
+              allDeductionsSuccessful = false;
+            }
+          } else {
+            errors.push(`${detail.rawItemName}: no stock available to deduct`);
+            allDeductionsSuccessful = false;
+          }
+        } catch (error: any) {
+          errors.push(`Failed to deduct ${detail.rawItemName}: ${error.message}`);
+          allDeductionsSuccessful = false;
+        }
+      }
+
+      const order = await OrderModel.findById(orderId);
+      const totalRevenue = order?.totalAmount || 0;
+      const grossProfit = totalRevenue - totalCostOfGoods;
+
+      let inventoryStatus = 0; // 0 = not deducted
+      if (allDeductionsSuccessful && !hasShortages) {
+        inventoryStatus = 1; // 1 = fully deducted
+      } else if (successfulDeductions.length > 0) {
+        inventoryStatus = 2; // 2 = partially deducted (with shortages/errors)
+      }
+
+      await OrderModel.findByIdAndUpdate(orderId, {
+        costOfGoods: totalCostOfGoods,
+        grossProfit: grossProfit,
+        inventoryDeducted: inventoryStatus,
+        inventoryDeductionDetails: deductionDetails,
+        updatedAt: new Date(),
+      });
+
+      if (hasShortages || !allDeductionsSuccessful) {
+        console.warn(`Order ${orderId} inventory deduction issues:`, { shortages, errors });
+      }
+
+      return {
+        success: allDeductionsSuccessful && errors.length === 0,
+        costOfGoods: totalCostOfGoods,
+        grossProfit,
+        deductionDetails,
+        shortages,
+        errors,
+      };
+    } catch (error: any) {
+      errors.push(`Critical error: ${error.message}`);
+      return {
+        success: false,
+        costOfGoods: 0,
+        grossProfit: 0,
+        deductionDetails: [],
+        shortages: [],
+        errors,
+      };
+    }
+  }
+
+  async calculateOrderCOGS(items: Array<{ coffeeItemId: string; quantity: number }>, branchId?: string): Promise<{
+    totalCost: number;
+    itemBreakdown: Array<{
+      coffeeItemId: string;
+      coffeeItemName: string;
+      quantity: number;
+      unitCost: number;
+      totalCost: number;
+      ingredients: Array<{
+        rawItemId: string;
+        rawItemName: string;
+        quantity: number;
+        unit: string;
+        unitCost: number;
+        totalCost: number;
+      }>;
+    }>;
+    shortages: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      required: number;
+      available: number;
+      unit: string;
+    }>;
+  }> {
+    const itemBreakdown: Array<{
+      coffeeItemId: string;
+      coffeeItemName: string;
+      quantity: number;
+      unitCost: number;
+      totalCost: number;
+      ingredients: Array<{
+        rawItemId: string;
+        rawItemName: string;
+        quantity: number;
+        unit: string;
+        unitCost: number;
+        totalCost: number;
+      }>;
+    }> = [];
+    const shortages: Array<{
+      rawItemId: string;
+      rawItemName: string;
+      required: number;
+      available: number;
+      unit: string;
+    }> = [];
+    const aggregatedRequirements: Map<string, {
+      rawItemId: string;
+      rawItemName: string;
+      quantity: number;
+      unit: string;
+    }> = new Map();
+    let totalCost = 0;
+
+    for (const item of items) {
+      const coffeeItem = await CoffeeItemModel.findOne({ id: item.coffeeItemId }).lean();
+      const recipeItems = await RecipeItemModel.find({ coffeeItemId: item.coffeeItemId }).lean();
+
+      let itemUnitCost = 0;
+      const ingredients: Array<{
+        rawItemId: string;
+        rawItemName: string;
+        quantity: number;
+        unit: string;
+        unitCost: number;
+        totalCost: number;
+      }> = [];
+
+      for (const recipeItem of recipeItems) {
+        const rawItem = await RawItemModel.findById(recipeItem.rawItemId).lean();
+        if (rawItem) {
+          const recipeUnit = recipeItem.unit || rawItem.unit;
+          const ingredientCost = recipeItem.quantity * rawItem.unitCost;
+          itemUnitCost += ingredientCost;
+
+          ingredients.push({
+            rawItemId: recipeItem.rawItemId,
+            rawItemName: rawItem.nameAr || rawItem.nameEn || 'Unknown',
+            quantity: recipeItem.quantity,
+            unit: recipeUnit,
+            unitCost: rawItem.unitCost,
+            totalCost: ingredientCost,
+          });
+
+          const totalQuantityRequired = recipeItem.quantity * item.quantity;
+          const existing = aggregatedRequirements.get(recipeItem.rawItemId);
+          if (existing) {
+            existing.quantity += totalQuantityRequired;
+          } else {
+            aggregatedRequirements.set(recipeItem.rawItemId, {
+              rawItemId: recipeItem.rawItemId,
+              rawItemName: rawItem.nameAr || rawItem.nameEn || 'Unknown',
+              quantity: totalQuantityRequired,
+              unit: recipeUnit,
+            });
+          }
+        }
+      }
+
+      const itemTotalCost = itemUnitCost * item.quantity;
+      totalCost += itemTotalCost;
+
+      itemBreakdown.push({
+        coffeeItemId: item.coffeeItemId,
+        coffeeItemName: coffeeItem?.nameAr || coffeeItem?.nameEn || 'Unknown',
+        quantity: item.quantity,
+        unitCost: itemUnitCost,
+        totalCost: itemTotalCost,
+        ingredients,
+      });
+    }
+
+    if (branchId) {
+      for (const [rawItemId, requirement] of aggregatedRequirements) {
+        const branchStock = await BranchStockModel.findOne({ branchId, rawItemId }).lean();
+        const availableQuantity = branchStock?.currentQuantity || 0;
+
+        if (availableQuantity < requirement.quantity) {
+          shortages.push({
+            rawItemId: requirement.rawItemId,
+            rawItemName: requirement.rawItemName,
+            required: requirement.quantity,
+            available: availableQuantity,
+            unit: requirement.unit,
+          });
+        }
+      }
+    }
+
+    return {
+      totalCost,
+      itemBreakdown,
+      shortages,
+    };
   }
 }
 

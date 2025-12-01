@@ -51,6 +51,18 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
 - **Pending Order Display:** When a customer scans a table QR, if a pending order exists for that table, a notification is displayed with an option to continue the previous order.
 - **Table Occupancy:** Tables are automatically marked as occupied upon order creation and released correctly upon action.
 
+### Inventory Management System
+- **Raw Materials:** Complete CRUD for raw materials with unit costs, suppliers, and stock levels.
+- **Suppliers:** Manage supplier information and contact details.
+- **Branch Stock:** Track inventory levels per branch with automatic low-stock alerts.
+- **Stock Transfers:** Transfer stock between branches with approval workflow.
+- **Purchase Invoices:** Create and track purchase orders from suppliers.
+- **Recipe Management:** Define ingredient recipes for each product with exact quantities.
+- **Smart Inventory Deduction:** Automatically deducts raw materials when orders are placed based on product recipes. Example: A cappuccino order deducts 18g coffee beans + 120ml milk. Prevents negative stock by capping deductions at available quantity (partial deduction). Tracks shortage information per-order-item for actionable frontend feedback.
+- **COGS Tracking:** Calculates Cost of Goods Sold for each order based on ingredient costs. Tracks gross profit per order. Order.inventoryDeducted status: 0=not deducted, 1=fully deducted, 2=partially deducted (shortages).
+- **Stock Movements:** Complete audit trail of all inventory changes with movement types (purchase, transfer, order_deduction, adjustment).
+- **Stock Alerts:** Automatic alerts for low stock and out-of-stock items.
+
 ### System Design Choices
 - **Backend:** Node.js with Express.js, MongoDB with Mongoose, Zod for validation, bcryptjs for password hashing.
 - **Frontend:** React with TypeScript, Vite, TanStack Query, shadcn/ui, Tailwind CSS, Wouter for routing.

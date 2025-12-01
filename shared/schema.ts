@@ -239,6 +239,17 @@ export interface IOrder extends Document {
   deliveryStartedAt?: Date;
   estimatedDeliveryTime?: Date;
   deliveredAt?: Date;
+  costOfGoods?: number;
+  grossProfit?: number;
+  inventoryDeducted?: number;
+  inventoryDeductionDetails?: Array<{
+    rawItemId: string;
+    rawItemName: string;
+    quantity: number;
+    unit: string;
+    unitCost: number;
+    totalCost: number;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -285,6 +296,17 @@ const OrderSchema = new Schema<IOrder>({
   deliveryStartedAt: { type: Date },
   estimatedDeliveryTime: { type: Date },
   deliveredAt: { type: Date },
+  costOfGoods: { type: Number, default: 0 },
+  grossProfit: { type: Number, default: 0 },
+  inventoryDeducted: { type: Number, default: 0 },
+  inventoryDeductionDetails: [{
+    rawItemId: { type: String },
+    rawItemName: { type: String },
+    quantity: { type: Number },
+    unit: { type: String },
+    unitCost: { type: Number },
+    totalCost: { type: Number }
+  }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -799,6 +821,17 @@ export const insertOrderSchema = z.object({
   deliveryStartedAt: z.date().optional(),
   estimatedDeliveryTime: z.date().optional(),
   deliveredAt: z.date().optional(),
+  costOfGoods: z.number().optional(),
+  grossProfit: z.number().optional(),
+  inventoryDeducted: z.number().optional(),
+  inventoryDeductionDetails: z.array(z.object({
+    rawItemId: z.string(),
+    rawItemName: z.string(),
+    quantity: z.number(),
+    unit: z.string(),
+    unitCost: z.number(),
+    totalCost: z.number(),
+  })).optional(),
 }).refine((data) => {
   const requiresReceipt = ['alinma', 'ur', 'barq', 'rajhi'].includes(data.paymentMethod);
   if (requiresReceipt && !data.paymentReceiptUrl) {
