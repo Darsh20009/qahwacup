@@ -48,6 +48,11 @@ import ManagerForgotPassword from "@/pages/manager-forgot-password";
 import EmployeeAttendance from "@/pages/employee-attendance";
 import ManagerAttendance from "@/pages/manager-attendance";
 import OwnerDashboard from "@/pages/owner-dashboard";
+import InventoryDashboard from "@/pages/inventory-dashboard";
+import InventoryRawItems from "@/pages/inventory-raw-items";
+import InventorySuppliers from "@/pages/inventory-suppliers";
+import InventoryPurchases from "@/pages/inventory-purchases";
+import InventoryTransfers from "@/pages/inventory-transfers";
 
 function Router() {
  return (
@@ -92,6 +97,11 @@ function Router() {
  <Route path="/manager/dashboard" component={ManagerDashboard} />
  <Route path="/manager/tables" component={ManagerTables} />
  <Route path="/manager/attendance" component={ManagerAttendance} />
+ <Route path="/manager/inventory" component={InventoryDashboard} />
+ <Route path="/manager/inventory/raw-items" component={InventoryRawItems} />
+ <Route path="/manager/inventory/suppliers" component={InventorySuppliers} />
+ <Route path="/manager/inventory/purchases" component={InventoryPurchases} />
+ <Route path="/manager/inventory/transfers" component={InventoryTransfers} />
  <Route path="/employee/attendance" component={EmployeeAttendance} />
  <Route path="/owner/dashboard" component={OwnerDashboard} />
  <Route component={SplashScreen} />

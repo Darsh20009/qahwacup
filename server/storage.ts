@@ -37,6 +37,21 @@ import {
   type InsertDeliveryZone,
   type Table,
   type InsertTable,
+  type RawItem,
+  type InsertRawItem,
+  type Supplier,
+  type InsertSupplier,
+  type BranchStock,
+  type InsertBranchStock,
+  type StockTransfer,
+  type InsertStockTransfer,
+  type PurchaseInvoice,
+  type InsertPurchaseInvoice,
+  type RecipeItem,
+  type InsertRecipeItem,
+  type StockAlert,
+  type StockMovement,
+  type InsertStockMovement,
   CoffeeItemModel,
   CustomerModel,
   EmployeeModel,
@@ -58,6 +73,14 @@ import {
   DeliveryZoneModel,
   TableModel,
   TaxInvoiceModel,
+  RawItemModel,
+  SupplierModel,
+  BranchStockModel,
+  StockTransferModel,
+  PurchaseInvoiceModel,
+  RecipeItemModel,
+  StockAlertModel,
+  StockMovementModel,
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -198,6 +221,62 @@ export interface IStorage {
   
   getTableOrders(status?: string): Promise<Order[]>;
   getPendingTableOrders(): Promise<Order[]>;
+
+  // ================== INVENTORY MANAGEMENT ==================
+  // Raw Items
+  getRawItems(): Promise<RawItem[]>;
+  getRawItem(id: string): Promise<RawItem | undefined>;
+  getRawItemByCode(code: string): Promise<RawItem | undefined>;
+  createRawItem(item: InsertRawItem): Promise<RawItem>;
+  updateRawItem(id: string, updates: Partial<RawItem>): Promise<RawItem | undefined>;
+  deleteRawItem(id: string): Promise<boolean>;
+
+  // Suppliers
+  getSuppliers(): Promise<Supplier[]>;
+  getSupplier(id: string): Promise<Supplier | undefined>;
+  getSupplierByCode(code: string): Promise<Supplier | undefined>;
+  createSupplier(supplier: InsertSupplier): Promise<Supplier>;
+  updateSupplier(id: string, updates: Partial<Supplier>): Promise<Supplier | undefined>;
+  deleteSupplier(id: string): Promise<boolean>;
+
+  // Branch Stock
+  getBranchStock(branchId: string): Promise<BranchStock[]>;
+  getBranchStockItem(branchId: string, rawItemId: string): Promise<BranchStock | undefined>;
+  updateBranchStock(branchId: string, rawItemId: string, quantity: number, createdBy: string, movementType?: string, notes?: string): Promise<BranchStock>;
+  getLowStockItems(branchId?: string): Promise<any[]>;
+  getAllBranchesStock(): Promise<any[]>;
+
+  // Stock Transfers
+  getStockTransfers(branchId?: string): Promise<StockTransfer[]>;
+  getStockTransfer(id: string): Promise<StockTransfer | undefined>;
+  createStockTransfer(transfer: InsertStockTransfer): Promise<StockTransfer>;
+  updateStockTransferStatus(id: string, status: string, approvedBy?: string): Promise<StockTransfer | undefined>;
+  completeStockTransfer(id: string, completedBy: string): Promise<StockTransfer | undefined>;
+
+  // Purchase Invoices
+  getPurchaseInvoices(branchId?: string): Promise<PurchaseInvoice[]>;
+  getPurchaseInvoice(id: string): Promise<PurchaseInvoice | undefined>;
+  createPurchaseInvoice(invoice: InsertPurchaseInvoice): Promise<PurchaseInvoice>;
+  updatePurchaseInvoice(id: string, updates: Partial<PurchaseInvoice>): Promise<PurchaseInvoice | undefined>;
+  receivePurchaseInvoice(id: string, receivedBy: string): Promise<PurchaseInvoice | undefined>;
+  updatePurchaseInvoicePayment(id: string, paidAmount: number): Promise<PurchaseInvoice | undefined>;
+
+  // Recipe Items
+  getRecipeItems(coffeeItemId: string): Promise<RecipeItem[]>;
+  createRecipeItem(item: InsertRecipeItem): Promise<RecipeItem>;
+  updateRecipeItem(id: string, updates: Partial<RecipeItem>): Promise<RecipeItem | undefined>;
+  deleteRecipeItem(id: string): Promise<boolean>;
+  calculateProductCost(coffeeItemId: string): Promise<number>;
+
+  // Stock Alerts
+  getStockAlerts(branchId?: string, resolved?: boolean): Promise<StockAlert[]>;
+  createStockAlert(branchId: string, rawItemId: string, alertType: string, currentQuantity: number, thresholdQuantity: number): Promise<StockAlert>;
+  resolveStockAlert(id: string, resolvedBy: string): Promise<StockAlert | undefined>;
+  markAlertAsRead(id: string): Promise<StockAlert | undefined>;
+
+  // Stock Movements
+  getStockMovements(branchId: string, rawItemId?: string, limit?: number): Promise<StockMovement[]>;
+  createStockMovement(movement: InsertStockMovement): Promise<StockMovement>;
 }
 
 export class DBStorage implements IStorage {
@@ -1314,6 +1393,635 @@ export class DBStorage implements IStorage {
       invoiceDate: new Date()
     });
     return invoice;
+  }
+
+  // ================== INVENTORY MANAGEMENT IMPLEMENTATIONS ==================
+
+  // Raw Items
+  async getRawItems(): Promise<RawItem[]> {
+    const items = await RawItemModel.find({ isActive: 1 }).sort({ nameAr: 1 }).lean();
+    return items.map((item: any) => ({
+      ...item,
+      id: item._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async getRawItem(id: string): Promise<RawItem | undefined> {
+    const item = await RawItemModel.findById(id).lean();
+    if (!item) return undefined;
+    return {
+      ...item,
+      id: (item as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async getRawItemByCode(code: string): Promise<RawItem | undefined> {
+    const item = await RawItemModel.findOne({ code }).lean();
+    if (!item) return undefined;
+    return {
+      ...item,
+      id: (item as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async createRawItem(item: InsertRawItem): Promise<RawItem> {
+    const newItem = await RawItemModel.create(item);
+    return {
+      ...newItem.toObject(),
+      id: newItem._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updateRawItem(id: string, updates: Partial<RawItem>): Promise<RawItem | undefined> {
+    const updated = await RawItemModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    ).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async deleteRawItem(id: string): Promise<boolean> {
+    const result = await RawItemModel.findByIdAndUpdate(id, { isActive: 0, updatedAt: new Date() });
+    return !!result;
+  }
+
+  // Suppliers
+  async getSuppliers(): Promise<Supplier[]> {
+    const suppliers = await SupplierModel.find({ isActive: 1 }).sort({ nameAr: 1 }).lean();
+    return suppliers.map((supplier: any) => ({
+      ...supplier,
+      id: supplier._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async getSupplier(id: string): Promise<Supplier | undefined> {
+    const supplier = await SupplierModel.findById(id).lean();
+    if (!supplier) return undefined;
+    return {
+      ...supplier,
+      id: (supplier as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async getSupplierByCode(code: string): Promise<Supplier | undefined> {
+    const supplier = await SupplierModel.findOne({ code }).lean();
+    if (!supplier) return undefined;
+    return {
+      ...supplier,
+      id: (supplier as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
+    const newSupplier = await SupplierModel.create(supplier);
+    return {
+      ...newSupplier.toObject(),
+      id: newSupplier._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updateSupplier(id: string, updates: Partial<Supplier>): Promise<Supplier | undefined> {
+    const updated = await SupplierModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    ).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async deleteSupplier(id: string): Promise<boolean> {
+    const result = await SupplierModel.findByIdAndUpdate(id, { isActive: 0, updatedAt: new Date() });
+    return !!result;
+  }
+
+  // Branch Stock
+  async getBranchStock(branchId: string): Promise<BranchStock[]> {
+    const stocks = await BranchStockModel.find({ branchId }).lean();
+    return stocks.map((stock: any) => ({
+      ...stock,
+      id: stock._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async getBranchStockItem(branchId: string, rawItemId: string): Promise<BranchStock | undefined> {
+    const stock = await BranchStockModel.findOne({ branchId, rawItemId }).lean();
+    if (!stock) return undefined;
+    return {
+      ...stock,
+      id: (stock as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updateBranchStock(
+    branchId: string,
+    rawItemId: string,
+    quantity: number,
+    createdBy: string,
+    movementType: string = 'adjustment',
+    notes?: string
+  ): Promise<BranchStock> {
+    let stock = await BranchStockModel.findOne({ branchId, rawItemId });
+    const previousQuantity = stock?.currentQuantity || 0;
+    const newQuantity = previousQuantity + quantity;
+
+    if (stock) {
+      stock.currentQuantity = newQuantity;
+      stock.lastUpdated = new Date();
+      if (notes) stock.notes = notes;
+      await stock.save();
+    } else {
+      stock = await BranchStockModel.create({
+        branchId,
+        rawItemId,
+        currentQuantity: newQuantity,
+        reservedQuantity: 0,
+        lastUpdated: new Date(),
+        notes,
+      });
+    }
+
+    // Create stock movement record
+    await StockMovementModel.create({
+      branchId,
+      rawItemId,
+      movementType,
+      quantity,
+      previousQuantity,
+      newQuantity,
+      referenceType: 'manual',
+      notes,
+      createdBy,
+    });
+
+    // Check for low stock alert
+    const rawItem = await RawItemModel.findById(rawItemId);
+    if (rawItem && newQuantity <= rawItem.minStockLevel) {
+      const alertType = newQuantity === 0 ? 'out_of_stock' : 'low_stock';
+      const existingAlert = await StockAlertModel.findOne({
+        branchId,
+        rawItemId,
+        alertType,
+        isResolved: 0,
+      });
+      if (!existingAlert) {
+        await StockAlertModel.create({
+          branchId,
+          rawItemId,
+          alertType,
+          currentQuantity: newQuantity,
+          thresholdQuantity: rawItem.minStockLevel,
+        });
+      }
+    }
+
+    return {
+      ...stock.toObject(),
+      id: stock._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async getLowStockItems(branchId?: string): Promise<any[]> {
+    const rawItems = await RawItemModel.find({ isActive: 1 }).lean();
+    const lowStockItems: any[] = [];
+
+    for (const item of rawItems) {
+      const filter: any = { rawItemId: (item as any)._id.toString() };
+      if (branchId) filter.branchId = branchId;
+
+      const stocks = await BranchStockModel.find(filter).lean();
+      for (const stock of stocks) {
+        if (stock.currentQuantity <= item.minStockLevel) {
+          const branch = await BranchModel.findById(stock.branchId).lean();
+          lowStockItems.push({
+            rawItem: { ...item, id: (item as any)._id.toString() },
+            stock: { ...stock, id: (stock as any)._id.toString() },
+            branch: branch ? { ...branch, id: (branch as any)._id.toString() } : null,
+            alertLevel: stock.currentQuantity === 0 ? 'critical' : 'warning',
+          });
+        }
+      }
+    }
+
+    return lowStockItems;
+  }
+
+  async getAllBranchesStock(): Promise<any[]> {
+    const branches = await BranchModel.find({ isActive: 1 }).lean();
+    const result: any[] = [];
+
+    for (const branch of branches) {
+      const branchId = (branch as any)._id.toString();
+      const stocks = await BranchStockModel.find({ branchId }).lean();
+      const stocksWithItems = await Promise.all(
+        stocks.map(async (stock: any) => {
+          const rawItem = await RawItemModel.findById(stock.rawItemId).lean();
+          return {
+            ...stock,
+            id: stock._id.toString(),
+            rawItem: rawItem ? { ...rawItem, id: (rawItem as any)._id.toString() } : null,
+          };
+        })
+      );
+
+      result.push({
+        branch: { ...branch, id: branchId },
+        stocks: stocksWithItems,
+      });
+    }
+
+    return result;
+  }
+
+  // Stock Transfers
+  async getStockTransfers(branchId?: string): Promise<StockTransfer[]> {
+    const filter: any = {};
+    if (branchId) {
+      filter.$or = [{ fromBranchId: branchId }, { toBranchId: branchId }];
+    }
+    const transfers = await StockTransferModel.find(filter).sort({ createdAt: -1 }).lean();
+    return transfers.map((transfer: any) => ({
+      ...transfer,
+      id: transfer._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async getStockTransfer(id: string): Promise<StockTransfer | undefined> {
+    const transfer = await StockTransferModel.findById(id).lean();
+    if (!transfer) return undefined;
+    return {
+      ...transfer,
+      id: (transfer as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async createStockTransfer(transfer: InsertStockTransfer): Promise<StockTransfer> {
+    const transferNumber = `TRF-${Date.now()}-${nanoid(4).toUpperCase()}`;
+    const newTransfer = await StockTransferModel.create({
+      ...transfer,
+      transferNumber,
+      status: 'pending',
+      requestDate: new Date(),
+    });
+    return {
+      ...newTransfer.toObject(),
+      id: newTransfer._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updateStockTransferStatus(id: string, status: string, approvedBy?: string): Promise<StockTransfer | undefined> {
+    const updates: any = { status, updatedAt: new Date() };
+    if (status === 'approved' && approvedBy) {
+      updates.approvedBy = approvedBy;
+      updates.approvalDate = new Date();
+    }
+    const updated = await StockTransferModel.findByIdAndUpdate(id, updates, { new: true }).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async completeStockTransfer(id: string, completedBy: string): Promise<StockTransfer | undefined> {
+    const transfer = await StockTransferModel.findById(id);
+    if (!transfer || transfer.status !== 'approved') return undefined;
+
+    // Process each item in the transfer
+    for (const item of transfer.items) {
+      // Decrease stock from source branch
+      await this.updateBranchStock(
+        transfer.fromBranchId,
+        item.rawItemId,
+        -item.quantity,
+        completedBy,
+        'transfer_out',
+        `Transfer to branch: ${transfer.toBranchId}`
+      );
+
+      // Increase stock in destination branch
+      await this.updateBranchStock(
+        transfer.toBranchId,
+        item.rawItemId,
+        item.quantity,
+        completedBy,
+        'transfer_in',
+        `Transfer from branch: ${transfer.fromBranchId}`
+      );
+    }
+
+    transfer.status = 'completed';
+    transfer.completionDate = new Date();
+    transfer.updatedAt = new Date();
+    await transfer.save();
+
+    return {
+      ...transfer.toObject(),
+      id: transfer._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  // Purchase Invoices
+  async getPurchaseInvoices(branchId?: string): Promise<PurchaseInvoice[]> {
+    const filter = branchId ? { branchId } : {};
+    const invoices = await PurchaseInvoiceModel.find(filter).sort({ createdAt: -1 }).lean();
+    return invoices.map((invoice: any) => ({
+      ...invoice,
+      id: invoice._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async getPurchaseInvoice(id: string): Promise<PurchaseInvoice | undefined> {
+    const invoice = await PurchaseInvoiceModel.findById(id).lean();
+    if (!invoice) return undefined;
+    return {
+      ...invoice,
+      id: (invoice as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async createPurchaseInvoice(invoice: InsertPurchaseInvoice): Promise<PurchaseInvoice> {
+    const invoiceNumber = `PUR-${Date.now()}-${nanoid(4).toUpperCase()}`;
+    const newInvoice = await PurchaseInvoiceModel.create({
+      ...invoice,
+      invoiceNumber,
+      status: 'pending',
+      paymentStatus: 'unpaid',
+      paidAmount: 0,
+    });
+    return {
+      ...newInvoice.toObject(),
+      id: newInvoice._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updatePurchaseInvoice(id: string, updates: Partial<PurchaseInvoice>): Promise<PurchaseInvoice | undefined> {
+    const updated = await PurchaseInvoiceModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    ).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async receivePurchaseInvoice(id: string, receivedBy: string): Promise<PurchaseInvoice | undefined> {
+    const invoice = await PurchaseInvoiceModel.findById(id);
+    if (!invoice || invoice.status === 'received') return undefined;
+
+    // Add items to branch stock
+    for (const item of invoice.items) {
+      await this.updateBranchStock(
+        invoice.branchId,
+        item.rawItemId,
+        item.quantity,
+        receivedBy,
+        'purchase',
+        `Purchase invoice: ${invoice.invoiceNumber}`
+      );
+
+      // Update raw item cost if different
+      const rawItem = await RawItemModel.findById(item.rawItemId);
+      if (rawItem && rawItem.unitCost !== item.unitCost) {
+        await RawItemModel.findByIdAndUpdate(item.rawItemId, { unitCost: item.unitCost, updatedAt: new Date() });
+      }
+    }
+
+    invoice.status = 'received';
+    invoice.receivedDate = new Date();
+    invoice.receivedBy = receivedBy;
+    invoice.updatedAt = new Date();
+    await invoice.save();
+
+    return {
+      ...invoice.toObject(),
+      id: invoice._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updatePurchaseInvoicePayment(id: string, paidAmount: number): Promise<PurchaseInvoice | undefined> {
+    const invoice = await PurchaseInvoiceModel.findById(id);
+    if (!invoice) return undefined;
+
+    invoice.paidAmount = paidAmount;
+    if (paidAmount >= invoice.totalAmount) {
+      invoice.paymentStatus = 'paid';
+    } else if (paidAmount > 0) {
+      invoice.paymentStatus = 'partial';
+    }
+    invoice.updatedAt = new Date();
+    await invoice.save();
+
+    return {
+      ...invoice.toObject(),
+      id: invoice._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  // Recipe Items
+  async getRecipeItems(coffeeItemId: string): Promise<RecipeItem[]> {
+    const items = await RecipeItemModel.find({ coffeeItemId }).lean();
+    return items.map((item: any) => ({
+      ...item,
+      id: item._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async createRecipeItem(item: InsertRecipeItem): Promise<RecipeItem> {
+    const newItem = await RecipeItemModel.create(item);
+    return {
+      ...newItem.toObject(),
+      id: newItem._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async updateRecipeItem(id: string, updates: Partial<RecipeItem>): Promise<RecipeItem | undefined> {
+    const updated = await RecipeItemModel.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true }
+    ).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async deleteRecipeItem(id: string): Promise<boolean> {
+    const result = await RecipeItemModel.findByIdAndDelete(id);
+    return !!result;
+  }
+
+  async calculateProductCost(coffeeItemId: string): Promise<number> {
+    const recipeItems = await RecipeItemModel.find({ coffeeItemId }).lean();
+    let totalCost = 0;
+
+    for (const item of recipeItems) {
+      const rawItem = await RawItemModel.findById(item.rawItemId).lean();
+      if (rawItem) {
+        // Convert quantity to base unit and calculate cost
+        totalCost += item.quantity * rawItem.unitCost;
+      }
+    }
+
+    return totalCost;
+  }
+
+  // Stock Alerts
+  async getStockAlerts(branchId?: string, resolved?: boolean): Promise<StockAlert[]> {
+    const filter: any = {};
+    if (branchId) filter.branchId = branchId;
+    if (resolved !== undefined) filter.isResolved = resolved ? 1 : 0;
+
+    const alerts = await StockAlertModel.find(filter).sort({ createdAt: -1 }).lean();
+    return alerts.map((alert: any) => ({
+      ...alert,
+      id: alert._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async createStockAlert(
+    branchId: string,
+    rawItemId: string,
+    alertType: string,
+    currentQuantity: number,
+    thresholdQuantity: number
+  ): Promise<StockAlert> {
+    const alert = await StockAlertModel.create({
+      branchId,
+      rawItemId,
+      alertType,
+      currentQuantity,
+      thresholdQuantity,
+    });
+    return {
+      ...alert.toObject(),
+      id: alert._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async resolveStockAlert(id: string, resolvedBy: string): Promise<StockAlert | undefined> {
+    const updated = await StockAlertModel.findByIdAndUpdate(
+      id,
+      { isResolved: 1, resolvedBy, resolvedAt: new Date() },
+      { new: true }
+    ).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  async markAlertAsRead(id: string): Promise<StockAlert | undefined> {
+    const updated = await StockAlertModel.findByIdAndUpdate(
+      id,
+      { isRead: 1 },
+      { new: true }
+    ).lean();
+    if (!updated) return undefined;
+    return {
+      ...updated,
+      id: (updated as any)._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
+  }
+
+  // Stock Movements
+  async getStockMovements(branchId: string, rawItemId?: string, limit: number = 100): Promise<StockMovement[]> {
+    const filter: any = { branchId };
+    if (rawItemId) filter.rawItemId = rawItemId;
+
+    const movements = await StockMovementModel.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
+    return movements.map((movement: any) => ({
+      ...movement,
+      id: movement._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
+  async createStockMovement(movement: InsertStockMovement): Promise<StockMovement> {
+    const newMovement = await StockMovementModel.create(movement);
+    return {
+      ...newMovement.toObject(),
+      id: newMovement._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    } as any;
   }
 }
 

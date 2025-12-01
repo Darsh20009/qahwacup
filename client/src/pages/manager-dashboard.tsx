@@ -14,7 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import BranchLocationPicker from "@/components/branch-location-picker";
 import { 
  Coffee, Users, ShoppingBag, TrendingUp, DollarSign, 
- Package, MapPin, Layers, ArrowLeft, Calendar,
+ Package, MapPin, Layers, ArrowLeft, Calendar, Warehouse,
  UserCheck, Receipt, BarChart3, Download, TrendingDown, Activity, Plus, Trash2, ExternalLink
 } from "lucide-react";
 import * as XLSX from 'xlsx';
@@ -522,6 +522,15 @@ const clearAllDataMutation = useMutation({
  >
  <UserCheck className="w-4 h-4 ml-2" />
  الحضور
+ </Button>
+ <Button
+ variant="outline"
+ onClick={() => setLocation("/manager/inventory")}
+ className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+ data-testid="button-inventory"
+ >
+ <Warehouse className="w-4 h-4 ml-2" />
+ المخزون
  </Button>
  <Button
  variant="outline"

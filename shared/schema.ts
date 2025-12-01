@@ -1105,3 +1105,422 @@ export interface LoyaltyTierInfo {
   color: string;
   icon: string;
 }
+
+// ================== INVENTORY MANAGEMENT MODELS ==================
+
+// المواد الخام - Raw Items
+export interface IRawItem extends Document {
+  code: string;
+  nameAr: string;
+  nameEn?: string;
+  description?: string;
+  category: 'ingredient' | 'packaging' | 'equipment' | 'consumable' | 'other';
+  unit: 'kg' | 'g' | 'liter' | 'ml' | 'piece' | 'box' | 'bag';
+  unitCost: number;
+  minStockLevel: number;
+  maxStockLevel?: number;
+  supplierId?: string;
+  isActive: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const RawItemSchema = new Schema<IRawItem>({
+  code: { type: String, required: true, unique: true },
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  description: { type: String },
+  category: { type: String, enum: ['ingredient', 'packaging', 'equipment', 'consumable', 'other'], required: true },
+  unit: { type: String, enum: ['kg', 'g', 'liter', 'ml', 'piece', 'box', 'bag'], required: true },
+  unitCost: { type: Number, required: true, default: 0 },
+  minStockLevel: { type: Number, required: true, default: 0 },
+  maxStockLevel: { type: Number },
+  supplierId: { type: String },
+  isActive: { type: Number, default: 1, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const RawItemModel = mongoose.model<IRawItem>("RawItem", RawItemSchema);
+
+// الموردين - Suppliers
+export interface ISupplier extends Document {
+  code: string;
+  nameAr: string;
+  nameEn?: string;
+  contactPerson?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  taxNumber?: string;
+  paymentTerms?: string;
+  notes?: string;
+  isActive: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SupplierSchema = new Schema<ISupplier>({
+  code: { type: String, required: true, unique: true },
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  contactPerson: { type: String },
+  phone: { type: String, required: true },
+  email: { type: String },
+  address: { type: String },
+  city: { type: String },
+  taxNumber: { type: String },
+  paymentTerms: { type: String },
+  notes: { type: String },
+  isActive: { type: Number, default: 1, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const SupplierModel = mongoose.model<ISupplier>("Supplier", SupplierSchema);
+
+// مخزون الفرع - Branch Stock
+export interface IBranchStock extends Document {
+  branchId: string;
+  rawItemId: string;
+  currentQuantity: number;
+  reservedQuantity: number;
+  lastUpdated: Date;
+  lastCountDate?: Date;
+  notes?: string;
+}
+
+const BranchStockSchema = new Schema<IBranchStock>({
+  branchId: { type: String, required: true },
+  rawItemId: { type: String, required: true },
+  currentQuantity: { type: Number, required: true, default: 0 },
+  reservedQuantity: { type: Number, default: 0 },
+  lastUpdated: { type: Date, default: Date.now },
+  lastCountDate: { type: Date },
+  notes: { type: String },
+});
+
+BranchStockSchema.index({ branchId: 1, rawItemId: 1 }, { unique: true });
+
+export const BranchStockModel = mongoose.model<IBranchStock>("BranchStock", BranchStockSchema);
+
+// تحويلات المخزون - Stock Transfers
+export interface IStockTransfer extends Document {
+  transferNumber: string;
+  fromBranchId: string;
+  toBranchId: string;
+  status: 'pending' | 'approved' | 'in_transit' | 'completed' | 'cancelled';
+  items: Array<{
+    rawItemId: string;
+    quantity: number;
+    notes?: string;
+  }>;
+  requestedBy: string;
+  approvedBy?: string;
+  requestDate: Date;
+  approvalDate?: Date;
+  completionDate?: Date;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const StockTransferSchema = new Schema<IStockTransfer>({
+  transferNumber: { type: String, required: true, unique: true },
+  fromBranchId: { type: String, required: true },
+  toBranchId: { type: String, required: true },
+  status: { type: String, enum: ['pending', 'approved', 'in_transit', 'completed', 'cancelled'], default: 'pending', required: true },
+  items: [{
+    rawItemId: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    notes: { type: String }
+  }],
+  requestedBy: { type: String, required: true },
+  approvedBy: { type: String },
+  requestDate: { type: Date, default: Date.now },
+  approvalDate: { type: Date },
+  completionDate: { type: Date },
+  notes: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const StockTransferModel = mongoose.model<IStockTransfer>("StockTransfer", StockTransferSchema);
+
+// فواتير الشراء - Purchase Invoices
+export interface IPurchaseInvoice extends Document {
+  invoiceNumber: string;
+  supplierId: string;
+  branchId: string;
+  status: 'draft' | 'pending' | 'approved' | 'received' | 'cancelled';
+  items: Array<{
+    rawItemId: string;
+    quantity: number;
+    unitCost: number;
+    totalCost: number;
+    notes?: string;
+  }>;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  paymentStatus: 'unpaid' | 'partial' | 'paid';
+  paidAmount: number;
+  invoiceDate: Date;
+  dueDate?: Date;
+  receivedDate?: Date;
+  receivedBy?: string;
+  createdBy: string;
+  approvedBy?: string;
+  notes?: string;
+  attachmentUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PurchaseInvoiceSchema = new Schema<IPurchaseInvoice>({
+  invoiceNumber: { type: String, required: true, unique: true },
+  supplierId: { type: String, required: true },
+  branchId: { type: String, required: true },
+  status: { type: String, enum: ['draft', 'pending', 'approved', 'received', 'cancelled'], default: 'draft', required: true },
+  items: [{
+    rawItemId: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    unitCost: { type: Number, required: true },
+    totalCost: { type: Number, required: true },
+    notes: { type: String }
+  }],
+  subtotal: { type: Number, required: true, default: 0 },
+  taxAmount: { type: Number, default: 0 },
+  discountAmount: { type: Number, default: 0 },
+  totalAmount: { type: Number, required: true, default: 0 },
+  paymentStatus: { type: String, enum: ['unpaid', 'partial', 'paid'], default: 'unpaid', required: true },
+  paidAmount: { type: Number, default: 0 },
+  invoiceDate: { type: Date, required: true, default: Date.now },
+  dueDate: { type: Date },
+  receivedDate: { type: Date },
+  receivedBy: { type: String },
+  createdBy: { type: String, required: true },
+  approvedBy: { type: String },
+  notes: { type: String },
+  attachmentUrl: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const PurchaseInvoiceModel = mongoose.model<IPurchaseInvoice>("PurchaseInvoice", PurchaseInvoiceSchema);
+
+// وصفة المنتج - Recipe (ربط المنتجات بالمواد الخام مع الكميات)
+export interface IRecipeItem extends Document {
+  coffeeItemId: string;
+  rawItemId: string;
+  quantity: number;
+  unit: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const RecipeItemSchema = new Schema<IRecipeItem>({
+  coffeeItemId: { type: String, required: true },
+  rawItemId: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  unit: { type: String, required: true },
+  notes: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+RecipeItemSchema.index({ coffeeItemId: 1, rawItemId: 1 }, { unique: true });
+
+export const RecipeItemModel = mongoose.model<IRecipeItem>("RecipeItem", RecipeItemSchema);
+
+// تنبيهات المخزون - Stock Alerts
+export interface IStockAlert extends Document {
+  branchId: string;
+  rawItemId: string;
+  alertType: 'low_stock' | 'out_of_stock' | 'expiring_soon' | 'expired';
+  currentQuantity: number;
+  thresholdQuantity: number;
+  isRead: number;
+  isResolved: number;
+  resolvedBy?: string;
+  resolvedAt?: Date;
+  createdAt: Date;
+}
+
+const StockAlertSchema = new Schema<IStockAlert>({
+  branchId: { type: String, required: true },
+  rawItemId: { type: String, required: true },
+  alertType: { type: String, enum: ['low_stock', 'out_of_stock', 'expiring_soon', 'expired'], required: true },
+  currentQuantity: { type: Number, required: true },
+  thresholdQuantity: { type: Number, required: true },
+  isRead: { type: Number, default: 0, required: true },
+  isResolved: { type: Number, default: 0, required: true },
+  resolvedBy: { type: String },
+  resolvedAt: { type: Date },
+  createdAt: { type: Date, default: Date.now },
+});
+
+StockAlertSchema.index({ branchId: 1, isResolved: 1 });
+
+export const StockAlertModel = mongoose.model<IStockAlert>("StockAlert", StockAlertSchema);
+
+// حركات المخزون - Stock Movements (للتتبع)
+export interface IStockMovement extends Document {
+  branchId: string;
+  rawItemId: string;
+  movementType: 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'waste' | 'return';
+  quantity: number;
+  previousQuantity: number;
+  newQuantity: number;
+  referenceType?: 'purchase_invoice' | 'order' | 'transfer' | 'manual';
+  referenceId?: string;
+  notes?: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+const StockMovementSchema = new Schema<IStockMovement>({
+  branchId: { type: String, required: true },
+  rawItemId: { type: String, required: true },
+  movementType: { type: String, enum: ['purchase', 'sale', 'transfer_in', 'transfer_out', 'adjustment', 'waste', 'return'], required: true },
+  quantity: { type: Number, required: true },
+  previousQuantity: { type: Number, required: true },
+  newQuantity: { type: Number, required: true },
+  referenceType: { type: String, enum: ['purchase_invoice', 'order', 'transfer', 'manual'] },
+  referenceId: { type: String },
+  notes: { type: String },
+  createdBy: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+StockMovementSchema.index({ branchId: 1, rawItemId: 1 });
+StockMovementSchema.index({ createdAt: -1 });
+
+export const StockMovementModel = mongoose.model<IStockMovement>("StockMovement", StockMovementSchema);
+
+// Zod Schemas for validation
+export const insertRawItemSchema = z.object({
+  code: z.string(),
+  nameAr: z.string(),
+  nameEn: z.string().optional(),
+  description: z.string().optional(),
+  category: z.enum(['ingredient', 'packaging', 'equipment', 'consumable', 'other']),
+  unit: z.enum(['kg', 'g', 'liter', 'ml', 'piece', 'box', 'bag']),
+  unitCost: z.number().min(0),
+  minStockLevel: z.number().min(0),
+  maxStockLevel: z.number().min(0).optional(),
+  supplierId: z.string().optional(),
+  isActive: z.number().optional(),
+});
+
+export const insertSupplierSchema = z.object({
+  code: z.string(),
+  nameAr: z.string(),
+  nameEn: z.string().optional(),
+  contactPerson: z.string().optional(),
+  phone: z.string(),
+  email: z.string().email().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  taxNumber: z.string().optional(),
+  paymentTerms: z.string().optional(),
+  notes: z.string().optional(),
+  isActive: z.number().optional(),
+});
+
+export const insertBranchStockSchema = z.object({
+  branchId: z.string(),
+  rawItemId: z.string(),
+  currentQuantity: z.number().min(0),
+  reservedQuantity: z.number().min(0).optional(),
+  notes: z.string().optional(),
+});
+
+export const insertStockTransferSchema = z.object({
+  fromBranchId: z.string(),
+  toBranchId: z.string(),
+  items: z.array(z.object({
+    rawItemId: z.string(),
+    quantity: z.number().positive(),
+    notes: z.string().optional(),
+  })),
+  requestedBy: z.string(),
+  notes: z.string().optional(),
+});
+
+export const insertPurchaseInvoiceSchema = z.object({
+  supplierId: z.string(),
+  branchId: z.string(),
+  items: z.array(z.object({
+    rawItemId: z.string(),
+    quantity: z.number().positive(),
+    unitCost: z.number().min(0),
+    totalCost: z.number().min(0),
+    notes: z.string().optional(),
+  })),
+  subtotal: z.number().min(0),
+  taxAmount: z.number().min(0).optional(),
+  discountAmount: z.number().min(0).optional(),
+  totalAmount: z.number().min(0),
+  invoiceDate: z.coerce.date().optional(),
+  dueDate: z.coerce.date().optional(),
+  createdBy: z.string(),
+  notes: z.string().optional(),
+});
+
+export const insertRecipeItemSchema = z.object({
+  coffeeItemId: z.string(),
+  rawItemId: z.string(),
+  quantity: z.number().positive(),
+  unit: z.string(),
+  notes: z.string().optional(),
+});
+
+export const insertStockMovementSchema = z.object({
+  branchId: z.string(),
+  rawItemId: z.string(),
+  movementType: z.enum(['purchase', 'sale', 'transfer_in', 'transfer_out', 'adjustment', 'waste', 'return']),
+  quantity: z.number(),
+  previousQuantity: z.number(),
+  newQuantity: z.number(),
+  referenceType: z.enum(['purchase_invoice', 'order', 'transfer', 'manual']).optional(),
+  referenceId: z.string().optional(),
+  notes: z.string().optional(),
+  createdBy: z.string(),
+});
+
+// Type exports for inventory
+export type RawItem = IRawItem;
+export type InsertRawItem = z.infer<typeof insertRawItemSchema>;
+
+export type Supplier = ISupplier;
+export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+
+export type BranchStock = IBranchStock;
+export type InsertBranchStock = z.infer<typeof insertBranchStockSchema>;
+
+export type StockTransfer = IStockTransfer;
+export type InsertStockTransfer = z.infer<typeof insertStockTransferSchema>;
+
+export type PurchaseInvoice = IPurchaseInvoice;
+export type InsertPurchaseInvoice = z.infer<typeof insertPurchaseInvoiceSchema>;
+
+export type RecipeItem = IRecipeItem;
+export type InsertRecipeItem = z.infer<typeof insertRecipeItemSchema>;
+
+export type StockAlert = IStockAlert;
+
+export type StockMovement = IStockMovement;
+export type InsertStockMovement = z.infer<typeof insertStockMovementSchema>;
+
+// Inventory category types
+export type RawItemCategory = 'ingredient' | 'packaging' | 'equipment' | 'consumable' | 'other';
+export type RawItemUnit = 'kg' | 'g' | 'liter' | 'ml' | 'piece' | 'box' | 'bag';
+export type StockTransferStatus = 'pending' | 'approved' | 'in_transit' | 'completed' | 'cancelled';
+export type PurchaseInvoiceStatus = 'draft' | 'pending' | 'approved' | 'received' | 'cancelled';
+export type PaymentStatusType = 'unpaid' | 'partial' | 'paid';
+export type StockAlertType = 'low_stock' | 'out_of_stock' | 'expiring_soon' | 'expired';
+export type StockMovementType = 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'waste' | 'return';

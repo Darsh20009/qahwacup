@@ -4946,6 +4946,551 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ================== INVENTORY MANAGEMENT ROUTES ==================
+
+  // Raw Items Routes
+  app.get("/api/inventory/raw-items", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const items = await storage.getRawItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching raw items:", error);
+      res.status(500).json({ error: "فشل في جلب المواد الخام" });
+    }
+  });
+
+  app.get("/api/inventory/raw-items/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const item = await storage.getRawItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ error: "المادة الخام غير موجودة" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching raw item:", error);
+      res.status(500).json({ error: "فشل في جلب المادة الخام" });
+    }
+  });
+
+  app.post("/api/inventory/raw-items", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertRawItemSchema } = await import("@shared/schema");
+      const validatedData = insertRawItemSchema.parse(req.body);
+      
+      const existing = await storage.getRawItemByCode(validatedData.code);
+      if (existing) {
+        return res.status(400).json({ error: "كود المادة الخام موجود مسبقاً" });
+      }
+      
+      const item = await storage.createRawItem(validatedData);
+      res.status(201).json(item);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error creating raw item:", error);
+      res.status(500).json({ error: "فشل في إنشاء المادة الخام" });
+    }
+  });
+
+  app.put("/api/inventory/raw-items/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertRawItemSchema } = await import("@shared/schema");
+      const partialSchema = insertRawItemSchema.partial();
+      const validatedData = partialSchema.parse(req.body);
+      
+      const item = await storage.updateRawItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ error: "المادة الخام غير موجودة" });
+      }
+      res.json(item);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error updating raw item:", error);
+      res.status(500).json({ error: "فشل في تحديث المادة الخام" });
+    }
+  });
+
+  app.delete("/api/inventory/raw-items/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const success = await storage.deleteRawItem(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "المادة الخام غير موجودة" });
+      }
+      res.json({ success: true, message: "تم حذف المادة الخام بنجاح" });
+    } catch (error) {
+      console.error("Error deleting raw item:", error);
+      res.status(500).json({ error: "فشل في حذف المادة الخام" });
+    }
+  });
+
+  // Suppliers Routes
+  app.get("/api/inventory/suppliers", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const suppliers = await storage.getSuppliers();
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ error: "فشل في جلب الموردين" });
+    }
+  });
+
+  app.get("/api/inventory/suppliers/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const supplier = await storage.getSupplier(req.params.id);
+      if (!supplier) {
+        return res.status(404).json({ error: "المورد غير موجود" });
+      }
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error fetching supplier:", error);
+      res.status(500).json({ error: "فشل في جلب المورد" });
+    }
+  });
+
+  app.post("/api/inventory/suppliers", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertSupplierSchema } = await import("@shared/schema");
+      const validatedData = insertSupplierSchema.parse(req.body);
+      
+      const existing = await storage.getSupplierByCode(validatedData.code);
+      if (existing) {
+        return res.status(400).json({ error: "كود المورد موجود مسبقاً" });
+      }
+      
+      const supplier = await storage.createSupplier(validatedData);
+      res.status(201).json(supplier);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error creating supplier:", error);
+      res.status(500).json({ error: "فشل في إنشاء المورد" });
+    }
+  });
+
+  app.put("/api/inventory/suppliers/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertSupplierSchema } = await import("@shared/schema");
+      const partialSchema = insertSupplierSchema.partial();
+      const validatedData = partialSchema.parse(req.body);
+      
+      const supplier = await storage.updateSupplier(req.params.id, validatedData);
+      if (!supplier) {
+        return res.status(404).json({ error: "المورد غير موجود" });
+      }
+      res.json(supplier);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error updating supplier:", error);
+      res.status(500).json({ error: "فشل في تحديث المورد" });
+    }
+  });
+
+  app.delete("/api/inventory/suppliers/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const success = await storage.deleteSupplier(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "المورد غير موجود" });
+      }
+      res.json({ success: true, message: "تم حذف المورد بنجاح" });
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      res.status(500).json({ error: "فشل في حذف المورد" });
+    }
+  });
+
+  // Branch Stock Routes
+  app.get("/api/inventory/stock", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId } = req.query;
+      if (branchId) {
+        const stock = await storage.getBranchStock(branchId as string);
+        res.json(stock);
+      } else {
+        const allStock = await storage.getAllBranchesStock();
+        res.json(allStock);
+      }
+    } catch (error) {
+      console.error("Error fetching stock:", error);
+      res.status(500).json({ error: "فشل في جلب المخزون" });
+    }
+  });
+
+  app.get("/api/inventory/stock/low", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId } = req.query;
+      const lowStock = await storage.getLowStockItems(branchId as string | undefined);
+      res.json(lowStock);
+    } catch (error) {
+      console.error("Error fetching low stock items:", error);
+      res.status(500).json({ error: "فشل في جلب المواد منخفضة المخزون" });
+    }
+  });
+
+  app.post("/api/inventory/stock/adjust", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, rawItemId, quantity, notes, movementType } = req.body;
+      
+      if (!branchId || !rawItemId || quantity === undefined) {
+        return res.status(400).json({ error: "البيانات المطلوبة غير مكتملة" });
+      }
+      
+      const stock = await storage.updateBranchStock(
+        branchId,
+        rawItemId,
+        quantity,
+        req.employee?.id || 'system',
+        movementType || 'adjustment',
+        notes
+      );
+      
+      res.json(stock);
+    } catch (error) {
+      console.error("Error adjusting stock:", error);
+      res.status(500).json({ error: "فشل في تعديل المخزون" });
+    }
+  });
+
+  // Stock Transfers Routes
+  app.get("/api/inventory/transfers", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId } = req.query;
+      const transfers = await storage.getStockTransfers(branchId as string | undefined);
+      res.json(transfers);
+    } catch (error) {
+      console.error("Error fetching transfers:", error);
+      res.status(500).json({ error: "فشل في جلب التحويلات" });
+    }
+  });
+
+  app.get("/api/inventory/transfers/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const transfer = await storage.getStockTransfer(req.params.id);
+      if (!transfer) {
+        return res.status(404).json({ error: "التحويل غير موجود" });
+      }
+      res.json(transfer);
+    } catch (error) {
+      console.error("Error fetching transfer:", error);
+      res.status(500).json({ error: "فشل في جلب التحويل" });
+    }
+  });
+
+  app.post("/api/inventory/transfers", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertStockTransferSchema } = await import("@shared/schema");
+      const validatedData = insertStockTransferSchema.parse({
+        ...req.body,
+        requestedBy: req.employee?.id || 'system'
+      });
+      
+      const transfer = await storage.createStockTransfer(validatedData);
+      res.status(201).json(transfer);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error creating transfer:", error);
+      res.status(500).json({ error: "فشل في إنشاء التحويل" });
+    }
+  });
+
+  app.put("/api/inventory/transfers/:id/approve", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const transfer = await storage.updateStockTransferStatus(
+        req.params.id,
+        'approved',
+        req.employee?.id
+      );
+      if (!transfer) {
+        return res.status(404).json({ error: "التحويل غير موجود" });
+      }
+      res.json(transfer);
+    } catch (error) {
+      console.error("Error approving transfer:", error);
+      res.status(500).json({ error: "فشل في الموافقة على التحويل" });
+    }
+  });
+
+  app.put("/api/inventory/transfers/:id/complete", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const transfer = await storage.completeStockTransfer(
+        req.params.id,
+        req.employee?.id || 'system'
+      );
+      if (!transfer) {
+        return res.status(404).json({ error: "التحويل غير موجود أو لم تتم الموافقة عليه" });
+      }
+      res.json(transfer);
+    } catch (error) {
+      console.error("Error completing transfer:", error);
+      res.status(500).json({ error: "فشل في إتمام التحويل" });
+    }
+  });
+
+  app.put("/api/inventory/transfers/:id/cancel", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const transfer = await storage.updateStockTransferStatus(req.params.id, 'cancelled');
+      if (!transfer) {
+        return res.status(404).json({ error: "التحويل غير موجود" });
+      }
+      res.json(transfer);
+    } catch (error) {
+      console.error("Error cancelling transfer:", error);
+      res.status(500).json({ error: "فشل في إلغاء التحويل" });
+    }
+  });
+
+  // Purchase Invoices Routes
+  app.get("/api/inventory/purchases", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId } = req.query;
+      const invoices = await storage.getPurchaseInvoices(branchId as string | undefined);
+      res.json(invoices);
+    } catch (error) {
+      console.error("Error fetching purchase invoices:", error);
+      res.status(500).json({ error: "فشل في جلب فواتير الشراء" });
+    }
+  });
+
+  app.get("/api/inventory/purchases/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const invoice = await storage.getPurchaseInvoice(req.params.id);
+      if (!invoice) {
+        return res.status(404).json({ error: "فاتورة الشراء غير موجودة" });
+      }
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error fetching purchase invoice:", error);
+      res.status(500).json({ error: "فشل في جلب فاتورة الشراء" });
+    }
+  });
+
+  app.post("/api/inventory/purchases", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertPurchaseInvoiceSchema } = await import("@shared/schema");
+      const validatedData = insertPurchaseInvoiceSchema.parse({
+        ...req.body,
+        createdBy: req.employee?.id || 'system'
+      });
+      
+      const invoice = await storage.createPurchaseInvoice(validatedData);
+      res.status(201).json(invoice);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error creating purchase invoice:", error);
+      res.status(500).json({ error: "فشل في إنشاء فاتورة الشراء" });
+    }
+  });
+
+  app.put("/api/inventory/purchases/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertPurchaseInvoiceSchema } = await import("@shared/schema");
+      const partialSchema = insertPurchaseInvoiceSchema.partial();
+      const validatedData = partialSchema.parse(req.body);
+      
+      const invoice = await storage.updatePurchaseInvoice(req.params.id, validatedData);
+      if (!invoice) {
+        return res.status(404).json({ error: "فاتورة الشراء غير موجودة" });
+      }
+      res.json(invoice);
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ error: "بيانات غير صالحة", details: error.errors });
+      }
+      console.error("Error updating purchase invoice:", error);
+      res.status(500).json({ error: "فشل في تحديث فاتورة الشراء" });
+    }
+  });
+
+  app.put("/api/inventory/purchases/:id/receive", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const invoice = await storage.receivePurchaseInvoice(
+        req.params.id,
+        req.employee?.id || 'system'
+      );
+      if (!invoice) {
+        return res.status(404).json({ error: "فاتورة الشراء غير موجودة أو تم استلامها مسبقاً" });
+      }
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error receiving purchase invoice:", error);
+      res.status(500).json({ error: "فشل في استلام فاتورة الشراء" });
+    }
+  });
+
+  app.put("/api/inventory/purchases/:id/payment", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { paidAmount } = req.body;
+      const invoice = await storage.updatePurchaseInvoicePayment(req.params.id, paidAmount);
+      if (!invoice) {
+        return res.status(404).json({ error: "فاتورة الشراء غير موجودة" });
+      }
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      res.status(500).json({ error: "فشل في تحديث الدفع" });
+    }
+  });
+
+  // Recipe Items Routes (COGS)
+  app.get("/api/inventory/recipes/:coffeeItemId", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const items = await storage.getRecipeItems(req.params.coffeeItemId);
+      const cost = await storage.calculateProductCost(req.params.coffeeItemId);
+      res.json({ items, totalCost: cost });
+    } catch (error) {
+      console.error("Error fetching recipe items:", error);
+      res.status(500).json({ error: "فشل في جلب مكونات الوصفة" });
+    }
+  });
+
+  app.post("/api/inventory/recipes", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { insertRecipeItemSchema } = await import("@shared/schema");
+      const validatedData = insertRecipeItemSchema.parse(req.body);
+      const item = await storage.createRecipeItem(validatedData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating recipe item:", error);
+      res.status(500).json({ error: "فشل في إضافة مكون الوصفة" });
+    }
+  });
+
+  app.put("/api/inventory/recipes/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const item = await storage.updateRecipeItem(req.params.id, req.body);
+      if (!item) {
+        return res.status(404).json({ error: "مكون الوصفة غير موجود" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating recipe item:", error);
+      res.status(500).json({ error: "فشل في تحديث مكون الوصفة" });
+    }
+  });
+
+  app.delete("/api/inventory/recipes/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const success = await storage.deleteRecipeItem(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "مكون الوصفة غير موجود" });
+      }
+      res.json({ success: true, message: "تم حذف مكون الوصفة بنجاح" });
+    } catch (error) {
+      console.error("Error deleting recipe item:", error);
+      res.status(500).json({ error: "فشل في حذف مكون الوصفة" });
+    }
+  });
+
+  // Stock Alerts Routes
+  app.get("/api/inventory/alerts", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, resolved } = req.query;
+      const alerts = await storage.getStockAlerts(
+        branchId as string | undefined,
+        resolved === 'true' ? true : resolved === 'false' ? false : undefined
+      );
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+      res.status(500).json({ error: "فشل في جلب التنبيهات" });
+    }
+  });
+
+  app.put("/api/inventory/alerts/:id/resolve", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const alert = await storage.resolveStockAlert(req.params.id, req.employee?.id || 'system');
+      if (!alert) {
+        return res.status(404).json({ error: "التنبيه غير موجود" });
+      }
+      res.json(alert);
+    } catch (error) {
+      console.error("Error resolving alert:", error);
+      res.status(500).json({ error: "فشل في حل التنبيه" });
+    }
+  });
+
+  app.put("/api/inventory/alerts/:id/read", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const alert = await storage.markAlertAsRead(req.params.id);
+      if (!alert) {
+        return res.status(404).json({ error: "التنبيه غير موجود" });
+      }
+      res.json(alert);
+    } catch (error) {
+      console.error("Error marking alert as read:", error);
+      res.status(500).json({ error: "فشل في تحديث التنبيه" });
+    }
+  });
+
+  // Stock Movements Routes
+  app.get("/api/inventory/movements", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, rawItemId, limit } = req.query;
+      
+      if (!branchId) {
+        return res.status(400).json({ error: "معرف الفرع مطلوب" });
+      }
+      
+      const movements = await storage.getStockMovements(
+        branchId as string,
+        rawItemId as string | undefined,
+        limit ? parseInt(limit as string) : 100
+      );
+      res.json(movements);
+    } catch (error) {
+      console.error("Error fetching movements:", error);
+      res.status(500).json({ error: "فشل في جلب حركات المخزون" });
+    }
+  });
+
+  // Inventory Dashboard Summary
+  app.get("/api/inventory/dashboard", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId } = req.query;
+      
+      const [rawItems, suppliers, lowStock, alerts, transfers, purchases] = await Promise.all([
+        storage.getRawItems(),
+        storage.getSuppliers(),
+        storage.getLowStockItems(branchId as string | undefined),
+        storage.getStockAlerts(branchId as string | undefined, false),
+        storage.getStockTransfers(branchId as string | undefined),
+        storage.getPurchaseInvoices(branchId as string | undefined),
+      ]);
+      
+      const pendingTransfers = transfers.filter(t => t.status === 'pending' || t.status === 'approved');
+      const pendingPurchases = purchases.filter(p => p.status === 'pending' || p.status === 'approved');
+      const unpaidPurchases = purchases.filter(p => p.paymentStatus === 'unpaid' || p.paymentStatus === 'partial');
+      
+      res.json({
+        summary: {
+          totalRawItems: rawItems.length,
+          totalSuppliers: suppliers.length,
+          lowStockCount: lowStock.length,
+          alertsCount: alerts.length,
+          pendingTransfersCount: pendingTransfers.length,
+          pendingPurchasesCount: pendingPurchases.length,
+          unpaidPurchasesCount: unpaidPurchases.length,
+        },
+        lowStock: lowStock.slice(0, 5),
+        recentAlerts: alerts.slice(0, 5),
+        pendingTransfers: pendingTransfers.slice(0, 5),
+        pendingPurchases: pendingPurchases.slice(0, 5),
+      });
+    } catch (error) {
+      console.error("Error fetching inventory dashboard:", error);
+      res.status(500).json({ error: "فشل في جلب ملخص المخزون" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
