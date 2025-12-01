@@ -14,6 +14,8 @@ import {
   Bell,
   ArrowRight,
   Loader2,
+  BookOpen,
+  History,
 } from "lucide-react";
 
 interface DashboardData {
@@ -97,7 +99,7 @@ export default function InventoryDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalRawItems}</div>
             <Link href="/manager/inventory/raw-items">
-              <Button variant="link" className="p-0 h-auto text-sm" data-testid="link-raw-items">
+              <Button variant="ghost" className="p-0 h-auto text-sm" data-testid="link-raw-items">
                 إدارة المواد الخام
                 <ArrowRight className="h-3 w-3 mr-1" />
               </Button>
@@ -113,7 +115,7 @@ export default function InventoryDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalSuppliers}</div>
             <Link href="/manager/inventory/suppliers">
-              <Button variant="link" className="p-0 h-auto text-sm" data-testid="link-suppliers">
+              <Button variant="ghost" className="p-0 h-auto text-sm" data-testid="link-suppliers">
                 إدارة الموردين
                 <ArrowRight className="h-3 w-3 mr-1" />
               </Button>
@@ -153,7 +155,7 @@ export default function InventoryDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.pendingTransfersCount}</div>
             <Link href="/manager/inventory/transfers">
-              <Button variant="link" className="p-0 h-auto text-sm" data-testid="link-transfers">
+              <Button variant="ghost" className="p-0 h-auto text-sm" data-testid="link-transfers">
                 عرض التحويلات
                 <ArrowRight className="h-3 w-3 mr-1" />
               </Button>
@@ -169,7 +171,7 @@ export default function InventoryDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.pendingPurchasesCount}</div>
             <Link href="/manager/inventory/purchases">
-              <Button variant="link" className="p-0 h-auto text-sm" data-testid="link-purchases">
+              <Button variant="ghost" className="p-0 h-auto text-sm" data-testid="link-purchases">
                 عرض الفواتير
                 <ArrowRight className="h-3 w-3 mr-1" />
               </Button>
@@ -371,6 +373,30 @@ export default function InventoryDashboardPage() {
               <Button variant="outline" className="w-full justify-start" data-testid="quick-link-transfers">
                 <ArrowRightLeft className="h-4 w-4 ml-2" />
                 تحويلات المخزون
+              </Button>
+            </Link>
+            <Link href="/manager/inventory/recipes">
+              <Button variant="outline" className="w-full justify-start" data-testid="quick-link-recipes">
+                <BookOpen className="h-4 w-4 ml-2" />
+                وصفات المنتجات (COGS)
+              </Button>
+            </Link>
+            <Link href="/manager/inventory/stock">
+              <Button variant="outline" className="w-full justify-start" data-testid="quick-link-stock">
+                <Warehouse className="h-4 w-4 ml-2" />
+                مخزون الفروع
+              </Button>
+            </Link>
+            <Link href="/manager/inventory/alerts">
+              <Button variant="outline" className="w-full justify-start" data-testid="quick-link-alerts">
+                <Bell className="h-4 w-4 ml-2" />
+                تنبيهات المخزون
+              </Button>
+            </Link>
+            <Link href="/manager/inventory/movements">
+              <Button variant="outline" className="w-full justify-start" data-testid="quick-link-movements">
+                <History className="h-4 w-4 ml-2" />
+                حركات المخزون
               </Button>
             </Link>
           </div>

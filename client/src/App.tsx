@@ -53,6 +53,10 @@ import InventoryRawItems from "@/pages/inventory-raw-items";
 import InventorySuppliers from "@/pages/inventory-suppliers";
 import InventoryPurchases from "@/pages/inventory-purchases";
 import InventoryTransfers from "@/pages/inventory-transfers";
+import InventoryRecipes from "@/pages/inventory-recipes";
+import InventoryStock from "@/pages/inventory-stock";
+import InventoryAlerts from "@/pages/inventory-alerts";
+import InventoryMovements from "@/pages/inventory-movements";
 
 function Router() {
  return (
@@ -102,6 +106,10 @@ function Router() {
  <Route path="/manager/inventory/suppliers" component={InventorySuppliers} />
  <Route path="/manager/inventory/purchases" component={InventoryPurchases} />
  <Route path="/manager/inventory/transfers" component={InventoryTransfers} />
+ <Route path="/manager/inventory/recipes" component={InventoryRecipes} />
+ <Route path="/manager/inventory/stock" component={InventoryStock} />
+ <Route path="/manager/inventory/alerts" component={InventoryAlerts} />
+ <Route path="/manager/inventory/movements" component={InventoryMovements} />
  <Route path="/employee/attendance" component={EmployeeAttendance} />
  <Route path="/owner/dashboard" component={OwnerDashboard} />
  <Route component={SplashScreen} />

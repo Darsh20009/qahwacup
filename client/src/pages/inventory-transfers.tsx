@@ -117,7 +117,7 @@ export default function InventoryTransfersPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/inventory/transfers", { method: "POST", body: JSON.stringify(data) }),
+    mutationFn: (data: any) => apiRequest("POST", "/api/inventory/transfers", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/transfers"] });
       setIsAddDialogOpen(false);
@@ -130,7 +130,7 @@ export default function InventoryTransfersPage() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/inventory/transfers/${id}/approve`, { method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("PUT", `/api/inventory/transfers/${id}/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/transfers"] });
       toast({ title: "تمت الموافقة على التحويل" });
@@ -141,7 +141,7 @@ export default function InventoryTransfersPage() {
   });
 
   const completeMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/inventory/transfers/${id}/complete`, { method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("PUT", `/api/inventory/transfers/${id}/complete`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/transfers"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/stock"] });
@@ -153,7 +153,7 @@ export default function InventoryTransfersPage() {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/inventory/transfers/${id}/cancel`, { method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("PUT", `/api/inventory/transfers/${id}/cancel`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/transfers"] });
       toast({ title: "تم إلغاء التحويل" });

@@ -140,7 +140,7 @@ export default function InventoryPurchasesPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/inventory/purchases", { method: "POST", body: JSON.stringify(data) }),
+    mutationFn: (data: any) => apiRequest("POST", "/api/inventory/purchases", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchases"] });
       setIsAddDialogOpen(false);
@@ -153,7 +153,7 @@ export default function InventoryPurchasesPage() {
   });
 
   const receiveMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/inventory/purchases/${id}/receive`, { method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("PUT", `/api/inventory/purchases/${id}/receive`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchases"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/stock"] });

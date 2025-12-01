@@ -97,7 +97,7 @@ export default function InventoryRawItemsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: typeof formData) => apiRequest("/api/inventory/raw-items", { method: "POST", body: JSON.stringify(data) }),
+    mutationFn: (data: typeof formData) => apiRequest("POST", "/api/inventory/raw-items", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/raw-items"] });
       setIsAddDialogOpen(false);
@@ -111,7 +111,7 @@ export default function InventoryRawItemsPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<typeof formData> }) =>
-      apiRequest(`/api/inventory/raw-items/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+      apiRequest("PUT", `/api/inventory/raw-items/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/raw-items"] });
       setIsEditDialogOpen(false);
@@ -125,7 +125,7 @@ export default function InventoryRawItemsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/inventory/raw-items/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/inventory/raw-items/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/raw-items"] });
       toast({ title: "تم حذف المادة الخام بنجاح" });

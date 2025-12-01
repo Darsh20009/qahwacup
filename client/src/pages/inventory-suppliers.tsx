@@ -76,7 +76,7 @@ export default function InventorySuppliersPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: typeof formData) => apiRequest("/api/inventory/suppliers", { method: "POST", body: JSON.stringify(data) }),
+    mutationFn: (data: typeof formData) => apiRequest("POST", "/api/inventory/suppliers", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/suppliers"] });
       setIsAddDialogOpen(false);
@@ -90,7 +90,7 @@ export default function InventorySuppliersPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<typeof formData> }) =>
-      apiRequest(`/api/inventory/suppliers/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+      apiRequest("PUT", `/api/inventory/suppliers/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/suppliers"] });
       setIsEditDialogOpen(false);
@@ -104,7 +104,7 @@ export default function InventorySuppliersPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/inventory/suppliers/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/inventory/suppliers/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/suppliers"] });
       toast({ title: "تم حذف المورد بنجاح" });
