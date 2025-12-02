@@ -27,7 +27,10 @@ import {
   Clock,
   CheckCircle,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Package,
+  CheckCheck,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -129,6 +132,31 @@ export default function InventoryAlertsPage() {
 
   const unresolvedCount = alerts.filter(a => a.isResolved === 0).length;
   const unreadCount = alerts.filter(a => a.isRead === 0 && a.isResolved === 0).length;
+  const lowStockCount = alerts.filter(a => a.alertType === 'low_stock' && a.isResolved === 0).length;
+  const outOfStockCount = alerts.filter(a => a.alertType === 'out_of_stock' && a.isResolved === 0).length;
+  const expiringCount = alerts.filter(a => (a.alertType === 'expiring_soon' || a.alertType === 'expired') && a.isResolved === 0).length;
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => Promise.all(
+      filteredAlerts.filter(a => a.isRead === 0).map(a => apiRequest("PUT", `/api/inventory/alerts/${a.id}/read`))
+    ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/alerts"] });
+      toast({ title: "تم تحديد جميع التنبيهات كمقروءة" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "فشل في تحديد التنبيهات كمقروءة", 
+        description: error.message || "حدث خطأ أثناء تحديث التنبيهات",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const getDeficit = (current: number, threshold: number) => {
+    const deficit = threshold - current;
+    return deficit > 0 ? deficit : 0;
+  };
 
   if (isLoading) {
     return (
@@ -158,24 +186,48 @@ export default function InventoryAlertsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-            <CardTitle className="text-sm font-medium">تنبيهات غير محلولة</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">نفاد المخزون</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{unresolvedCount}</div>
+            <div className="text-2xl font-bold text-red-600">{outOfStockCount}</div>
+            <p className="text-xs text-muted-foreground">تنبيه عاجل</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-            <CardTitle className="text-sm font-medium">تنبيهات غير مقروءة</CardTitle>
-            <Bell className="h-4 w-4 text-yellow-500" />
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">مخزون منخفض</CardTitle>
+            <TrendingDown className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{unreadCount}</div>
+            <div className="text-2xl font-bold text-yellow-600">{lowStockCount}</div>
+            <p className="text-xs text-muted-foreground">يحتاج إعادة طلب</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">صلاحية منتهية</CardTitle>
+            <Clock className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{expiringCount}</div>
+            <p className="text-xs text-muted-foreground">تنبيه صلاحية</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">غير مقروءة</CardTitle>
+            <Bell className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{unreadCount}</div>
+            <p className="text-xs text-muted-foreground">تنبيه جديد</p>
           </CardContent>
         </Card>
       </div>
@@ -219,6 +271,19 @@ export default function InventoryAlertsPage() {
                 <SelectItem value="resolved">محلولة</SelectItem>
               </SelectContent>
             </Select>
+            
+            {unreadCount > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => markAllAsReadMutation.mutate()}
+                disabled={markAllAsReadMutation.isPending}
+                data-testid="button-mark-all-read"
+              >
+                <Eye className="h-4 w-4 ml-2" />
+                تحديد الكل كمقروء
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -231,6 +296,7 @@ export default function InventoryAlertsPage() {
                   <TableHead className="text-right">الفرع</TableHead>
                   <TableHead className="text-right">الكمية الحالية</TableHead>
                   <TableHead className="text-right">الحد الأدنى</TableHead>
+                  <TableHead className="text-right">النقص</TableHead>
                   <TableHead className="text-right">التاريخ</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
@@ -239,7 +305,7 @@ export default function InventoryAlertsPage() {
               <TableBody>
                 {filteredAlerts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
                       <p>لا توجد تنبيهات</p>
                     </TableCell>
@@ -275,6 +341,15 @@ export default function InventoryAlertsPage() {
                           </span>
                         </TableCell>
                         <TableCell>{alert.thresholdQuantity}</TableCell>
+                        <TableCell>
+                          {getDeficit(alert.currentQuantity, alert.thresholdQuantity) > 0 ? (
+                            <span className="text-red-600 font-medium">
+                              -{getDeficit(alert.currentQuantity, alert.thresholdQuantity)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">
                           {format(new Date(alert.createdAt), "dd/MM/yyyy HH:mm", { locale: ar })}
                         </TableCell>

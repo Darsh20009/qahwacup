@@ -28,7 +28,10 @@ import {
   ArrowRightLeft,
   Package,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  Trash2,
+  ShoppingCart
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -110,6 +113,8 @@ export default function InventoryMovementsPage() {
 
   const inMovements = movements.filter(m => movementTypeConfig[m.movementType]?.direction === "in").length;
   const outMovements = movements.filter(m => movementTypeConfig[m.movementType]?.direction === "out").length;
+  const saleMovements = movements.filter(m => m.movementType === 'sale').length;
+  const wasteMovements = movements.filter(m => m.movementType === 'waste').length;
 
   if (isLoading) {
     return (
@@ -139,34 +144,48 @@ export default function InventoryMovementsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الحركات</CardTitle>
             <History className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{movements.length}</div>
+            <p className="text-xs text-muted-foreground">حركة مخزون</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">حركات واردة</CardTitle>
-            <ArrowUp className="h-4 w-4 text-green-500" />
+            <ArrowUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{inMovements}</div>
+            <p className="text-xs text-muted-foreground">شراء وتحويل وارد</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-            <CardTitle className="text-sm font-medium">حركات صادرة</CardTitle>
-            <ArrowDown className="h-4 w-4 text-orange-500" />
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">مبيعات</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{outMovements}</div>
+            <div className="text-2xl font-bold text-blue-600">{saleMovements}</div>
+            <p className="text-xs text-muted-foreground">خصم من الطلبات</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">هدر/تالف</CardTitle>
+            <Trash2 className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{wasteMovements}</div>
+            <p className="text-xs text-muted-foreground">مواد تالفة</p>
           </CardContent>
         </Card>
       </div>
