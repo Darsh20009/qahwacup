@@ -283,7 +283,7 @@ export default function InventoryRawItemsPage() {
             <span className="text-sm font-medium text-muted-foreground">متوسط التكلفة</span>
             <CircleDollarSign className="h-4 w-4 text-purple-600" />
           </div>
-          <div className="text-3xl font-bold text-purple-700 dark:text-purple-300">
+          <div className="text-3xl font-bold text-black dark:text-black">
             {rawItems.length > 0 ? (totalValue / rawItems.length).toFixed(2) : '0.00'}
           </div>
           <p className="text-xs text-muted-foreground mt-1">ر.س / وحدة</p>
