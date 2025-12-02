@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -38,7 +39,11 @@ import {
   X,
   Truck,
   Loader2,
-  Trash2
+  Trash2,
+  Clock,
+  CheckCircle2,
+  PackageCheck,
+  XCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -208,7 +213,17 @@ export default function InventoryTransfersPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const statistics = {
+    totalTransfers: transfers.length,
+    pending: transfers.filter(t => t.status === 'pending').length,
+    approved: transfers.filter(t => t.status === 'approved').length,
+    completed: transfers.filter(t => t.status === 'completed').length,
+    cancelled: transfers.filter(t => t.status === 'cancelled').length,
+    totalItems: transfers.reduce((sum, t) => sum + t.items.reduce((s, i) => s + i.quantity, 0), 0),
+  };
+
   const getRawItemName = (id: string) => rawItems.find(r => r.id === id)?.nameAr || id;
+  const getRawItemUnit = (id: string) => rawItems.find(r => r.id === id)?.unit || '';
   const getBranchName = (id: string) => branches.find(b => (b.id || b._id) === id)?.nameAr || id;
 
   if (isLoading) {
@@ -233,6 +248,52 @@ export default function InventoryTransfersPage() {
           <Plus className="h-4 w-4 ml-2" />
           طلب تحويل جديد
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">بانتظار الموافقة</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{statistics.pending}</div>
+            <p className="text-xs text-muted-foreground">طلب تحويل</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">تمت الموافقة</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{statistics.approved}</div>
+            <p className="text-xs text-muted-foreground">في انتظار النقل</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">مكتملة</CardTitle>
+            <PackageCheck className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{statistics.completed}</div>
+            <p className="text-xs text-muted-foreground">تحويل مكتمل</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي الكميات</CardTitle>
+            <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{statistics.totalItems}</div>
+            <p className="text-xs text-muted-foreground">وحدة محولة</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -530,6 +591,7 @@ export default function InventoryTransfersPage() {
                     <TableRow className="bg-muted/50">
                       <TableHead className="text-right">المادة</TableHead>
                       <TableHead className="text-right">الكمية</TableHead>
+                      <TableHead className="text-right">الوحدة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -537,6 +599,7 @@ export default function InventoryTransfersPage() {
                       <TableRow key={index}>
                         <TableCell>{getRawItemName(item.rawItemId)}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
+                        <TableCell className="text-muted-foreground">{getRawItemUnit(item.rawItemId)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

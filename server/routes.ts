@@ -5336,6 +5336,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/inventory/purchases/:id/approve", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const invoice = await storage.updatePurchaseInvoice(req.params.id, { status: 'approved' });
+      if (!invoice) {
+        return res.status(404).json({ error: "فاتورة الشراء غير موجودة" });
+      }
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error approving purchase invoice:", error);
+      res.status(500).json({ error: "فشل في اعتماد فاتورة الشراء" });
+    }
+  });
+
   app.put("/api/inventory/purchases/:id/receive", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const invoice = await storage.receivePurchaseInvoice(
@@ -5354,11 +5367,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/inventory/purchases/:id/payment", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
-      const { paidAmount } = req.body;
-      const invoice = await storage.updatePurchaseInvoicePayment(req.params.id, paidAmount);
-      if (!invoice) {
+      const { amount } = req.body;
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ error: "مبلغ الدفعة غير صالح" });
+      }
+      
+      const existingInvoice = await storage.getPurchaseInvoice(req.params.id);
+      if (!existingInvoice) {
         return res.status(404).json({ error: "فاتورة الشراء غير موجودة" });
       }
+      
+      const newPaidAmount = existingInvoice.paidAmount + amount;
+      if (newPaidAmount > existingInvoice.totalAmount) {
+        return res.status(400).json({ error: "مبلغ الدفعة يتجاوز المبلغ المتبقي" });
+      }
+      
+      const invoice = await storage.updatePurchaseInvoicePayment(req.params.id, newPaidAmount);
       res.json(invoice);
     } catch (error) {
       console.error("Error updating payment:", error);

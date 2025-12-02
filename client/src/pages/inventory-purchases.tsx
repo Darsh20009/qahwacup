@@ -3,10 +3,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -34,10 +36,15 @@ import {
   FileText,
   Search,
   Eye,
-  Check,
   Package,
   Loader2,
-  Trash2
+  Trash2,
+  CreditCard,
+  Receipt,
+  Clock,
+  AlertCircle,
+  DollarSign,
+  Printer
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -106,7 +113,9 @@ export default function InventoryPurchasesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<PurchaseInvoice | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
   const [formData, setFormData] = useState({
     supplierId: "",
@@ -115,6 +124,7 @@ export default function InventoryPurchasesPage() {
     taxAmount: 0,
     discountAmount: 0,
     notes: "",
+    dueDate: "",
   });
 
   const [newItem, setNewItem] = useState({
@@ -164,6 +174,31 @@ export default function InventoryPurchasesPage() {
     },
   });
 
+  const paymentMutation = useMutation({
+    mutationFn: (data: { id: string; amount: number }) => 
+      apiRequest("PUT", `/api/inventory/purchases/${data.id}/payment`, { amount: data.amount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchases"] });
+      setIsPaymentDialogOpen(false);
+      setPaymentAmount(0);
+      toast({ title: "تم تسجيل الدفعة بنجاح" });
+    },
+    onError: (error: any) => {
+      toast({ title: error.message || "فشل في تسجيل الدفعة", variant: "destructive" });
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("PUT", `/api/inventory/purchases/${id}/approve`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchases"] });
+      toast({ title: "تم اعتماد الفاتورة بنجاح" });
+    },
+    onError: (error: any) => {
+      toast({ title: error.message || "فشل في اعتماد الفاتورة", variant: "destructive" });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       supplierId: "",
@@ -172,6 +207,7 @@ export default function InventoryPurchasesPage() {
       taxAmount: 0,
       discountAmount: 0,
       notes: "",
+      dueDate: "",
     });
     setNewItem({ rawItemId: "", quantity: 1, unitCost: 0 });
   };
@@ -226,6 +262,29 @@ export default function InventoryPurchasesPage() {
     setIsViewDialogOpen(true);
   };
 
+  const handlePayment = (invoice: PurchaseInvoice) => {
+    setSelectedInvoice(invoice);
+    setPaymentAmount(invoice.totalAmount - invoice.paidAmount);
+    setIsPaymentDialogOpen(true);
+  };
+
+  const submitPayment = () => {
+    if (selectedInvoice && paymentAmount > 0) {
+      paymentMutation.mutate({ id: selectedInvoice.id, amount: paymentAmount });
+    }
+  };
+
+  const statistics = {
+    totalPurchases: invoices.length,
+    totalValue: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+    pendingPayment: invoices.filter(inv => inv.paymentStatus !== 'paid').reduce((sum, inv) => sum + (inv.totalAmount - inv.paidAmount), 0),
+    receivedCount: invoices.filter(inv => inv.status === 'received').length,
+    pendingReceive: invoices.filter(inv => inv.status === 'approved').length,
+    overdueCount: invoices.filter(inv => 
+      inv.dueDate && new Date(inv.dueDate) < new Date() && inv.paymentStatus !== 'paid'
+    ).length,
+  };
+
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
@@ -258,6 +317,52 @@ export default function InventoryPurchasesPage() {
           <Plus className="h-4 w-4 ml-2" />
           إنشاء فاتورة
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي المشتريات</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{statistics.totalValue.toFixed(2)} ر.س</div>
+            <p className="text-xs text-muted-foreground">{statistics.totalPurchases} فاتورة</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">المستحقات</CardTitle>
+            <DollarSign className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{statistics.pendingPayment.toFixed(2)} ر.س</div>
+            <p className="text-xs text-muted-foreground">مبالغ غير مسددة</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">في انتظار الاستلام</CardTitle>
+            <Package className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{statistics.pendingReceive}</div>
+            <p className="text-xs text-muted-foreground">فاتورة معتمدة</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">متأخرة السداد</CardTitle>
+            <AlertCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{statistics.overdueCount}</div>
+            <p className="text-xs text-muted-foreground">فاتورة متأخرة</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -329,7 +434,7 @@ export default function InventoryPurchasesPage() {
                         {format(new Date(invoice.invoiceDate), "dd/MM/yyyy", { locale: ar })}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
@@ -338,6 +443,18 @@ export default function InventoryPurchasesPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          {invoice.status === "draft" && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => approveMutation.mutate(invoice.id)}
+                              disabled={approveMutation.isPending}
+                              data-testid={`button-approve-${invoice.id}`}
+                              title="اعتماد الفاتورة"
+                            >
+                              <FileText className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          )}
                           {invoice.status === "approved" && (
                             <Button
                               size="icon"
@@ -345,8 +462,20 @@ export default function InventoryPurchasesPage() {
                               onClick={() => receiveMutation.mutate(invoice.id)}
                               disabled={receiveMutation.isPending}
                               data-testid={`button-receive-${invoice.id}`}
+                              title="استلام البضاعة"
                             >
                               <Package className="h-4 w-4 text-green-600" />
+                            </Button>
+                          )}
+                          {invoice.paymentStatus !== "paid" && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handlePayment(invoice)}
+                              data-testid={`button-payment-${invoice.id}`}
+                              title="تسجيل دفعة"
+                            >
+                              <CreditCard className="h-4 w-4 text-primary" />
                             </Button>
                           )}
                         </div>
@@ -629,10 +758,111 @@ export default function InventoryPurchasesPage() {
                   </Badge>
                 </div>
               </div>
+
+              <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-sm font-medium">المدفوع</span>
+                  <span className="text-sm">{selectedInvoice.paidAmount.toFixed(2)} من {selectedInvoice.totalAmount.toFixed(2)} ر.س</span>
+                </div>
+                <Progress 
+                  value={(selectedInvoice.paidAmount / selectedInvoice.totalAmount) * 100} 
+                  className="h-2"
+                />
+                <div className="flex justify-between items-center gap-2 text-sm text-muted-foreground">
+                  <span>المتبقي: {(selectedInvoice.totalAmount - selectedInvoice.paidAmount).toFixed(2)} ر.س</span>
+                  <span>{Math.round((selectedInvoice.paidAmount / selectedInvoice.totalAmount) * 100)}% مدفوع</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>إغلاق</Button>
+            {selectedInvoice && selectedInvoice.paymentStatus !== "paid" && (
+              <Button onClick={() => {
+                setIsViewDialogOpen(false);
+                handlePayment(selectedInvoice);
+              }}>
+                <CreditCard className="h-4 w-4 ml-2" />
+                تسجيل دفعة
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              تسجيل دفعة
+            </DialogTitle>
+            <DialogDescription>
+              تسجيل دفعة جديدة للفاتورة {selectedInvoice?.invoiceNumber}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInvoice && (
+            <div className="space-y-4 py-4">
+              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">إجمالي الفاتورة:</span>
+                  <span className="font-medium">{selectedInvoice.totalAmount.toFixed(2)} ر.س</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">المدفوع سابقاً:</span>
+                  <span className="font-medium">{selectedInvoice.paidAmount.toFixed(2)} ر.س</span>
+                </div>
+                <div className="flex justify-between gap-2 border-t pt-2">
+                  <span className="font-medium">المتبقي:</span>
+                  <span className="font-bold text-destructive">{(selectedInvoice.totalAmount - selectedInvoice.paidAmount).toFixed(2)} ر.س</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment-amount">مبلغ الدفعة *</Label>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  min="0.01"
+                  max={selectedInvoice.totalAmount - selectedInvoice.paidAmount}
+                  step="0.01"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
+                  data-testid="input-payment-amount"
+                />
+                <p className="text-xs text-muted-foreground">
+                  الحد الأقصى: {(selectedInvoice.totalAmount - selectedInvoice.paidAmount).toFixed(2)} ر.س
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPaymentAmount((selectedInvoice.totalAmount - selectedInvoice.paidAmount) / 2)}
+                >
+                  نصف المتبقي
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPaymentAmount(selectedInvoice.totalAmount - selectedInvoice.paidAmount)}
+                >
+                  كامل المتبقي
+                </Button>
+              </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>إغلاق</Button>
+            <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>إلغاء</Button>
+            <Button
+              onClick={submitPayment}
+              disabled={paymentMutation.isPending || paymentAmount <= 0 || (selectedInvoice && paymentAmount > (selectedInvoice.totalAmount - selectedInvoice.paidAmount))}
+              data-testid="button-submit-payment"
+            >
+              {paymentMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+              تأكيد الدفع
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
