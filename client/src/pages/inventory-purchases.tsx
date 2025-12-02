@@ -857,7 +857,7 @@ export default function InventoryPurchasesPage() {
             <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>إلغاء</Button>
             <Button
               onClick={submitPayment}
-              disabled={paymentMutation.isPending || paymentAmount <= 0 || (selectedInvoice && paymentAmount > (selectedInvoice.totalAmount - selectedInvoice.paidAmount))}
+              disabled={paymentMutation.isPending || paymentAmount <= 0 || (selectedInvoice ? paymentAmount > (selectedInvoice.totalAmount - selectedInvoice.paidAmount) : false)}
               data-testid="button-submit-payment"
             >
               {paymentMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
