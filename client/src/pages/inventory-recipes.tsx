@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -51,6 +53,13 @@ import {
   Zap,
   Info,
   CheckCircle,
+  Edit,
+  Copy,
+  AlertTriangle,
+  Droplet,
+  Wheat,
+  Package,
+  FlaskConical,
 } from "lucide-react";
 
 interface CoffeeItem {
@@ -59,14 +68,17 @@ interface CoffeeItem {
   nameEn?: string;
   price: number;
   category: string;
+  imageUrl?: string;
 }
 
 interface RawItem {
   id: string;
   code: string;
   nameAr: string;
+  nameEn?: string;
   unit: string;
   unitCost: number;
+  category?: string;
 }
 
 interface RecipeItem {
@@ -88,6 +100,16 @@ const unitLabels: Record<string, string> = {
   bag: "كيس",
 };
 
+const unitShortLabels: Record<string, string> = {
+  kg: "كجم",
+  g: "غ",
+  liter: "ل",
+  ml: "مل",
+  piece: "قطعة",
+  box: "صندوق",
+  bag: "كيس",
+};
+
 const unitDimensions: Record<string, string> = {
   kg: "mass",
   g: "mass",
@@ -104,20 +126,121 @@ const unitConversions: Record<string, Record<string, number>> = {
   count: { piece: 1, box: 1, bag: 1 },
 };
 
-const quickTemplates = [
-  { name: "شوت إسبريسو", rawCode: "RAW-001", quantity: 9, unit: "g" },
-  { name: "شوت مزدوج", rawCode: "RAW-001", quantity: 18, unit: "g" },
-  { name: "حليب لاتيه", rawCode: "RAW-003", quantity: 180, unit: "ml" },
-  { name: "حليب كابتشينو", rawCode: "RAW-003", quantity: 120, unit: "ml" },
-  { name: "سيرب فانيلا", rawCode: "RAW-006", quantity: 30, unit: "ml" },
-  { name: "سيرب كراميل", rawCode: "RAW-007", quantity: 30, unit: "ml" },
-  { name: "شوكولاتة", rawCode: "RAW-008", quantity: 30, unit: "ml" },
-  { name: "ماتشا", rawCode: "RAW-009", quantity: 3, unit: "g" },
-  { name: "كريمة مخفوقة", rawCode: "RAW-010", quantity: 30, unit: "ml" },
-  { name: "كوب صغير", rawCode: "RAW-013", quantity: 1, unit: "piece" },
-  { name: "كوب وسط", rawCode: "RAW-014", quantity: 1, unit: "piece" },
-  { name: "كوب كبير", rawCode: "RAW-015", quantity: 1, unit: "piece" },
+const drinkRecipeTemplates: Record<string, { name: string; ingredients: Array<{ rawCode: string; quantity: number; unit: string; description: string }> }> = {
+  "espresso-single": {
+    name: "إسبريسو (شوت واحد)",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 9, unit: "g", description: "حبوب قهوة أرابيكا" },
+      { rawCode: "RAW-013", quantity: 1, unit: "piece", description: "كوب صغير" },
+    ]
+  },
+  "espresso-double": {
+    name: "إسبريسو (دبل شوت)",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة أرابيكا" },
+      { rawCode: "RAW-013", quantity: 1, unit: "piece", description: "كوب صغير" },
+    ]
+  },
+  "cappuccino": {
+    name: "كابتشينو",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة (دبل شوت)" },
+      { rawCode: "RAW-003", quantity: 120, unit: "ml", description: "حليب طازج" },
+      { rawCode: "RAW-014", quantity: 1, unit: "piece", description: "كوب متوسط" },
+    ]
+  },
+  "cafe-latte": {
+    name: "كافيه لاتيه",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة (دبل شوت)" },
+      { rawCode: "RAW-003", quantity: 180, unit: "ml", description: "حليب طازج" },
+      { rawCode: "RAW-014", quantity: 1, unit: "piece", description: "كوب متوسط" },
+    ]
+  },
+  "vanilla-latte": {
+    name: "فانيلا لاتيه",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة (دبل شوت)" },
+      { rawCode: "RAW-003", quantity: 180, unit: "ml", description: "حليب طازج" },
+      { rawCode: "RAW-006", quantity: 30, unit: "ml", description: "سيرب فانيلا" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+  "mocha": {
+    name: "موكا",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة (دبل شوت)" },
+      { rawCode: "RAW-003", quantity: 150, unit: "ml", description: "حليب طازج" },
+      { rawCode: "RAW-008", quantity: 30, unit: "ml", description: "شوكولاتة سائلة" },
+      { rawCode: "RAW-010", quantity: 30, unit: "ml", description: "كريمة مخفوقة" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+  "iced-latte": {
+    name: "آيس لاتيه",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة (دبل شوت)" },
+      { rawCode: "RAW-003", quantity: 200, unit: "ml", description: "حليب طازج بارد" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+  "iced-mocha": {
+    name: "آيس موكا",
+    ingredients: [
+      { rawCode: "RAW-001", quantity: 18, unit: "g", description: "حبوب قهوة (دبل شوت)" },
+      { rawCode: "RAW-003", quantity: 180, unit: "ml", description: "حليب طازج بارد" },
+      { rawCode: "RAW-008", quantity: 30, unit: "ml", description: "شوكولاتة سائلة" },
+      { rawCode: "RAW-010", quantity: 30, unit: "ml", description: "كريمة مخفوقة" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+  "iced-matcha-latte": {
+    name: "آيس ماتشا لاتيه",
+    ingredients: [
+      { rawCode: "RAW-009", quantity: 3, unit: "g", description: "بودرة ماتشا" },
+      { rawCode: "RAW-003", quantity: 200, unit: "ml", description: "حليب طازج بارد" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+  "cold-brew": {
+    name: "كولد برو",
+    ingredients: [
+      { rawCode: "RAW-019", quantity: 200, unit: "ml", description: "قهوة كولد برو مركزة" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+  "vanilla-cold-brew": {
+    name: "فانيلا كولد برو",
+    ingredients: [
+      { rawCode: "RAW-019", quantity: 200, unit: "ml", description: "قهوة كولد برو مركزة" },
+      { rawCode: "RAW-006", quantity: 30, unit: "ml", description: "سيرب فانيلا" },
+      { rawCode: "RAW-015", quantity: 1, unit: "piece", description: "كوب كبير" },
+    ]
+  },
+};
+
+const quickIngredientTemplates = [
+  { name: "شوت إسبريسو (9غ)", rawCode: "RAW-001", quantity: 9, unit: "g", icon: Coffee },
+  { name: "دبل شوت (18غ)", rawCode: "RAW-001", quantity: 18, unit: "g", icon: Coffee },
+  { name: "حليب كابتشينو (120مل)", rawCode: "RAW-003", quantity: 120, unit: "ml", icon: Droplet },
+  { name: "حليب لاتيه (180مل)", rawCode: "RAW-003", quantity: 180, unit: "ml", icon: Droplet },
+  { name: "حليب آيس (200مل)", rawCode: "RAW-003", quantity: 200, unit: "ml", icon: Droplet },
+  { name: "سيرب فانيلا (30مل)", rawCode: "RAW-006", quantity: 30, unit: "ml", icon: FlaskConical },
+  { name: "سيرب كراميل (30مل)", rawCode: "RAW-007", quantity: 30, unit: "ml", icon: FlaskConical },
+  { name: "شوكولاتة (30مل)", rawCode: "RAW-008", quantity: 30, unit: "ml", icon: FlaskConical },
+  { name: "ماتشا (3غ)", rawCode: "RAW-009", quantity: 3, unit: "g", icon: Wheat },
+  { name: "كريمة مخفوقة (30مل)", rawCode: "RAW-010", quantity: 30, unit: "ml", icon: FlaskConical },
+  { name: "كوب صغير", rawCode: "RAW-013", quantity: 1, unit: "piece", icon: Package },
+  { name: "كوب وسط", rawCode: "RAW-014", quantity: 1, unit: "piece", icon: Package },
+  { name: "كوب كبير", rawCode: "RAW-015", quantity: 1, unit: "piece", icon: Package },
 ];
+
+const categoryLabels: Record<string, string> = {
+  basic: "أساسية",
+  hot: "ساخنة",
+  cold: "باردة",
+  special: "خاصة",
+};
 
 const getCompatibleUnits = (baseUnit: string): string[] => {
   const dimension = unitDimensions[baseUnit];
@@ -143,9 +266,12 @@ const normalizeQuantity = (quantity: number, fromUnit: string, toUnit: string): 
 export default function InventoryRecipesPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedCoffeeItem, setSelectedCoffeeItem] = useState<CoffeeItem | null>(null);
   const [isRecipeDialogOpen, setIsRecipeDialogOpen] = useState(false);
   const [isAddIngredientOpen, setIsAddIngredientOpen] = useState(false);
+  const [isQuickSetupOpen, setIsQuickSetupOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   const [newIngredient, setNewIngredient] = useState({
     rawItemId: "",
@@ -166,6 +292,10 @@ export default function InventoryRecipesPage() {
     enabled: !!selectedCoffeeItem?.id,
   });
 
+  const { data: allRecipes = [] } = useQuery<RecipeItem[]>({
+    queryKey: ["/api/inventory/all-recipes"],
+  });
+
   const addIngredientMutation = useMutation({
     mutationFn: (data: { coffeeItemId: string; rawItemId: string; quantity: number; unit: string }) => {
       if (!data.coffeeItemId || !data.rawItemId) {
@@ -177,6 +307,7 @@ export default function InventoryRecipesPage() {
       if (selectedCoffeeItem?.id) {
         queryClient.invalidateQueries({ queryKey: ["/api/inventory/recipes", selectedCoffeeItem.id] });
       }
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/all-recipes"] });
       setIsAddIngredientOpen(false);
       setNewIngredient({ rawItemId: "", quantity: 1, unit: "g" });
       toast({ title: "تم إضافة المكون بنجاح" });
@@ -192,6 +323,7 @@ export default function InventoryRecipesPage() {
       if (selectedCoffeeItem?.id) {
         queryClient.invalidateQueries({ queryKey: ["/api/inventory/recipes", selectedCoffeeItem.id] });
       }
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/all-recipes"] });
       toast({ title: "تم حذف المكون بنجاح" });
     },
     onError: (error: any) => {
@@ -199,8 +331,39 @@ export default function InventoryRecipesPage() {
     },
   });
 
+  const bulkAddIngredientsMutation = useMutation({
+    mutationFn: async (data: { coffeeItemId: string; ingredients: Array<{ rawItemId: string; quantity: number; unit: string }> }) => {
+      const results = [];
+      for (const ingredient of data.ingredients) {
+        try {
+          const result = await apiRequest("POST", "/api/inventory/recipes", {
+            coffeeItemId: data.coffeeItemId,
+            ...ingredient,
+          });
+          results.push(result);
+        } catch (error) {
+          console.error("Failed to add ingredient:", error);
+        }
+      }
+      return results;
+    },
+    onSuccess: () => {
+      if (selectedCoffeeItem?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/inventory/recipes", selectedCoffeeItem.id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/all-recipes"] });
+      setIsQuickSetupOpen(false);
+      setSelectedTemplate(null);
+      toast({ title: "تم إضافة الوصفة بنجاح" });
+    },
+    onError: (error: any) => {
+      toast({ title: error.message || "فشل في إضافة الوصفة", variant: "destructive" });
+    },
+  });
+
   const getRawItemName = (id: string) => rawItems.find(r => r.id === id)?.nameAr || id;
-  const getRawItemCost = (id: string) => rawItems.find(r => r.id === id)?.unitCost || 0;
+  const getRawItemById = (id: string) => rawItems.find(r => r.id === id);
+  const getRawItemByCode = (code: string) => rawItems.find(r => r.code === code);
 
   const selectedRawItem = useMemo(() => {
     return rawItems.find(r => r.id === newIngredient.rawItemId);
@@ -244,9 +407,62 @@ export default function InventoryRecipesPage() {
     return { margin, percentage };
   }, [recipeCost, selectedCoffeeItem]);
 
+  const getItemRecipeCount = (coffeeItemId: string) => {
+    return allRecipes.filter(r => r.coffeeItemId === coffeeItemId).length;
+  };
+
+  const getItemCOGS = (coffeeItemId: string) => {
+    const itemRecipes = allRecipes.filter(r => r.coffeeItemId === coffeeItemId);
+    return itemRecipes.reduce((total, item) => {
+      const rawItem = rawItems.find(r => r.id === item.rawItemId);
+      if (!rawItem) return total;
+      
+      const normalizedQty = normalizeQuantity(item.quantity, item.unit, rawItem.unit);
+      if (normalizedQty === null) return total;
+      
+      return total + (rawItem.unitCost * normalizedQty);
+    }, 0);
+  };
+
   const handleViewRecipe = (item: CoffeeItem) => {
     setSelectedCoffeeItem(item);
     setIsRecipeDialogOpen(true);
+  };
+
+  const handleQuickSetup = (item: CoffeeItem) => {
+    setSelectedCoffeeItem(item);
+    setSelectedTemplate(item.id);
+    setIsQuickSetupOpen(true);
+  };
+
+  const handleApplyTemplate = () => {
+    if (!selectedCoffeeItem || !selectedTemplate) return;
+    
+    const template = drinkRecipeTemplates[selectedTemplate];
+    if (!template) {
+      toast({ title: "لا يوجد قالب لهذا المنتج", variant: "destructive" });
+      return;
+    }
+
+    const ingredients = template.ingredients.map(ing => {
+      const rawItem = getRawItemByCode(ing.rawCode);
+      if (!rawItem) return null;
+      return {
+        rawItemId: rawItem.id,
+        quantity: ing.quantity,
+        unit: ing.unit,
+      };
+    }).filter(Boolean) as Array<{ rawItemId: string; quantity: number; unit: string }>;
+
+    if (ingredients.length === 0) {
+      toast({ title: "لم يتم العثور على المواد الخام المطلوبة", variant: "destructive" });
+      return;
+    }
+
+    bulkAddIngredientsMutation.mutate({
+      coffeeItemId: selectedCoffeeItem.id,
+      ingredients,
+    });
   };
 
   const handleAddIngredient = () => {
@@ -281,19 +497,34 @@ export default function InventoryRecipesPage() {
     });
   };
 
-  const filteredCoffeeItems = coffeeItems.filter((item) =>
-    item.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.nameEn?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-  );
+  const filteredCoffeeItems = coffeeItems.filter((item) => {
+    const matchesSearch = item.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.nameEn?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
-  const getRecipeCountForItem = (coffeeItemId: string) => {
-    return 0;
-  };
+  const categories = [...new Set(coffeeItems.map(item => item.category))];
+
+  const stats = useMemo(() => {
+    const withRecipes = coffeeItems.filter(item => getItemRecipeCount(item.id) > 0).length;
+    const withoutRecipes = coffeeItems.length - withRecipes;
+    const avgCOGS = coffeeItems.length > 0 
+      ? coffeeItems.reduce((sum, item) => sum + getItemCOGS(item.id), 0) / coffeeItems.length 
+      : 0;
+    return { withRecipes, withoutRecipes, avgCOGS };
+  }, [coffeeItems, allRecipes, rawItems]);
 
   if (loadingCoffee) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="text-center">
+          <div className="relative">
+            <BookOpen className="h-12 w-12 text-primary animate-pulse mx-auto" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary absolute -bottom-1 -right-1" />
+          </div>
+          <p className="text-muted-foreground mt-3">جاري تحميل وصفات المنتجات...</p>
+        </div>
       </div>
     );
   }
@@ -302,83 +533,230 @@ export default function InventoryRecipesPage() {
     <div className="p-6 space-y-6" dir="rtl">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-primary/10">
-            <BookOpen className="h-7 w-7 text-primary" />
+          <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50">
+            <BookOpen className="h-7 w-7 text-emerald-700 dark:text-emerald-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               وصفات المنتجات
-              <Badge variant="secondary" className="font-normal">COGS</Badge>
+              <Badge variant="secondary" className="font-normal bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+                COGS
+              </Badge>
             </h1>
             <p className="text-muted-foreground text-sm">ربط المنتجات بالمواد الخام وحساب تكلفة الصنف تلقائياً</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-left">
-            <p className="text-2xl font-bold">{coffeeItems.length}</p>
-            <p className="text-xs text-muted-foreground">منتج</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border p-4 bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-900/50 dark:to-stone-800/50 border-stone-200 dark:border-stone-700">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-sm font-medium text-muted-foreground">إجمالي المنتجات</span>
+            <Coffee className="h-4 w-4 text-stone-600 dark:text-stone-400" />
           </div>
+          <div className="text-3xl font-bold text-stone-700 dark:text-stone-300">{coffeeItems.length}</div>
+          <p className="text-xs text-muted-foreground mt-1">منتج في القائمة</p>
+        </div>
+
+        <div className="rounded-xl border p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-emerald-200 dark:border-emerald-700">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-sm font-medium text-muted-foreground">منتجات بوصفات</span>
+            <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{stats.withRecipes}</div>
+          <p className="text-xs text-muted-foreground mt-1">وصفة مكتملة</p>
+        </div>
+
+        <div className="rounded-xl border p-4 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 border-amber-200 dark:border-amber-700">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-sm font-medium text-muted-foreground">تحتاج وصفات</span>
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="text-3xl font-bold text-amber-700 dark:text-amber-300">{stats.withoutRecipes}</div>
+          <p className="text-xs text-muted-foreground mt-1">منتج بدون وصفة</p>
+        </div>
+
+        <div className="rounded-xl border p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200 dark:border-blue-700">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-sm font-medium text-muted-foreground">متوسط التكلفة</span>
+            <Calculator className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.avgCOGS.toFixed(2)}</div>
+          <p className="text-xs text-muted-foreground mt-1">ر.س / منتج</p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="relative max-w-md">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="بحث بالاسم..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
-              data-testid="input-search-recipes"
-            />
+        <CardHeader className="border-b bg-gradient-to-r from-stone-50/50 to-transparent dark:from-stone-900/20 dark:to-transparent">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="بحث بالاسم..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10"
+                data-testid="input-search-recipes"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]" data-testid="select-category-filter">
+                <SelectValue placeholder="الفئة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الفئات</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {categoryLabels[cat] || cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-right">المنتج</TableHead>
                   <TableHead className="text-right">الفئة</TableHead>
                   <TableHead className="text-right">سعر البيع</TableHead>
+                  <TableHead className="text-right">التكلفة (COGS)</TableHead>
+                  <TableHead className="text-right">هامش الربح</TableHead>
+                  <TableHead className="text-right">المكونات</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCoffeeItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      لا توجد منتجات
+                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                      <Coffee className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium">لا توجد منتجات</p>
+                      <p className="text-sm">لم يتم العثور على منتجات مطابقة</p>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCoffeeItems.map((item) => (
-                    <TableRow key={item.id} data-testid={`row-recipe-${item.id}`}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{item.nameAr}</div>
-                          {item.nameEn && (
-                            <div className="text-sm text-muted-foreground">{item.nameEn}</div>
+                  filteredCoffeeItems.map((item) => {
+                    const recipeCount = getItemRecipeCount(item.id);
+                    const itemCOGS = getItemCOGS(item.id);
+                    const itemMargin = item.price - itemCOGS;
+                    const marginPercentage = item.price > 0 ? ((1 - itemCOGS / item.price) * 100) : 0;
+                    const hasTemplate = drinkRecipeTemplates[item.id];
+
+                    return (
+                      <TableRow 
+                        key={item.id} 
+                        className="hover-elevate transition-all"
+                        data-testid={`row-recipe-${item.id}`}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {item.imageUrl && (
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.nameAr} 
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{item.nameAr}</div>
+                              {item.nameEn && (
+                                <div className="text-sm text-muted-foreground">{item.nameEn}</div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-muted/50">
+                            {categoryLabels[item.category] || item.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{item.price.toFixed(2)}</span>
+                          <span className="text-muted-foreground mr-1">ر.س</span>
+                        </TableCell>
+                        <TableCell>
+                          {recipeCount > 0 ? (
+                            <span className="font-medium text-amber-600 dark:text-amber-400">
+                              {itemCOGS.toFixed(2)} ر.س
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{item.category}</Badge>
-                      </TableCell>
-                      <TableCell>{item.price.toFixed(2)} ر.س</TableCell>
-                      <TableCell>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleViewRecipe(item)}
-                          data-testid={`button-view-recipe-${item.id}`}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                        <TableCell>
+                          {recipeCount > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${
+                                marginPercentage >= 50 
+                                  ? 'text-emerald-600 dark:text-emerald-400' 
+                                  : marginPercentage >= 30 
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-red-600 dark:text-red-400'
+                              }`}>
+                                {marginPercentage.toFixed(0)}%
+                              </span>
+                              {marginPercentage >= 50 ? (
+                                <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                              ) : marginPercentage >= 30 ? (
+                                <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                              ) : (
+                                <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {recipeCount > 0 ? (
+                            <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+                              {recipeCount} مكون
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              لا توجد
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleViewRecipe(item)}
+                                  data-testid={`button-view-recipe-${item.id}`}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>عرض الوصفة</TooltipContent>
+                            </Tooltip>
+                            {hasTemplate && recipeCount === 0 && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleQuickSetup(item)}
+                                    className="text-emerald-600 hover:text-emerald-700"
+                                    data-testid={`button-quick-setup-${item.id}`}
+                                  >
+                                    <Zap className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>إعداد سريع</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -387,18 +765,21 @@ export default function InventoryRecipesPage() {
       </Card>
 
       <Dialog open={isRecipeDialogOpen} onOpenChange={setIsRecipeDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
+              <BookOpen className="h-5 w-5 text-emerald-600" />
               وصفة {selectedCoffeeItem?.nameAr}
             </DialogTitle>
+            <DialogDescription>
+              إدارة مكونات وتكلفة هذا المنتج
+            </DialogDescription>
           </DialogHeader>
           
           {selectedCoffeeItem && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-2 border-primary/20">
+                <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-full bg-primary/10">
@@ -412,18 +793,18 @@ export default function InventoryRecipesPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-2 border-orange-500/20 dark:border-orange-400/20">
+                <Card className="border-2 border-amber-500/20 dark:border-amber-400/20 bg-gradient-to-br from-amber-50 to-transparent dark:from-amber-900/10 dark:to-transparent">
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30">
-                        <Beaker className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                        <Beaker className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">تكلفة الصنف (COGS)</p>
                         {recipeCost === null ? (
                           <p className="text-xl font-bold text-muted-foreground">جاري الحساب...</p>
                         ) : (
-                          <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                          <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
                             {recipeCost.toFixed(2)} ر.س
                           </p>
                         )}
@@ -434,25 +815,25 @@ export default function InventoryRecipesPage() {
 
                 <Card className={`border-2 ${
                   profitMargin && profitMargin.percentage >= 50 
-                    ? 'border-green-500/20 dark:border-green-400/20' 
+                    ? 'border-emerald-500/20 dark:border-emerald-400/20 bg-gradient-to-br from-emerald-50 to-transparent dark:from-emerald-900/10 dark:to-transparent' 
                     : profitMargin && profitMargin.percentage >= 30 
-                      ? 'border-yellow-500/20 dark:border-yellow-400/20'
-                      : 'border-red-500/20 dark:border-red-400/20'
+                      ? 'border-amber-500/20 dark:border-amber-400/20 bg-gradient-to-br from-amber-50 to-transparent dark:from-amber-900/10 dark:to-transparent'
+                      : 'border-red-500/20 dark:border-red-400/20 bg-gradient-to-br from-red-50 to-transparent dark:from-red-900/10 dark:to-transparent'
                 }`}>
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-full ${
                         profitMargin && profitMargin.percentage >= 50 
-                          ? 'bg-green-100 dark:bg-green-900/30' 
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30' 
                           : profitMargin && profitMargin.percentage >= 30 
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30'
+                            ? 'bg-amber-100 dark:bg-amber-900/30'
                             : 'bg-red-100 dark:bg-red-900/30'
                       }`}>
                         {profitMargin && profitMargin.percentage >= 30 ? (
                           <TrendingUp className={`h-5 w-5 ${
                             profitMargin.percentage >= 50 
-                              ? 'text-green-600 dark:text-green-400' 
-                              : 'text-yellow-600 dark:text-yellow-400'
+                              ? 'text-emerald-600 dark:text-emerald-400' 
+                              : 'text-amber-600 dark:text-amber-400'
                           }`} />
                         ) : (
                           <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -468,9 +849,9 @@ export default function InventoryRecipesPage() {
                           <div>
                             <p className={`text-xl font-bold ${
                               profitMargin.percentage >= 50 
-                                ? 'text-green-600 dark:text-green-400' 
+                                ? 'text-emerald-600 dark:text-emerald-400' 
                                 : profitMargin.percentage >= 30 
-                                  ? 'text-yellow-600 dark:text-yellow-400'
+                                  ? 'text-amber-600 dark:text-amber-400'
                                   : 'text-red-600 dark:text-red-400'
                             }`}>
                               {profitMargin.margin.toFixed(2)} ر.س
@@ -488,9 +869,9 @@ export default function InventoryRecipesPage() {
                           value={Math.min(profitMargin.percentage, 100)} 
                           className={`h-2 ${
                             profitMargin.percentage >= 50 
-                              ? '[&>div]:bg-green-500' 
+                              ? '[&>div]:bg-emerald-500' 
                               : profitMargin.percentage >= 30 
-                                ? '[&>div]:bg-yellow-500'
+                                ? '[&>div]:bg-amber-500'
                                 : '[&>div]:bg-red-500'
                           }`}
                         />
@@ -505,14 +886,36 @@ export default function InventoryRecipesPage() {
                   <Calculator className="h-4 w-4" />
                   المكونات
                 </h3>
-                <Button 
-                  size="sm" 
-                  onClick={() => setIsAddIngredientOpen(true)}
-                  data-testid="button-add-ingredient"
-                >
-                  <Plus className="h-4 w-4 ml-1" />
-                  إضافة مكون
-                </Button>
+                <div className="flex items-center gap-2">
+                  {drinkRecipeTemplates[selectedCoffeeItem.id] && recipes.length === 0 && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedTemplate(selectedCoffeeItem.id);
+                        handleApplyTemplate();
+                      }}
+                      disabled={bulkAddIngredientsMutation.isPending}
+                      className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-700 dark:hover:bg-emerald-900/20"
+                      data-testid="button-apply-template"
+                    >
+                      {bulkAddIngredientsMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+                      ) : (
+                        <Zap className="h-4 w-4 ml-1" />
+                      )}
+                      إعداد سريع
+                    </Button>
+                  )}
+                  <Button 
+                    size="sm" 
+                    onClick={() => setIsAddIngredientOpen(true)}
+                    data-testid="button-add-ingredient"
+                  >
+                    <Plus className="h-4 w-4 ml-1" />
+                    إضافة مكون
+                  </Button>
+                </div>
               </div>
 
               {loadingRecipes ? (
@@ -520,10 +923,31 @@ export default function InventoryRecipesPage() {
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
               ) : recipes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/20">
                   <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>لا توجد مكونات مضافة لهذا المنتج</p>
+                  <p className="font-medium">لا توجد مكونات مضافة لهذا المنتج</p>
                   <p className="text-sm">أضف المكونات لحساب تكلفة الصنف</p>
+                  {drinkRecipeTemplates[selectedCoffeeItem.id] && (
+                    <div className="mt-4">
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedTemplate(selectedCoffeeItem.id);
+                          handleApplyTemplate();
+                        }}
+                        disabled={bulkAddIngredientsMutation.isPending}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                        data-testid="button-quick-setup-empty"
+                      >
+                        {bulkAddIngredientsMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+                        ) : (
+                          <Zap className="h-4 w-4 ml-1" />
+                        )}
+                        استخدام القالب الجاهز
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="border rounded-lg overflow-hidden">
@@ -549,11 +973,28 @@ export default function InventoryRecipesPage() {
 
                         return (
                           <TableRow key={recipe.id}>
-                            <TableCell className="font-medium">{getRawItemName(recipe.rawItemId)}</TableCell>
-                            <TableCell>{recipe.quantity}</TableCell>
-                            <TableCell>{unitLabels[recipe.unit] || recipe.unit}</TableCell>
-                            <TableCell>{costPerDisplayUnit.toFixed(4)} ر.س</TableCell>
-                            <TableCell className="font-medium">{totalCost.toFixed(2)} ر.س</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 rounded bg-muted">
+                                  <Beaker className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <span className="font-medium">{getRawItemName(recipe.rawItemId)}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-mono">{recipe.quantity}</span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="font-normal">
+                                {unitLabels[recipe.unit] || recipe.unit}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-muted-foreground">{costPerDisplayUnit.toFixed(4)} ر.س</span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-medium text-amber-600 dark:text-amber-400">{totalCost.toFixed(2)} ر.س</span>
+                            </TableCell>
                             <TableCell>
                               <Button
                                 size="icon"
@@ -582,116 +1023,161 @@ export default function InventoryRecipesPage() {
       </Dialog>
 
       <Dialog open={isAddIngredientOpen} onOpenChange={setIsAddIngredientOpen}>
-        <DialogContent className="max-w-lg" dir="rtl">
+        <DialogContent className="max-w-2xl" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-amber-600" />
+              <Plus className="h-5 w-5 text-emerald-600" />
               إضافة مكون جديد
             </DialogTitle>
+            <DialogDescription>
+              أضف مكون جديد لوصفة {selectedCoffeeItem?.nameAr}
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-amber-500" />
-                <Label className="text-sm font-medium">قوالب سريعة</Label>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {quickTemplates.slice(0, 6).map((template) => {
-                  const rawItem = rawItems.find(r => r.code === template.rawCode);
+
+          <Tabs defaultValue="quick" className="mt-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="quick" className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                قوالب سريعة
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                <Edit className="h-4 w-4" />
+                إدخال يدوي
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="quick" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-2">
+                {quickIngredientTemplates.map((template) => {
+                  const rawItem = getRawItemByCode(template.rawCode);
                   if (!rawItem) return null;
+                  const Icon = template.icon;
                   return (
                     <Button
                       key={template.name}
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="text-xs bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 dark:border-amber-700"
-                      onClick={() => setNewIngredient({
-                        rawItemId: rawItem.id,
-                        quantity: template.quantity,
-                        unit: template.unit,
-                      })}
+                      className="justify-start h-auto py-3 text-right hover-elevate"
+                      onClick={() => {
+                        setNewIngredient({
+                          rawItemId: rawItem.id,
+                          quantity: template.quantity,
+                          unit: template.unit,
+                        });
+                      }}
                       data-testid={`quick-template-${template.rawCode}`}
                     >
-                      {template.name}
-                      <span className="text-muted-foreground mr-1">
-                        ({template.quantity}{template.unit === 'g' ? 'غ' : template.unit === 'ml' ? 'مل' : ''})
-                      </span>
+                      <Icon className="h-4 w-4 ml-2 text-muted-foreground" />
+                      <div className="flex-1">
+                        <div className="font-medium">{template.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {rawItem.nameAr}
+                        </div>
+                      </div>
                     </Button>
                   );
                 })}
               </div>
-            </div>
 
-            <div className="border-t pt-4 space-y-2">
-              <Label>المادة الخام *</Label>
-              <Select
-                value={newIngredient.rawItemId}
-                onValueChange={(value) => setNewIngredient({ ...newIngredient, rawItemId: value })}
-              >
-                <SelectTrigger data-testid="select-raw-item">
-                  <SelectValue placeholder="اختر المادة الخام" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rawItems.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.nameAr} ({item.unitCost.toFixed(2)} ر.س / {unitLabels[item.unit]})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+              {newIngredient.rawItemId && (
+                <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      <span className="font-medium text-emerald-800 dark:text-emerald-200">تم اختيار المكون</span>
+                    </div>
+                    {ingredientCostPreview !== null && (
+                      <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-100">
+                        {ingredientCostPreview.toFixed(4)} ر.س
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                    {selectedRawItem?.nameAr} - {newIngredient.quantity} {unitShortLabels[newIngredient.unit]}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="manual" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>الكمية *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={newIngredient.quantity}
-                  onChange={(e) => setNewIngredient({ ...newIngredient, quantity: parseFloat(e.target.value) || 1 })}
-                  data-testid="input-quantity"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>الوحدة *</Label>
+                <Label>المادة الخام *</Label>
                 <Select
-                  value={newIngredient.unit}
-                  onValueChange={(value) => setNewIngredient({ ...newIngredient, unit: value })}
+                  value={newIngredient.rawItemId}
+                  onValueChange={(value) => setNewIngredient({ ...newIngredient, rawItemId: value })}
                 >
-                  <SelectTrigger data-testid="select-unit">
-                    <SelectValue />
+                  <SelectTrigger data-testid="select-raw-item">
+                    <SelectValue placeholder="اختر المادة الخام" />
                   </SelectTrigger>
                   <SelectContent>
-                    {compatibleUnits.map((key) => (
-                      <SelectItem key={key} value={key}>{unitLabels[key] || key}</SelectItem>
+                    {rawItems.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        <div className="flex items-center justify-between w-full gap-4">
+                          <span>{item.nameAr}</span>
+                          <span className="text-muted-foreground text-sm">
+                            {item.unitCost.toFixed(2)} ر.س / {unitLabels[item.unit]}
+                          </span>
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedRawItem && (
-                  <p className="text-xs text-muted-foreground">
-                    وحدة المادة الخام: {unitLabels[selectedRawItem.unit] || selectedRawItem.unit}
-                  </p>
-                )}
               </div>
-            </div>
 
-            {ingredientCostPreview !== null && (
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calculator className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">التكلفة المتوقعة</span>
-                  </div>
-                  <span className="text-lg font-bold text-primary">{ingredientCostPreview.toFixed(4)} ر.س</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>الكمية *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={newIngredient.quantity}
+                    onChange={(e) => setNewIngredient({ ...newIngredient, quantity: parseFloat(e.target.value) || 1 })}
+                    data-testid="input-quantity"
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {newIngredient.quantity} {unitLabels[newIngredient.unit]} من {selectedRawItem?.nameAr}
-                </p>
+                <div className="space-y-2">
+                  <Label>الوحدة *</Label>
+                  <Select
+                    value={newIngredient.unit}
+                    onValueChange={(value) => setNewIngredient({ ...newIngredient, unit: value })}
+                  >
+                    <SelectTrigger data-testid="select-unit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {compatibleUnits.map((key) => (
+                        <SelectItem key={key} value={key}>{unitLabels[key] || key}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedRawItem && (
+                    <p className="text-xs text-muted-foreground">
+                      وحدة المادة الخام: {unitLabels[selectedRawItem.unit] || selectedRawItem.unit}
+                    </p>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-          <DialogFooter>
+            </TabsContent>
+          </Tabs>
+
+          {ingredientCostPreview !== null && (
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">التكلفة المتوقعة</span>
+                </div>
+                <span className="text-lg font-bold text-primary">{ingredientCostPreview.toFixed(4)} ر.س</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {newIngredient.quantity} {unitLabels[newIngredient.unit]} من {selectedRawItem?.nameAr}
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="mt-6">
             <Button variant="outline" onClick={() => setIsAddIngredientOpen(false)}>إلغاء</Button>
             <Button
               onClick={handleAddIngredient}
@@ -699,7 +1185,60 @@ export default function InventoryRecipesPage() {
               data-testid="button-submit-ingredient"
             >
               {addIngredientMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
-              إضافة
+              إضافة المكون
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isQuickSetupOpen} onOpenChange={setIsQuickSetupOpen}>
+        <DialogContent className="max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-emerald-600" />
+              إعداد سريع للوصفة
+            </DialogTitle>
+            <DialogDescription>
+              استخدم القالب الجاهز لإضافة جميع مكونات {selectedCoffeeItem?.nameAr} بنقرة واحدة
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedTemplate && drinkRecipeTemplates[selectedTemplate] && (
+            <div className="space-y-4 py-4">
+              <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700">
+                <h4 className="font-medium text-emerald-800 dark:text-emerald-200 mb-3">
+                  {drinkRecipeTemplates[selectedTemplate].name}
+                </h4>
+                <div className="space-y-2">
+                  {drinkRecipeTemplates[selectedTemplate].ingredients.map((ing, idx) => {
+                    const rawItem = getRawItemByCode(ing.rawCode);
+                    return (
+                      <div key={idx} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Beaker className="h-3.5 w-3.5 text-emerald-600" />
+                          <span className="text-emerald-700 dark:text-emerald-300">{ing.description}</span>
+                        </div>
+                        <span className="text-muted-foreground">
+                          {ing.quantity} {unitShortLabels[ing.unit]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsQuickSetupOpen(false)}>إلغاء</Button>
+            <Button
+              onClick={handleApplyTemplate}
+              disabled={bulkAddIngredientsMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700"
+              data-testid="button-confirm-template"
+            >
+              {bulkAddIngredientsMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+              تطبيق القالب
             </Button>
           </DialogFooter>
         </DialogContent>

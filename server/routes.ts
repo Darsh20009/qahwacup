@@ -5391,6 +5391,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Recipe Items Routes (COGS)
+  
+  // Get all recipes (for COGS overview)
+  app.get("/api/inventory/all-recipes", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const items = await storage.getAllRecipeItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching all recipe items:", error);
+      res.status(500).json({ error: "فشل في جلب جميع الوصفات" });
+    }
+  });
+
   app.get("/api/inventory/recipes/:coffeeItemId", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
       const items = await storage.getRecipeItems(req.params.coffeeItemId);

@@ -262,6 +262,7 @@ export interface IStorage {
   updatePurchaseInvoicePayment(id: string, paidAmount: number): Promise<PurchaseInvoice | undefined>;
 
   // Recipe Items
+  getAllRecipeItems(): Promise<RecipeItem[]>;
   getRecipeItems(coffeeItemId: string): Promise<RecipeItem[]>;
   createRecipeItem(item: InsertRecipeItem): Promise<RecipeItem>;
   updateRecipeItem(id: string, updates: Partial<RecipeItem>): Promise<RecipeItem | undefined>;
@@ -1932,6 +1933,16 @@ export class DBStorage implements IStorage {
   }
 
   // Recipe Items
+  async getAllRecipeItems(): Promise<RecipeItem[]> {
+    const items = await RecipeItemModel.find({}).lean();
+    return items.map((item: any) => ({
+      ...item,
+      id: item._id.toString(),
+      _id: undefined,
+      __v: undefined,
+    }));
+  }
+
   async getRecipeItems(coffeeItemId: string): Promise<RecipeItem[]> {
     const items = await RecipeItemModel.find({ coffeeItemId }).lean();
     return items.map((item: any) => ({
