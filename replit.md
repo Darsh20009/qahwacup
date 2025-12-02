@@ -52,16 +52,18 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
 - **Table Occupancy:** Tables are automatically marked as occupied upon order creation and released correctly upon action.
 
 ### Inventory Management System
-- **Raw Materials:** Complete CRUD for raw materials with unit costs, suppliers, and stock levels.
+- **Raw Materials:** Complete CRUD for raw materials with unit costs, suppliers, and stock levels. Enhanced UI with category-specific icons (Coffee, Milk, Package) and warm coffee-themed color palette.
 - **Suppliers:** Manage supplier information with contact details and status tracking.
 - **Branch Stock:** Track inventory levels per branch with automatic low-stock alerts.
 - **Stock Transfers:** Transfer stock between branches with approval workflow. Statistics cards show pending, approved, and completed transfers with unit display.
 - **Purchase Invoices:** Create and track purchase orders from suppliers. Statistics cards show total value, pending payments, and overdue invoices. Payment tracking with incremental payments and progress bars.
-- **Recipe Management:** Define ingredient recipes for each product with exact quantities. Recipes store quantities in user's input unit (e.g., 18g coffee beans), normalization only occurs during COGS calculation.
+- **Recipe Management:** Define ingredient recipes for each product with exact quantities. Recipes store quantities in user's input unit (e.g., 18g coffee beans), normalization only occurs during COGS calculation. Enhanced with unit conversion helpers, cost previews, profit margin calculations, and quick ingredient templates for espresso-based, milk-based, and iced drinks.
 - **Smart Inventory Deduction:** Automatically deducts raw materials when orders are placed based on product recipes. Example: A cappuccino order deducts 18g coffee beans + 120ml milk. Prevents negative stock by capping deductions at available quantity (partial deduction). Tracks shortage information per-order-item for actionable frontend feedback.
 - **COGS Tracking:** Calculates Cost of Goods Sold for each order based on ingredient costs. Tracks gross profit per order. Order.inventoryDeducted status: 0=not deducted, 1=fully deducted, 2=partially deducted (shortages).
+- **Order Deduction Display:** Employee order view includes collapsible inventory details panel showing deduction status badge, COGS, gross profit, profit margin percentage, and list of all deducted raw materials with quantities and costs.
 - **Stock Movements:** Complete audit trail of all inventory changes with movement types (purchase, sale, transfer_in, transfer_out, adjustment, waste, return). Statistics show incoming movements, sales deductions, and waste counts.
 - **Stock Alerts:** Automatic alerts for low stock and out-of-stock items. Statistics show counts by alert type (out of stock, low stock, expiring). Supports bulk "mark all as read" action. Shows deficit column indicating quantity shortage.
+- **Inventory Dashboard:** Enhanced with coffee-themed KPI tiles showing raw materials count, low stock alerts, pending transfers, and COGS summary with gradient accents and warm beige/brown color palette.
 - **Seeded Test Data:** System seeds 3 suppliers (coffee, dairy, packaging), 20 raw materials with proper units and costs, and 14 drink recipes with realistic ingredient quantities for testing the complete inventory flow.
 
 ### System Design Choices
