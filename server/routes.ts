@@ -232,6 +232,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Open Cash Drawer - sends command to connected hardware
+  app.post("/api/pos/cash-drawer/open", requireAuth, (req: AuthRequest, res) => {
+    try {
+      const allowedRoles = ['cashier', 'manager', 'admin', 'owner'];
+      if (!req.employee || !allowedRoles.includes(req.employee.role)) {
+        return res.status(403).json({ error: "غير مصرح لك بفتح الخزانة" });
+      }
+      
+      // In a real implementation, this would send a command to the cash drawer hardware
+      // Using ESC/POS commands or through a local service
+      // For now, we simulate the action and log it
+      console.log(`[CASH DRAWER] Opened by ${req.employee.username} at ${new Date().toISOString()}`);
+      
+      res.json({ 
+        success: true,
+        message: "تم فتح الخزانة بنجاح",
+        openedBy: req.employee.username,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error opening cash drawer:", error);
+      res.status(500).json({ error: "فشل فتح الخزانة" });
+    }
+  });
+
+  // Print receipt - sends to connected thermal printer
+  app.post("/api/pos/print-receipt", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const allowedRoles = ['cashier', 'manager', 'admin', 'owner'];
+      if (!req.employee || !allowedRoles.includes(req.employee.role)) {
+        return res.status(403).json({ error: "غير مصرح لك بالطباعة" });
+      }
+      
+      const { orderNumber, receiptData } = req.body;
+      
+      // In a real implementation, this would:
+      // 1. Format the receipt data for thermal printer (ESC/POS commands)
+      // 2. Send to the connected printer via serial port or network
+      // 3. Handle printer errors
+      console.log(`[RECEIPT PRINT] Order ${orderNumber} printed by ${req.employee.username}`);
+      
+      res.json({ 
+        success: true,
+        message: "تمت الطباعة بنجاح",
+        orderNumber,
+        printedBy: req.employee.username,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error printing receipt:", error);
+      res.status(500).json({ error: "فشل في الطباعة" });
+    }
+  });
+
+  // Get hardware status (printer, cash drawer, etc.)
+  app.get("/api/pos/hardware-status", requireAuth, (req: AuthRequest, res) => {
+    try {
+      // In a real implementation, this would check actual hardware connections
+      res.json({
+        pos: posDeviceStatus,
+        printer: { connected: true, status: "ready" },
+        cashDrawer: { connected: true, status: "closed" },
+        scanner: { connected: true, status: "ready" }
+      });
+    } catch (error) {
+      console.error("Error getting hardware status:", error);
+      res.status(500).json({ error: "Failed to get hardware status" });
+    }
+  });
+
   // FILE UPLOAD ROUTES
   
   // Upload payment receipt

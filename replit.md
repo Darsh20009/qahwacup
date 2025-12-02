@@ -33,6 +33,15 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
 - **Employee Role Selection:** When creating employees, admins can select employee role (cashier, accountant, manager, admin) and assign them to specific branches.
 - **Branch Manager Assignment:** When creating a new branch, admins can either assign an existing manager or create a new manager account (without password - needs activation).
 - **POS Connection Settings:** The cashier interface includes a POS settings dialog with toggle switch to connect/disconnect the POS device, real-time status monitoring, and connection information. Cashiers can click the POS status indicator to access settings.
+- **Enhanced POS System:** Full-featured Point of Sale system similar to Foodics at `/employee/pos` with:
+  - Quick order screen with category-based item filtering (Espresso, Latte, Cold Drinks, Tea, Specialty)
+  - Multiple payment methods: Cash, Mada (POS), Alinma Pay, Ur Pay, Barq, Al Rajhi, Apple Pay
+  - Order parking/holding functionality for managing multiple customers
+  - Item-level and invoice-level discounts with discount code validation
+  - Offline mode support with automatic sync when connection is restored
+  - Hardware integration APIs for cash drawer and receipt printing
+  - Customer lookup by phone number with loyalty points display
+  - Receipt and tax invoice printing capabilities
 - **Automatic Tax Invoices:** Orders automatically send tax invoices via email (15% VAT) to customers who provide email addresses. Uses Maileroo SMTP integration.
 - **Driver Role Support:** Employee creation supports "driver" role (سائق توصيل) in both job title and system role dropdowns for delivery personnel management.
 

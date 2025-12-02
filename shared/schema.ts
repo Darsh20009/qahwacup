@@ -1097,7 +1097,7 @@ export const insertTaxInvoiceSchema = z.object({
 
 export type InsertTaxInvoice = z.infer<typeof insertTaxInvoiceSchema>;
 
-export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery';
+export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery' | 'apple_pay';
 
 export interface PaymentMethodInfo {
   id: PaymentMethod;
