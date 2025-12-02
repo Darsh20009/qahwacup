@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -34,10 +35,14 @@ import {
   BookOpen,
   Search,
   Eye,
-  Edit,
   Trash2,
   Calculator,
-  Loader2
+  Loader2,
+  Coffee,
+  TrendingUp,
+  TrendingDown,
+  CircleDollarSign,
+  Beaker
 } from "lucide-react";
 
 interface CoffeeItem {
@@ -183,6 +188,16 @@ export default function InventoryRecipesPage() {
     return getCompatibleUnits(selectedRawItem.unit);
   }, [selectedRawItem]);
 
+  const ingredientCostPreview = useMemo(() => {
+    if (!selectedRawItem || newIngredient.quantity <= 0) return null;
+    
+    const normalizedQty = normalizeQuantity(newIngredient.quantity, newIngredient.unit, selectedRawItem.unit);
+    if (normalizedQty === null) return null;
+    
+    const cost = selectedRawItem.unitCost * normalizedQty;
+    return cost;
+  }, [selectedRawItem, newIngredient.quantity, newIngredient.unit]);
+
   const recipeCost = useMemo(() => {
     if (loadingRecipes || rawItems.length === 0) return null;
     
@@ -238,8 +253,8 @@ export default function InventoryRecipesPage() {
     addIngredientMutation.mutate({
       coffeeItemId: selectedCoffeeItem.id,
       rawItemId: newIngredient.rawItemId,
-      quantity: normalizedQty,
-      unit: selectedRawItem.unit,
+      quantity: newIngredient.quantity,
+      unit: newIngredient.unit,
     });
   };
 
@@ -262,12 +277,23 @@ export default function InventoryRecipesPage() {
 
   return (
     <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <BookOpen className="h-8 w-8 text-primary" />
+          <div className="p-3 rounded-xl bg-primary/10">
+            <BookOpen className="h-7 w-7 text-primary" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">وصفات المنتجات</h1>
-            <p className="text-muted-foreground text-sm">ربط المنتجات بالمواد الخام وحساب تكلفة الصنف (COGS)</p>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              وصفات المنتجات
+              <Badge variant="secondary" className="font-normal">COGS</Badge>
+            </h1>
+            <p className="text-muted-foreground text-sm">ربط المنتجات بالمواد الخام وحساب تكلفة الصنف تلقائياً</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-left">
+            <p className="text-2xl font-bold">{coffeeItems.length}</p>
+            <p className="text-xs text-muted-foreground">منتج</p>
           </div>
         </div>
       </div>
@@ -348,36 +374,107 @@ export default function InventoryRecipesPage() {
           
           {selectedCoffeeItem && (
             <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                <div>
-                  <Label className="text-muted-foreground">سعر البيع</Label>
-                  <p className="text-xl font-bold">{selectedCoffeeItem.price.toFixed(2)} ر.س</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">تكلفة الصنف (COGS)</Label>
-                  {recipeCost === null ? (
-                    <p className="text-xl font-bold text-muted-foreground">جاري الحساب...</p>
-                  ) : (
-                    <p className="text-xl font-bold text-destructive">
-                      {recipeCost.toFixed(2)} ر.س
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">هامش الربح</Label>
-                  {profitMargin === null ? (
-                    <p className="text-xl font-bold text-muted-foreground">جاري الحساب...</p>
-                  ) : selectedCoffeeItem.price === 0 ? (
-                    <p className="text-xl font-bold text-muted-foreground">غير متاح</p>
-                  ) : (
-                    <p className="text-xl font-bold text-green-600">
-                      {profitMargin.margin.toFixed(2)} ر.س
-                      <span className="text-sm text-muted-foreground mr-1">
-                        ({profitMargin.percentage.toFixed(1)}%)
-                      </span>
-                    </p>
-                  )}
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-2 border-primary/20">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-primary/10">
+                        <CircleDollarSign className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">سعر البيع</p>
+                        <p className="text-xl font-bold">{selectedCoffeeItem.price.toFixed(2)} ر.س</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-orange-500/20 dark:border-orange-400/20">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30">
+                        <Beaker className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">تكلفة الصنف (COGS)</p>
+                        {recipeCost === null ? (
+                          <p className="text-xl font-bold text-muted-foreground">جاري الحساب...</p>
+                        ) : (
+                          <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                            {recipeCost.toFixed(2)} ر.س
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className={`border-2 ${
+                  profitMargin && profitMargin.percentage >= 50 
+                    ? 'border-green-500/20 dark:border-green-400/20' 
+                    : profitMargin && profitMargin.percentage >= 30 
+                      ? 'border-yellow-500/20 dark:border-yellow-400/20'
+                      : 'border-red-500/20 dark:border-red-400/20'
+                }`}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-full ${
+                        profitMargin && profitMargin.percentage >= 50 
+                          ? 'bg-green-100 dark:bg-green-900/30' 
+                          : profitMargin && profitMargin.percentage >= 30 
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30'
+                            : 'bg-red-100 dark:bg-red-900/30'
+                      }`}>
+                        {profitMargin && profitMargin.percentage >= 30 ? (
+                          <TrendingUp className={`h-5 w-5 ${
+                            profitMargin.percentage >= 50 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-yellow-600 dark:text-yellow-400'
+                          }`} />
+                        ) : (
+                          <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground">هامش الربح</p>
+                        {profitMargin === null ? (
+                          <p className="text-xl font-bold text-muted-foreground">جاري الحساب...</p>
+                        ) : selectedCoffeeItem.price === 0 ? (
+                          <p className="text-xl font-bold text-muted-foreground">غير متاح</p>
+                        ) : (
+                          <div>
+                            <p className={`text-xl font-bold ${
+                              profitMargin.percentage >= 50 
+                                ? 'text-green-600 dark:text-green-400' 
+                                : profitMargin.percentage >= 30 
+                                  ? 'text-yellow-600 dark:text-yellow-400'
+                                  : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {profitMargin.margin.toFixed(2)} ر.س
+                              <span className="text-sm font-normal mr-1">
+                                ({profitMargin.percentage.toFixed(1)}%)
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {profitMargin && selectedCoffeeItem.price > 0 && (
+                      <div className="mt-3">
+                        <Progress 
+                          value={Math.min(profitMargin.percentage, 100)} 
+                          className={`h-2 ${
+                            profitMargin.percentage >= 50 
+                              ? '[&>div]:bg-green-500' 
+                              : profitMargin.percentage >= 30 
+                                ? '[&>div]:bg-yellow-500'
+                                : '[&>div]:bg-red-500'
+                          }`}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="flex items-center justify-between">
@@ -421,20 +518,18 @@ export default function InventoryRecipesPage() {
                     <TableBody>
                       {recipes.map((recipe) => {
                         const rawItem = rawItems.find(r => r.id === recipe.rawItemId);
-                        let costPerUnit = rawItem?.unitCost || 0;
-                        if (rawItem?.unit === 'kg' && recipe.unit === 'g') {
-                          costPerUnit = (rawItem?.unitCost || 0) / 1000;
-                        } else if (rawItem?.unit === 'liter' && recipe.unit === 'ml') {
-                          costPerUnit = (rawItem?.unitCost || 0) / 1000;
-                        }
-                        const totalCost = costPerUnit * recipe.quantity;
+                        const normalizedQty = rawItem ? normalizeQuantity(recipe.quantity, recipe.unit, rawItem.unit) : null;
+                        const totalCost = normalizedQty !== null && rawItem ? rawItem.unitCost * normalizedQty : 0;
+                        const costPerDisplayUnit = rawItem && normalizedQty !== null && recipe.quantity > 0 
+                          ? totalCost / recipe.quantity 
+                          : 0;
 
                         return (
                           <TableRow key={recipe.id}>
                             <TableCell className="font-medium">{getRawItemName(recipe.rawItemId)}</TableCell>
                             <TableCell>{recipe.quantity}</TableCell>
                             <TableCell>{unitLabels[recipe.unit] || recipe.unit}</TableCell>
-                            <TableCell>{costPerUnit.toFixed(4)} ر.س</TableCell>
+                            <TableCell>{costPerDisplayUnit.toFixed(4)} ر.س</TableCell>
                             <TableCell className="font-medium">{totalCost.toFixed(2)} ر.س</TableCell>
                             <TableCell>
                               <Button
@@ -521,6 +616,21 @@ export default function InventoryRecipesPage() {
                 )}
               </div>
             </div>
+
+            {ingredientCostPreview !== null && (
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calculator className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">التكلفة المتوقعة</span>
+                  </div>
+                  <span className="text-lg font-bold text-primary">{ingredientCostPreview.toFixed(4)} ر.س</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {newIngredient.quantity} {unitLabels[newIngredient.unit]} من {selectedRawItem?.nameAr}
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddIngredientOpen(false)}>إلغاء</Button>
