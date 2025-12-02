@@ -797,6 +797,54 @@ export async function seedRecipeItems() {
   }
 }
 
+export async function seedBranchStock() {
+  console.log("\n📦 Seeding branch stock...");
+  
+  try {
+    const branches = await storage.getBranches();
+    const rawItems = await storage.getRawItems();
+    
+    if (branches.length === 0 || rawItems.length === 0) {
+      console.log("⚠️  No branches or raw items found. Please seed those first.");
+      return;
+    }
+
+    for (const branch of branches) {
+      const branchId = branch._id?.toString() || branch.id;
+      
+      for (const rawItem of rawItems) {
+        const rawItemId = rawItem._id?.toString() || rawItem.id;
+        
+        try {
+          const existingStock = await storage.getBranchStockItem(branchId, rawItemId);
+          
+          if (!existingStock) {
+            const minStock = rawItem.minStockLevel || 10;
+            const maxStock = rawItem.maxStockLevel || 100;
+            const randomQuantity = Math.floor(Math.random() * (maxStock - minStock) + minStock);
+            
+            await storage.updateBranchStock(
+              branchId,
+              rawItemId,
+              randomQuantity,
+              'system',
+              'adjustment',
+              'Initial stock seeding'
+            );
+          }
+        } catch (error: any) {
+          if (error.code !== 11000) {
+            console.error(`❌ Error creating stock for ${rawItem.nameAr} in branch:`, error.message);
+          }
+        }
+      }
+      console.log(`✅ Initialized stock for branch: ${branch.nameAr}`);
+    }
+  } catch (error) {
+    console.error("❌ Error seeding branch stock:", error);
+  }
+}
+
 export async function runSeeds() {
   console.log("\n🌱 Starting database seeding...\n");
   
@@ -826,6 +874,9 @@ export async function runSeeds() {
   
   console.log("\n📊 Seeding tables...");
   await seedTables();
+  
+  console.log("\n📦 Seeding branch stock...");
+  await seedBranchStock();
   
   console.log("\n✅ Seeding completed!\n");
 }

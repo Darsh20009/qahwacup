@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car, Users } from "lucide-react";
+import { Coffee, ArrowRight, Clock, CheckCircle2, XCircle, Package, Bell, BellRing, Filter, Search, RefreshCw, Car, Users, ChevronDown, ChevronUp, Layers, DollarSign, TrendingUp, AlertTriangle } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { OrderMeta } from "@/components/OrderMeta";
 import { playNotificationSound } from "@/lib/notification-sound";
 import type { Employee, Order, OrderStatus } from "@shared/schema";
@@ -28,6 +29,140 @@ interface OrderItemData {
  price: string;
  imageUrl?: string;
  };
+}
+
+interface InventoryDeductionDetail {
+  rawItemId: string;
+  rawItemName: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+}
+
+function InventoryDeductionDisplay({ order }: { order: Order }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const deductionDetails = (order as any).inventoryDeductionDetails as InventoryDeductionDetail[] | null | undefined;
+  const inventoryDeducted = (order as any).inventoryDeducted as number | undefined;
+  const costOfGoods = (order as any).costOfGoods as number | undefined;
+  
+  // Guard against null/undefined deduction details
+  if (!deductionDetails || !Array.isArray(deductionDetails) || deductionDetails.length === 0) {
+    return null;
+  }
+  
+  // Calculate gross profit locally for more accurate display
+  const totalRevenue = Number(order.totalAmount) || 0;
+  const actualCostOfGoods = costOfGoods || 0;
+  const grossProfit = totalRevenue - actualCostOfGoods;
+
+  const getDeductionStatusBadge = () => {
+    switch (inventoryDeducted) {
+      case 1:
+        return (
+          <Badge className="bg-green-600/80 text-white text-xs flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            تم الخصم بالكامل
+          </Badge>
+        );
+      case 2:
+        return (
+          <Badge className="bg-yellow-600/80 text-white text-xs flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            خصم جزئي
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-gray-600/80 text-white text-xs flex items-center gap-1">
+            <XCircle className="w-3 h-3" />
+            لم يتم الخصم
+          </Badge>
+        );
+    }
+  };
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mb-4">
+      <CollapsibleTrigger asChild>
+        <div 
+          className="flex items-center justify-between bg-gradient-to-r from-amber-900/30 to-amber-800/20 rounded-lg p-3 cursor-pointer hover:from-amber-900/40 hover:to-amber-800/30 transition-colors"
+          data-testid={`trigger-inventory-details-${order.id}`}
+        >
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-amber-400" />
+            <span className="text-amber-400 text-sm font-semibold">تفاصيل المخزون</span>
+            {getDeductionStatusBadge()}
+          </div>
+          <div className="flex items-center gap-3">
+            {actualCostOfGoods > 0 && (
+              <div className="flex items-center gap-1 text-xs">
+                <DollarSign className="w-3 h-3 text-gray-400" />
+                <span className="text-gray-400">التكلفة:</span>
+                <span className="text-amber-400 font-medium">{actualCostOfGoods.toFixed(2)} ر.س</span>
+              </div>
+            )}
+            {actualCostOfGoods > 0 && (
+              <div className="flex items-center gap-1 text-xs">
+                <TrendingUp className="w-3 h-3 text-green-400" />
+                <span className="text-gray-400">الربح:</span>
+                <span className={`font-medium ${grossProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {grossProfit.toFixed(2)} ر.س
+                </span>
+              </div>
+            )}
+            {isOpen ? <ChevronUp className="w-4 h-4 text-amber-400" /> : <ChevronDown className="w-4 h-4 text-amber-400" />}
+          </div>
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2">
+        <div className="bg-[#1f1510] rounded-lg p-3 space-y-2 border border-amber-500/10">
+          <p className="text-gray-400 text-xs mb-2">المواد الخام المخصومة من المخزون:</p>
+          {deductionDetails.map((detail, index) => (
+            <div 
+              key={index} 
+              className="flex items-center justify-between text-sm py-1 border-b border-amber-500/10 last:border-b-0"
+              data-testid={`inventory-item-${detail.rawItemId}`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-amber-300">{detail.rawItemName}</span>
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <span className="text-gray-400">
+                  {detail.quantity.toFixed(2)} {detail.unit}
+                </span>
+                <span className="text-amber-400">
+                  {detail.totalCost.toFixed(2)} ر.س
+                </span>
+              </div>
+            </div>
+          ))}
+          {actualCostOfGoods > 0 && (
+            <div className="pt-2 mt-2 border-t border-amber-500/20">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">إجمالي التكلفة:</span>
+                <span className="text-amber-400 font-semibold">{actualCostOfGoods.toFixed(2)} ر.س</span>
+              </div>
+              <div className="flex justify-between text-sm mt-1">
+                <span className="text-gray-400">صافي الربح:</span>
+                <span className={`font-semibold ${grossProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {grossProfit.toFixed(2)} ر.س
+                </span>
+              </div>
+              {totalRevenue > 0 && (
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-400">هامش الربح:</span>
+                  <span className="text-purple-400 font-semibold">
+                    {((grossProfit / totalRevenue) * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
 }
 
 function generateCompletionWhatsAppLink(order: Order): string {
@@ -568,6 +703,9 @@ export default function EmployeeOrders() {
    })}
    </div>
    </div>
+
+   {/* Inventory Deduction Details */}
+   <InventoryDeductionDisplay order={order} />
 
    {order.customerNotes && (
    <div className="bg-amber-900/20 rounded-lg p-3 mb-4 border border-amber-500/20">

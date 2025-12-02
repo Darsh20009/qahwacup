@@ -30,6 +30,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   Plus, 
   BookOpen,
@@ -42,7 +47,10 @@ import {
   TrendingUp,
   TrendingDown,
   CircleDollarSign,
-  Beaker
+  Beaker,
+  Zap,
+  Info,
+  CheckCircle,
 } from "lucide-react";
 
 interface CoffeeItem {
@@ -95,6 +103,21 @@ const unitConversions: Record<string, Record<string, number>> = {
   volume: { liter: 1000, ml: 1 },
   count: { piece: 1, box: 1, bag: 1 },
 };
+
+const quickTemplates = [
+  { name: "شوت إسبريسو", rawCode: "RAW-001", quantity: 9, unit: "g" },
+  { name: "شوت مزدوج", rawCode: "RAW-001", quantity: 18, unit: "g" },
+  { name: "حليب لاتيه", rawCode: "RAW-003", quantity: 180, unit: "ml" },
+  { name: "حليب كابتشينو", rawCode: "RAW-003", quantity: 120, unit: "ml" },
+  { name: "سيرب فانيلا", rawCode: "RAW-006", quantity: 30, unit: "ml" },
+  { name: "سيرب كراميل", rawCode: "RAW-007", quantity: 30, unit: "ml" },
+  { name: "شوكولاتة", rawCode: "RAW-008", quantity: 30, unit: "ml" },
+  { name: "ماتشا", rawCode: "RAW-009", quantity: 3, unit: "g" },
+  { name: "كريمة مخفوقة", rawCode: "RAW-010", quantity: 30, unit: "ml" },
+  { name: "كوب صغير", rawCode: "RAW-013", quantity: 1, unit: "piece" },
+  { name: "كوب وسط", rawCode: "RAW-014", quantity: 1, unit: "piece" },
+  { name: "كوب كبير", rawCode: "RAW-015", quantity: 1, unit: "piece" },
+];
 
 const getCompatibleUnits = (baseUnit: string): string[] => {
   const dimension = unitDimensions[baseUnit];
@@ -559,12 +582,48 @@ export default function InventoryRecipesPage() {
       </Dialog>
 
       <Dialog open={isAddIngredientOpen} onOpenChange={setIsAddIngredientOpen}>
-        <DialogContent dir="rtl">
+        <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
-            <DialogTitle>إضافة مكون جديد</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-amber-600" />
+              إضافة مكون جديد
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <Label className="text-sm font-medium">قوالب سريعة</Label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {quickTemplates.slice(0, 6).map((template) => {
+                  const rawItem = rawItems.find(r => r.code === template.rawCode);
+                  if (!rawItem) return null;
+                  return (
+                    <Button
+                      key={template.name}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 dark:border-amber-700"
+                      onClick={() => setNewIngredient({
+                        rawItemId: rawItem.id,
+                        quantity: template.quantity,
+                        unit: template.unit,
+                      })}
+                      data-testid={`quick-template-${template.rawCode}`}
+                    >
+                      {template.name}
+                      <span className="text-muted-foreground mr-1">
+                        ({template.quantity}{template.unit === 'g' ? 'غ' : template.unit === 'ml' ? 'مل' : ''})
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="border-t pt-4 space-y-2">
               <Label>المادة الخام *</Label>
               <Select
                 value={newIngredient.rawItemId}
