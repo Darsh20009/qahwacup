@@ -22,8 +22,7 @@ import {
   Receipt, Wallet, QrCode, SplitSquareVertical, AlertTriangle,
   RefreshCw, Archive, MoreVertical, MessageSquare
 } from "lucide-react";
-import { ReceiptPrint } from "@/components/receipt-print";
-import { TaxInvoicePrint } from "@/components/tax-invoice-print";
+import { printTaxInvoice, printSimpleReceipt } from "@/lib/print-utils";
 import type { Employee, CoffeeItem, PaymentMethod, LoyaltyCard } from "@shared/schema";
 
 interface OrderItem {
@@ -520,47 +519,96 @@ export default function POSSystem() {
     }
   };
 
-  const printReceipt = async () => {
-    if (lastOrder) {
-      try {
-        await fetch('/api/pos/print-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            orderNumber: lastOrder.orderNumber,
-            receiptData: lastOrder
-          })
-        });
-        toast({ title: "تم إرسال الإيصال للطابعة", className: "bg-green-600 text-white" });
-      } catch (error) {
-        console.error("Error sending to printer:", error);
-      }
+  const handlePrintReceipt = async () => {
+    if (!lastOrder) {
+      toast({
+        title: "خطأ",
+        description: "لا يوجد طلب للطباعة",
+        variant: "destructive",
+      });
+      return;
     }
-    window.print();
+    
+    try {
+      await fetch('/api/pos/print-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          orderNumber: lastOrder.orderNumber,
+          receiptData: lastOrder
+        })
+      });
+    } catch (error) {
+      console.error("Error sending to printer:", error);
+    }
+    
+    try {
+      await printSimpleReceipt({
+        orderNumber: lastOrder.orderNumber,
+        customerName: lastOrder.customerName,
+        customerPhone: lastOrder.customerPhone,
+        items: lastOrder.items,
+        subtotal: lastOrder.subtotal,
+        discount: lastOrder.discount,
+        invoiceDiscount: lastOrder.invoiceDiscount,
+        total: lastOrder.total,
+        paymentMethod: lastOrder.paymentMethod,
+        employeeName: lastOrder.employeeName,
+        tableNumber: lastOrder.tableNumber,
+        date: lastOrder.date,
+      });
+      toast({ title: "تم فتح نافذة الطباعة", className: "bg-green-600 text-white" });
+    } catch (error) {
+      console.error("Error printing receipt:", error);
+      toast({ title: "خطأ في الطباعة", variant: "destructive" });
+    }
   };
 
-  const printTaxInvoice = async () => {
-    setShowTaxInvoice(true);
-    if (lastOrder) {
-      try {
-        await fetch('/api/pos/print-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            orderNumber: lastOrder.orderNumber,
-            receiptData: { ...lastOrder, isTaxInvoice: true }
-          })
-        });
-      } catch (error) {
-        console.error("Error sending tax invoice to printer:", error);
-      }
+  const handlePrintTaxInvoice = async () => {
+    if (!lastOrder) {
+      toast({
+        title: "خطأ",
+        description: "لا يوجد طلب للطباعة",
+        variant: "destructive",
+      });
+      return;
     }
-    setTimeout(() => {
-      window.print();
-      setShowTaxInvoice(false);
-    }, 100);
+    
+    try {
+      await fetch('/api/pos/print-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          orderNumber: lastOrder.orderNumber,
+          receiptData: { ...lastOrder, isTaxInvoice: true }
+        })
+      });
+    } catch (error) {
+      console.error("Error sending tax invoice to printer:", error);
+    }
+    
+    try {
+      await printTaxInvoice({
+        orderNumber: lastOrder.orderNumber,
+        customerName: lastOrder.customerName,
+        customerPhone: lastOrder.customerPhone,
+        items: lastOrder.items,
+        subtotal: lastOrder.subtotal,
+        discount: lastOrder.discount,
+        invoiceDiscount: lastOrder.invoiceDiscount,
+        total: lastOrder.total,
+        paymentMethod: lastOrder.paymentMethod,
+        employeeName: lastOrder.employeeName,
+        tableNumber: lastOrder.tableNumber,
+        date: lastOrder.date,
+      });
+      toast({ title: "تم فتح نافذة الفاتورة الضريبية", className: "bg-green-600 text-white" });
+    } catch (error) {
+      console.error("Error printing tax invoice:", error);
+      toast({ title: "خطأ في الطباعة", variant: "destructive" });
+    }
   };
 
   const resetForm = () => {
@@ -1516,11 +1564,11 @@ export default function POSSystem() {
                 )}
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Button onClick={printReceipt} className="h-14 bg-amber-600 hover:bg-amber-700" data-testid="button-print-receipt">
+                <Button onClick={handlePrintReceipt} className="h-14 bg-amber-600 hover:bg-amber-700" data-testid="button-print-receipt">
                   <Printer className="w-5 h-5 ml-2" />
                   طباعة الإيصال
                 </Button>
-                <Button onClick={printTaxInvoice} variant="outline" className="h-14 border-slate-600 text-amber-400" data-testid="button-print-tax">
+                <Button onClick={handlePrintTaxInvoice} variant="outline" className="h-14 border-slate-600 text-amber-400" data-testid="button-print-tax">
                   <FileText className="w-5 h-5 ml-2" />
                   فاتورة ضريبية
                 </Button>
@@ -1533,41 +1581,6 @@ export default function POSSystem() {
         </DialogContent>
       </Dialog>
 
-      {lastOrder && (
-        <div className="hidden print:block">
-          <div ref={receiptRef}>
-            <ReceiptPrint
-              orderNumber={lastOrder.orderNumber}
-              customerName={lastOrder.customerName}
-              customerPhone={lastOrder.customerPhone || ""}
-              items={lastOrder.items}
-              subtotal={lastOrder.subtotal}
-              discount={lastOrder.discount}
-              total={lastOrder.total}
-              paymentMethod={lastOrder.paymentMethod}
-              employeeName={lastOrder.employeeName}
-              tableNumber={lastOrder.tableNumber}
-              date={lastOrder.date}
-            />
-          </div>
-          {showTaxInvoice && (
-            <div ref={taxInvoiceRef}>
-              <TaxInvoicePrint
-                orderNumber={lastOrder.orderNumber}
-                customerName={lastOrder.customerName}
-                customerPhone={lastOrder.customerPhone || ""}
-                items={lastOrder.items}
-                subtotal={lastOrder.subtotal}
-                discount={lastOrder.discount}
-                total={lastOrder.total}
-                paymentMethod={lastOrder.paymentMethod}
-                employeeName={lastOrder.employeeName}
-                date={lastOrder.date}
-              />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -15,8 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone, Settings, Wifi, WifiOff, Mail, FileText } from "lucide-react";
 import QRScanner from "@/components/qr-scanner";
-import { ReceiptPrint } from "@/components/receipt-print";
-import { TaxInvoicePrint } from "@/components/tax-invoice-print";
+import { printTaxInvoice, printSimpleReceipt } from "@/lib/print-utils";
 import type { Employee, CoffeeItem, PaymentMethod, LoyaltyCard } from "@shared/schema";
 
 interface OrderItem {
@@ -86,9 +85,6 @@ export default function EmployeeCashier() {
  const [isSendingEmail, setIsSendingEmail] = useState(false);
  const [showEmailDialog, setShowEmailDialog] = useState(false);
  const [emailToSend, setEmailToSend] = useState("");
- const [showTaxInvoice, setShowTaxInvoice] = useState(false);
- const receiptRef = useRef<HTMLDivElement>(null);
- const taxInvoiceRef = useRef<HTMLDivElement>(null);
  
  const { toast } = useToast();
 
@@ -499,16 +495,82 @@ export default function EmployeeCashier() {
  });
  };
 
- const handlePrintReceipt = () => {
- window.print();
+ const handlePrintReceipt = async () => {
+   if (!lastOrder) {
+     toast({
+       title: "خطأ",
+       description: "لا يوجد طلب للطباعة",
+       variant: "destructive",
+     });
+     return;
+   }
+   
+   try {
+     await printSimpleReceipt({
+       orderNumber: lastOrder.orderNumber,
+       customerName: lastOrder.customerName,
+       customerPhone: lastOrder.customerPhone,
+       items: lastOrder.items,
+       subtotal: lastOrder.subtotal,
+       discount: lastOrder.discount,
+       total: lastOrder.total,
+       paymentMethod: lastOrder.paymentMethod,
+       employeeName: lastOrder.employeeName,
+       tableNumber: lastOrder.tableNumber,
+       date: lastOrder.date,
+     });
+     toast({
+       title: "تم فتح نافذة الطباعة",
+       description: "يمكنك الآن طباعة الإيصال",
+       className: "bg-green-600 text-white",
+     });
+   } catch (error) {
+     console.error("Error printing receipt:", error);
+     toast({
+       title: "خطأ",
+       description: "فشل في فتح نافذة الطباعة",
+       variant: "destructive",
+     });
+   }
  };
 
- const handlePrintTaxInvoice = () => {
- setShowTaxInvoice(true);
- setTimeout(() => {
- window.print();
- setShowTaxInvoice(false);
- }, 100);
+ const handlePrintTaxInvoice = async () => {
+   if (!lastOrder) {
+     toast({
+       title: "خطأ",
+       description: "لا يوجد طلب للطباعة",
+       variant: "destructive",
+     });
+     return;
+   }
+   
+   try {
+     await printTaxInvoice({
+       orderNumber: lastOrder.orderNumber,
+       customerName: lastOrder.customerName,
+       customerPhone: lastOrder.customerPhone,
+       items: lastOrder.items,
+       subtotal: lastOrder.subtotal,
+       discount: lastOrder.discount,
+       total: lastOrder.total,
+       paymentMethod: lastOrder.paymentMethod,
+       employeeName: lastOrder.employeeName,
+       tableNumber: lastOrder.tableNumber,
+       date: lastOrder.date,
+     });
+     toast({
+       title: "تم فتح نافذة الطباعة",
+       description: "يمكنك الآن طباعة الفاتورة الضريبية",
+       className: "bg-green-600 text-white",
+     });
+   } catch (error) {
+     console.error("Error printing tax invoice:", error);
+     toast({
+       title: "خطأ",
+       description: "فشل في فتح نافذة الطباعة",
+       variant: "destructive",
+     });
+   }
  };
 
  const handleSendEmail = async () => {
@@ -1292,39 +1354,6 @@ export default function EmployeeCashier() {
  </div>
  </div>
 
- {lastOrder && !showTaxInvoice && (
- <ReceiptPrint
- ref={receiptRef}
- orderNumber={lastOrder.orderNumber}
- customerName={lastOrder.customerName}
- customerPhone={lastOrder.customerPhone}
- items={lastOrder.items}
- subtotal={lastOrder.subtotal}
- discount={lastOrder.discount}
- total={lastOrder.total}
- paymentMethod={lastOrder.paymentMethod}
- employeeName={lastOrder.employeeName}
- tableNumber={lastOrder.tableNumber}
- date={lastOrder.date}
- />
- )}
- 
- {lastOrder && showTaxInvoice && (
- <TaxInvoicePrint
- ref={taxInvoiceRef}
- orderNumber={lastOrder.orderNumber}
- customerName={lastOrder.customerName}
- customerPhone={lastOrder.customerPhone}
- items={lastOrder.items}
- subtotal={lastOrder.subtotal}
- discount={lastOrder.discount}
- total={lastOrder.total}
- paymentMethod={lastOrder.paymentMethod}
- employeeName={lastOrder.employeeName}
- tableNumber={lastOrder.tableNumber}
- date={lastOrder.date}
- />
- )}
  </div>
  );
 }
