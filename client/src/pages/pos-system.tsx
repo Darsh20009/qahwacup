@@ -686,7 +686,7 @@ export default function POSSystem() {
         paymentMethod: paymentInfo,
         employeeName: employee?.fullName || "",
         tableNumber: tableNumber || undefined,
-        date: new Date().toLocaleString('ar-SA'),
+        date: new Date().toISOString(),
         offline: order.offline
       });
       
