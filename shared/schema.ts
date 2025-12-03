@@ -642,39 +642,458 @@ TableSchema.index({ tableNumber: 1, branchId: 1 }, { unique: true });
 
 export const TableModel = mongoose.model<ITable>("Table", TableSchema);
 
+// ZATCA Phase 1 & 2 Compliant Tax Invoice
 export interface ITaxInvoice extends Document {
+  // Basic Invoice Info
   invoiceNumber: string;
+  uuid: string; // UUID for ZATCA compliance
   orderId: string;
+  
+  // Seller Information (المنشأة)
+  sellerName: string;
+  sellerNameEn?: string;
+  sellerVatNumber: string;
+  sellerCrNumber?: string; // Commercial Registration
+  sellerAddress: string;
+  sellerCity?: string;
+  sellerPostalCode?: string;
+  sellerBuildingNumber?: string;
+  sellerDistrict?: string;
+  sellerCountry: string;
+  branchId?: string;
+  
+  // Buyer/Customer Information (المشتري)
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
-  items: any;
+  customerVatNumber?: string; // VAT number if B2B
+  customerAddress?: string;
+  
+  // Invoice Type
+  invoiceType: 'standard' | 'simplified' | 'debit_note' | 'credit_note';
+  invoiceTypeCode: string; // 388 for standard, 381 for credit note, 383 for debit note
+  transactionType: 'B2B' | 'B2C'; // Business to Business or Business to Customer
+  
+  // Items and Amounts
+  items: Array<{
+    itemId: string;
+    nameAr: string;
+    nameEn?: string;
+    quantity: number;
+    unitPrice: number;
+    discountAmount: number;
+    taxableAmount: number;
+    taxRate: number;
+    taxAmount: number;
+    totalAmount: number;
+  }>;
+  
+  // Totals
   subtotal: number;
-  discountAmount: number;
-  taxAmount: number;
-  totalAmount: number;
+  totalDiscountAmount: number;
+  taxableAmount: number; // Amount before VAT
+  taxAmount: number; // VAT amount (15%)
+  totalAmount: number; // Total with VAT
+  
+  // Payment Information
   paymentMethod: string;
+  paymentMeans?: string; // 10 = Cash, 30 = Credit, etc.
+  
+  // ZATCA Compliance Fields
+  invoiceCounter: number; // Sequential counter
+  previousInvoiceHash?: string; // Hash of previous invoice
+  invoiceHash: string; // SHA-256 hash
+  qrCode: string; // TLV encoded base64 QR code
+  xmlContent?: string; // Full XML invoice
+  pdfUrl?: string;
+  
+  // Dates
   invoiceDate: Date;
+  supplyDate?: Date; // Date of supply
+  
+  // Status
+  zatcaStatus: 'pending' | 'submitted' | 'accepted' | 'rejected' | 'cleared';
+  zatcaSubmissionId?: string;
+  zatcaResponse?: string;
+  
+  // Employee who created the invoice
+  createdBy?: string;
+  
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const TaxInvoiceSchema = new Schema<ITaxInvoice>({
   invoiceNumber: { type: String, required: true, unique: true },
+  uuid: { type: String, required: true, unique: true },
   orderId: { type: String, required: true },
+  
+  sellerName: { type: String, required: true, default: 'قهوة كوب' },
+  sellerNameEn: { type: String, default: 'Qahwa Cup' },
+  sellerVatNumber: { type: String, required: true, default: '311234567890003' },
+  sellerCrNumber: { type: String },
+  sellerAddress: { type: String, required: true, default: 'الرياض، المملكة العربية السعودية' },
+  sellerCity: { type: String, default: 'الرياض' },
+  sellerPostalCode: { type: String },
+  sellerBuildingNumber: { type: String },
+  sellerDistrict: { type: String },
+  sellerCountry: { type: String, default: 'SA' },
+  branchId: { type: String },
+  
   customerName: { type: String, required: true },
   customerPhone: { type: String, required: true },
   customerEmail: { type: String },
+  customerVatNumber: { type: String },
+  customerAddress: { type: String },
+  
+  invoiceType: { type: String, enum: ['standard', 'simplified', 'debit_note', 'credit_note'], default: 'simplified' },
+  invoiceTypeCode: { type: String, default: '388' },
+  transactionType: { type: String, enum: ['B2B', 'B2C'], default: 'B2C' },
+  
   items: { type: Schema.Types.Mixed, required: true },
+  
   subtotal: { type: Number, required: true },
-  discountAmount: { type: Number, default: 0 },
+  totalDiscountAmount: { type: Number, default: 0 },
+  taxableAmount: { type: Number, required: true },
   taxAmount: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
+  
   paymentMethod: { type: String, required: true },
+  paymentMeans: { type: String },
+  
+  invoiceCounter: { type: Number, required: true },
+  previousInvoiceHash: { type: String },
+  invoiceHash: { type: String, required: true },
+  qrCode: { type: String, required: true },
+  xmlContent: { type: String },
+  pdfUrl: { type: String },
+  
   invoiceDate: { type: Date, required: true },
+  supplyDate: { type: Date },
+  
+  zatcaStatus: { type: String, enum: ['pending', 'submitted', 'accepted', 'rejected', 'cleared'], default: 'pending' },
+  zatcaSubmissionId: { type: String },
+  zatcaResponse: { type: String },
+  
+  createdBy: { type: String },
+  
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+TaxInvoiceSchema.index({ invoiceDate: -1 });
+TaxInvoiceSchema.index({ branchId: 1, invoiceDate: -1 });
+TaxInvoiceSchema.index({ zatcaStatus: 1 });
+
+export const TaxInvoiceModel = mongoose.model<ITaxInvoice>("TaxInvoice", TaxInvoiceSchema);
+
+// ===== ACCOUNTING SYSTEM MODELS =====
+
+// Revenue Tracking - الإيرادات
+export interface IRevenue extends Document {
+  branchId: string;
+  date: Date;
+  orderId?: string;
+  invoiceId?: string;
+  category: 'sales' | 'delivery_fee' | 'service_charge' | 'other';
+  description?: string;
+  grossAmount: number; // Before VAT
+  vatAmount: number;
+  netAmount: number; // After VAT
+  paymentMethod: string;
+  employeeId?: string;
+  notes?: string;
+  createdAt: Date;
+}
+
+const RevenueSchema = new Schema<IRevenue>({
+  branchId: { type: String, required: true },
+  date: { type: Date, required: true },
+  orderId: { type: String },
+  invoiceId: { type: String },
+  category: { type: String, enum: ['sales', 'delivery_fee', 'service_charge', 'other'], default: 'sales' },
+  description: { type: String },
+  grossAmount: { type: Number, required: true },
+  vatAmount: { type: Number, required: true },
+  netAmount: { type: Number, required: true },
+  paymentMethod: { type: String, required: true },
+  employeeId: { type: String },
+  notes: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 
-export const TaxInvoiceModel = mongoose.model<ITaxInvoice>("TaxInvoice", TaxInvoiceSchema);
+RevenueSchema.index({ branchId: 1, date: -1 });
+RevenueSchema.index({ category: 1 });
+
+export const RevenueModel = mongoose.model<IRevenue>("Revenue", RevenueSchema);
+
+// Expense Tracking - المصروفات
+export interface IExpense extends Document {
+  branchId: string;
+  date: Date;
+  category: 'inventory' | 'salaries' | 'rent' | 'utilities' | 'marketing' | 'maintenance' | 'supplies' | 'other';
+  subcategory?: string;
+  description: string;
+  amount: number;
+  vatAmount?: number;
+  totalAmount: number;
+  paymentMethod: 'cash' | 'bank_transfer' | 'credit_card' | 'check' | 'other';
+  vendorName?: string;
+  vendorVatNumber?: string;
+  invoiceNumber?: string;
+  receiptUrl?: string;
+  approvedBy?: string;
+  createdBy: string;
+  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const ExpenseSchema = new Schema<IExpense>({
+  branchId: { type: String, required: true },
+  date: { type: Date, required: true },
+  category: { type: String, enum: ['inventory', 'salaries', 'rent', 'utilities', 'marketing', 'maintenance', 'supplies', 'other'], required: true },
+  subcategory: { type: String },
+  description: { type: String, required: true },
+  amount: { type: Number, required: true },
+  vatAmount: { type: Number, default: 0 },
+  totalAmount: { type: Number, required: true },
+  paymentMethod: { type: String, enum: ['cash', 'bank_transfer', 'credit_card', 'check', 'other'], required: true },
+  vendorName: { type: String },
+  vendorVatNumber: { type: String },
+  invoiceNumber: { type: String },
+  receiptUrl: { type: String },
+  approvedBy: { type: String },
+  createdBy: { type: String, required: true },
+  status: { type: String, enum: ['pending', 'approved', 'rejected', 'paid'], default: 'pending' },
+  notes: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+ExpenseSchema.index({ branchId: 1, date: -1 });
+ExpenseSchema.index({ category: 1 });
+ExpenseSchema.index({ status: 1 });
+
+export const ExpenseModel = mongoose.model<IExpense>("Expense", ExpenseSchema);
+
+// Daily Cash Register - الصندوق اليومي
+export interface ICashRegister extends Document {
+  branchId: string;
+  date: Date;
+  employeeId: string;
+  
+  // Opening
+  openingBalance: number;
+  openingTime: Date;
+  
+  // Transactions
+  cashSales: number;
+  cardSales: number;
+  otherSales: number;
+  
+  // Expenses
+  cashExpenses: number;
+  
+  // Deposits/Withdrawals
+  deposits: number;
+  withdrawals: number;
+  
+  // Closing
+  expectedCash: number;
+  actualCash: number;
+  difference: number;
+  closingTime?: Date;
+  closedBy?: string;
+  
+  // Status
+  status: 'open' | 'closed';
+  notes?: string;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const CashRegisterSchema = new Schema<ICashRegister>({
+  branchId: { type: String, required: true },
+  date: { type: Date, required: true },
+  employeeId: { type: String, required: true },
+  
+  openingBalance: { type: Number, required: true },
+  openingTime: { type: Date, required: true },
+  
+  cashSales: { type: Number, default: 0 },
+  cardSales: { type: Number, default: 0 },
+  otherSales: { type: Number, default: 0 },
+  
+  cashExpenses: { type: Number, default: 0 },
+  
+  deposits: { type: Number, default: 0 },
+  withdrawals: { type: Number, default: 0 },
+  
+  expectedCash: { type: Number, default: 0 },
+  actualCash: { type: Number, default: 0 },
+  difference: { type: Number, default: 0 },
+  closingTime: { type: Date },
+  closedBy: { type: String },
+  
+  status: { type: String, enum: ['open', 'closed'], default: 'open' },
+  notes: { type: String },
+  
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+CashRegisterSchema.index({ branchId: 1, date: -1 });
+CashRegisterSchema.index({ employeeId: 1, date: -1 });
+
+export const CashRegisterModel = mongoose.model<ICashRegister>("CashRegister", CashRegisterSchema);
+
+// Daily Accounting Summary - ملخص المحاسبة اليومي
+export interface IDailySummary extends Document {
+  branchId: string;
+  date: Date;
+  
+  // Revenue
+  totalOrders: number;
+  totalRevenue: number;
+  totalVatCollected: number;
+  
+  // Revenue by Payment Method
+  cashRevenue: number;
+  cardRevenue: number;
+  otherRevenue: number;
+  
+  // Revenue by Category
+  salesRevenue: number;
+  deliveryRevenue: number;
+  
+  // Cost of Goods Sold (COGS)
+  totalCogs: number;
+  
+  // Expenses
+  totalExpenses: number;
+  
+  // Profit
+  grossProfit: number; // Revenue - COGS
+  netProfit: number; // Gross Profit - Expenses
+  profitMargin: number; // (Net Profit / Revenue) * 100
+  
+  // Discounts Given
+  totalDiscounts: number;
+  
+  // Cancelled Orders
+  cancelledOrders: number;
+  cancelledAmount: number;
+  
+  // Generated automatically
+  isGenerated: number;
+  generatedAt?: Date;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const DailySummarySchema = new Schema<IDailySummary>({
+  branchId: { type: String, required: true },
+  date: { type: Date, required: true },
+  
+  totalOrders: { type: Number, default: 0 },
+  totalRevenue: { type: Number, default: 0 },
+  totalVatCollected: { type: Number, default: 0 },
+  
+  cashRevenue: { type: Number, default: 0 },
+  cardRevenue: { type: Number, default: 0 },
+  otherRevenue: { type: Number, default: 0 },
+  
+  salesRevenue: { type: Number, default: 0 },
+  deliveryRevenue: { type: Number, default: 0 },
+  
+  totalCogs: { type: Number, default: 0 },
+  
+  totalExpenses: { type: Number, default: 0 },
+  
+  grossProfit: { type: Number, default: 0 },
+  netProfit: { type: Number, default: 0 },
+  profitMargin: { type: Number, default: 0 },
+  
+  totalDiscounts: { type: Number, default: 0 },
+  
+  cancelledOrders: { type: Number, default: 0 },
+  cancelledAmount: { type: Number, default: 0 },
+  
+  isGenerated: { type: Number, default: 0 },
+  generatedAt: { type: Date },
+  
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+DailySummarySchema.index({ branchId: 1, date: -1 }, { unique: true });
+
+export const DailySummaryModel = mongoose.model<IDailySummary>("DailySummary", DailySummarySchema);
+
+// Kitchen Order Queue - طلبات المطبخ
+export interface IKitchenOrder extends Document {
+  orderId: string;
+  orderNumber: string;
+  branchId: string;
+  items: Array<{
+    itemId: string;
+    nameAr: string;
+    quantity: number;
+    notes?: string;
+    status: 'pending' | 'preparing' | 'ready';
+    preparedBy?: string;
+    preparedAt?: Date;
+  }>;
+  priority: 'normal' | 'high' | 'urgent';
+  orderType: 'dine-in' | 'takeaway' | 'delivery';
+  tableNumber?: string;
+  customerName?: string;
+  status: 'pending' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
+  assignedTo?: string; // Cook/Barista ID
+  startedAt?: Date;
+  completedAt?: Date;
+  estimatedTime?: number; // in minutes
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const KitchenOrderSchema = new Schema<IKitchenOrder>({
+  orderId: { type: String, required: true },
+  orderNumber: { type: String, required: true },
+  branchId: { type: String, required: true },
+  items: [{
+    itemId: { type: String, required: true },
+    nameAr: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    notes: { type: String },
+    status: { type: String, enum: ['pending', 'preparing', 'ready'], default: 'pending' },
+    preparedBy: { type: String },
+    preparedAt: { type: Date },
+  }],
+  priority: { type: String, enum: ['normal', 'high', 'urgent'], default: 'normal' },
+  orderType: { type: String, enum: ['dine-in', 'takeaway', 'delivery'], required: true },
+  tableNumber: { type: String },
+  customerName: { type: String },
+  status: { type: String, enum: ['pending', 'in_progress', 'ready', 'completed', 'cancelled'], default: 'pending' },
+  assignedTo: { type: String },
+  startedAt: { type: Date },
+  completedAt: { type: Date },
+  estimatedTime: { type: Number },
+  notes: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+KitchenOrderSchema.index({ branchId: 1, status: 1 });
+KitchenOrderSchema.index({ assignedTo: 1, status: 1 });
+KitchenOrderSchema.index({ createdAt: -1 });
+
+export const KitchenOrderModel = mongoose.model<IKitchenOrder>("KitchenOrder", KitchenOrderSchema);
 
 export interface IAttendance extends Document {
   employeeId: string;
@@ -1080,23 +1499,6 @@ export type InsertTable = z.infer<typeof insertTableSchema>;
 export type Attendance = IAttendance;
 export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
 
-export type TaxInvoice = ITaxInvoice;
-
-export const insertTaxInvoiceSchema = z.object({
-  orderId: z.string(),
-  customerName: z.string(),
-  customerPhone: z.string(),
-  customerEmail: z.string().optional(),
-  items: z.any(),
-  subtotal: z.number(),
-  discountAmount: z.number().default(0),
-  taxAmount: z.number(),
-  totalAmount: z.number(),
-  paymentMethod: z.string(),
-});
-
-export type InsertTaxInvoice = z.infer<typeof insertTaxInvoiceSchema>;
-
 export type PaymentMethod = 'cash' | 'alinma' | 'ur' | 'barq' | 'rajhi' | 'qahwa-card' | 'pos' | 'delivery' | 'apple_pay';
 
 export interface PaymentMethodInfo {
@@ -1107,8 +1509,6 @@ export interface PaymentMethodInfo {
   icon: string;
   requiresReceipt?: boolean;
 }
-
-export type EmployeeRole = 'owner' | 'admin' | 'manager' | 'cashier' | 'driver';
 export type JobTitle = 'كاشير' | 'محاسب' | 'بائع' | 'عارض' | 'سائق' | 'مدير' | 'مالك';
 
 export type OrderStatus = 'pending' | 'payment_confirmed' | 'in_progress' | 'ready' | 'out_for_delivery' | 'completed' | 'cancelled';
@@ -1557,3 +1957,120 @@ export type PurchaseInvoiceStatus = 'draft' | 'pending' | 'approved' | 'received
 export type PaymentStatusType = 'unpaid' | 'partial' | 'paid';
 export type StockAlertType = 'low_stock' | 'out_of_stock' | 'expiring_soon' | 'expired';
 export type StockMovementType = 'purchase' | 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'waste' | 'return';
+
+// ===== ZATCA & ACCOUNTING TYPE EXPORTS =====
+
+// Tax Invoice Types
+export type TaxInvoice = ITaxInvoice;
+export type InvoiceType = 'standard' | 'simplified' | 'debit_note' | 'credit_note';
+export type TransactionType = 'B2B' | 'B2C';
+export type ZatcaStatus = 'pending' | 'submitted' | 'accepted' | 'rejected' | 'cleared';
+
+// Accounting Types
+export type Revenue = IRevenue;
+export type Expense = IExpense;
+export type CashRegister = ICashRegister;
+export type DailySummary = IDailySummary;
+export type KitchenOrder = IKitchenOrder;
+
+export type ExpenseCategory = 'inventory' | 'salaries' | 'rent' | 'utilities' | 'marketing' | 'maintenance' | 'supplies' | 'other';
+export type ExpensePaymentMethod = 'cash' | 'bank_transfer' | 'credit_card' | 'check' | 'other';
+export type ExpenseStatus = 'pending' | 'approved' | 'rejected' | 'paid';
+export type RevenueCategory = 'sales' | 'delivery_fee' | 'service_charge' | 'other';
+export type CashRegisterStatus = 'open' | 'closed';
+export type KitchenOrderStatus = 'pending' | 'in_progress' | 'ready' | 'completed' | 'cancelled';
+export type KitchenOrderPriority = 'normal' | 'high' | 'urgent';
+export type KitchenOrderType = 'dine-in' | 'takeaway' | 'delivery';
+
+// Zod Schemas for ZATCA Invoice
+export const insertTaxInvoiceSchema = z.object({
+  orderId: z.string(),
+  customerName: z.string(),
+  customerPhone: z.string(),
+  customerEmail: z.string().optional(),
+  customerVatNumber: z.string().optional(),
+  customerAddress: z.string().optional(),
+  invoiceType: z.enum(['standard', 'simplified', 'debit_note', 'credit_note']).optional(),
+  transactionType: z.enum(['B2B', 'B2C']).optional(),
+  items: z.array(z.object({
+    itemId: z.string(),
+    nameAr: z.string(),
+    nameEn: z.string().optional(),
+    quantity: z.number(),
+    unitPrice: z.number(),
+    discountAmount: z.number().optional(),
+    taxRate: z.number().optional(),
+  })),
+  paymentMethod: z.string(),
+  branchId: z.string().optional(),
+  createdBy: z.string().optional(),
+});
+
+export type InsertTaxInvoice = z.infer<typeof insertTaxInvoiceSchema>;
+
+// Zod Schemas for Accounting
+export const insertExpenseSchema = z.object({
+  branchId: z.string(),
+  date: z.coerce.date(),
+  category: z.enum(['inventory', 'salaries', 'rent', 'utilities', 'marketing', 'maintenance', 'supplies', 'other']),
+  subcategory: z.string().optional(),
+  description: z.string(),
+  amount: z.number().positive(),
+  vatAmount: z.number().min(0).optional(),
+  paymentMethod: z.enum(['cash', 'bank_transfer', 'credit_card', 'check', 'other']),
+  vendorName: z.string().optional(),
+  vendorVatNumber: z.string().optional(),
+  invoiceNumber: z.string().optional(),
+  receiptUrl: z.string().optional(),
+  createdBy: z.string(),
+  notes: z.string().optional(),
+});
+
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+
+export const insertRevenueSchema = z.object({
+  branchId: z.string(),
+  date: z.coerce.date(),
+  orderId: z.string().optional(),
+  invoiceId: z.string().optional(),
+  category: z.enum(['sales', 'delivery_fee', 'service_charge', 'other']).optional(),
+  description: z.string().optional(),
+  grossAmount: z.number(),
+  vatAmount: z.number(),
+  netAmount: z.number(),
+  paymentMethod: z.string(),
+  employeeId: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type InsertRevenue = z.infer<typeof insertRevenueSchema>;
+
+export const insertCashRegisterSchema = z.object({
+  branchId: z.string(),
+  employeeId: z.string(),
+  openingBalance: z.number().min(0),
+});
+
+export type InsertCashRegister = z.infer<typeof insertCashRegisterSchema>;
+
+export const insertKitchenOrderSchema = z.object({
+  orderId: z.string(),
+  orderNumber: z.string(),
+  branchId: z.string(),
+  items: z.array(z.object({
+    itemId: z.string(),
+    nameAr: z.string(),
+    quantity: z.number(),
+    notes: z.string().optional(),
+  })),
+  priority: z.enum(['normal', 'high', 'urgent']).optional(),
+  orderType: z.enum(['dine-in', 'takeaway', 'delivery']),
+  tableNumber: z.string().optional(),
+  customerName: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type InsertKitchenOrder = z.infer<typeof insertKitchenOrderSchema>;
+
+// Employee Role Types (including new roles)
+export type EmployeeRole = 'owner' | 'admin' | 'manager' | 'cashier' | 'driver' | 'barista' | 'cook' | 'waiter';

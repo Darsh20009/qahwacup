@@ -85,6 +85,48 @@ export function requireOwner(req: AuthRequest, res: Response, next: NextFunction
   next();
 }
 
+// Kitchen staff roles: barista, cook, waiter + managers
+export function requireKitchenAccess(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.employee) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const kitchenRoles = ["barista", "cook", "waiter", "manager", "admin", "owner"];
+  if (!kitchenRoles.includes(req.employee.role)) {
+    return res.status(403).json({ error: "Forbidden - Kitchen access required" });
+  }
+
+  next();
+}
+
+// Cashier and above roles
+export function requireCashierAccess(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.employee) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const cashierRoles = ["cashier", "barista", "waiter", "manager", "admin", "owner"];
+  if (!cashierRoles.includes(req.employee.role)) {
+    return res.status(403).json({ error: "Forbidden - Cashier access required" });
+  }
+
+  next();
+}
+
+// Delivery roles
+export function requireDeliveryAccess(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.employee) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const deliveryRoles = ["driver", "waiter", "manager", "admin", "owner"];
+  if (!deliveryRoles.includes(req.employee.role)) {
+    return res.status(403).json({ error: "Forbidden - Delivery access required" });
+  }
+
+  next();
+}
+
 // Filter data by branch for managers (admins and owners see all)
 export function filterByBranch<T extends { branchId?: string }>(
   data: T[],

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema } from "@shared/schema";
-import { requireAuth, requireManager, requireAdmin, filterByBranch, type AuthRequest } from "./middleware/auth";
+import { requireAuth, requireManager, requireAdmin, filterByBranch, requireKitchenAccess, requireCashierAccess, requireDeliveryAccess, type AuthRequest } from "./middleware/auth";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
@@ -5744,6 +5744,654 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching inventory dashboard:", error);
       res.status(500).json({ error: "فشل في جلب ملخص المخزون" });
+    }
+  });
+
+  // ===================== ZATCA INVOICE ROUTES =====================
+  
+  // Import ZATCA utilities
+  const zatcaUtils = await import('./utils/zatca');
+  
+  // Create ZATCA-compliant invoice for an order
+  app.post("/api/zatca/invoices", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { orderId, customerName, customerPhone, customerEmail, customerVatNumber, 
+              customerAddress, items, paymentMethod, branchId, invoiceType, transactionType } = req.body;
+      
+      if (!orderId || !customerName || !customerPhone || !items || !paymentMethod) {
+        return res.status(400).json({ error: "البيانات المطلوبة ناقصة" });
+      }
+      
+      // Check if invoice already exists for this order
+      const existingInvoice = await zatcaUtils.getInvoiceByOrderId(orderId);
+      if (existingInvoice) {
+        return res.json(serializeDoc(existingInvoice));
+      }
+      
+      const order = await storage.getOrder(orderId);
+      if (!order) {
+        return res.status(404).json({ error: "الطلب غير موجود" });
+      }
+      
+      const invoice = await zatcaUtils.createZATCAInvoice({
+        orderId,
+        orderNumber: order.orderNumber,
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerVatNumber,
+        customerAddress,
+        items,
+        paymentMethod,
+        branchId: branchId || req.employee?.branchId,
+        createdBy: req.employee?.id,
+        invoiceType,
+        transactionType,
+      });
+      
+      res.json(serializeDoc(invoice));
+    } catch (error) {
+      console.error("Error creating ZATCA invoice:", error);
+      res.status(500).json({ error: "فشل في إنشاء الفاتورة الضريبية" });
+    }
+  });
+  
+  // Get invoice by order ID
+  app.get("/api/zatca/invoices/order/:orderId", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { orderId } = req.params;
+      const invoice = await zatcaUtils.getInvoiceByOrderId(orderId);
+      
+      if (!invoice) {
+        return res.status(404).json({ error: "الفاتورة غير موجودة" });
+      }
+      
+      res.json(serializeDoc(invoice));
+    } catch (error) {
+      console.error("Error fetching invoice:", error);
+      res.status(500).json({ error: "فشل في جلب الفاتورة" });
+    }
+  });
+  
+  // Get invoice XML
+  app.get("/api/zatca/invoices/:id/xml", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { TaxInvoiceModel } = await import('@shared/schema');
+      const invoice = await TaxInvoiceModel.findById(id);
+      
+      if (!invoice) {
+        return res.status(404).json({ error: "الفاتورة غير موجودة" });
+      }
+      
+      res.set('Content-Type', 'application/xml');
+      res.send(invoice.xmlContent);
+    } catch (error) {
+      console.error("Error fetching invoice XML:", error);
+      res.status(500).json({ error: "فشل في جلب ملف XML" });
+    }
+  });
+  
+  // Get all invoices with filtering
+  app.get("/api/zatca/invoices", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, startDate, endDate, page = '1', limit = '20' } = req.query;
+      const { TaxInvoiceModel } = await import('@shared/schema');
+      
+      const query: any = {};
+      const finalBranchId = branchId || req.employee?.branchId;
+      
+      if (finalBranchId && req.employee?.role !== 'admin' && req.employee?.role !== 'owner') {
+        query.branchId = finalBranchId;
+      } else if (branchId) {
+        query.branchId = branchId;
+      }
+      
+      if (startDate || endDate) {
+        query.invoiceDate = {};
+        if (startDate) query.invoiceDate.$gte = new Date(startDate as string);
+        if (endDate) query.invoiceDate.$lte = new Date(endDate as string);
+      }
+      
+      const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+      
+      const [invoices, total] = await Promise.all([
+        TaxInvoiceModel.find(query)
+          .sort({ invoiceDate: -1 })
+          .skip(skip)
+          .limit(parseInt(limit as string)),
+        TaxInvoiceModel.countDocuments(query),
+      ]);
+      
+      res.json({
+        invoices: invoices.map(serializeDoc),
+        total,
+        page: parseInt(page as string),
+        pages: Math.ceil(total / parseInt(limit as string)),
+      });
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      res.status(500).json({ error: "فشل في جلب الفواتير" });
+    }
+  });
+  
+  // Get invoice statistics
+  app.get("/api/zatca/stats", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, startDate, endDate } = req.query;
+      const finalBranchId = branchId as string || req.employee?.branchId;
+      
+      const stats = await zatcaUtils.getInvoiceStats(
+        finalBranchId,
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined,
+      );
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching invoice stats:", error);
+      res.status(500).json({ error: "فشل في جلب إحصائيات الفواتير" });
+    }
+  });
+  
+  // ===================== ACCOUNTING ROUTES =====================
+  
+  // Create expense
+  app.post("/api/accounting/expenses", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { ExpenseModel } = await import('@shared/schema');
+      const { branchId, date, category, subcategory, description, amount, vatAmount,
+              paymentMethod, vendorName, vendorVatNumber, invoiceNumber, receiptUrl, notes } = req.body;
+      
+      const totalAmount = amount + (vatAmount || 0);
+      
+      const expense = new ExpenseModel({
+        branchId: branchId || req.employee?.branchId,
+        date: new Date(date),
+        category,
+        subcategory,
+        description,
+        amount,
+        vatAmount: vatAmount || 0,
+        totalAmount,
+        paymentMethod,
+        vendorName,
+        vendorVatNumber,
+        invoiceNumber,
+        receiptUrl,
+        createdBy: req.employee?.id,
+        status: 'pending',
+        notes,
+      });
+      
+      await expense.save();
+      res.json(serializeDoc(expense));
+    } catch (error) {
+      console.error("Error creating expense:", error);
+      res.status(500).json({ error: "فشل في إنشاء المصروف" });
+    }
+  });
+  
+  // Get expenses
+  app.get("/api/accounting/expenses", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { ExpenseModel } = await import('@shared/schema');
+      const { branchId, startDate, endDate, category, status, page = '1', limit = '20' } = req.query;
+      
+      const query: any = {};
+      const finalBranchId = branchId || req.employee?.branchId;
+      
+      if (finalBranchId && req.employee?.role !== 'admin' && req.employee?.role !== 'owner') {
+        query.branchId = finalBranchId;
+      } else if (branchId) {
+        query.branchId = branchId;
+      }
+      
+      if (startDate || endDate) {
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate as string);
+        if (endDate) query.date.$lte = new Date(endDate as string);
+      }
+      if (category) query.category = category;
+      if (status) query.status = status;
+      
+      const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+      
+      const [expenses, total] = await Promise.all([
+        ExpenseModel.find(query)
+          .sort({ date: -1 })
+          .skip(skip)
+          .limit(parseInt(limit as string)),
+        ExpenseModel.countDocuments(query),
+      ]);
+      
+      res.json({
+        expenses: expenses.map(serializeDoc),
+        total,
+        page: parseInt(page as string),
+        pages: Math.ceil(total / parseInt(limit as string)),
+      });
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      res.status(500).json({ error: "فشل في جلب المصروفات" });
+    }
+  });
+  
+  // Approve expense
+  app.patch("/api/accounting/expenses/:id/approve", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { ExpenseModel } = await import('@shared/schema');
+      const { id } = req.params;
+      
+      const expense = await ExpenseModel.findByIdAndUpdate(
+        id,
+        { 
+          status: 'approved',
+          approvedBy: req.employee?.id,
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+      
+      if (!expense) {
+        return res.status(404).json({ error: "المصروف غير موجود" });
+      }
+      
+      res.json(serializeDoc(expense));
+    } catch (error) {
+      console.error("Error approving expense:", error);
+      res.status(500).json({ error: "فشل في اعتماد المصروف" });
+    }
+  });
+  
+  // Create revenue record
+  app.post("/api/accounting/revenue", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { RevenueModel } = await import('@shared/schema');
+      const { branchId, date, orderId, invoiceId, category, description,
+              grossAmount, vatAmount, netAmount, paymentMethod, notes } = req.body;
+      
+      const revenue = new RevenueModel({
+        branchId: branchId || req.employee?.branchId,
+        date: new Date(date),
+        orderId,
+        invoiceId,
+        category: category || 'sales',
+        description,
+        grossAmount,
+        vatAmount,
+        netAmount,
+        paymentMethod,
+        employeeId: req.employee?.id,
+        notes,
+      });
+      
+      await revenue.save();
+      res.json(serializeDoc(revenue));
+    } catch (error) {
+      console.error("Error creating revenue:", error);
+      res.status(500).json({ error: "فشل في تسجيل الإيراد" });
+    }
+  });
+  
+  // Get revenue records
+  app.get("/api/accounting/revenue", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { RevenueModel } = await import('@shared/schema');
+      const { branchId, startDate, endDate, category, page = '1', limit = '20' } = req.query;
+      
+      const query: any = {};
+      const finalBranchId = branchId || req.employee?.branchId;
+      
+      if (finalBranchId && req.employee?.role !== 'admin' && req.employee?.role !== 'owner') {
+        query.branchId = finalBranchId;
+      } else if (branchId) {
+        query.branchId = branchId;
+      }
+      
+      if (startDate || endDate) {
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate as string);
+        if (endDate) query.date.$lte = new Date(endDate as string);
+      }
+      if (category) query.category = category;
+      
+      const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+      
+      const [revenues, total] = await Promise.all([
+        RevenueModel.find(query)
+          .sort({ date: -1 })
+          .skip(skip)
+          .limit(parseInt(limit as string)),
+        RevenueModel.countDocuments(query),
+      ]);
+      
+      res.json({
+        revenues: revenues.map(serializeDoc),
+        total,
+        page: parseInt(page as string),
+        pages: Math.ceil(total / parseInt(limit as string)),
+      });
+    } catch (error) {
+      console.error("Error fetching revenue:", error);
+      res.status(500).json({ error: "فشل في جلب الإيرادات" });
+    }
+  });
+  
+  // Get daily summary
+  app.get("/api/accounting/daily-summary", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, date } = req.query;
+      const { DailySummaryModel, OrderModel, RevenueModel, ExpenseModel } = await import('@shared/schema');
+      
+      const targetDate = date ? new Date(date as string) : new Date();
+      targetDate.setHours(0, 0, 0, 0);
+      const nextDate = new Date(targetDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      const finalBranchId = branchId as string || req.employee?.branchId;
+      
+      // Check if summary exists
+      let summary = await DailySummaryModel.findOne({
+        branchId: finalBranchId,
+        date: { $gte: targetDate, $lt: nextDate },
+      });
+      
+      if (!summary) {
+        // Calculate summary from orders
+        const orderQuery: any = {
+          createdAt: { $gte: targetDate, $lt: nextDate },
+          status: { $ne: 'cancelled' },
+        };
+        if (finalBranchId) orderQuery.branchId = finalBranchId;
+        
+        const orders = await OrderModel.find(orderQuery);
+        
+        const expenseQuery: any = {
+          date: { $gte: targetDate, $lt: nextDate },
+          status: { $in: ['approved', 'paid'] },
+        };
+        if (finalBranchId) expenseQuery.branchId = finalBranchId;
+        
+        const expenses = await ExpenseModel.find(expenseQuery);
+        
+        const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const totalVat = totalRevenue * 0.15 / 1.15;
+        const cashRevenue = orders.filter(o => o.paymentMethod === 'cash').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const cardRevenue = orders.filter(o => ['pos', 'stc', 'alinma', 'ur', 'barq', 'rajhi'].includes(o.paymentMethod)).reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const otherRevenue = totalRevenue - cashRevenue - cardRevenue;
+        const deliveryRevenue = orders.filter(o => o.deliveryFee).reduce((sum, o) => sum + (o.deliveryFee || 0), 0);
+        const totalCogs = orders.reduce((sum, o) => sum + (o.costOfGoods || 0), 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
+        const totalDiscounts = orders.reduce((sum, o) => {
+          const subtotal = o.items?.reduce((s: number, i: any) => s + (Number(i.coffeeItem?.price || 0) * i.quantity), 0) || 0;
+          return sum + (subtotal - (o.totalAmount / 1.15));
+        }, 0);
+        
+        const cancelledOrders = await OrderModel.countDocuments({
+          ...orderQuery,
+          status: 'cancelled',
+        });
+        
+        summary = {
+          branchId: finalBranchId,
+          date: targetDate,
+          totalOrders: orders.length,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          totalVatCollected: Math.round(totalVat * 100) / 100,
+          cashRevenue: Math.round(cashRevenue * 100) / 100,
+          cardRevenue: Math.round(cardRevenue * 100) / 100,
+          otherRevenue: Math.round(otherRevenue * 100) / 100,
+          salesRevenue: Math.round((totalRevenue - deliveryRevenue) * 100) / 100,
+          deliveryRevenue: Math.round(deliveryRevenue * 100) / 100,
+          totalCogs: Math.round(totalCogs * 100) / 100,
+          totalExpenses: Math.round(totalExpenses * 100) / 100,
+          grossProfit: Math.round((totalRevenue - totalVat - totalCogs) * 100) / 100,
+          netProfit: Math.round((totalRevenue - totalVat - totalCogs - totalExpenses) * 100) / 100,
+          profitMargin: totalRevenue > 0 ? Math.round(((totalRevenue - totalVat - totalCogs - totalExpenses) / totalRevenue * 100) * 100) / 100 : 0,
+          totalDiscounts: Math.round(Math.abs(totalDiscounts) * 100) / 100,
+          cancelledOrders,
+          cancelledAmount: 0,
+        };
+      }
+      
+      res.json(serializeDoc(summary) || summary);
+    } catch (error) {
+      console.error("Error fetching daily summary:", error);
+      res.status(500).json({ error: "فشل في جلب الملخص اليومي" });
+    }
+  });
+  
+  // Get accounting dashboard
+  app.get("/api/accounting/dashboard", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    try {
+      const { branchId, period = 'today' } = req.query;
+      const { OrderModel, ExpenseModel, TaxInvoiceModel } = await import('@shared/schema');
+      
+      const finalBranchId = branchId as string || req.employee?.branchId;
+      
+      // Calculate date range
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = new Date();
+      
+      switch (period) {
+        case 'today':
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+          break;
+        case 'week':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setDate(1);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+      }
+      
+      const orderQuery: any = {
+        createdAt: { $gte: startDate, $lte: endDate },
+        status: { $ne: 'cancelled' },
+      };
+      if (finalBranchId) orderQuery.branchId = finalBranchId;
+      
+      const expenseQuery: any = {
+        date: { $gte: startDate, $lte: endDate },
+        status: { $in: ['approved', 'paid'] },
+      };
+      if (finalBranchId) expenseQuery.branchId = finalBranchId;
+      
+      const invoiceQuery: any = {
+        invoiceDate: { $gte: startDate, $lte: endDate },
+      };
+      if (finalBranchId) invoiceQuery.branchId = finalBranchId;
+      
+      const [orders, expenses, invoices] = await Promise.all([
+        OrderModel.find(orderQuery),
+        ExpenseModel.find(expenseQuery),
+        TaxInvoiceModel.find(invoiceQuery),
+      ]);
+      
+      const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+      const totalVat = invoices.reduce((sum, i) => sum + (i.taxAmount || 0), 0);
+      const totalExpenses = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
+      const totalCogs = orders.reduce((sum, o) => sum + (o.costOfGoods || 0), 0);
+      const grossProfit = totalRevenue - totalVat - totalCogs;
+      const netProfit = grossProfit - totalExpenses;
+      
+      // Group by category
+      const expensesByCategory = expenses.reduce((acc: any, e) => {
+        acc[e.category] = (acc[e.category] || 0) + e.totalAmount;
+        return acc;
+      }, {});
+      
+      // Group by payment method
+      const revenueByPayment = orders.reduce((acc: any, o) => {
+        acc[o.paymentMethod] = (acc[o.paymentMethod] || 0) + (o.totalAmount || 0);
+        return acc;
+      }, {});
+      
+      res.json({
+        period,
+        summary: {
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          totalVatCollected: Math.round(totalVat * 100) / 100,
+          totalExpenses: Math.round(totalExpenses * 100) / 100,
+          totalCogs: Math.round(totalCogs * 100) / 100,
+          grossProfit: Math.round(grossProfit * 100) / 100,
+          netProfit: Math.round(netProfit * 100) / 100,
+          profitMargin: totalRevenue > 0 ? Math.round((netProfit / totalRevenue * 100) * 100) / 100 : 0,
+          orderCount: orders.length,
+          invoiceCount: invoices.length,
+        },
+        expensesByCategory,
+        revenueByPayment,
+      });
+    } catch (error) {
+      console.error("Error fetching accounting dashboard:", error);
+      res.status(500).json({ error: "فشل في جلب لوحة المحاسبة" });
+    }
+  });
+  
+  // ===================== KITCHEN DISPLAY ROUTES =====================
+  
+  // Get kitchen orders
+  app.get("/api/kitchen/orders", requireAuth, requireKitchenAccess, async (req: AuthRequest, res) => {
+    try {
+      const { KitchenOrderModel } = await import('@shared/schema');
+      const { branchId, status } = req.query;
+      
+      const query: any = {};
+      const finalBranchId = branchId || req.employee?.branchId;
+      if (finalBranchId) query.branchId = finalBranchId;
+      if (status) {
+        query.status = status;
+      } else {
+        query.status = { $in: ['pending', 'in_progress'] };
+      }
+      
+      const orders = await KitchenOrderModel.find(query)
+        .sort({ priority: -1, createdAt: 1 });
+      
+      res.json(orders.map(serializeDoc));
+    } catch (error) {
+      console.error("Error fetching kitchen orders:", error);
+      res.status(500).json({ error: "فشل في جلب طلبات المطبخ" });
+    }
+  });
+  
+  // Create kitchen order from regular order (cashiers and above can create)
+  app.post("/api/kitchen/orders", requireAuth, requireCashierAccess, async (req: AuthRequest, res) => {
+    try {
+      const { KitchenOrderModel } = await import('@shared/schema');
+      const { orderId, orderNumber, items, orderType, tableNumber, customerName, priority, notes } = req.body;
+      
+      // Check if kitchen order already exists
+      const existing = await KitchenOrderModel.findOne({ orderId });
+      if (existing) {
+        return res.json(serializeDoc(existing));
+      }
+      
+      const kitchenOrder = new KitchenOrderModel({
+        orderId,
+        orderNumber,
+        branchId: req.employee?.branchId,
+        items: items.map((item: any) => ({
+          itemId: item.itemId || item.coffeeItemId,
+          nameAr: item.nameAr || item.coffeeItem?.nameAr,
+          quantity: item.quantity,
+          notes: item.notes,
+          status: 'pending',
+        })),
+        priority: priority || 'normal',
+        orderType: orderType || 'takeaway',
+        tableNumber,
+        customerName,
+        status: 'pending',
+        notes,
+      });
+      
+      await kitchenOrder.save();
+      res.json(serializeDoc(kitchenOrder));
+    } catch (error) {
+      console.error("Error creating kitchen order:", error);
+      res.status(500).json({ error: "فشل في إنشاء طلب المطبخ" });
+    }
+  });
+  
+  // Update kitchen order status
+  app.patch("/api/kitchen/orders/:id", requireAuth, requireKitchenAccess, async (req: AuthRequest, res) => {
+    try {
+      const { KitchenOrderModel } = await import('@shared/schema');
+      const { id } = req.params;
+      const { status, assignedTo } = req.body;
+      
+      const update: any = { updatedAt: new Date() };
+      if (status) {
+        update.status = status;
+        if (status === 'in_progress') {
+          update.startedAt = new Date();
+          update.assignedTo = req.employee?.id;
+        } else if (status === 'ready' || status === 'completed') {
+          update.completedAt = new Date();
+        }
+      }
+      if (assignedTo) update.assignedTo = assignedTo;
+      
+      const order = await KitchenOrderModel.findByIdAndUpdate(id, update, { new: true });
+      
+      if (!order) {
+        return res.status(404).json({ error: "طلب المطبخ غير موجود" });
+      }
+      
+      res.json(serializeDoc(order));
+    } catch (error) {
+      console.error("Error updating kitchen order:", error);
+      res.status(500).json({ error: "فشل في تحديث طلب المطبخ" });
+    }
+  });
+  
+  // Update item status in kitchen order
+  app.patch("/api/kitchen/orders/:id/items/:itemId", requireAuth, requireKitchenAccess, async (req: AuthRequest, res) => {
+    try {
+      const { KitchenOrderModel } = await import('@shared/schema');
+      const { id, itemId } = req.params;
+      const { status } = req.body;
+      
+      const order = await KitchenOrderModel.findById(id);
+      if (!order) {
+        return res.status(404).json({ error: "طلب المطبخ غير موجود" });
+      }
+      
+      const item = order.items.find((i: any) => i.itemId === itemId);
+      if (!item) {
+        return res.status(404).json({ error: "العنصر غير موجود" });
+      }
+      
+      item.status = status;
+      if (status === 'ready') {
+        item.preparedBy = req.employee?.id;
+        item.preparedAt = new Date();
+      }
+      
+      // Check if all items are ready
+      const allReady = order.items.every((i: any) => i.status === 'ready');
+      if (allReady) {
+        order.status = 'ready';
+        order.completedAt = new Date();
+      } else if (order.items.some((i: any) => i.status === 'preparing')) {
+        order.status = 'in_progress';
+      }
+      
+      order.updatedAt = new Date();
+      await order.save();
+      
+      res.json(serializeDoc(order));
+    } catch (error) {
+      console.error("Error updating kitchen item:", error);
+      res.status(500).json({ error: "فشل في تحديث عنصر المطبخ" });
     }
   });
 

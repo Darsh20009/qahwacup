@@ -44,6 +44,35 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
   - Receipt and tax invoice printing capabilities
 - **Automatic Tax Invoices:** Orders automatically send tax invoices via email (15% VAT) to customers who provide email addresses. Uses Maileroo SMTP integration.
 - **Driver Role Support:** Employee creation supports "driver" role (سائق توصيل) in both job title and system role dropdowns for delivery personnel management.
+- **ZATCA Compliance (Phase 1 + Phase 2):** Full Saudi Arabia tax authority compliance implementation:
+  - UUID-based invoice numbers with crypto.randomUUID()
+  - TLV format QR codes with Base64 encoding (ZATCA standard)
+  - UBL 2.1 compliant XML invoice generation
+  - Invoice hash chain (PIH - Previous Invoice Hash) for sequential validation
+  - Complete seller/buyer information with VAT numbers
+  - Invoice type codes: Standard (388), Simplified (388), Credit Note (381), Debit Note (383)
+  - Transaction types: B2B (0100000) and B2C (0200000)
+  - Tax calculations with proper rounding
+  - API endpoints: POST/GET /api/zatca/invoices, GET /api/zatca/invoices/:id/xml, GET /api/zatca/stats
+- **Full Accounting System:** Complete financial management with:
+  - Expense tracking (categories: inventory, salaries, rent, utilities, marketing, maintenance, supplies, other)
+  - Expense approval workflow (pending → approved/rejected → paid)
+  - Revenue tracking linked to orders and invoices
+  - Daily summary reports with cash/card breakdown
+  - Profit & Loss calculations (gross profit, net profit, margins)
+  - Cash register management for shift tracking
+  - API endpoints: POST/GET /api/accounting/expenses, POST/GET /api/accounting/revenue, GET /api/accounting/daily-summary, GET /api/accounting/dashboard
+- **New Employee Roles:**
+  - Barista (باريستا): Drink preparation staff with kitchen access
+  - Cook/Chef (طباخ): Kitchen staff for food preparation
+  - Waiter (نادل): Table service and delivery staff
+  - Role-based middleware: requireKitchenAccess, requireCashierAccess, requireDeliveryAccess
+- **Kitchen Display System:** Real-time order tracking for kitchen staff:
+  - Kitchen order queue with priority levels (normal, high, urgent)
+  - Order types: dine-in, takeaway, delivery
+  - Per-item status tracking (pending, preparing, ready)
+  - Assignment tracking with timestamps
+  - API endpoints: POST/GET/PATCH /api/kitchen/orders
 
 ### Feature Specifications
 - **Product Management:** Add, modify, delete coffee products.
