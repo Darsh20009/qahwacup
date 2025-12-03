@@ -501,181 +501,211 @@ const clearAllDataMutation = useMutation({
  })();
 
  return (
- <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] p-4" dir="rtl">
+ <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6" dir="rtl">
  <div className="max-w-7xl mx-auto">
- <div className="flex items-center justify-between mb-6">
- <div className="flex items-center gap-3">
- <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center">
- <Coffee className="w-6 h-6 text-white" />
+ <header className="bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 mb-6">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-4">
+ <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+ <Coffee className="w-7 h-7 text-white" />
  </div>
  <div>
- <h1 className="text-2xl font-bold text-amber-500">لوحةتحكم المدير</h1>
- <p className="text-gray-400 text-sm">مرحباً، {manager.fullName}</p>
+ <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+ لوحة تحكم المدير
+ </h1>
+ <p className="text-slate-400 text-sm">مرحباً، {manager.fullName}</p>
  </div>
  </div>
- <div className="flex gap-2">
+ <div className="flex items-center gap-3">
  <Button
  variant="outline"
- onClick={() => setLocation("/manager/attendance")}
- className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
- data-testid="button-attendance"
+ onClick={handleLogout}
+ className="border-slate-600 text-slate-400 hover:bg-slate-700/50 hover:text-red-400 hover:border-red-500/50"
+ data-testid="button-logout"
  >
- <UserCheck className="w-4 h-4 ml-2" />
- الحضور
- </Button>
- <Button
- variant="outline"
- onClick={() => setLocation("/manager/inventory")}
- className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
- data-testid="button-inventory"
- >
- <Warehouse className="w-4 h-4 ml-2" />
- المخزون
+ تسجيل الخروج
  </Button>
  <Button
  variant="outline"
  onClick={() => setLocation("/employee/dashboard")}
- className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+ className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
  data-testid="button-back"
  >
  <ArrowLeft className="w-4 h-4 ml-2" />
  رجوع
  </Button>
- <Button
- variant="outline"
- onClick={handleLogout}
- className="border-red-500/50 text-red-500 hover:bg-red-500/10"
- data-testid="button-logout"
- >
- تسجيل الخروج
- </Button>
- {isAdmin && (
-   <Button
-     variant="destructive"
-     onClick={() => {
-       if (confirm('تحذير: هذا سيحذف جميع الطلبات والعملاء! هل تريد المتابعة؟')) {
-         clearAllDataMutation.mutate();
-       }
-     }}
-     disabled={clearAllDataMutation.isPending}
-     data-testid="button-clear-all-data"
-   >
-     {clearAllDataMutation.isPending ? 'جاري الحذف...' : 'تنظيف جميع البيانات'}
-   </Button>
- )}
  </div>
  </div>
+ </header>
 
- {/* Date Filter */}
- <Card className="bg-[#2d1f1a] border-amber-500/20 mb-6">
- <CardContent className="p-4">
- <div className="flex items-center justify-between gap-4">
- <div className="flex items-center gap-2">
- <Calendar className="w-5 h-5 text-amber-500" />
- <span className="text-gray-300">فلترةالتقارير:</span>
- </div>
+ <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+ <Button
+ onClick={() => setLocation("/employee/pos")}
+ className="h-20 flex flex-col gap-2 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 shadow-lg shadow-amber-500/20 rounded-xl"
+ data-testid="button-pos"
+ >
+ <Package className="w-6 h-6" />
+ <span className="text-sm">نقاط البيع</span>
+ </Button>
+ <Button
+ onClick={() => setLocation("/manager/inventory")}
+ variant="outline"
+ className="h-20 flex flex-col gap-2 border-slate-600 text-slate-300 hover:bg-slate-700/50 rounded-xl"
+ data-testid="button-inventory"
+ >
+ <Warehouse className="w-6 h-6" />
+ <span className="text-sm">المخزون</span>
+ </Button>
+ <Button
+ onClick={() => setLocation("/manager/attendance")}
+ variant="outline"
+ className="h-20 flex flex-col gap-2 border-slate-600 text-slate-300 hover:bg-slate-700/50 rounded-xl"
+ data-testid="button-attendance"
+ >
+ <UserCheck className="w-6 h-6" />
+ <span className="text-sm">الحضور</span>
+ </Button>
+ <Button
+ onClick={handleExportData}
+ variant="outline"
+ className="h-20 flex flex-col gap-2 border-slate-600 text-slate-300 hover:bg-slate-700/50 rounded-xl"
+ data-testid="button-export"
+ >
+ <Download className="w-6 h-6" />
+ <span className="text-sm">تصدير Excel</span>
+ </Button>
  <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
- <SelectTrigger className="w-[200px] bg-[#1a1410] border-amber-500/30 text-white">
- <SelectValue />
+ <SelectTrigger className="h-20 flex flex-col gap-2 bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700/50 rounded-xl">
+ <Calendar className="w-6 h-6" />
+ <span className="text-sm">
+ {dateFilter === "today" ? "اليوم" : dateFilter === "week" ? "أسبوع" : dateFilter === "month" ? "شهر" : "الكل"}
+ </span>
  </SelectTrigger>
- <SelectContent>
+ <SelectContent className="bg-slate-800 border-slate-700">
  <SelectItem value="today">اليوم</SelectItem>
  <SelectItem value="week">آخر أسبوع</SelectItem>
  <SelectItem value="month">آخر شهر</SelectItem>
  <SelectItem value="all">كل الفترة</SelectItem>
  </SelectContent>
  </Select>
+ {isAdmin && (
+   <Button
+     variant="outline"
+     onClick={() => {
+       if (confirm('تحذير: هذا سيحذف جميع الطلبات والعملاء! هل تريد المتابعة؟')) {
+         clearAllDataMutation.mutate();
+       }
+     }}
+     disabled={clearAllDataMutation.isPending}
+     className="h-20 flex flex-col gap-2 border-red-600/50 text-red-400 hover:bg-red-500/10 rounded-xl"
+     data-testid="button-clear-all-data"
+   >
+     <Trash2 className="w-6 h-6" />
+     <span className="text-xs">{clearAllDataMutation.isPending ? 'جاري...' : 'تنظيف'}</span>
+   </Button>
+ )}
  </div>
- </CardContent>
- </Card>
 
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
- <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:border-blue-500/40 transition-all">
- <CardHeader className="pb-3">
- <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
- <Users className="w-4 h-4" />
+ <Card className="bg-slate-800/60 backdrop-blur-sm border-slate-700/50 hover:border-blue-500/50 transition-all rounded-xl overflow-hidden">
+ <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
+ <CardHeader className="pb-2 pt-4">
+ <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
+ <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+ <Users className="w-4 h-4 text-blue-400" />
+ </div>
  إجمالي العملاء
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-3xl font-bold text-blue-400">{customers.length}</div>
- <p className="text-xs text-gray-500 mt-1">عميل مسجل</p>
+ <div className="text-4xl font-bold text-white">{customers.length}</div>
+ <p className="text-xs text-slate-500 mt-1">عميل مسجل في النظام</p>
  </CardContent>
  </Card>
 
- <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:border-green-500/40 transition-all">
- <CardHeader className="pb-3">
- <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
- <ShoppingBag className="w-4 h-4" />
- الطلبات ({dateFilter === "all" ? "كل الفترة" : dateFilter === "today" ? "اليوم" : dateFilter === "week" ? "أسبوع" : "شهر"})
+ <Card className="bg-slate-800/60 backdrop-blur-sm border-slate-700/50 hover:border-green-500/50 transition-all rounded-xl overflow-hidden">
+ <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-600" />
+ <CardHeader className="pb-2 pt-4">
+ <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
+ <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
+ <ShoppingBag className="w-4 h-4 text-green-400" />
+ </div>
+ الطلبات
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-3xl font-bold text-green-400">{filteredOrders.length}</div>
- <p className="text-xs text-gray-500 mt-1">{completedOrders.length} مكتمل</p>
+ <div className="text-4xl font-bold text-white">{filteredOrders.length}</div>
+ <div className="flex items-center gap-2 mt-1">
+ <span className="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">{completedOrders.length} مكتمل</span>
+ <span className="text-xs text-slate-500">
+ {dateFilter === "today" ? "اليوم" : dateFilter === "week" ? "الأسبوع" : dateFilter === "month" ? "الشهر" : "الكل"}
+ </span>
+ </div>
  </CardContent>
  </Card>
 
- <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20 hover:border-amber-500/40 transition-all">
- <CardHeader className="pb-3">
- <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
- <DollarSign className="w-4 h-4" />
+ <Card className="bg-slate-800/60 backdrop-blur-sm border-slate-700/50 hover:border-amber-500/50 transition-all rounded-xl overflow-hidden">
+ <div className="h-1 bg-gradient-to-r from-amber-500 to-orange-600" />
+ <CardHeader className="pb-2 pt-4">
+ <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
+ <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
+ <DollarSign className="w-4 h-4 text-amber-400" />
+ </div>
  إجمالي المبيعات
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-3xl font-bold text-amber-400">{totalRevenue.toFixed(2)}</div>
- <p className="text-xs text-gray-500 mt-1">ريال سعودي</p>
+ <div className="text-4xl font-bold text-amber-400">{totalRevenue.toFixed(2)}</div>
+ <div className="flex items-center gap-2 mt-1">
+ <span className="text-xs text-slate-500">ر.س</span>
  {growthRate !== 0 && (
- <div className="flex items-center gap-1 mt-2">
- {growthRate > 0 ? (
- <TrendingUp className="w-4 h-4 text-green-500" />
- ) : (
- <TrendingDown className="w-4 h-4 text-red-500" />
- )}
- <span className={`text-xs font-semibold ${growthRate > 0 ? 'text-green-500' : 'text-red-500'}`}>
+ <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${growthRate > 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+ {growthRate > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
  {growthRate > 0 ? '+' : ''}{growthRate}%
  </span>
- </div>
  )}
+ </div>
  </CardContent>
  </Card>
 
- <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:border-purple-500/40 transition-all">
- <CardHeader className="pb-3">
- <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
- <Activity className="w-4 h-4" />
+ <Card className="bg-slate-800/60 backdrop-blur-sm border-slate-700/50 hover:border-purple-500/50 transition-all rounded-xl overflow-hidden">
+ <div className="h-1 bg-gradient-to-r from-purple-500 to-violet-600" />
+ <CardHeader className="pb-2 pt-4">
+ <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
+ <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
+ <Activity className="w-4 h-4 text-purple-400" />
+ </div>
  متوسط الطلب
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-3xl font-bold text-purple-400">
+ <div className="text-4xl font-bold text-purple-400">
  {filteredOrders.length > 0 ? (totalRevenue / filteredOrders.length).toFixed(2) : '0.00'}
  </div>
- <p className="text-xs text-gray-500 mt-1">ريال سعودي</p>
+ <p className="text-xs text-slate-500 mt-1">ريال سعودي لكل طلب</p>
  </CardContent>
  </Card>
  </div>
 
- <Tabs defaultValue="customers" className="space-y-4">
- <TabsList className="grid w-full grid-cols-5 bg-stone-800/50">
- <TabsTrigger value="customers" data-testid="tab-customers">
- <Users className="w-4 h-4 ml-2" />
- العملاء
- </TabsTrigger>
- <TabsTrigger value="employees" data-testid="tab-employees">
- <UserCheck className="w-4 h-4 ml-2" />
- الموظفين
- </TabsTrigger>
- <TabsTrigger value="orders" data-testid="tab-orders">
+ <Tabs defaultValue="orders" className="space-y-4">
+ <TabsList className="grid w-full grid-cols-5 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-xl p-1 h-14">
+ <TabsTrigger value="orders" data-testid="tab-orders" className="rounded-lg data-[state=active]:bg-amber-600 data-[state=active]:text-white">
  <Receipt className="w-4 h-4 ml-2" />
  الطلبات
  </TabsTrigger>
- <TabsTrigger value="branches" data-testid="tab-branches">
+ <TabsTrigger value="customers" data-testid="tab-customers" className="rounded-lg data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+ <Users className="w-4 h-4 ml-2" />
+ العملاء
+ </TabsTrigger>
+ <TabsTrigger value="employees" data-testid="tab-employees" className="rounded-lg data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+ <UserCheck className="w-4 h-4 ml-2" />
+ الموظفين
+ </TabsTrigger>
+ <TabsTrigger value="branches" data-testid="tab-branches" className="rounded-lg data-[state=active]:bg-amber-600 data-[state=active]:text-white">
  <MapPin className="w-4 h-4 ml-2" />
  الفروع
  </TabsTrigger>
- <TabsTrigger value="reports" data-testid="tab-reports">
+ <TabsTrigger value="reports" data-testid="tab-reports" className="rounded-lg data-[state=active]:bg-amber-600 data-[state=active]:text-white">
  <BarChart3 className="w-4 h-4 ml-2" />
  التقارير
  </TabsTrigger>
