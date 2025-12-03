@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone, Settings, Wifi, WifiOff, Mail, FileText } from "lucide-react";
+import { Coffee, ShoppingBag, User, Phone, Trash2, Plus, Minus, ArrowRight, Check, Scan, Search, X, Gift, Printer, MonitorSmartphone, Settings, Wifi, WifiOff, FileText } from "lucide-react";
 import QRScanner from "@/components/qr-scanner";
 import { printTaxInvoice, printSimpleReceipt } from "@/lib/print-utils";
 import type { Employee, CoffeeItem, PaymentMethod, LoyaltyCard } from "@shared/schema";
@@ -82,9 +82,6 @@ export default function EmployeeCashier() {
  const [isPosSettingsOpen, setIsPosSettingsOpen] = useState(false);
  const [isTogglingPos, setIsTogglingPos] = useState(false);
  const [stampsToUse, setStampsToUse] = useState(0);
- const [isSendingEmail, setIsSendingEmail] = useState(false);
- const [showEmailDialog, setShowEmailDialog] = useState(false);
- const [emailToSend, setEmailToSend] = useState("");
  
  const { toast } = useToast();
 
@@ -260,7 +257,7 @@ export default function EmployeeCashier() {
  paymentMethod: paymentMethodAr,
  employeeName: employee?.fullName || "",
  tableNumber: tableNumber || undefined,
- date: new Date().toLocaleString('ar-SA')
+ date: new Date().toISOString()
  });
  
  const whatsappData: WhatsAppMessageData = {
@@ -571,63 +568,6 @@ export default function EmployeeCashier() {
        variant: "destructive",
      });
    }
- };
-
- const handleSendEmail = async () => {
- if (!lastOrder?.orderNumber) {
- toast({
- title: "خطأ",
- description: "لا يوجد طلب لإرسال الفاتورة",
- variant: "destructive",
- });
- return;
- }
-
- const email = emailToSend || customerEmail;
- if (!email || !email.includes('@')) {
- toast({
- title: "خطأ",
- description: "يرجى إدخال بريد إلكتروني صحيح",
- variant: "destructive",
- });
- return;
- }
-
- setIsSendingEmail(true);
- try {
- const response = await fetch(`/api/orders/${lastOrder.orderNumber}/send-invoice`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- credentials: 'include',
- body: JSON.stringify({ email })
- });
-
- if (response.ok) {
- toast({
- title: "تم الإرسال بنجاح",
- description: `تم إرسال الفاتورة إلى ${email}`,
- className: "bg-green-600 text-white",
- });
- setShowEmailDialog(false);
- setEmailToSend("");
- } else {
- const data = await response.json();
- toast({
- title: "خطأ",
- description: data.error || "فشل إرسال الفاتورة",
- variant: "destructive",
- });
- }
- } catch (error) {
- console.error('Error sending email:', error);
- toast({
- title: "خطأ",
- description: "فشل إرسال الفاتورة",
- variant: "destructive",
- });
- } finally {
- setIsSendingEmail(false);
- }
  };
 
  const handleTogglePosConnection = async () => {
