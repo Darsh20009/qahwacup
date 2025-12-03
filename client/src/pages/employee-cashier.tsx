@@ -850,54 +850,6 @@ export default function EmployeeCashier() {
  <FileText className="w-4 h-4 ml-2" />
  فاتورة ضريبية
  </Button>
- <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
- <DialogTrigger asChild>
- <Button
- className="bg-green-600 hover:bg-green-700 shadow-lg"
- data-testid="button-send-email"
- >
- <Mail className="w-4 h-4 ml-2" />
- إرسال بالبريد
- </Button>
- </DialogTrigger>
- <DialogContent className="bg-[#2d1f1a] border-amber-500/30 text-right">
- <DialogHeader>
- <DialogTitle className="text-amber-500 text-right">إرسال الفاتورة بالبريد الإلكتروني</DialogTitle>
- </DialogHeader>
- <div className="space-y-4 py-4">
- <div className="space-y-2">
- <Label className="text-gray-300">البريد الإلكتروني</Label>
- <Input
- type="email"
- value={emailToSend || customerEmail}
- onChange={(e) => setEmailToSend(e.target.value)}
- placeholder="example@email.com"
- className="bg-[#1a1410] border-amber-500/30 text-white text-left"
- dir="ltr"
- data-testid="input-email-to-send"
- />
- </div>
- <Button
- onClick={handleSendEmail}
- disabled={isSendingEmail}
- className="w-full bg-green-600 hover:bg-green-700"
- data-testid="button-confirm-send-email"
- >
- {isSendingEmail ? (
- <>
- <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
- جاري الإرسال...
- </>
- ) : (
- <>
- <Mail className="w-4 h-4 ml-2" />
- إرسال الفاتورة
- </>
- )}
- </Button>
- </div>
- </DialogContent>
- </Dialog>
  </>
  )}
  <Button
