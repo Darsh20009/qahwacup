@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -130,7 +130,6 @@ export default function POSSystem() {
   
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [showTaxInvoice, setShowTaxInvoice] = useState(false);
   
   const [isCheckingCustomer, setIsCheckingCustomer] = useState(false);
   const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
@@ -140,8 +139,6 @@ export default function POSSystem() {
   const [categoryPage, setCategoryPage] = useState(0);
   const categoriesPerPage = 6;
   
-  const receiptRef = useRef<HTMLDivElement>(null);
-  const taxInvoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadEmployee = async () => {
