@@ -222,18 +222,34 @@ export default function EmployeeAttendance() {
       const errorData = error.response || error;
       const errorMessage = errorData.error || error.message || "فشل التحضير";
       
-      toast({
-        title: "خطأ",
-        description: errorMessage,
-        variant: "destructive",
-        duration: 10000
-      });
-      
-      // Show location details in console for debugging
-      if (errorData.userLocation && errorData.branchLocation) {
-        console.log('موقعك:', errorData.userLocation);
-        console.log('موقع الفرع:', errorData.branchLocation);
-        console.log('المسافة:', errorData.distance, 'متر');
+      // If error includes map URL, show it with a button
+      if (errorData.showMap && errorData.mapsUrl) {
+        toast({
+          title: "خطأ",
+          description: (
+            <div className="space-y-3">
+              <p>{errorMessage}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => window.open(errorData.mapsUrl, '_blank')}
+              >
+                <MapPin className="w-4 h-4 ml-2" />
+                فتح الخريطة (أنت هنا → الفرع هناك)
+              </Button>
+            </div>
+          ),
+          variant: "destructive",
+          duration: 15000
+        });
+      } else {
+        toast({
+          title: "خطأ",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 10000
+        });
       }
     } finally {
       setIsLoading(false);
@@ -280,18 +296,34 @@ export default function EmployeeAttendance() {
       const errorData = error.response || error;
       const errorMessage = errorData.error || error.message || "فشل الانصراف";
       
-      toast({
-        title: "خطأ",
-        description: errorMessage,
-        variant: "destructive",
-        duration: 10000
-      });
-      
-      // Show location details in console for debugging
-      if (errorData.userLocation && errorData.branchLocation) {
-        console.log('موقعك:', errorData.userLocation);
-        console.log('موقع الفرع:', errorData.branchLocation);
-        console.log('المسافة:', errorData.distance, 'متر');
+      // If error includes map URL, show it with a button
+      if (errorData.showMap && errorData.mapsUrl) {
+        toast({
+          title: "خطأ",
+          description: (
+            <div className="space-y-3">
+              <p>{errorMessage}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => window.open(errorData.mapsUrl, '_blank')}
+              >
+                <MapPin className="w-4 h-4 ml-2" />
+                فتح الخريطة (أنت هنا → الفرع هناك)
+              </Button>
+            </div>
+          ),
+          variant: "destructive",
+          duration: 15000
+        });
+      } else {
+        toast({
+          title: "خطأ",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 10000
+        });
       }
     } finally {
       setIsLoading(false);

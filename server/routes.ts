@@ -4579,11 +4579,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
       if (distance > 500) {
+        // Create Google Maps link showing user location and branch location
+        const mapsUrl = `https://www.google.com/maps/dir/${location.lat},${location.lng}/${branchLat},${branchLng}`;
+        
         return res.status(400).json({ 
-          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للتحضير.\n\nموقعك الحالي: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}\nموقع الفرع: ${branchLat.toFixed(6)}, ${branchLng.toFixed(6)}\nالمسافة: ${Math.round(distance)} متر`,
+          error: `أنت بعيد جداً عن الفرع (${Math.round(distance)} متر). يرجى التوجه للفرع للتحضير.`,
           distance: Math.round(distance),
           userLocation: { lat: location.lat, lng: location.lng },
-          branchLocation: { lat: branchLat, lng: branchLng }
+          branchLocation: { lat: branchLat, lng: branchLng },
+          mapsUrl: mapsUrl,
+          showMap: true
         });
       }
 
@@ -4689,11 +4694,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
       if (distance > 500) {
+        // Create Google Maps link showing user location and branch location
+        const mapsUrl = `https://www.google.com/maps/dir/${location.lat},${location.lng}/${branchLat},${branchLng}`;
+        
         return res.status(400).json({ 
-          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للانصراف.\n\nموقعك الحالي: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}\nموقع الفرع: ${branchLat.toFixed(6)}, ${branchLng.toFixed(6)}\nالمسافة: ${Math.round(distance)} متر`,
+          error: `أنت بعيد جداً عن الفرع (${Math.round(distance)} متر). يرجى التوجه للفرع للانصراف.`,
           distance: Math.round(distance),
           userLocation: { lat: location.lat, lng: location.lng },
-          branchLocation: { lat: branchLat, lng: branchLng }
+          branchLocation: { lat: branchLat, lng: branchLng },
+          mapsUrl: mapsUrl,
+          showMap: true
         });
       }
 
