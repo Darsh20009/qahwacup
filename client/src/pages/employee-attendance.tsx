@@ -226,19 +226,17 @@ export default function EmployeeAttendance() {
       if (errorData.showMap && errorData.mapsUrl) {
         toast({
           title: "خطأ",
-          description: (
-            <div className="space-y-3">
-              <p>{errorMessage}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={() => window.open(errorData.mapsUrl, '_blank')}
-              >
-                <MapPin className="w-4 h-4 ml-2" />
-                فتح الخريطة (أنت هنا → الفرع هناك)
-              </Button>
-            </div>
+          description: errorMessage,
+          action: (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => window.open(errorData.mapsUrl, '_blank')}
+            >
+              <MapPin className="w-4 h-4 ml-2" />
+              فتح الخريطة
+            </Button>
           ),
           variant: "destructive",
           duration: 15000
@@ -300,19 +298,17 @@ export default function EmployeeAttendance() {
       if (errorData.showMap && errorData.mapsUrl) {
         toast({
           title: "خطأ",
-          description: (
-            <div className="space-y-3">
-              <p>{errorMessage}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={() => window.open(errorData.mapsUrl, '_blank')}
-              >
-                <MapPin className="w-4 h-4 ml-2" />
-                فتح الخريطة (أنت هنا → الفرع هناك)
-              </Button>
-            </div>
+          description: errorMessage,
+          action: (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => window.open(errorData.mapsUrl, '_blank')}
+            >
+              <MapPin className="w-4 h-4 ml-2" />
+              فتح الخريطة
+            </Button>
           ),
           variant: "destructive",
           duration: 15000
