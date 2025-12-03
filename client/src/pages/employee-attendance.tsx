@@ -219,11 +219,22 @@ export default function EmployeeAttendance() {
       setCapturedPhoto(null);
       setPhotoUrl(null);
     } catch (error: any) {
+      const errorData = error.response || error;
+      const errorMessage = errorData.error || error.message || "فشل التحضير";
+      
       toast({
         title: "خطأ",
-        description: error.message || "فشل التحضير",
-        variant: "destructive"
+        description: errorMessage,
+        variant: "destructive",
+        duration: 10000
       });
+      
+      // Show location details in console for debugging
+      if (errorData.userLocation && errorData.branchLocation) {
+        console.log('موقعك:', errorData.userLocation);
+        console.log('موقع الفرع:', errorData.branchLocation);
+        console.log('المسافة:', errorData.distance, 'متر');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -266,11 +277,22 @@ export default function EmployeeAttendance() {
       setCapturedPhoto(null);
       setPhotoUrl(null);
     } catch (error: any) {
+      const errorData = error.response || error;
+      const errorMessage = errorData.error || error.message || "فشل الانصراف";
+      
       toast({
         title: "خطأ",
-        description: error.message || "فشل الانصراف",
-        variant: "destructive"
+        description: errorMessage,
+        variant: "destructive",
+        duration: 10000
       });
+      
+      // Show location details in console for debugging
+      if (errorData.userLocation && errorData.branchLocation) {
+        console.log('موقعك:', errorData.userLocation);
+        console.log('موقع الفرع:', errorData.branchLocation);
+        console.log('المسافة:', errorData.distance, 'متر');
+      }
     } finally {
       setIsLoading(false);
     }

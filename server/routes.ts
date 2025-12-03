@@ -4573,16 +4573,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لا يوجد موقع للفرع" });
       }
 
-      // Check if employee is within 250 meters of the branch
-      // Increased tolerance to account for GPS inaccuracy and branch size
+      // Check if employee is within 500 meters of the branch
       const branchLat = branch.location.latitude;
       const branchLng = branch.location.longitude;
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
-      if (distance > 250) {
+      if (distance > 500) {
         return res.status(400).json({ 
-          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للتحضير. المسافة: ${Math.round(distance)} متر`,
-          distance: Math.round(distance)
+          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للتحضير.\n\nموقعك الحالي: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}\nموقع الفرع: ${branchLat.toFixed(6)}, ${branchLng.toFixed(6)}\nالمسافة: ${Math.round(distance)} متر`,
+          distance: Math.round(distance),
+          userLocation: { lat: location.lat, lng: location.lng },
+          branchLocation: { lat: branchLat, lng: branchLng }
         });
       }
 
@@ -4612,7 +4613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lateMinutes = isLate ? Math.floor((now.getTime() - shiftStart.getTime()) / 60000) : 0;
 
       // Create attendance record with location verification
-      const isAtBranch = distance <= 250 ? 1 : 0;
+      const isAtBranch = distance <= 500 ? 1 : 0;
       const attendance = new AttendanceModel({
         employeeId: employeeId,
         branchId: employee.branchId,
@@ -4682,16 +4683,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "لا يوجد موقع للفرع" });
       }
 
-      // Check if employee is within 250 meters of the branch
-      // Increased tolerance to account for GPS inaccuracy and branch size
+      // Check if employee is within 500 meters of the branch
       const branchLat = branch.location.latitude;
       const branchLng = branch.location.longitude;
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
-      if (distance > 250) {
+      if (distance > 500) {
         return res.status(400).json({ 
-          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للانصراف. المسافة: ${Math.round(distance)} متر`,
-          distance: Math.round(distance)
+          error: `أنت بعيد جداً عن الفرع. يرجى التوجه للفرع للانصراف.\n\nموقعك الحالي: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}\nموقع الفرع: ${branchLat.toFixed(6)}, ${branchLng.toFixed(6)}\nالمسافة: ${Math.round(distance)} متر`,
+          distance: Math.round(distance),
+          userLocation: { lat: location.lat, lng: location.lng },
+          branchLocation: { lat: branchLat, lng: branchLng }
         });
       }
 
@@ -4712,7 +4714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update attendance with check-out and location verification
-      const checkOutIsAtBranch = distance <= 100 ? 1 : 0;
+      const checkOutIsAtBranch = distance <= 500 ? 1 : 0;
       attendance.checkOutTime = new Date();
       attendance.checkOutLocation = {
         lat: location.lat,
