@@ -32,6 +32,213 @@ interface TaxInvoiceData {
   branchAddress?: string;
 }
 
+interface PrintConfig {
+  paperWidth?: '58mm' | '80mm';
+  autoClose?: boolean;
+  autoPrint?: boolean;
+  showPrintButton?: boolean;
+}
+
+interface EmployeePrintData {
+  employeeName: string;
+  employeeId: string;
+  employmentNumber: string;
+  role: string;
+  phone: string;
+  branchName?: string;
+  qrCode?: string;
+}
+
+interface KitchenOrderData {
+  orderNumber: string;
+  tableNumber?: string;
+  items: OrderItem[];
+  notes?: string;
+  priority?: 'normal' | 'urgent';
+  timestamp: string;
+}
+
+function openPrintWindow(html: string, title: string, config: PrintConfig = {}): Window | null {
+  const { paperWidth = '80mm', autoClose = false, autoPrint = true, showPrintButton = true } = config;
+  
+  const printButtonHtml = showPrintButton ? `
+    <div class="no-print" style="text-align: center; margin-top: 20px; padding: 20px;">
+      <button onclick="window.print()" style="padding: 12px 32px; font-size: 16px; background: #b45309; color: white; border: none; border-radius: 8px; cursor: pointer; margin-left: 10px;">
+        طباعة
+      </button>
+      <button onclick="window.close()" style="padding: 12px 32px; font-size: 16px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer;">
+        إغلاق
+      </button>
+    </div>
+  ` : '';
+  
+  const dynamicStyles = `
+    <style>
+      @media print {
+        @page { size: ${paperWidth} auto; margin: 0; }
+        body { margin: 0; padding: 0; }
+        .no-print { display: none !important; }
+        .invoice-container, .receipt, .ticket, .card { max-width: ${paperWidth}; }
+      }
+    </style>
+  `;
+  
+  let modifiedHtml = html;
+  if (showPrintButton && !modifiedHtml.includes('<div class="no-print"')) {
+    modifiedHtml = modifiedHtml.replace('</body>', `${printButtonHtml}</body>`);
+  }
+  modifiedHtml = modifiedHtml.replace('</head>', `${dynamicStyles}</head>`);
+  
+  const printWindow = window.open('', '_blank', 'width=450,height=700,scrollbars=yes,resizable=yes');
+  if (printWindow) {
+    printWindow.document.write(modifiedHtml);
+    printWindow.document.close();
+    printWindow.document.title = title;
+    
+    if (autoPrint) {
+      printWindow.onload = function() {
+        setTimeout(() => {
+          printWindow.print();
+          if (autoClose) {
+            setTimeout(() => printWindow.close(), 1000);
+          }
+        }, 300);
+      };
+    }
+  } else {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position: absolute; left: -9999px; top: -9999px; width: 0; height: 0;';
+    document.body.appendChild(iframe);
+    
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write(modifiedHtml);
+      iframeDoc.close();
+      
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      }, 500);
+    }
+  }
+  return printWindow;
+}
+
+export async function printEmployeeCard(data: EmployeePrintData): Promise<void> {
+  let qrCodeUrl = "";
+  if (data.qrCode) {
+    try {
+      qrCodeUrl = await QRCode.toDataURL(data.qrCode, {
+        width: 120,
+        margin: 1,
+        color: { dark: '#000000', light: '#FFFFFF' },
+        errorCorrectionLevel: 'M'
+      });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+    }
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>بطاقة الموظف - ${data.employeeName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; direction: rtl; }
+    .card { margin: 20px auto; padding: 24px; border: 2px solid #333; border-radius: 12px; }
+    .header { text-align: center; border-bottom: 2px dashed #333; padding-bottom: 16px; margin-bottom: 16px; }
+    .company-name { font-size: 20px; font-weight: 700; color: #b45309; }
+    .employee-title { font-size: 12px; color: #666; margin-top: 4px; }
+    .employee-name { font-size: 18px; font-weight: 700; margin: 16px 0 8px; }
+    .info-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+    .info-label { color: #666; }
+    .info-value { font-weight: 600; }
+    .qr-section { text-align: center; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #333; }
+    .qr-section img { width: 100px; height: 100px; }
+    .qr-note { font-size: 10px; color: #888; margin-top: 8px; }
+    @media print { body { margin: 0; } .no-print { display: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="company-name">قهوة كوب</div>
+      <div class="employee-title">بطاقة تعريف الموظف</div>
+    </div>
+    <div class="employee-name">${data.employeeName}</div>
+    <div class="info-row"><span class="info-label">رقم الموظف:</span><span class="info-value">${data.employmentNumber}</span></div>
+    <div class="info-row"><span class="info-label">المنصب:</span><span class="info-value">${data.role}</span></div>
+    <div class="info-row"><span class="info-label">الجوال:</span><span class="info-value">${data.phone}</span></div>
+    ${data.branchName ? `<div class="info-row"><span class="info-label">الفرع:</span><span class="info-value">${data.branchName}</span></div>` : ''}
+    ${qrCodeUrl ? `
+    <div class="qr-section">
+      <img src="${qrCodeUrl}" alt="QR Code" />
+      <div class="qr-note">امسح للتسجيل السريع</div>
+    </div>
+    ` : ''}
+  </div>
+</body>
+</html>
+  `;
+  openPrintWindow(html, `بطاقة الموظف - ${data.employeeName}`, { paperWidth: '80mm', autoPrint: true, showPrintButton: true });
+}
+
+export async function printKitchenOrder(data: KitchenOrderData): Promise<void> {
+  const itemsHtml = data.items.map(item => `
+    <div style="padding: 8px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-size: 16px; font-weight: 700;">${item.coffeeItem.nameAr}</div>
+        ${item.coffeeItem.nameEn ? `<div style="font-size: 12px; color: #666;">${item.coffeeItem.nameEn}</div>` : ''}
+      </div>
+      <div style="font-size: 24px; font-weight: 700; background: #000; color: #fff; padding: 4px 12px; border-radius: 8px;">x${item.quantity}</div>
+    </div>
+  `).join('');
+
+  const html = `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>طلب المطبخ - ${data.orderNumber}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; direction: rtl; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ticket { margin: 0 auto; padding: 16px; }
+    .header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 12px; margin-bottom: 12px; }
+    .order-number { font-size: 28px; font-weight: 700; }
+    .urgent { background: #dc2626; color: #fff; padding: 4px 12px; border-radius: 4px; display: inline-block; margin-top: 8px; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .table-info { font-size: 20px; font-weight: 700; color: #b45309; margin-top: 8px; }
+    .timestamp { font-size: 12px; color: #666; }
+    .items { margin: 16px 0; }
+    .notes { background: #fef3c7; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
+    .notes-label { font-weight: 700; color: #92400e; }
+    @media print { body { margin: 0; } .no-print { display: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="ticket">
+    <div class="header">
+      <div class="order-number">#${data.orderNumber}</div>
+      ${data.priority === 'urgent' ? '<div class="urgent">عاجل!</div>' : ''}
+      ${data.tableNumber ? `<div class="table-info">طاولة ${data.tableNumber}</div>` : ''}
+      <div class="timestamp">${data.timestamp}</div>
+    </div>
+    <div class="items">${itemsHtml}</div>
+    ${data.notes ? `<div class="notes"><span class="notes-label">ملاحظات:</span> ${data.notes}</div>` : ''}
+  </div>
+</body>
+</html>
+  `;
+  openPrintWindow(html, `طلب المطبخ - ${data.orderNumber}`, { paperWidth: '80mm', autoPrint: true, autoClose: true, showPrintButton: false });
+}
+
 const TAX_RATE = 0.15;
 const VAT_NUMBER = "311234567890003";
 const COMPANY_NAME = "قهوة كوب";
@@ -467,11 +674,6 @@ export async function printTaxInvoice(data: TaxInvoiceData): Promise<void> {
     }
     
     @media print {
-      @page {
-        size: 80mm auto;
-        margin: 0;
-      }
-      
       body {
         margin: 0;
         padding: 0;
@@ -655,50 +857,15 @@ export async function printTaxInvoice(data: TaxInvoiceData): Promise<void> {
       </div>
     </div>
   </div>
-
-  <div class="no-print" style="text-align: center; margin-top: 20px;">
-    <button onclick="window.print()" style="padding: 10px 30px; font-size: 16px; background: #b45309; color: white; border: none; border-radius: 8px; cursor: pointer;">
-      طباعة الفاتورة
-    </button>
-    <button onclick="window.close()" style="padding: 10px 30px; font-size: 16px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 10px;">
-      إغلاق
-    </button>
-  </div>
-
-  <script>
-    window.onload = function() {
-      setTimeout(function() {
-        window.print();
-      }, 500);
-    };
-  </script>
 </body>
 </html>
   `;
 
-  const printWindow = window.open('', '_blank', 'width=400,height=600');
-  if (printWindow) {
-    printWindow.document.write(invoiceHtml);
-    printWindow.document.close();
-  } else {
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position: absolute; left: -9999px; top: -9999px; width: 0; height: 0;';
-    document.body.appendChild(iframe);
-    
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (iframeDoc) {
-      iframeDoc.open();
-      iframeDoc.write(invoiceHtml);
-      iframeDoc.close();
-      
-      setTimeout(() => {
-        iframe.contentWindow?.print();
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 1000);
-      }, 500);
-    }
-  }
+  openPrintWindow(invoiceHtml, `فاتورة ضريبية - ${displayInvoiceNumber}`, { 
+    paperWidth: '80mm', 
+    autoPrint: true, 
+    showPrintButton: true 
+  });
 }
 
 export async function printSimpleReceipt(data: TaxInvoiceData): Promise<void> {
@@ -775,7 +942,6 @@ export async function printSimpleReceipt(data: TaxInvoiceData): Promise<void> {
     .footer { text-align: center; padding-top: 16px; border-top: 2px dashed #333; }
     
     @media print {
-      @page { size: 80mm auto; margin: 0; }
       body { margin: 0; padding: 0; }
       .no-print { display: none !important; }
     }
@@ -862,18 +1028,13 @@ export async function printSimpleReceipt(data: TaxInvoiceData): Promise<void> {
     </div>
   </div>
 
-  <script>
-    window.onload = function() {
-      setTimeout(function() { window.print(); }, 500);
-    };
-  </script>
 </body>
 </html>
   `;
 
-  const printWindow = window.open('', '_blank', 'width=400,height=600');
-  if (printWindow) {
-    printWindow.document.write(receiptHtml);
-    printWindow.document.close();
-  }
+  openPrintWindow(receiptHtml, `إيصال - ${data.orderNumber}`, { 
+    paperWidth: '80mm', 
+    autoPrint: true, 
+    showPrintButton: true 
+  });
 }
