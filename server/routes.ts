@@ -2372,6 +2372,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get orders for Kitchen Display System (KDS) - requires authentication
+  app.get("/api/orders/kitchen", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Only allow cashiers, managers, admins, and owners to access KDS
+      const allowedRoles = ['cashier', 'manager', 'admin', 'owner'];
+      if (!req.employee?.role || !allowedRoles.includes(req.employee.role)) {
+        return res.status(403).json({ error: "Access denied - insufficient permissions" });
+      }
+
+      // Get orders that are pending, in_progress, or ready (not completed or cancelled)
+      const { OrderModel } = await import("@shared/schema");
+      
+      // Build query with branch filtering for non-admin/owner users
+      const query: any = {
+        status: { $in: ['pending', 'payment_confirmed', 'in_progress', 'ready'] }
+      };
+
+      // Apply branch filtering for cashiers and managers
+      if (req.employee.role === 'cashier' || req.employee.role === 'manager') {
+        if (req.employee.branchId) {
+          query.branchId = req.employee.branchId;
+        }
+      }
+
+      const orders = await OrderModel.find(query).sort({ createdAt: 1 }); // Oldest first for FIFO processing
+
+      const coffeeItems = await storage.getCoffeeItems();
+
+      // Enrich orders with coffee item details
+      const enrichedOrders = orders.map(order => {
+        const serializedOrder = serializeDoc(order);
+        
+        // Parse items if they're stored as JSON string
+        let orderItems = serializedOrder.items;
+        if (typeof orderItems === 'string') {
+          try {
+            orderItems = JSON.parse(orderItems);
+          } catch (e) {
+            console.error("Error parsing order items:", e);
+            orderItems = [];
+          }
+        }
+        
+        // Ensure orderItems is an array
+        if (!Array.isArray(orderItems)) {
+          orderItems = [];
+        }
+        
+        const items = orderItems.map((item: any) => {
+          const coffeeItem = coffeeItems.find(ci => ci.id === item.coffeeItemId);
+          return {
+            ...item,
+            coffeeItem: coffeeItem ? {
+              nameAr: coffeeItem.nameAr,
+              nameEn: coffeeItem.nameEn,
+              price: coffeeItem.price,
+              imageUrl: coffeeItem.imageUrl,
+              category: coffeeItem.category
+            } : null
+          };
+        });
+
+        return {
+          ...serializedOrder,
+          items
+        };
+      });
+
+      res.json(enrichedOrders);
+    } catch (error) {
+      console.error("Error fetching kitchen orders:", error);
+      res.status(500).json({ error: "Failed to fetch kitchen orders" });
+    }
+  });
+
   // Get all orders (all managers see all orders regardless of branch)
   app.get("/api/orders", requireAuth, async (req: AuthRequest, res) => {
     try {

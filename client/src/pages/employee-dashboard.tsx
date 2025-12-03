@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock, Clock, MonitorSmartphone } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock, Clock, MonitorSmartphone, ChefHat } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
@@ -403,6 +403,19 @@ export default function EmployeeDashboard() {
  <div className="text-center">
  <div className="font-bold text-lg">إدارةالطلبات</div>
  <div className="text-sm opacity-90">عرض وتحديث الطلبات</div>
+ </div>
+ </Button>
+
+ <Button
+ size="lg"
+ className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-orange-600 to-orange-800 hover:from-orange-700 hover:to-orange-900 text-white"
+ onClick={() => setLocation("/employee/kitchen")}
+ data-testid="button-kitchen-display"
+ >
+ <ChefHat className="w-10 h-10" />
+ <div className="text-center">
+ <div className="font-bold text-lg">شاشة المطبخ</div>
+ <div className="text-sm opacity-90">متابعة وتحضير الطلبات</div>
  </div>
  </Button>
 

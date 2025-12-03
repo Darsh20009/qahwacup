@@ -58,6 +58,7 @@ import InventoryStock from "@/pages/inventory-stock";
 import InventoryAlerts from "@/pages/inventory-alerts";
 import InventoryMovements from "@/pages/inventory-movements";
 import POSSystem from "@/pages/pos-system";
+import KitchenDisplay from "@/pages/kitchen-display";
 
 function Router() {
  return (
@@ -89,6 +90,7 @@ function Router() {
  <Route path="/employee/dashboard" component={EmployeeDashboard} />
  <Route path="/employee/cashier" component={EmployeeCashier} />
  <Route path="/employee/pos" component={POSSystem} />
+ <Route path="/employee/kitchen" component={KitchenDisplay} />
  <Route path="/employee/tables" component={CashierTables} />
  <Route path="/employee/table-orders" component={CashierTableOrders} />
  <Route path="/employee/orders" component={EmployeeOrders} />
