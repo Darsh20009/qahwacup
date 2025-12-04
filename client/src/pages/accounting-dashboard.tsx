@@ -325,7 +325,7 @@ export default function AccountingDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-green-100 text-sm">إجمالي الإيرادات</p>
-                          <p className="text-3xl font-bold mt-1">{dashboardData.totalRevenue.toFixed(2)}</p>
+                          <p className="text-3xl font-bold mt-1">{(dashboardData.totalRevenue || 0).toFixed(2)}</p>
                           <p className="text-green-200 text-xs mt-1">ريال سعودي</p>
                         </div>
                         <TrendingUp className="w-12 h-12 text-green-200" />
@@ -338,7 +338,7 @@ export default function AccountingDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-red-100 text-sm">إجمالي المصروفات</p>
-                          <p className="text-3xl font-bold mt-1">{dashboardData.totalExpenses.toFixed(2)}</p>
+                          <p className="text-3xl font-bold mt-1">{(dashboardData.totalExpenses || 0).toFixed(2)}</p>
                           <p className="text-red-200 text-xs mt-1">ريال سعودي</p>
                         </div>
                         <TrendingDown className="w-12 h-12 text-red-200" />
@@ -351,7 +351,7 @@ export default function AccountingDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-blue-100 text-sm">صافي الربح</p>
-                          <p className="text-3xl font-bold mt-1">{dashboardData.netProfit.toFixed(2)}</p>
+                          <p className="text-3xl font-bold mt-1">{(dashboardData.netProfit || 0).toFixed(2)}</p>
                           <p className="text-blue-200 text-xs mt-1">ريال سعودي</p>
                         </div>
                         <PiggyBank className="w-12 h-12 text-blue-200" />
@@ -364,7 +364,7 @@ export default function AccountingDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-amber-100 text-sm">ضريبة القيمة المضافة</p>
-                          <p className="text-3xl font-bold mt-1">{dashboardData.totalVat.toFixed(2)}</p>
+                          <p className="text-3xl font-bold mt-1">{(dashboardData.totalVat || 0).toFixed(2)}</p>
                           <p className="text-amber-200 text-xs mt-1">ريال سعودي</p>
                         </div>
                         <Receipt className="w-12 h-12 text-amber-200" />
@@ -460,7 +460,7 @@ export default function AccountingDashboardPage() {
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">تكلفة البضاعة المباعة</p>
-                          <p className="text-2xl font-bold">{dashboardData.totalCogs.toFixed(2)}</p>
+                          <p className="text-2xl font-bold">{(dashboardData.totalCogs || 0).toFixed(2)}</p>
                         </div>
                       </div>
                     </CardContent>
