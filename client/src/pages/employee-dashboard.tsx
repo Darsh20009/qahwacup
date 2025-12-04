@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock, Clock, MonitorSmartphone, ChefHat } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock, Clock, MonitorSmartphone, ChefHat, Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
@@ -488,7 +488,7 @@ export default function EmployeeDashboard() {
  
  <Button
  size="lg"
- className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white md:col-span-2"
+ className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
  onClick={() => setLocation("/manager/employees")}
  data-testid="button-manager-employees"
  >
@@ -496,6 +496,19 @@ export default function EmployeeDashboard() {
  <div className="text-center">
  <div className="font-bold text-lg">إدارةالموظفين</div>
  <div className="text-sm opacity-90">إضافة وتعديل الموظفين</div>
+ </div>
+ </Button>
+
+ <Button
+ size="lg"
+ className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white"
+ onClick={() => setLocation("/manager/accounting")}
+ data-testid="button-accounting"
+ >
+ <Wallet className="w-10 h-10" />
+ <div className="text-center">
+ <div className="font-bold text-lg">المحاسبة والفواتير</div>
+ <div className="text-sm opacity-90">إدارة المصروفات والإيرادات</div>
  </div>
  </Button>
  </>
