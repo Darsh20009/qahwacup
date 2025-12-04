@@ -54,6 +54,20 @@ The UI/UX emphasizes a modern, attractive design. QR cards and employee badges f
   - Transaction types: B2B (0100000) and B2C (0200000)
   - Tax calculations with proper rounding
   - API endpoints: POST/GET /api/zatca/invoices, GET /api/zatca/invoices/:id/xml, GET /api/zatca/stats
+  - **Secure Environment Variables:** All sensitive ZATCA data stored in environment variables:
+    - VAT_RATE, ZATCA_SELLER_NAME, ZATCA_SELLER_NAME_EN, ZATCA_CITY, ZATCA_SELLER_ADDRESS
+    - ZATCA_VAT_NUMBER, ZATCA_CR_NUMBER (require user input for production)
+    - ZATCA_CSID, ZATCA_CSID_SECRET (for Phase 2 integration)
+- **Location-Based Order Preparation:** Customer location verification feature:
+  - Uses Haversine formula to calculate distance from branch
+  - 300-meter radius requirement for order preparation
+  - Real-time location tracking with permission handling
+  - Integrated into order tracking page with visual feedback
+- **Progressive Web App (PWA) Support:** Full mobile app experience:
+  - manifest.json with proper icons and metadata for Chrome and Safari
+  - Service Worker with network-first caching strategy
+  - Add to Home Screen support on iOS Safari and Android Chrome
+  - Offline capability with graceful degradation
 - **Full Accounting System:** Complete financial management with:
   - Expense tracking (categories: inventory, salaries, rent, utilities, marketing, maintenance, supplies, other)
   - Expense approval workflow (pending → approved/rejected → paid)
