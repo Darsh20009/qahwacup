@@ -2,14 +2,35 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
     <title>قهوة كوب - منيو ديجيتال</title>
     <meta name="description" content="استمتع بأفضل قهوة في المدينة مع تشكيلة متنوعة من أجود أنواع القهوة المحضرة بعناية فائقة">
     
-    <!-- Favicon -->
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="قهوة كوب">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="قهوة كوب">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#8B4513">
+    <meta name="msapplication-TileColor" content="#8B4513">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon & Apple Touch Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
     <link rel="shortcut icon" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/qahwa-cup-logo.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/qahwa-cup-logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/qahwa-cup-logo.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/qahwa-cup-logo.png">
+    
+    <!-- Safari Pinned Tab -->
+    <link rel="mask-icon" href="/qahwa-cup-logo.png" color="#8B4513">
     
     <!-- Google Fonts for Arabic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,9 +39,27 @@
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Safari Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/qahwa-cup-logo.png">
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(function(err) {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

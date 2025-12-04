@@ -108,3 +108,8 @@ expertMode = true
 
 [userenv.shared]
 MONGODB_URI = "mongodb+srv://Vercel-Admin-qahwa:x90QpnUhb5PqfaVK@qahwa.ink6nxz.mongodb.net/?retryWrites=true&w=majority"
+VAT_RATE = "0.15"
+ZATCA_SELLER_NAME = "قهوة كوب"
+ZATCA_SELLER_NAME_EN = "Qahwa Cup"
+ZATCA_CITY = "الرياض"
+ZATCA_SELLER_ADDRESS = "الرياض، المملكة العربية السعودية"

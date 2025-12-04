@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Coffee, MapPin, Truck, Check, Clock, Package, ExternalLink, Store } from "lucide-react";
 import { playNotificationSound } from "@/lib/notification-sound";
+import LocationPreparationCheck from "@/components/location-preparation-check";
 import type { Order } from "@shared/schema";
 
 export default function OrderTrackingPage() {
@@ -210,6 +211,20 @@ export default function OrderTrackingPage() {
  </div>
  </CardContent>
  </Card>
+
+ {/* Location Preparation Check - Show when order is ready for pickup */}
+ {branch && order.deliveryType === 'pickup' && ['in_progress', 'ready'].includes(order.status) && (
+   <LocationPreparationCheck 
+     branch={branch}
+     preparationRadius={300}
+     onPreparationReady={() => {
+       toast({
+         title: "أنت قريب من الفرع!",
+         description: "يمكننا البدء بتحضير طلبك الآن",
+       });
+     }}
+   />
+ )}
 
  {/* Live Driver Location (if applicable) */}
  {order.deliveryType === 'delivery' && order.status === 'out_for_delivery' && order.driverLocation && (

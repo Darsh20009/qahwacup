@@ -1,11 +1,23 @@
 import crypto from 'crypto';
 import { TaxInvoiceModel, type ITaxInvoice } from '@shared/schema';
 
-const VAT_RATE = 0.15;
-const SELLER_NAME = 'قهوة كوب';
-const SELLER_NAME_EN = 'Qahwa Cup';
-const SELLER_VAT_NUMBER = '311234567890003';
-const SELLER_ADDRESS = 'الرياض، المملكة العربية السعودية';
+// ZATCA Configuration from environment variables for security
+const VAT_RATE = parseFloat(process.env.VAT_RATE || '0.15');
+const SELLER_NAME = process.env.ZATCA_SELLER_NAME || 'قهوة كوب';
+const SELLER_NAME_EN = process.env.ZATCA_SELLER_NAME_EN || 'Qahwa Cup';
+const SELLER_VAT_NUMBER = process.env.ZATCA_VAT_NUMBER || '300000000000003';
+const SELLER_ADDRESS = process.env.ZATCA_SELLER_ADDRESS || 'الرياض، المملكة العربية السعودية';
+const SELLER_CR_NUMBER = process.env.ZATCA_CR_NUMBER || '';
+const SELLER_BUILDING_NUMBER = process.env.ZATCA_BUILDING_NUMBER || '';
+const SELLER_POSTAL_CODE = process.env.ZATCA_POSTAL_CODE || '';
+const SELLER_DISTRICT = process.env.ZATCA_DISTRICT || '';
+const SELLER_CITY = process.env.ZATCA_CITY || 'الرياض';
+
+// ZATCA Phase 2 Integration Settings
+const ZATCA_API_URL = process.env.ZATCA_API_URL || 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
+const ZATCA_COMPLIANCE_CSID = process.env.ZATCA_COMPLIANCE_CSID || '';
+const ZATCA_PRODUCTION_CSID = process.env.ZATCA_PRODUCTION_CSID || '';
+const ZATCA_SECRET = process.env.ZATCA_SECRET || '';
 
 interface InvoiceItem {
   itemId: string;
@@ -341,8 +353,12 @@ export async function createZATCAInvoice(params: CreateInvoiceParams): Promise<I
     sellerNameEn: SELLER_NAME_EN,
     sellerVatNumber: SELLER_VAT_NUMBER,
     sellerAddress: SELLER_ADDRESS,
-    sellerCity: 'الرياض',
+    sellerCity: SELLER_CITY,
     sellerCountry: 'SA',
+    sellerCrNumber: SELLER_CR_NUMBER,
+    sellerBuildingNumber: SELLER_BUILDING_NUMBER,
+    sellerPostalCode: SELLER_POSTAL_CODE,
+    sellerDistrict: SELLER_DISTRICT,
     branchId: params.branchId,
     
     customerName: params.customerName,
