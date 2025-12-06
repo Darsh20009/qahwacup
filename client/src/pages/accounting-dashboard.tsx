@@ -161,7 +161,20 @@ export default function AccountingDashboardPage() {
       if (selectedBranch !== "all") params.append("branchId", selectedBranch);
       const res = await fetch(`/api/accounting/dashboard?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch dashboard");
-      return res.json();
+      const data = await res.json();
+      // Transform API response to match expected DashboardData structure
+      return {
+        totalRevenue: data.summary?.totalRevenue || 0,
+        totalVat: data.summary?.totalVatCollected || 0,
+        totalExpenses: data.summary?.totalExpenses || 0,
+        totalCogs: data.summary?.totalCogs || 0,
+        grossProfit: data.summary?.grossProfit || 0,
+        netProfit: data.summary?.netProfit || 0,
+        orderCount: data.summary?.orderCount || 0,
+        invoiceCount: data.summary?.invoiceCount || 0,
+        expensesByCategory: data.expensesByCategory || {},
+        revenueByPayment: data.revenueByPayment || {},
+      };
     },
   });
 

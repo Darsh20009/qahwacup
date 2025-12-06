@@ -865,13 +865,6 @@ export async function seedRecipeItems() {
   };
 
   console.log("\n📝 Seeding recipe items...");
-  
-  const rawItems = await storage.getRawItems();
-  const rawItemMap = new Map<string, any>();
-  
-  for (const item of rawItems) {
-    rawItemMap.set(item.code, item);
-  }
 
   for (const [drinkId, ingredients] of Object.entries(drinkRecipes)) {
     try {
@@ -883,7 +876,7 @@ export async function seedRecipeItems() {
       }
 
       for (const ingredient of ingredients) {
-        const rawItem = rawItemMap.get(ingredient.rawCode);
+        const rawItem = await storage.getRawItemByCode(ingredient.rawCode);
         
         if (!rawItem) {
           console.log(`⚠️  Raw item not found: ${ingredient.rawCode}`);
@@ -891,9 +884,10 @@ export async function seedRecipeItems() {
         }
 
         try {
+          const rawItemId = rawItem._id?.toString() || rawItem.id;
           await storage.createRecipeItem({
             coffeeItemId: drinkId,
-            rawItemId: rawItem.id,
+            rawItemId: rawItemId,
             quantity: ingredient.quantity,
             unit: ingredient.unit,
           });
