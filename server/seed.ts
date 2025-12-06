@@ -673,81 +673,194 @@ export async function seedRawMaterials() {
     },
   ];
 
+  // Fetch all existing items once before the loop
+  const existingRawItems = await storage.getRawItems();
+  const existingCodes = new Set(existingRawItems.map((r: any) => r.code));
+
   for (const item of rawItems) {
     try {
-      const existing = await storage.getRawItems();
-      const found = existing.find((r: any) => r.code === item.code);
-      
-      if (!found) {
-        await storage.createRawItem(item);
-        console.log(`✅ Created raw item: ${item.nameAr}`);
-      } else {
+      if (existingCodes.has(item.code)) {
         console.log(`ℹ️  Raw item already exists: ${item.nameAr}`);
+      } else {
+        await storage.createRawItem(item);
+        existingCodes.add(item.code);
+        console.log(`✅ Created raw item: ${item.nameAr}`);
       }
-    } catch (error) {
-      console.error(`❌ Error creating raw item ${item.nameAr}:`, error);
+    } catch (error: any) {
+      if (error.code === 11000) {
+        console.log(`ℹ️  Raw item already exists (duplicate): ${item.nameAr}`);
+      } else {
+        console.error(`❌ Error creating raw item ${item.nameAr}:`, error.message);
+      }
     }
   }
 }
 
 export async function seedRecipeItems() {
+  // Complete recipes for ALL drinks - 250ml cup size
+  // RAW-001: Arabica Coffee Beans (kg) - 18g = 0.018kg per double shot
+  // RAW-002: Robusta Coffee Beans (kg) - for Turkish coffee
+  // RAW-003: Fresh Whole Milk (liter) - 200ml = 0.2L
+  // RAW-006: Vanilla Syrup (liter) - 20ml = 0.02L
+  // RAW-007: Caramel Syrup (liter) - 20ml = 0.02L
+  // RAW-008: Chocolate Sauce (liter) - 30ml = 0.03L
+  // RAW-009: Matcha Powder (kg) - 3g = 0.003kg
+  // RAW-010: Whipped Cream (liter) - 30ml = 0.03L
+  // RAW-014: Paper Cups 250ml (piece) - 1 per drink
+  // RAW-016: Cup Lids (piece) - 1 per drink
+  // RAW-018: Condensed Milk (liter) - 40ml = 0.04L
+  // RAW-019: Cold Brew Concentrate (liter) - 80ml = 0.08L
+  // RAW-020: Black Tea (kg) - 3g = 0.003kg
+
   const drinkRecipes: Record<string, { rawCode: string; quantity: number; unit: string }[]> = {
+    // Basic Espresso Drinks
     "espresso-single": [
-      { rawCode: "RAW-001", quantity: 9, unit: "g" },
+      { rawCode: "RAW-001", quantity: 0.009, unit: "kg" }, // 9g espresso beans
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" }, // Cup
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" }, // Lid
     ],
     "espresso-double": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso beans
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "americano": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "ristretto": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso (less water)
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "turkish-coffee": [
+      { rawCode: "RAW-002", quantity: 0.010, unit: "kg" }, // 10g Turkish coffee
+      { rawCode: "RAW-011", quantity: 0.005, unit: "kg" }, // 5g sugar
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" }, // Lid
+    ],
+    // Hot Milk-Based Drinks (250ml total)
+    "cafe-latte": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.200, unit: "liter" }, // 200ml milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "cappuccino": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-003", quantity: 120, unit: "ml" },
-    ],
-    "cafe-latte": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-003", quantity: 180, unit: "ml" },
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.150, unit: "liter" }, // 150ml milk + foam
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "vanilla-latte": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-003", quantity: 180, unit: "ml" },
-      { rawCode: "RAW-006", quantity: 30, unit: "ml" },
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.180, unit: "liter" }, // 180ml milk
+      { rawCode: "RAW-006", quantity: 0.020, unit: "liter" }, // 20ml vanilla syrup
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "mocha": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-003", quantity: 150, unit: "ml" },
-      { rawCode: "RAW-008", quantity: 30, unit: "ml" },
-      { rawCode: "RAW-010", quantity: 30, unit: "ml" },
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.150, unit: "liter" }, // 150ml milk
+      { rawCode: "RAW-008", quantity: 0.030, unit: "liter" }, // 30ml chocolate
+      { rawCode: "RAW-010", quantity: 0.030, unit: "liter" }, // 30ml whipped cream
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
-    "iced-latte": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-003", quantity: 200, unit: "ml" },
+    "con-panna": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-010", quantity: 0.050, unit: "liter" }, // 50ml whipped cream
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
-    "iced-mocha": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-003", quantity: 180, unit: "ml" },
-      { rawCode: "RAW-008", quantity: 30, unit: "ml" },
-      { rawCode: "RAW-010", quantity: 30, unit: "ml" },
+    "french-press": [
+      { rawCode: "RAW-001", quantity: 0.025, unit: "kg" }, // 25g coffee for French press
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "coffee-day-hot": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.150, unit: "liter" }, // 150ml milk
+      { rawCode: "RAW-007", quantity: 0.020, unit: "liter" }, // 20ml caramel
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    // Tea & Specialty Drinks
+    "hot-tea": [
+      { rawCode: "RAW-020", quantity: 0.003, unit: "kg" }, // 3g black tea
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "ice-tea": [
+      { rawCode: "RAW-020", quantity: 0.003, unit: "kg" }, // 3g black tea
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "iced-matcha-latte": [
-      { rawCode: "RAW-009", quantity: 3, unit: "g" },
-      { rawCode: "RAW-003", quantity: 250, unit: "ml" },
+      { rawCode: "RAW-009", quantity: 0.003, unit: "kg" }, // 3g matcha
+      { rawCode: "RAW-003", quantity: 0.220, unit: "liter" }, // 220ml milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "hot-matcha-latte": [
-      { rawCode: "RAW-009", quantity: 3, unit: "g" },
-      { rawCode: "RAW-003", quantity: 200, unit: "ml" },
+      { rawCode: "RAW-009", quantity: 0.003, unit: "kg" }, // 3g matcha
+      { rawCode: "RAW-003", quantity: 0.220, unit: "liter" }, // 220ml milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
-    "cold-brew": [
-      { rawCode: "RAW-019", quantity: 100, unit: "ml" },
+    // Cold Drinks (250ml)
+    "iced-latte": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.180, unit: "liter" }, // 180ml milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
-    "vanilla-cold-brew": [
-      { rawCode: "RAW-019", quantity: 100, unit: "ml" },
-      { rawCode: "RAW-006", quantity: 20, unit: "ml" },
+    "iced-mocha": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.150, unit: "liter" }, // 150ml milk
+      { rawCode: "RAW-008", quantity: 0.030, unit: "liter" }, // 30ml chocolate
+      { rawCode: "RAW-010", quantity: 0.030, unit: "liter" }, // 30ml whipped cream
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "iced-cappuccino": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-003", quantity: 0.180, unit: "liter" }, // 180ml milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
     ],
     "iced-condensed": [
-      { rawCode: "RAW-001", quantity: 18, unit: "g" },
-      { rawCode: "RAW-018", quantity: 50, unit: "ml" },
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-018", quantity: 0.040, unit: "liter" }, // 40ml condensed milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "vanilla-cold-brew": [
+      { rawCode: "RAW-019", quantity: 0.080, unit: "liter" }, // 80ml cold brew
+      { rawCode: "RAW-003", quantity: 0.100, unit: "liter" }, // 100ml milk
+      { rawCode: "RAW-006", quantity: 0.020, unit: "liter" }, // 20ml vanilla
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "cold-brew": [
+      { rawCode: "RAW-019", quantity: 0.100, unit: "liter" }, // 100ml cold brew concentrate
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    "coffee-day-cold": [
+      { rawCode: "RAW-019", quantity: 0.080, unit: "liter" }, // 80ml cold brew
+      { rawCode: "RAW-003", quantity: 0.120, unit: "liter" }, // 120ml milk
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" },
+    ],
+    // Dessert
+    "coffee-dessert-cup": [
+      { rawCode: "RAW-001", quantity: 0.018, unit: "kg" }, // 18g espresso
+      { rawCode: "RAW-010", quantity: 0.050, unit: "liter" }, // 50ml cream
+      { rawCode: "RAW-008", quantity: 0.030, unit: "liter" }, // 30ml chocolate
+      { rawCode: "RAW-014", quantity: 1, unit: "piece" },
+      { rawCode: "RAW-016", quantity: 1, unit: "piece" }, // Lid
     ],
   };
 

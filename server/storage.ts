@@ -2229,25 +2229,20 @@ export class DBStorage implements IStorage {
           const currentStock = await BranchStockModel.findOne({ branchId, rawItemId: detail.rawItemId });
           const availableQuantity = currentStock?.currentQuantity || 0;
 
-          const deductQuantity = Math.min(detail.quantity, availableQuantity);
+          // Always perform the deduction - even if stock goes negative (to track shortages accurately)
+          // This ensures inventory records are always maintained
+          await this.updateBranchStock(
+            branchId,
+            detail.rawItemId,
+            -detail.quantity,
+            createdBy,
+            'order_deduction',
+            `Order: ${orderId}${detail.quantity > availableQuantity ? ' (shortage - went negative)' : ''}`
+          );
+          successfulDeductions.push(detail.rawItemId);
 
-          if (deductQuantity > 0) {
-            await this.updateBranchStock(
-              branchId,
-              detail.rawItemId,
-              -deductQuantity,
-              createdBy,
-              'order_deduction',
-              `Order: ${orderId}${detail.quantity > availableQuantity ? ' (partial deduction)' : ''}`
-            );
-            successfulDeductions.push(detail.rawItemId);
-
-            if (deductQuantity < detail.quantity) {
-              errors.push(`${detail.rawItemName}: deducted ${deductQuantity} of ${detail.quantity} ${detail.unit} (insufficient stock)`);
-              allDeductionsSuccessful = false;
-            }
-          } else {
-            errors.push(`${detail.rawItemName}: no stock available to deduct`);
+          if (detail.quantity > availableQuantity) {
+            errors.push(`${detail.rawItemName}: deducted ${detail.quantity} ${detail.unit} (stock went from ${availableQuantity} to ${availableQuantity - detail.quantity})`);
             allDeductionsSuccessful = false;
           }
         } catch (error: any) {

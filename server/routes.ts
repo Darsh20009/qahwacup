@@ -6104,12 +6104,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const finalBranchId = branchId as string || req.employee?.branchId;
       
       // Check if summary exists
-      let summary = await DailySummaryModel.findOne({
+      const existingSummary = await DailySummaryModel.findOne({
         branchId: finalBranchId,
         date: { $gte: targetDate, $lt: nextDate },
       });
       
-      if (!summary) {
+      let summary: any = existingSummary;
+      
+      if (!existingSummary) {
         // Calculate summary from orders
         const orderQuery: any = {
           createdAt: { $gte: targetDate, $lt: nextDate },
@@ -6146,7 +6148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         summary = {
-          branchId: finalBranchId,
+          branchId: finalBranchId || null,
           date: targetDate,
           totalOrders: orders.length,
           totalRevenue: Math.round(totalRevenue * 100) / 100,
@@ -6404,6 +6406,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating kitchen item:", error);
       res.status(500).json({ error: "فشل في تحديث عنصر المطبخ" });
+    }
+  });
+
+  // Check delivery availability (500m radius from branches)
+  app.post("/api/delivery/check-availability", async (req, res) => {
+    try {
+      const { latitude, longitude } = req.body;
+      
+      if (!latitude || !longitude) {
+        return res.status(400).json({ error: "الموقع مطلوب" });
+      }
+      
+      const customerLocation = { lat: Number(latitude), lng: Number(longitude) };
+      const branches = await storage.getBranches();
+      
+      const { checkDeliveryAvailability } = await import('./utils/geo');
+      const result = checkDeliveryAvailability(customerLocation, branches);
+      
+      res.json({
+        canDeliver: result.canDeliver,
+        nearestBranch: result.nearestBranch ? {
+          id: result.nearestBranch._id?.toString() || result.nearestBranch.id,
+          nameAr: result.nearestBranch.nameAr,
+          nameEn: result.nearestBranch.nameEn,
+        } : null,
+        distanceMeters: result.distanceMeters,
+        message: result.message,
+        messageAr: result.messageAr,
+        deliveryRadiusMeters: 500,
+        allBranches: result.allBranchesWithDistance.map(b => ({
+          id: b.branch._id?.toString() || b.branch.id,
+          nameAr: b.branch.nameAr,
+          nameEn: b.branch.nameEn,
+          distanceMeters: Math.round(b.distanceMeters),
+          isInRange: b.isInRange,
+        })),
+      });
+    } catch (error) {
+      console.error("Error checking delivery availability:", error);
+      res.status(500).json({ error: "فشل في التحقق من التوصيل" });
     }
   });
 
