@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "web", "bash"]
 [nix]
 channel = "stable-25_05"
 packages = ["unzip"]
@@ -33,6 +33,10 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 34401
+externalPort = 3000
 
 [[ports]]
 localPort = 35723
