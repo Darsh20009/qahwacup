@@ -19,11 +19,10 @@ interface Order {
   id: string;
   orderNumber: string;
   status: string;
-  items: any[];
+  itemCount: number;
   createdAt: string;
   orderType?: string;
   deliveryType?: 'pickup' | 'delivery' | 'dine-in';
-  customerInfo?: { name?: string };
 }
 
 const getLastThreeDigits = (orderNumber: string): string => {
@@ -75,7 +74,7 @@ function OrderCard({ order, isReady }: { order: Order; isReady: boolean }) {
         </div>
         
         <div className="text-sm text-muted-foreground">
-          {order.items?.length || 0} عناصر
+          {order.itemCount || 0} عناصر
         </div>
         
         {isReady && (
@@ -101,12 +100,12 @@ export default function OrderStatusDisplayPage() {
   }, []);
 
   const { data: ordersData, isLoading, refetch } = useQuery<Order[]>({
-    queryKey: ["/api/orders/active"],
+    queryKey: ["/api/orders/active-display"],
     queryFn: async () => {
-      const res = await fetch("/api/orders?status=in_progress,ready&limit=50", { credentials: "include" });
+      const res = await fetch("/api/orders/active-display");
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
-      return Array.isArray(data) ? data : data.orders || [];
+      return Array.isArray(data) ? data : [];
     },
     refetchInterval: 5000,
   });

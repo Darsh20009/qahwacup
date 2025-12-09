@@ -2579,6 +2579,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoint for Order Status Display - no authentication required
+  app.get("/api/orders/active-display", async (req, res) => {
+    try {
+      const { OrderModel } = await import("@shared/schema");
+      const { branchId } = req.query;
+      
+      // Get orders that are in_progress or ready (for customer display)
+      const query: any = {
+        status: { $in: ['in_progress', 'preparing', 'ready'] },
+        createdAt: { $gte: new Date(Date.now() - 4 * 60 * 60 * 1000) } // Last 4 hours only
+      };
+
+      if (branchId) {
+        query.branchId = branchId;
+      }
+
+      const orders = await OrderModel.find(query)
+        .sort({ createdAt: 1 })
+        .limit(50);
+
+      // Return minimal info for public display (no customer details)
+      const displayOrders = orders.map(order => {
+        const serialized = serializeDoc(order);
+        let itemCount = 0;
+        
+        try {
+          const items = typeof serialized.items === 'string' 
+            ? JSON.parse(serialized.items) 
+            : serialized.items;
+          itemCount = Array.isArray(items) ? items.length : 0;
+        } catch (e) {
+          itemCount = 0;
+        }
+
+        return {
+          id: serialized.id,
+          orderNumber: serialized.orderNumber,
+          status: serialized.status,
+          orderType: serialized.orderType || serialized.deliveryType,
+          deliveryType: serialized.deliveryType,
+          createdAt: serialized.createdAt,
+          itemCount
+        };
+      });
+
+      res.json(displayOrders);
+    } catch (error) {
+      console.error("Error fetching active display orders:", error);
+      res.status(500).json({ error: "فشل في جلب الطلبات" });
+    }
+  });
+
   // Get orders for Kitchen Display System (KDS) - requires authentication
   app.get("/api/orders/kitchen", requireAuth, async (req: AuthRequest, res) => {
     try {
