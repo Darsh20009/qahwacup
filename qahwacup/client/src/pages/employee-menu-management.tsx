@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Coffee, ArrowRight, CheckCircle, XCircle, Plus, Edit2, Trash2, Sparkles, Upload, ImageIcon, X } from "lucide-react";
+import { Coffee, ArrowRight, ArrowLeft, CheckCircle, XCircle, Plus, Edit2, Trash2, Sparkles, Upload, ImageIcon, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getCoffeeImage } from "@/lib/coffee-images";
@@ -36,6 +36,16 @@ export default function EmployeeMenuManagement() {
  const { toast } = useToast();
  const queryClient = useQueryClient();
  const [selectedIngredients, setSelectedIngredients] = useState<Array<{ingredientId: string, name: string, quantity: number, unit: string}>>([]);
+ const [addStep, setAddStep] = useState<1 | 2>(1);
+ const [step1Data, setStep1Data] = useState<{
+   nameAr: string;
+   nameEn: string;
+   description: string;
+   category: string;
+   price: string;
+   oldPrice: string;
+   imageUrl?: string;
+ } | null>(null);
 
  useEffect(() => {
  const storedEmployee = localStorage.getItem("currentEmployee");
@@ -78,6 +88,8 @@ export default function EmployeeMenuManagement() {
    setIsAddDialogOpen(false);
    setSelectedIngredients([]);
    resetImageState();
+   setAddStep(1);
+   setStep1Data(null);
    toast({
      title: "تم إضافة المشروب",
      description: "تم إضافة المشروب بنجاح إلى القائمة",
@@ -203,51 +215,103 @@ export default function EmployeeMenuManagement() {
  });
  };
 
- const handleSubmitNewItem = async (e: React.FormEvent<HTMLFormElement>) => {
- e.preventDefault();
- const formData = new FormData(e.currentTarget);
- 
- let imageUrl: string | undefined = undefined;
- 
- if (selectedImage) {
-   setIsUploadingImage(true);
-   const uploadedUrl = await uploadImage(selectedImage);
-   setIsUploadingImage(false);
-   if (uploadedUrl) {
-     imageUrl = uploadedUrl;
-   } else {
+ const handleStep1Submit = async (e: React.FormEvent<HTMLFormElement>) => {
+   e.preventDefault();
+   const formData = new FormData(e.currentTarget);
+   
+   const nameAr = formData.get("nameAr") as string;
+   const category = formData.get("category") as string;
+   const price = formData.get("price") as string;
+   
+   if (!nameAr || !category || !price) {
      toast({
        title: "خطأ",
-       description: "فشل رفع الصورة، يرجى المحاولة مرة أخرى",
+       description: "يرجى ملء جميع الحقول المطلوبة",
        variant: "destructive"
      });
      return;
    }
- }
- 
- const itemId = nanoid(10);
- const itemData = {
-   id: itemId,
-   nameAr: formData.get("nameAr") as string,
-   nameEn: formData.get("nameEn") as string || undefined,
-   description: formData.get("description") as string,
-   price: parseFloat(formData.get("price") as string),
-   oldPrice: formData.get("oldPrice") ? parseFloat(formData.get("oldPrice") as string) : undefined,
-   category: formData.get("category") as string,
-   imageUrl: imageUrl,
-   isAvailable: 1,
-   availabilityStatus: "available",
-   isNewProduct: 0,
+   
+   let imageUrl: string | undefined = undefined;
+   
+   if (selectedImage) {
+     setIsUploadingImage(true);
+     const uploadedUrl = await uploadImage(selectedImage);
+     setIsUploadingImage(false);
+     if (uploadedUrl) {
+       imageUrl = uploadedUrl;
+     } else {
+       toast({
+         title: "خطأ",
+         description: "فشل رفع الصورة، يرجى المحاولة مرة أخرى",
+         variant: "destructive"
+       });
+       return;
+     }
+   }
+   
+   setStep1Data({
+     nameAr,
+     nameEn: formData.get("nameEn") as string || "",
+     description: formData.get("description") as string || "",
+     category,
+     price,
+     oldPrice: formData.get("oldPrice") as string || "",
+     imageUrl
+   });
+   setAddStep(2);
  };
 
- createItemMutation.mutate({
-   itemData,
-   ingredientsList: selectedIngredients.map(ing => ({
-     ingredientId: ing.ingredientId,
-     quantity: ing.quantity,
-     unit: ing.unit
-   }))
- });
+ const handleStep2Submit = () => {
+   if (!step1Data) return;
+   
+   const itemId = nanoid(10);
+   const itemData = {
+     id: itemId,
+     nameAr: step1Data.nameAr,
+     nameEn: step1Data.nameEn || undefined,
+     description: step1Data.description,
+     price: parseFloat(step1Data.price),
+     oldPrice: step1Data.oldPrice ? parseFloat(step1Data.oldPrice) : undefined,
+     category: step1Data.category,
+     imageUrl: step1Data.imageUrl,
+     isAvailable: 1,
+     availabilityStatus: "available",
+     isNewProduct: 0,
+   };
+
+   createItemMutation.mutate({
+     itemData,
+     ingredientsList: selectedIngredients.map(ing => ({
+       ingredientId: ing.ingredientId,
+       quantity: ing.quantity,
+       unit: ing.unit
+     }))
+   });
+ };
+
+ const handleSkipIngredients = () => {
+   if (!step1Data) return;
+   
+   const itemId = nanoid(10);
+   const itemData = {
+     id: itemId,
+     nameAr: step1Data.nameAr,
+     nameEn: step1Data.nameEn || undefined,
+     description: step1Data.description,
+     price: parseFloat(step1Data.price),
+     oldPrice: step1Data.oldPrice ? parseFloat(step1Data.oldPrice) : undefined,
+     category: step1Data.category,
+     imageUrl: step1Data.imageUrl,
+     isAvailable: 1,
+     availabilityStatus: "available",
+     isNewProduct: 0,
+   };
+
+   createItemMutation.mutate({
+     itemData,
+     ingredientsList: []
+   });
  };
 
  const handleSubmitEditItem = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -439,7 +503,15 @@ export default function EmployeeMenuManagement() {
  </div>
  <div className="flex gap-3">
  {employee?.role === "manager" && (
- <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+ <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+  setIsAddDialogOpen(open);
+  if (!open) {
+    setAddStep(1);
+    setStep1Data(null);
+    setSelectedIngredients([]);
+    resetImageState();
+  }
+}}>
  <DialogTrigger asChild>
  <Button
  className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800"
@@ -451,9 +523,24 @@ export default function EmployeeMenuManagement() {
  </DialogTrigger>
  <DialogContent className="bg-[#2d1f1a] border-amber-500/20 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
  <DialogHeader>
- <DialogTitle className="text-amber-500">إضافة مشروب جديد</DialogTitle>
+ <DialogTitle className="text-amber-500">
+   <div className="flex flex-col gap-3">
+     <span>إضافة مشروب جديد</span>
+     <div className="flex items-center gap-2 text-sm font-normal">
+       <span className={`px-3 py-1 rounded-full ${addStep === 1 ? 'bg-amber-500 text-white' : 'bg-gray-600 text-gray-300'}`}>
+         1. المعلومات الأساسية
+       </span>
+       <ArrowLeft className="w-4 h-4 text-gray-400" />
+       <span className={`px-3 py-1 rounded-full ${addStep === 2 ? 'bg-amber-500 text-white' : 'bg-gray-600 text-gray-300'}`}>
+         2. المكونات والوصفة
+       </span>
+     </div>
+   </div>
+ </DialogTitle>
  </DialogHeader>
- <form onSubmit={handleSubmitNewItem} className="space-y-4">
+
+ {addStep === 1 ? (
+ <form onSubmit={handleStep1Submit} className="space-y-4">
  <div className="grid grid-cols-2 gap-4">
  <div>
  <Label htmlFor="nameAr" className="text-gray-300">الاسم بالعربية *</Label>
@@ -461,6 +548,7 @@ export default function EmployeeMenuManagement() {
  id="nameAr"
  name="nameAr"
  required
+ defaultValue={step1Data?.nameAr || ""}
  className="bg-[#1a1410] border-amber-500/30 text-white"
  data-testid="input-name-ar"
  />
@@ -470,6 +558,7 @@ export default function EmployeeMenuManagement() {
  <Input
  id="nameEn"
  name="nameEn"
+ defaultValue={step1Data?.nameEn || ""}
  className="bg-[#1a1410] border-amber-500/30 text-white"
  data-testid="input-name-en"
  />
@@ -482,6 +571,7 @@ export default function EmployeeMenuManagement() {
  id="description"
  name="description"
  required
+ defaultValue={step1Data?.description || ""}
  className="bg-[#1a1410] border-amber-500/30 text-white"
  data-testid="input-description"
  />
@@ -490,7 +580,7 @@ export default function EmployeeMenuManagement() {
  <div className="grid grid-cols-2 gap-4">
  <div>
  <Label htmlFor="category" className="text-gray-300">القسم *</Label>
- <Select name="category" required>
+ <Select name="category" required defaultValue={step1Data?.category}>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-category">
  <SelectValue placeholder="اختر القسم" />
  </SelectTrigger>
@@ -512,6 +602,7 @@ export default function EmployeeMenuManagement() {
  step="0.01"
  min="0"
  required
+ defaultValue={step1Data?.price || ""}
  className="bg-[#1a1410] border-amber-500/30 text-white"
  data-testid="input-price"
  />
@@ -527,6 +618,7 @@ export default function EmployeeMenuManagement() {
  type="number"
  step="0.01"
  min="0"
+ defaultValue={step1Data?.oldPrice || ""}
  className="bg-[#1a1410] border-amber-500/30 text-white"
  data-testid="input-old-price"
  />
@@ -565,102 +657,11 @@ export default function EmployeeMenuManagement() {
  </div>
  </div>
 
- <div className="border-t border-amber-500/20 pt-4">
-   <Label className="text-gray-300 text-lg">المكونات والكميات</Label>
-   <p className="text-gray-500 text-sm mb-3">اختر المكونات اللازمة لتحضير المشروب</p>
-   
-   <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
-     {ingredients.map((ing) => {
-       const isSelected = selectedIngredients.some(s => s.ingredientId === ing.id);
-       const selected = selectedIngredients.find(s => s.ingredientId === ing.id);
-       
-       return (
-         <div key={ing.id} className="flex items-center gap-3 p-2 bg-[#1a1410] rounded-lg border border-amber-500/10">
-           <Checkbox
-             id={`ing-${ing.id}`}
-             checked={isSelected}
-             onCheckedChange={(checked) => {
-               if (checked) {
-                 setSelectedIngredients([...selectedIngredients, {
-                   ingredientId: ing.id,
-                   name: ing.nameAr,
-                   quantity: 10,
-                   unit: 'g'
-                 }]);
-               } else {
-                 setSelectedIngredients(selectedIngredients.filter(s => s.ingredientId !== ing.id));
-               }
-             }}
-             className="border-amber-500/50"
-             data-testid={`checkbox-ingredient-${ing.id}`}
-           />
-           <label htmlFor={`ing-${ing.id}`} className="text-gray-300 flex-1 cursor-pointer">
-             {ing.nameAr}
-           </label>
-           {isSelected && (
-             <div className="flex items-center gap-2">
-               <Input
-                 type="number"
-                 min="1"
-                 step="1"
-                 value={selected?.quantity || 10}
-                 onChange={(e) => {
-                   setSelectedIngredients(selectedIngredients.map(s =>
-                     s.ingredientId === ing.id ? { ...s, quantity: parseFloat(e.target.value) || 0 } : s
-                   ));
-                 }}
-                 className="w-20 bg-[#2d1f1a] border-amber-500/30 text-white text-center"
-                 data-testid={`input-quantity-${ing.id}`}
-               />
-               <Select
-                 value={selected?.unit || 'g'}
-                 onValueChange={(value) => {
-                   setSelectedIngredients(selectedIngredients.map(s =>
-                     s.ingredientId === ing.id ? { ...s, unit: value } : s
-                   ));
-                 }}
-               >
-                 <SelectTrigger className="w-20 bg-[#2d1f1a] border-amber-500/30 text-white" data-testid={`select-unit-${ing.id}`}>
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
-                   <SelectItem value="g">جرام</SelectItem>
-                   <SelectItem value="ml">مل</SelectItem>
-                   <SelectItem value="kg">كجم</SelectItem>
-                   <SelectItem value="l">لتر</SelectItem>
-                   <SelectItem value="pcs">قطعة</SelectItem>
-                 </SelectContent>
-               </Select>
-             </div>
-           )}
-         </div>
-       );
-     })}
-   </div>
-   
-   {selectedIngredients.length > 0 && (
-     <div className="flex flex-wrap gap-2 mb-2">
-       {selectedIngredients.map((ing) => (
-         <Badge key={ing.ingredientId} className="bg-amber-500/20 text-amber-500 border border-amber-500/30">
-           {ing.name}: {ing.quantity} {ing.unit}
-           <button
-             type="button"
-             onClick={() => setSelectedIngredients(selectedIngredients.filter(s => s.ingredientId !== ing.ingredientId))}
-             className="mr-1 hover:text-red-400"
-           >
-             <X className="w-3 h-3" />
-           </button>
-         </Badge>
-       ))}
-     </div>
-   )}
- </div>
-
  <div className="flex justify-end gap-2">
  <Button
  type="button"
  variant="outline"
- onClick={() => { setIsAddDialogOpen(false); resetImageState(); setSelectedIngredients([]); }}
+ onClick={() => { setIsAddDialogOpen(false); resetImageState(); setSelectedIngredients([]); setAddStep(1); setStep1Data(null); }}
  className="border-gray-600 text-gray-300"
  data-testid="button-cancel"
  >
@@ -668,14 +669,149 @@ export default function EmployeeMenuManagement() {
  </Button>
  <Button
  type="submit"
- disabled={createItemMutation.isPending || isUploadingImage}
- className="bg-gradient-to-r from-green-500 to-green-700"
- data-testid="button-submit"
+ disabled={isUploadingImage}
+ className="bg-gradient-to-r from-amber-500 to-amber-700"
+ data-testid="button-next"
  >
- {isUploadingImage ? "جاري رفع الصورة..." : createItemMutation.isPending ? "جاري الإضافة..." : "إضافة المشروب"}
+ {isUploadingImage ? "جاري رفع الصورة..." : "التالي: إضافة المكونات"}
+ <ArrowLeft className="w-4 h-4 mr-2" />
  </Button>
  </div>
  </form>
+ ) : (
+ <div className="space-y-4">
+   <div className="bg-[#1a1410] p-4 rounded-lg border border-amber-500/20">
+     <p className="text-gray-400 text-sm mb-1">المشروب:</p>
+     <p className="text-amber-500 font-bold text-lg">{step1Data?.nameAr}</p>
+     <p className="text-gray-500 text-sm">{step1Data?.category && categoryNames[step1Data.category as keyof typeof categoryNames]} • {step1Data?.price} ريال</p>
+   </div>
+
+   <div className="border-t border-amber-500/20 pt-4">
+     <Label className="text-gray-300 text-lg">المكونات والكميات (اختياري)</Label>
+     <p className="text-gray-500 text-sm mb-3">اختر المكونات اللازمة لتحضير المشروب</p>
+     
+     <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+       {ingredients.map((ing) => {
+         const isSelected = selectedIngredients.some(s => s.ingredientId === ing.id);
+         const selected = selectedIngredients.find(s => s.ingredientId === ing.id);
+         
+         return (
+           <div key={ing.id} className="flex items-center gap-3 p-2 bg-[#1a1410] rounded-lg border border-amber-500/10">
+             <Checkbox
+               id={`ing-step2-${ing.id}`}
+               checked={isSelected}
+               onCheckedChange={(checked) => {
+                 if (checked) {
+                   setSelectedIngredients([...selectedIngredients, {
+                     ingredientId: ing.id,
+                     name: ing.nameAr,
+                     quantity: 10,
+                     unit: 'g'
+                   }]);
+                 } else {
+                   setSelectedIngredients(selectedIngredients.filter(s => s.ingredientId !== ing.id));
+                 }
+               }}
+               className="border-amber-500/50"
+               data-testid={`checkbox-ingredient-${ing.id}`}
+             />
+             <label htmlFor={`ing-step2-${ing.id}`} className="text-gray-300 flex-1 cursor-pointer">
+               {ing.nameAr}
+             </label>
+             {isSelected && (
+               <div className="flex items-center gap-2">
+                 <Input
+                   type="number"
+                   min="1"
+                   step="1"
+                   value={selected?.quantity || 10}
+                   onChange={(e) => {
+                     setSelectedIngredients(selectedIngredients.map(s =>
+                       s.ingredientId === ing.id ? { ...s, quantity: parseFloat(e.target.value) || 0 } : s
+                     ));
+                   }}
+                   className="w-20 bg-[#2d1f1a] border-amber-500/30 text-white text-center"
+                   data-testid={`input-quantity-${ing.id}`}
+                 />
+                 <Select
+                   value={selected?.unit || 'g'}
+                   onValueChange={(value) => {
+                     setSelectedIngredients(selectedIngredients.map(s =>
+                       s.ingredientId === ing.id ? { ...s, unit: value } : s
+                     ));
+                   }}
+                 >
+                   <SelectTrigger className="w-20 bg-[#2d1f1a] border-amber-500/30 text-white" data-testid={`select-unit-${ing.id}`}>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+                     <SelectItem value="g">جرام</SelectItem>
+                     <SelectItem value="ml">مل</SelectItem>
+                     <SelectItem value="kg">كجم</SelectItem>
+                     <SelectItem value="l">لتر</SelectItem>
+                     <SelectItem value="pcs">قطعة</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+             )}
+           </div>
+         );
+       })}
+     </div>
+     
+     {selectedIngredients.length > 0 && (
+       <div className="flex flex-wrap gap-2 mb-2">
+         {selectedIngredients.map((ing) => (
+           <Badge key={ing.ingredientId} className="bg-amber-500/20 text-amber-500 border border-amber-500/30">
+             {ing.name}: {ing.quantity} {ing.unit}
+             <button
+               type="button"
+               onClick={() => setSelectedIngredients(selectedIngredients.filter(s => s.ingredientId !== ing.ingredientId))}
+               className="mr-1 hover:text-red-400"
+             >
+               <X className="w-3 h-3" />
+             </button>
+           </Badge>
+         ))}
+       </div>
+     )}
+   </div>
+
+   <div className="flex justify-between gap-2">
+     <Button
+       type="button"
+       variant="outline"
+       onClick={() => setAddStep(1)}
+       className="border-amber-500/30 text-amber-500"
+       data-testid="button-back-step"
+     >
+       <ArrowRight className="w-4 h-4 ml-2" />
+       السابق
+     </Button>
+     <div className="flex gap-2">
+       <Button
+         type="button"
+         variant="outline"
+         onClick={handleSkipIngredients}
+         disabled={createItemMutation.isPending}
+         className="border-gray-600 text-gray-300"
+         data-testid="button-skip"
+       >
+         {createItemMutation.isPending ? "جاري الإضافة..." : "تخطي المكونات"}
+       </Button>
+       <Button
+         type="button"
+         onClick={handleStep2Submit}
+         disabled={createItemMutation.isPending || selectedIngredients.length === 0}
+         className="bg-gradient-to-r from-green-500 to-green-700"
+         data-testid="button-submit"
+       >
+         {createItemMutation.isPending ? "جاري الإضافة..." : "إضافة المشروب"}
+       </Button>
+     </div>
+   </div>
+ </div>
+ )}
  </DialogContent>
  </Dialog>
  )}
