@@ -1,0 +1,10 @@
+node_modules
+.git
+.replit
+.local
+.config
+replit.nix
+migrations
+*.log
+.env
+.env.local
