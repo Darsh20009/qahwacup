@@ -206,6 +206,9 @@ export default function IngredientsRecipesInventoryPage() {
   const [selectedDrink, setSelectedDrink] = useState<CoffeeItem | null>(null);
   const [editingIngredient, setEditingIngredient] = useState<RawItem | null>(null);
   const [deletingIngredientId, setDeletingIngredientId] = useState<string | null>(null);
+  const [isEditRecipeOpen, setIsEditRecipeOpen] = useState(false);
+  const [editingRecipeDrink, setEditingRecipeDrink] = useState<CoffeeItem | null>(null);
+  const [recipeIngredients, setRecipeIngredients] = useState<Array<{ rawItemId: string; quantity: string; unit: string }>>([]);
 
   const [newIngredient, setNewIngredient] = useState({
     code: "",
@@ -247,7 +250,7 @@ export default function IngredientsRecipesInventoryPage() {
   });
 
   const { data: recipeItems = [] } = useQuery<RecipeItem[]>({
-    queryKey: ["/api/recipes"],
+    queryKey: ["/api/inventory/all-recipes"],
   });
 
   const { data: stockMovements = [] } = useQuery<StockMovement[]>({
@@ -306,11 +309,12 @@ export default function IngredientsRecipesInventoryPage() {
 
   const addStockMutation = useMutation({
     mutationFn: async (data: any) => {
-      const branchId = selectedBranch !== "all" ? selectedBranch : branches[0]?.id;
-      if (!branchId) throw new Error("يرجى اختيار الفرع");
+      if (selectedBranch === "all") {
+        throw new Error("يرجى اختيار فرع محدد لإضافة المخزون");
+      }
       
       return apiRequest("POST", "/api/stock-movements", {
-        branchId,
+        branchId: selectedBranch,
         rawItemId: data.rawItemId,
         movementType: "purchase",
         quantity: parseFloat(data.quantity),
@@ -326,6 +330,67 @@ export default function IngredientsRecipesInventoryPage() {
     },
     onError: (error: any) => {
       toast({ title: error.message || "فشل في إضافة المخزون", variant: "destructive" });
+    },
+  });
+
+  const saveRecipeMutation = useMutation({
+    mutationFn: async (data: { coffeeItemId: string; ingredients: Array<{ rawItemId: string; quantity: number; unit: string }> }) => {
+      const existingRecipes = recipeItems.filter(r => r.coffeeItemId === data.coffeeItemId);
+      const createdRecipeIds: string[] = [];
+      
+      try {
+        for (const ingredient of data.ingredients) {
+          const response = await apiRequest("POST", "/api/inventory/recipes", {
+            coffeeItemId: data.coffeeItemId,
+            rawItemId: ingredient.rawItemId,
+            quantity: ingredient.quantity,
+            unit: ingredient.unit,
+          });
+          if (response && (response as any).id) {
+            createdRecipeIds.push((response as any).id);
+          }
+        }
+        
+        for (const recipe of existingRecipes) {
+          await apiRequest("DELETE", `/api/inventory/recipes/${recipe.id}`);
+        }
+        
+        return true;
+      } catch (error) {
+        for (const recipeId of createdRecipeIds) {
+          try {
+            await apiRequest("DELETE", `/api/inventory/recipes/${recipeId}`);
+          } catch {}
+        }
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/all-recipes"] });
+      setIsEditRecipeOpen(false);
+      setEditingRecipeDrink(null);
+      setRecipeIngredients([]);
+      toast({ title: "تم حفظ الوصفة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "فشل في حفظ الوصفة", variant: "destructive" });
+    },
+  });
+
+  const deleteRecipeMutation = useMutation({
+    mutationFn: async (coffeeItemId: string) => {
+      const existingRecipes = recipeItems.filter(r => r.coffeeItemId === coffeeItemId);
+      for (const recipe of existingRecipes) {
+        await apiRequest("DELETE", `/api/inventory/recipes/${recipe.id}`);
+      }
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory/all-recipes"] });
+      toast({ title: "تم حذف الوصفة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "فشل في حذف الوصفة", variant: "destructive" });
     },
   });
 
@@ -425,6 +490,54 @@ export default function IngredientsRecipesInventoryPage() {
   const getRawItemName = (rawItemId: string) => {
     const item = rawItems.find(r => r.id === rawItemId);
     return item?.nameAr || rawItemId;
+  };
+
+  const openEditRecipe = (drink: CoffeeItem) => {
+    setEditingRecipeDrink(drink);
+    const existingRecipes = recipeItems.filter(r => r.coffeeItemId === drink.id);
+    if (existingRecipes.length > 0) {
+      setRecipeIngredients(existingRecipes.map(r => ({
+        rawItemId: r.rawItemId,
+        quantity: r.quantity.toString(),
+        unit: r.unit,
+      })));
+    } else {
+      setRecipeIngredients([{ rawItemId: "", quantity: "", unit: "g" }]);
+    }
+    setIsEditRecipeOpen(true);
+  };
+
+  const addRecipeIngredient = () => {
+    setRecipeIngredients(prev => [...prev, { rawItemId: "", quantity: "", unit: "g" }]);
+  };
+
+  const removeRecipeIngredient = (index: number) => {
+    setRecipeIngredients(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateRecipeIngredient = (index: number, field: string, value: string) => {
+    setRecipeIngredients(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ));
+  };
+
+  const handleSaveRecipe = () => {
+    if (!editingRecipeDrink) return;
+    const validIngredients = recipeIngredients.filter(
+      ing => ing.rawItemId && ing.quantity && parseFloat(ing.quantity) > 0
+    );
+    if (validIngredients.length === 0) {
+      toast({ title: "يرجى إضافة مكون واحد على الأقل", variant: "destructive" });
+      return;
+    }
+    saveRecipeMutation.mutate({
+      coffeeItemId: editingRecipeDrink.id,
+      ingredients: validIngredients.map(ing => ({
+        rawItemId: ing.rawItemId,
+        quantity: parseFloat(ing.quantity),
+        unit: ing.unit,
+      })),
+    });
   };
 
   return (
@@ -703,16 +816,18 @@ export default function IngredientsRecipesInventoryPage() {
               {drinksWithRecipes.map(drink => (
                 <Card 
                   key={drink.id} 
-                  className={`cursor-pointer transition-all ${!drink.hasRecipe ? "opacity-60" : ""}`}
-                  onClick={() => {
-                    setSelectedDrink(drink);
-                    setIsViewRecipeOpen(true);
-                  }}
+                  className={`transition-all ${!drink.hasRecipe ? "opacity-60" : ""}`}
                   data-testid={`card-recipe-${drink.id}`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
+                      <div 
+                        className="flex items-center gap-3 cursor-pointer flex-1"
+                        onClick={() => {
+                          setSelectedDrink(drink);
+                          setIsViewRecipeOpen(true);
+                        }}
+                      >
                         {drink.imageUrl ? (
                           <img src={drink.imageUrl} alt={drink.nameAr} className="w-12 h-12 rounded-lg object-cover" />
                         ) : (
@@ -725,17 +840,45 @@ export default function IngredientsRecipesInventoryPage() {
                           <p className="text-sm text-muted-foreground">{drink.price.toFixed(2)} ر.س</p>
                         </div>
                       </div>
-                      {drink.hasRecipe ? (
-                        <Badge variant="secondary" className="bg-green-500/20 text-green-700">
-                          <CheckCircle className="h-3 w-3 ml-1" />
-                          وصفة
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-amber-600">
-                          <AlertTriangle className="h-3 w-3 ml-1" />
-                          بدون
-                        </Badge>
-                      )}
+                      <div className="flex flex-col items-end gap-2">
+                        {drink.hasRecipe ? (
+                          <Badge variant="secondary" className="bg-green-500/20 text-green-700">
+                            <CheckCircle className="h-3 w-3 ml-1" />
+                            وصفة
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-600">
+                            <AlertTriangle className="h-3 w-3 ml-1" />
+                            بدون
+                          </Badge>
+                        )}
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditRecipe(drink);
+                            }}
+                            data-testid={`button-edit-recipe-${drink.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          {drink.hasRecipe && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteRecipeMutation.mutate(drink.id);
+                              }}
+                              data-testid={`button-delete-recipe-${drink.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                     
                     {drink.hasRecipe && (
@@ -1114,6 +1257,118 @@ export default function IngredientsRecipesInventoryPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isEditRecipeOpen} onOpenChange={setIsEditRecipeOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRecipeDrink ? `تعديل وصفة ${editingRecipeDrink.nameAr}` : "تعديل الوصفة"}
+            </DialogTitle>
+            <DialogDescription>
+              حدد المكونات والكميات المطلوبة لتحضير هذا المشروب (كوب 250 مل)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {recipeIngredients.map((ingredient, index) => (
+              <div key={index} className="flex items-end gap-3 p-3 bg-muted rounded-lg">
+                <div className="flex-1 space-y-2">
+                  <Label>المكون</Label>
+                  <Select
+                    value={ingredient.rawItemId}
+                    onValueChange={(value) => updateRecipeIngredient(index, "rawItemId", value)}
+                  >
+                    <SelectTrigger data-testid={`select-recipe-ingredient-${index}`}>
+                      <SelectValue placeholder="اختر المكون" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rawItems.map(item => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.nameAr} ({unitLabels[item.unit]})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="w-24 space-y-2">
+                  <Label>الكمية</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={ingredient.quantity}
+                    onChange={(e) => updateRecipeIngredient(index, "quantity", e.target.value)}
+                    placeholder="الكمية"
+                    data-testid={`input-recipe-quantity-${index}`}
+                  />
+                </div>
+
+                <div className="w-28 space-y-2">
+                  <Label>الوحدة</Label>
+                  <Select
+                    value={ingredient.unit}
+                    onValueChange={(value) => updateRecipeIngredient(index, "unit", value)}
+                  >
+                    <SelectTrigger data-testid={`select-recipe-unit-${index}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="g">جرام</SelectItem>
+                      <SelectItem value="ml">ملليلتر</SelectItem>
+                      <SelectItem value="piece">قطعة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeRecipeIngredient(index)}
+                  disabled={recipeIngredients.length === 1}
+                  data-testid={`button-remove-ingredient-${index}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addRecipeIngredient}
+              className="w-full"
+              data-testid="button-add-recipe-ingredient"
+            >
+              <Plus className="h-4 w-4 ml-2" />
+              إضافة مكون
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsEditRecipeOpen(false);
+                setEditingRecipeDrink(null);
+                setRecipeIngredients([]);
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveRecipe}
+              disabled={saveRecipeMutation.isPending}
+              data-testid="button-save-recipe"
+            >
+              {saveRecipeMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+              حفظ الوصفة
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
