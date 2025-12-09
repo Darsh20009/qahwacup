@@ -957,9 +957,29 @@ export default function EmployeeCashier() {
  <div className="lg:col-span-1 space-y-4">
  <Card className="bg-[#2d1f1a] border-amber-500/20 sticky top-4">
  <CardHeader>
- <CardTitle className="text-amber-500 text-right flex items-center gap-2">
+ <CardTitle className="text-amber-500 text-right flex items-center justify-between gap-2">
+ <div className="flex items-center gap-2">
  <ShoppingBag className="w-5 h-5" />
  الطلب الحالي
+ </div>
+ <Badge 
+   data-testid="badge-order-type"
+   className={
+     orderType === 'dine-in' 
+       ? 'bg-purple-600 text-white' 
+       : orderType === 'pickup' 
+         ? 'bg-blue-600 text-white' 
+         : 'bg-green-600 text-white'
+   }
+ >
+   {orderType === 'dine-in' ? (
+     <><Store className="w-3 h-3 ml-1" />محلي</>
+   ) : orderType === 'pickup' ? (
+     <><MapPin className="w-3 h-3 ml-1" />استلام</>
+   ) : (
+     <><Truck className="w-3 h-3 ml-1" />توصيل</>
+   )}
+ </Badge>
  </CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
