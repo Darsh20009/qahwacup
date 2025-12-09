@@ -355,6 +355,20 @@ export async function printTaxInvoice(data: TaxInvoiceData): Promise<void> {
     console.error("Error generating QR code:", error);
   }
 
+  // Generate tracking QR code
+  const trackingUrl = `${window.location.origin}/tracking/${data.orderNumber}`;
+  let trackingQrUrl = "";
+  try {
+    trackingQrUrl = await QRCode.toDataURL(trackingUrl, {
+      width: 120,
+      margin: 1,
+      color: { dark: '#000000', light: '#FFFFFF' },
+      errorCorrectionLevel: 'M'
+    });
+  } catch (error) {
+    console.error("Error generating tracking QR:", error);
+  }
+
   const itemsHtml = data.items.map((item, index) => {
     const unitPrice = parseNumber(item.coffeeItem.price);
     const lineTotal = unitPrice * item.quantity;
@@ -844,6 +858,17 @@ export async function printTaxInvoice(data: TaxInvoiceData): Promise<void> {
       ` : ''}
       <p class="qr-note">امسح الرمز للتحقق من صحة الفاتورة</p>
     </div>
+
+    ${trackingQrUrl ? `
+    <div class="qr-section" style="margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 12px;">
+      <p class="qr-title">تتبع الطلب</p>
+      <p class="qr-subtitle">Order Tracking</p>
+      <div class="qr-container">
+        <img src="${trackingQrUrl}" alt="Tracking QR" style="width: 100px; height: 100px;" />
+      </div>
+      <p class="qr-note">امسح لتتبع طلبك</p>
+    </div>
+    ` : ''}
 
     <div class="footer">
       <p class="footer-thanks">شكراً لزيارتكم</p>
