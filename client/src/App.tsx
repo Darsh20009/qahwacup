@@ -61,6 +61,7 @@ import POSSystem from "@/pages/pos-system";
 import KitchenDisplay from "@/pages/kitchen-display";
 import AccountingDashboard from "@/pages/accounting-dashboard";
 import IngredientsRecipesInventory from "@/pages/ingredients-recipes-inventory";
+import OrderStatusDisplay from "@/pages/order-status-display";
 
 function Router() {
  return (
@@ -118,6 +119,7 @@ function Router() {
  <Route path="/manager/inventory/movements" component={InventoryMovements} />
  <Route path="/manager/accounting" component={AccountingDashboard} />
  <Route path="/manager/ingredients-recipes" component={IngredientsRecipesInventory} />
+ <Route path="/order-status" component={OrderStatusDisplay} />
  <Route path="/employee/attendance" component={EmployeeAttendance} />
  <Route path="/owner/dashboard" component={OwnerDashboard} />
  <Route component={SplashScreen} />

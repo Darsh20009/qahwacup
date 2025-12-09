@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -25,14 +25,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -46,25 +38,16 @@ import {
   Plus, 
   Package,
   Coffee,
-  Warehouse,
   Search,
   Edit,
   Trash2,
   ArrowLeft,
   Loader2,
-  TrendingDown,
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
   Calculator,
-  Scale,
-  Droplet,
-  Box,
-  History,
-  RefreshCw
+  ShoppingCart,
 } from "lucide-react";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 
 interface RawItem {
   id: string;
@@ -110,21 +93,17 @@ interface Branch {
   nameAr: string;
 }
 
-interface StockMovement {
-  id: string;
-  branchId: string;
-  rawItemId: string;
-  movementType: string;
-  quantity: number;
-  previousQuantity: number;
-  newQuantity: number;
-  referenceType?: string;
-  referenceId?: string;
-  notes?: string;
-  createdAt: string;
-}
-
 const unitLabels: Record<string, string> = {
+  kg: "كجم",
+  g: "جرام",
+  liter: "لتر",
+  ml: "مل",
+  piece: "قطعة",
+  box: "صندوق",
+  bag: "كيس",
+};
+
+const unitLabelsFull: Record<string, string> = {
   kg: "كيلوجرام",
   g: "جرام",
   liter: "لتر",
@@ -134,41 +113,22 @@ const unitLabels: Record<string, string> = {
   bag: "كيس",
 };
 
-const formatQuantityWithUnit = (quantity: number, unit: string): { display: string; secondary?: string } => {
+const formatQuantity = (quantity: number, unit: string): string => {
   if (unit === "kg") {
-    if (quantity >= 1) {
-      return { display: `${quantity.toFixed(2)} كجم`, secondary: `(${(quantity * 1000).toFixed(0)} جرام)` };
-    } else {
-      return { display: `${(quantity * 1000).toFixed(0)} جرام`, secondary: `(${quantity.toFixed(3)} كجم)` };
-    }
-  }
-  if (unit === "g") {
-    if (quantity >= 1000) {
-      return { display: `${(quantity / 1000).toFixed(2)} كجم`, secondary: `(${quantity.toFixed(0)} جرام)` };
-    } else {
-      return { display: `${quantity.toFixed(0)} جرام` };
-    }
+    return quantity >= 1 ? `${quantity.toFixed(1)} كجم` : `${(quantity * 1000).toFixed(0)} جرام`;
   }
   if (unit === "liter") {
-    if (quantity >= 1) {
-      return { display: `${quantity.toFixed(2)} لتر`, secondary: `(${(quantity * 1000).toFixed(0)} مل)` };
-    } else {
-      return { display: `${(quantity * 1000).toFixed(0)} مل`, secondary: `(${quantity.toFixed(3)} لتر)` };
-    }
+    return quantity >= 1 ? `${quantity.toFixed(1)} لتر` : `${(quantity * 1000).toFixed(0)} مل`;
   }
-  if (unit === "ml") {
-    if (quantity >= 1000) {
-      return { display: `${(quantity / 1000).toFixed(2)} لتر`, secondary: `(${quantity.toFixed(0)} مل)` };
-    } else {
-      return { display: `${quantity.toFixed(0)} مل` };
-    }
+  if (unit === "g" || unit === "ml") {
+    return `${quantity.toFixed(0)} ${unitLabels[unit]}`;
   }
-  return { display: `${quantity.toFixed(quantity % 1 === 0 ? 0 : 2)} ${unitLabels[unit] || unit}` };
+  return `${quantity.toFixed(quantity % 1 === 0 ? 0 : 1)} ${unitLabels[unit] || unit}`;
 };
 
 const categoryLabels: Record<string, string> = {
   coffee: "قهوة",
-  dairy: "منتجات ألبان",
+  dairy: "ألبان",
   syrups: "شراب",
   cups: "أكواب",
   chocolate: "شوكولاتة",
@@ -176,55 +136,29 @@ const categoryLabels: Record<string, string> = {
   other: "أخرى",
 };
 
-const defaultRecipes: Record<string, { rawCode: string; quantity: number; unit: string }[]> = {
-  "espresso": [
-    { rawCode: "RAW-001", quantity: 18, unit: "g" },
-  ],
-  "cappuccino": [
-    { rawCode: "RAW-001", quantity: 18, unit: "g" },
-    { rawCode: "RAW-003", quantity: 120, unit: "ml" },
-  ],
-  "latte": [
-    { rawCode: "RAW-001", quantity: 18, unit: "g" },
-    { rawCode: "RAW-003", quantity: 180, unit: "ml" },
-  ],
-  "mocha": [
-    { rawCode: "RAW-001", quantity: 18, unit: "g" },
-    { rawCode: "RAW-003", quantity: 150, unit: "ml" },
-    { rawCode: "RAW-008", quantity: 30, unit: "ml" },
-  ],
-};
-
 export default function IngredientsRecipesInventoryPage() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("inventory");
+  const [activeTab, setActiveTab] = useState("stock");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
-  const [isAddIngredientOpen, setIsAddIngredientOpen] = useState(false);
-  const [isAddStockOpen, setIsAddStockOpen] = useState(false);
-  const [isViewRecipeOpen, setIsViewRecipeOpen] = useState(false);
-  const [selectedDrink, setSelectedDrink] = useState<CoffeeItem | null>(null);
-  const [editingIngredient, setEditingIngredient] = useState<RawItem | null>(null);
-  const [deletingIngredientId, setDeletingIngredientId] = useState<string | null>(null);
+  
+  const [isAddItemOpen, setIsAddItemOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<RawItem | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  
+  const [addStockItem, setAddStockItem] = useState<RawItem | null>(null);
+  const [addStockQuantity, setAddStockQuantity] = useState("");
+  
   const [isEditRecipeOpen, setIsEditRecipeOpen] = useState(false);
   const [editingRecipeDrink, setEditingRecipeDrink] = useState<CoffeeItem | null>(null);
   const [recipeIngredients, setRecipeIngredients] = useState<Array<{ rawItemId: string; quantity: string; unit: string }>>([]);
 
-  const [newIngredient, setNewIngredient] = useState({
-    code: "",
+  const [newItem, setNewItem] = useState({
     nameAr: "",
-    nameEn: "",
     unit: "kg",
     unitCost: "",
     category: "other",
-    minimumStock: "",
-  });
-
-  const [newStock, setNewStock] = useState({
-    rawItemId: "",
-    quantity: "",
-    unitCost: "",
-    notes: "",
+    minimumStock: "10",
   });
 
   const { data: branches = [] } = useQuery<Branch[]>({
@@ -253,25 +187,14 @@ export default function IngredientsRecipesInventoryPage() {
     queryKey: ["/api/inventory/all-recipes"],
   });
 
-  const { data: stockMovements = [] } = useQuery<StockMovement[]>({
-    queryKey: ["/api/stock-movements", selectedBranch],
-    queryFn: async () => {
-      const params = new URLSearchParams({ limit: "50" });
-      if (selectedBranch !== "all") params.append("branchId", selectedBranch);
-      const res = await fetch(`/api/stock-movements?${params}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch stock movements");
-      return res.json();
-    },
-  });
-
-  const createIngredientMutation = useMutation({
+  const createItemMutation = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest("POST", "/api/raw-items", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/raw-items"] });
-      setIsAddIngredientOpen(false);
-      resetNewIngredient();
+      setIsAddItemOpen(false);
+      setNewItem({ nameAr: "", unit: "kg", unitCost: "", category: "other", minimumStock: "10" });
       toast({ title: "تم إضافة المكون بنجاح" });
     },
     onError: () => {
@@ -279,13 +202,13 @@ export default function IngredientsRecipesInventoryPage() {
     },
   });
 
-  const updateIngredientMutation = useMutation({
+  const updateItemMutation = useMutation({
     mutationFn: async (data: { id: string; updates: any }) => {
       return apiRequest("PUT", `/api/raw-items/${data.id}`, data.updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/raw-items"] });
-      setEditingIngredient(null);
+      setEditingItem(null);
       toast({ title: "تم تحديث المكون بنجاح" });
     },
     onError: () => {
@@ -293,13 +216,13 @@ export default function IngredientsRecipesInventoryPage() {
     },
   });
 
-  const deleteIngredientMutation = useMutation({
+  const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
       return apiRequest("DELETE", `/api/raw-items/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/raw-items"] });
-      setDeletingIngredientId(null);
+      setDeletingItemId(null);
       toast({ title: "تم حذف المكون بنجاح" });
     },
     onError: () => {
@@ -308,24 +231,22 @@ export default function IngredientsRecipesInventoryPage() {
   });
 
   const addStockMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { rawItemId: string; quantity: number }) => {
       if (selectedBranch === "all") {
-        throw new Error("يرجى اختيار فرع محدد لإضافة المخزون");
+        throw new Error("اختر فرع محدد أولاً");
       }
-      
       return apiRequest("POST", "/api/stock-movements", {
         branchId: selectedBranch,
         rawItemId: data.rawItemId,
         movementType: "purchase",
-        quantity: parseFloat(data.quantity),
-        notes: data.notes || "إضافة مخزون جديد",
+        quantity: data.quantity,
+        notes: "إضافة مخزون",
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/branch-stock"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stock-movements"] });
-      setIsAddStockOpen(false);
-      setNewStock({ rawItemId: "", quantity: "", unitCost: "", notes: "" });
+      setAddStockItem(null);
+      setAddStockQuantity("");
       toast({ title: "تم إضافة المخزون بنجاح" });
     },
     onError: (error: any) => {
@@ -377,57 +298,26 @@ export default function IngredientsRecipesInventoryPage() {
     },
   });
 
-  const deleteRecipeMutation = useMutation({
-    mutationFn: async (coffeeItemId: string) => {
-      const existingRecipes = recipeItems.filter(r => r.coffeeItemId === coffeeItemId);
-      for (const recipe of existingRecipes) {
-        await apiRequest("DELETE", `/api/inventory/recipes/${recipe.id}`);
-      }
-      return true;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inventory/all-recipes"] });
-      toast({ title: "تم حذف الوصفة بنجاح" });
-    },
-    onError: () => {
-      toast({ title: "فشل في حذف الوصفة", variant: "destructive" });
-    },
-  });
-
-  const resetNewIngredient = () => {
-    setNewIngredient({
-      code: "",
-      nameAr: "",
-      nameEn: "",
-      unit: "kg",
-      unitCost: "",
-      category: "other",
-      minimumStock: "",
-    });
-  };
-
-  const filteredRawItems = useMemo(() => {
-    return rawItems.filter(item =>
-      item.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [rawItems, searchQuery]);
-
-  const inventoryWithStock = useMemo(() => {
+  const stockItems = useMemo(() => {
     return rawItems.map(item => {
       const stock = branchStocks.find(s => s.rawItemId === item.id);
+      const currentQty = stock?.currentQuantity || 0;
+      const minStock = stock?.minimumStock || item.minimumStock || 10;
+      const percentage = minStock > 0 ? Math.min((currentQty / minStock) * 100, 100) : 100;
+      
+      let status: "ok" | "low" | "critical" = "ok";
+      if (currentQty <= minStock * 0.2) status = "critical";
+      else if (currentQty <= minStock) status = "low";
+      
       return {
         ...item,
-        currentQuantity: stock?.currentQuantity || 0,
-        minimumStock: stock?.minimumStock || item.minimumStock || 10,
-        lastUpdated: stock?.lastUpdated,
-        stockStatus: stock ? 
-          (stock.currentQuantity <= (stock.minimumStock || 10) * 0.2 ? "critical" :
-           stock.currentQuantity <= (stock.minimumStock || 10) ? "low" : "ok") : "unknown",
+        currentQuantity: currentQty,
+        minimumStock: minStock,
+        percentage,
+        status,
       };
     }).filter(item =>
-      item.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.toLowerCase())
+      item.nameAr.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [rawItems, branchStocks, searchQuery]);
 
@@ -456,40 +346,32 @@ export default function IngredientsRecipesInventoryPage() {
     );
   }, [coffeeItems, recipeItems, rawItems, searchQuery]);
 
-  const totalInventoryValue = useMemo(() => {
-    return inventoryWithStock.reduce((total, item) => {
-      return total + (item.currentQuantity * item.unitCost);
-    }, 0);
-  }, [inventoryWithStock]);
+  const lowStockCount = stockItems.filter(i => i.status !== "ok").length;
+  const drinksWithRecipeCount = drinksWithRecipes.filter(d => d.hasRecipe).length;
 
-  const lowStockItems = useMemo(() => {
-    return inventoryWithStock.filter(item => item.stockStatus === "low" || item.stockStatus === "critical");
-  }, [inventoryWithStock]);
-
-  const handleSubmitIngredient = (e: React.FormEvent) => {
+  const handleSubmitItem = (e: React.FormEvent) => {
     e.preventDefault();
-    const code = newIngredient.code || `RAW-${Date.now().toString(36).toUpperCase()}`;
+    const code = `RAW-${Date.now().toString(36).toUpperCase()}`;
     
-    createIngredientMutation.mutate({
+    createItemMutation.mutate({
       code,
-      nameAr: newIngredient.nameAr,
-      nameEn: newIngredient.nameEn || undefined,
-      unit: newIngredient.unit,
-      unitCost: parseFloat(newIngredient.unitCost) || 0,
-      category: newIngredient.category,
-      minimumStock: parseFloat(newIngredient.minimumStock) || 10,
+      nameAr: newItem.nameAr,
+      unit: newItem.unit,
+      unitCost: parseFloat(newItem.unitCost) || 0,
+      category: newItem.category,
+      minimumStock: parseFloat(newItem.minimumStock) || 10,
       isActive: 1,
     });
   };
 
-  const handleSubmitStock = (e: React.FormEvent) => {
-    e.preventDefault();
-    addStockMutation.mutate(newStock);
-  };
-
-  const getRawItemName = (rawItemId: string) => {
-    const item = rawItems.find(r => r.id === rawItemId);
-    return item?.nameAr || rawItemId;
+  const handleAddStock = () => {
+    if (!addStockItem || !addStockQuantity) return;
+    const qty = parseFloat(addStockQuantity);
+    if (qty <= 0) {
+      toast({ title: "أدخل كمية صحيحة", variant: "destructive" });
+      return;
+    }
+    addStockMutation.mutate({ rawItemId: addStockItem.id, quantity: qty });
   };
 
   const openEditRecipe = (drink: CoffeeItem) => {
@@ -507,27 +389,13 @@ export default function IngredientsRecipesInventoryPage() {
     setIsEditRecipeOpen(true);
   };
 
-  const addRecipeIngredient = () => {
-    setRecipeIngredients(prev => [...prev, { rawItemId: "", quantity: "", unit: "g" }]);
-  };
-
-  const removeRecipeIngredient = (index: number) => {
-    setRecipeIngredients(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const updateRecipeIngredient = (index: number, field: string, value: string) => {
-    setRecipeIngredients(prev => prev.map((item, i) => 
-      i === index ? { ...item, [field]: value } : item
-    ));
-  };
-
   const handleSaveRecipe = () => {
     if (!editingRecipeDrink) return;
     const validIngredients = recipeIngredients.filter(
       ing => ing.rawItemId && ing.quantity && parseFloat(ing.quantity) > 0
     );
     if (validIngredients.length === 0) {
-      toast({ title: "يرجى إضافة مكون واحد على الأقل", variant: "destructive" });
+      toast({ title: "أضف مكون واحد على الأقل", variant: "destructive" });
       return;
     }
     saveRecipeMutation.mutate({
@@ -540,475 +408,354 @@ export default function IngredientsRecipesInventoryPage() {
     });
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "critical": return "bg-red-500";
+      case "low": return "bg-amber-500";
+      default: return "bg-green-500";
+    }
+  };
+
+  const getStatusBg = (status: string) => {
+    switch (status) {
+      case "critical": return "bg-red-500/10 border-red-500/30";
+      case "low": return "bg-amber-500/10 border-amber-500/30";
+      default: return "bg-green-500/10 border-green-500/30";
+    }
+  };
+
+  if (isRawItemsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" dir="rtl">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <header className="sticky top-0 z-50 bg-background border-b p-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => window.history.back()} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold">المكونات والوصفات والمخزون</h1>
-              <p className="text-sm text-muted-foreground">إدارة متكاملة للمخزون والوصفات</p>
-            </div>
+            <h1 className="text-xl font-bold">المخزون والوصفات</h1>
           </div>
 
-          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-            <SelectTrigger className="w-48" data-testid="select-branch">
-              <SelectValue placeholder="جميع الفروع" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع الفروع</SelectItem>
-              {branches.map(branch => (
-                <SelectItem key={branch.id} value={branch.id}>{branch.nameAr}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-40" data-testid="select-branch">
+                <SelectValue placeholder="الفرع" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الفروع</SelectItem>
+                {branches.map(branch => (
+                  <SelectItem key={branch.id} value={branch.id}>{branch.nameAr}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button onClick={() => setIsAddItemOpen(true)} data-testid="button-add-item">
+              <Plus className="h-4 w-4 ml-2" />
+              إضافة مكون
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="p-4 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-blue-500/10">
-                  <Package className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي المكونات</p>
-                  <p className="text-2xl font-bold">{rawItems.length}</p>
-                </div>
+      <main className="p-4 space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Package className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">المكونات</p>
+                <p className="text-xl font-bold">{rawItems.length}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-green-500/10">
-                  <Warehouse className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">قيمة المخزون</p>
-                  <p className="text-2xl font-bold">{totalInventoryValue.toFixed(2)} ر.س</p>
-                </div>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">مخزون منخفض</p>
+                <p className="text-xl font-bold text-amber-600">{lowStockCount}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-amber-500/10">
-                  <AlertTriangle className="h-6 w-6 text-amber-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">مخزون منخفض</p>
-                  <p className="text-2xl font-bold">{lowStockItems.length}</p>
-                </div>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">بوصفات</p>
+                <p className="text-xl font-bold text-green-600">{drinksWithRecipeCount}/{coffeeItems.length}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-purple-500/10">
-                  <Coffee className="h-6 w-6 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">المشروبات بوصفات</p>
-                  <p className="text-2xl font-bold">{drinksWithRecipes.filter(d => d.hasRecipe).length}/{coffeeItems.length}</p>
-                </div>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <Calculator className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">متوسط الربح</p>
+                <p className="text-xl font-bold">
+                  {drinksWithRecipes.length > 0 
+                    ? `${(drinksWithRecipes.reduce((sum, d) => sum + (d.hasRecipe ? d.profitMargin : 0), 0) / Math.max(drinksWithRecipeCount, 1)).toFixed(0)}%`
+                    : "-"}
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="بحث..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
-              data-testid="input-search"
-            />
-          </div>
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="بحث..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-10"
+            data-testid="input-search"
+          />
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="inventory" data-testid="tab-inventory">
-              <Warehouse className="h-4 w-4 ml-2" />
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="stock" className="text-base py-3" data-testid="tab-stock">
+              <Package className="h-5 w-5 ml-2" />
               المخزون
             </TabsTrigger>
-            <TabsTrigger value="ingredients" data-testid="tab-ingredients">
-              <Package className="h-4 w-4 ml-2" />
-              المكونات
-            </TabsTrigger>
-            <TabsTrigger value="recipes" data-testid="tab-recipes">
-              <Coffee className="h-4 w-4 ml-2" />
+            <TabsTrigger value="recipes" className="text-base py-3" data-testid="tab-recipes">
+              <Coffee className="h-5 w-5 ml-2" />
               الوصفات
-            </TabsTrigger>
-            <TabsTrigger value="history" data-testid="tab-history">
-              <History className="h-4 w-4 ml-2" />
-              السجل
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="inventory" className="mt-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">مخزون المكونات</h2>
-              <Button onClick={() => setIsAddStockOpen(true)} data-testid="button-add-stock">
-                <Plus className="h-4 w-4 ml-2" />
-                إضافة مخزون
-              </Button>
-            </div>
-
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>الكود</TableHead>
-                      <TableHead>المكون</TableHead>
-                      <TableHead>الكمية الحالية</TableHead>
-                      <TableHead>الوحدة</TableHead>
-                      <TableHead>الحد الأدنى</TableHead>
-                      <TableHead>التكلفة/وحدة</TableHead>
-                      <TableHead>القيمة</TableHead>
-                      <TableHead>الحالة</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {inventoryWithStock.map(item => (
-                      <TableRow key={item.id} data-testid={`row-inventory-${item.id}`}>
-                        <TableCell className="font-mono text-xs">{item.code}</TableCell>
-                        <TableCell className="font-medium">{item.nameAr}</TableCell>
-                        <TableCell>
-                          {(() => {
-                            const formatted = formatQuantityWithUnit(item.currentQuantity, item.unit);
-                            return (
-                              <div className={item.stockStatus === "critical" ? "text-destructive font-bold" : 
-                                              item.stockStatus === "low" ? "text-amber-500 font-medium" : ""}>
-                                <span className="font-semibold">{formatted.display}</span>
-                                {formatted.secondary && (
-                                  <span className="text-xs text-muted-foreground block">{formatted.secondary}</span>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </TableCell>
-                        <TableCell>
-                          {(() => {
-                            const formatted = formatQuantityWithUnit(item.minimumStock, item.unit);
-                            return <span>{formatted.display}</span>;
-                          })()}
-                        </TableCell>
-                        <TableCell>{item.unitCost.toFixed(2)} ر.س/{unitLabels[item.unit] || item.unit}</TableCell>
-                        <TableCell className="font-medium">{(item.currentQuantity * item.unitCost).toFixed(2)} ر.س</TableCell>
-                        <TableCell>
-                          {item.stockStatus === "critical" ? (
-                            <Badge variant="destructive">
-                              <AlertTriangle className="h-3 w-3 ml-1" />
-                              حرج
-                            </Badge>
-                          ) : item.stockStatus === "low" ? (
-                            <Badge variant="secondary" className="bg-amber-500/20 text-amber-700">
-                              <TrendingDown className="h-3 w-3 ml-1" />
-                              منخفض
-                            </Badge>
-                          ) : item.stockStatus === "ok" ? (
-                            <Badge variant="secondary" className="bg-green-500/20 text-green-700">
-                              <CheckCircle className="h-3 w-3 ml-1" />
-                              جيد
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">غير محدد</Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="ingredients" className="mt-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">قائمة المكونات</h2>
-              <Button onClick={() => setIsAddIngredientOpen(true)} data-testid="button-add-ingredient">
-                <Plus className="h-4 w-4 ml-2" />
-                إضافة مكون
-              </Button>
-            </div>
+          <TabsContent value="stock" className="mt-4">
+            {selectedBranch === "all" && (
+              <div className="mb-4 p-4 bg-amber-500/10 rounded-lg border border-amber-500/30 flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+                <p className="text-sm">اختر فرع محدد لإضافة أو تعديل المخزون</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredRawItems.map(item => (
-                <Card key={item.id} data-testid={`card-ingredient-${item.id}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-muted">
-                          {item.unit === "kg" || item.unit === "g" ? <Scale className="h-5 w-5" /> :
-                           item.unit === "liter" || item.unit === "ml" ? <Droplet className="h-5 w-5" /> :
-                           <Box className="h-5 w-5" />}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{item.nameAr}</h3>
-                          <p className="text-xs text-muted-foreground font-mono">{item.code}</p>
+              {stockItems.map(item => (
+                <Card 
+                  key={item.id} 
+                  className={`border-2 transition-all ${getStatusBg(item.status)}`}
+                  data-testid={`card-stock-${item.id}`}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg truncate">{item.nameAr}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {categoryLabels[item.category || "other"]}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {item.unitCost.toFixed(2)} ر.س/{unitLabels[item.unit]}
+                          </span>
                         </div>
                       </div>
                       <div className="flex gap-1">
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => setEditingIngredient(item)}
-                          data-testid={`button-edit-ingredient-${item.id}`}
+                          onClick={() => setEditingItem(item)}
+                          data-testid={`button-edit-item-${item.id}`}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => setDeletingIngredientId(item.id)}
-                          data-testid={`button-delete-ingredient-${item.id}`}
+                          onClick={() => setDeletingItemId(item.id)}
+                          data-testid={`button-delete-item-${item.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">الوحدة:</span>
-                        <span className="mr-1">{unitLabels[item.unit] || item.unit}</span>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl font-bold">
+                          {formatQuantity(item.currentQuantity, item.unit)}
+                        </span>
+                        <div className={`w-3 h-3 rounded-full ${getStatusColor(item.status)}`} />
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">التكلفة:</span>
-                        <span className="mr-1">{item.unitCost.toFixed(2)} ر.س</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">الفئة:</span>
-                        <span className="mr-1">{categoryLabels[item.category || "other"]}</span>
-                      </div>
+                      <Progress value={item.percentage} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        الحد الأدنى: {formatQuantity(item.minimumStock, item.unit)}
+                      </p>
                     </div>
+
+                    <Button 
+                      className="w-full" 
+                      variant={item.status === "critical" ? "default" : "outline"}
+                      onClick={() => {
+                        if (selectedBranch === "all") {
+                          toast({ title: "اختر فرع محدد أولاً", variant: "destructive" });
+                          return;
+                        }
+                        setAddStockItem(item);
+                        setAddStockQuantity("");
+                      }}
+                      data-testid={`button-add-stock-${item.id}`}
+                    >
+                      <ShoppingCart className="h-4 w-4 ml-2" />
+                      إضافة للمخزون
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
+
+              {stockItems.length === 0 && (
+                <div className="col-span-full text-center py-12 text-muted-foreground">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>لا توجد مكونات بعد</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setIsAddItemOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 ml-2" />
+                    إضافة أول مكون
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
 
-          <TabsContent value="recipes" className="mt-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">وصفات المشروبات</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calculator className="h-4 w-4" />
-                <span>جميع الأكواب 250 مل</span>
-              </div>
-            </div>
-
+          <TabsContent value="recipes" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {drinksWithRecipes.map(drink => (
                 <Card 
                   key={drink.id} 
-                  className={`transition-all ${!drink.hasRecipe ? "opacity-60" : ""}`}
+                  className={`border-2 transition-all ${drink.hasRecipe ? "border-green-500/30 bg-green-500/5" : "border-amber-500/30 bg-amber-500/5"}`}
                   data-testid={`card-recipe-${drink.id}`}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div 
-                        className="flex items-center gap-3 cursor-pointer flex-1"
-                        onClick={() => {
-                          setSelectedDrink(drink);
-                          setIsViewRecipeOpen(true);
-                        }}
-                      >
-                        {drink.imageUrl ? (
-                          <img src={drink.imageUrl} alt={drink.nameAr} className="w-12 h-12 rounded-lg object-cover" />
-                        ) : (
-                          <div className="p-3 rounded-lg bg-muted">
-                            <Coffee className="h-6 w-6" />
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-medium">{drink.nameAr}</h3>
-                          <p className="text-sm text-muted-foreground">{drink.price.toFixed(2)} ر.س</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {drink.hasRecipe ? (
-                          <Badge variant="secondary" className="bg-green-500/20 text-green-700">
-                            <CheckCircle className="h-3 w-3 ml-1" />
-                            وصفة
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-amber-600">
-                            <AlertTriangle className="h-3 w-3 ml-1" />
-                            بدون
-                          </Badge>
-                        )}
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditRecipe(drink);
-                            }}
-                            data-testid={`button-edit-recipe-${drink.id}`}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {drink.hasRecipe && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteRecipeMutation.mutate(drink.id);
-                              }}
-                              data-testid={`button-delete-recipe-${drink.id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {drink.hasRecipe && (
-                      <div className="mt-3 space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">تكلفة المكونات:</span>
-                          <span className="font-medium">{drink.recipeCost.toFixed(2)} ر.س</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">الربح:</span>
-                          <span className={`font-medium ${drink.profit > 0 ? "text-green-600" : "text-destructive"}`}>
-                            {drink.profit.toFixed(2)} ر.س ({drink.profitMargin.toFixed(0)}%)
-                          </span>
-                        </div>
-                        <Progress 
-                          value={Math.min(drink.profitMargin, 100)} 
-                          className="h-2"
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      {drink.imageUrl ? (
+                        <img 
+                          src={drink.imageUrl} 
+                          alt={drink.nameAr} 
+                          className="w-14 h-14 rounded-lg object-cover shrink-0"
                         />
-                        <div className="text-xs text-muted-foreground">
-                          {drink.recipes.length} مكون/مكونات
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                          <Coffee className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg truncate">{drink.nameAr}</h3>
+                        <p className="text-lg font-semibold text-muted-foreground">
+                          {drink.price.toFixed(2)} ر.س
+                        </p>
+                      </div>
+                      <Badge variant={drink.hasRecipe ? "default" : "secondary"}>
+                        {drink.hasRecipe ? "مكتملة" : "بدون وصفة"}
+                      </Badge>
+                    </div>
+
+                    {drink.hasRecipe && (
+                      <div className="grid grid-cols-3 gap-2 p-3 bg-muted rounded-lg">
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground">التكلفة</p>
+                          <p className="font-bold">{drink.recipeCost.toFixed(2)}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground">الربح</p>
+                          <p className={`font-bold ${drink.profit > 0 ? "text-green-600" : "text-red-600"}`}>
+                            {drink.profit.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground">النسبة</p>
+                          <p className={`font-bold ${drink.profitMargin >= 50 ? "text-green-600" : drink.profitMargin >= 30 ? "text-amber-600" : "text-red-600"}`}>
+                            {drink.profitMargin.toFixed(0)}%
+                          </p>
                         </div>
                       </div>
                     )}
+
+                    {drink.hasRecipe && drink.recipes.length > 0 && (
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        {drink.recipes.slice(0, 3).map((recipe, idx) => {
+                          const rawItem = rawItems.find(r => r.id === recipe.rawItemId);
+                          return (
+                            <p key={idx}>
+                              {rawItem?.nameAr}: {recipe.quantity} {unitLabels[recipe.unit]}
+                            </p>
+                          );
+                        })}
+                        {drink.recipes.length > 3 && (
+                          <p className="text-muted-foreground">+{drink.recipes.length - 3} مكونات أخرى</p>
+                        )}
+                      </div>
+                    )}
+
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => openEditRecipe(drink)}
+                      data-testid={`button-edit-recipe-${drink.id}`}
+                    >
+                      <Edit className="h-4 w-4 ml-2" />
+                      {drink.hasRecipe ? "تعديل الوصفة" : "إضافة وصفة"}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          </TabsContent>
 
-          <TabsContent value="history" className="mt-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">سجل حركة المخزون</h2>
-              <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/stock-movements"] })}>
-                <RefreshCw className="h-4 w-4 ml-2" />
-                تحديث
-              </Button>
+              {drinksWithRecipes.length === 0 && (
+                <div className="col-span-full text-center py-12 text-muted-foreground">
+                  <Coffee className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>لا توجد مشروبات لإضافة وصفات لها</p>
+                </div>
+              )}
             </div>
-
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>التاريخ</TableHead>
-                      <TableHead>المكون</TableHead>
-                      <TableHead>نوع الحركة</TableHead>
-                      <TableHead>الكمية</TableHead>
-                      <TableHead>من</TableHead>
-                      <TableHead>إلى</TableHead>
-                      <TableHead>ملاحظات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {stockMovements.map(movement => (
-                      <TableRow key={movement.id} data-testid={`row-movement-${movement.id}`}>
-                        <TableCell className="text-sm">
-                          {format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", { locale: ar })}
-                        </TableCell>
-                        <TableCell className="font-medium">{getRawItemName(movement.rawItemId)}</TableCell>
-                        <TableCell>
-                          <Badge variant={movement.movementType === "purchase" ? "default" : 
-                                        movement.movementType === "sale" ? "secondary" : "outline"}>
-                            {movement.movementType === "purchase" ? "شراء" :
-                             movement.movementType === "sale" ? "بيع" :
-                             movement.movementType === "adjustment" ? "تعديل" :
-                             movement.movementType === "transfer" ? "نقل" : movement.movementType}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className={movement.quantity > 0 ? "text-green-600" : "text-destructive"}>
-                          {movement.quantity > 0 ? "+" : ""}{movement.quantity}
-                        </TableCell>
-                        <TableCell>{movement.previousQuantity.toFixed(2)}</TableCell>
-                        <TableCell>{movement.newQuantity.toFixed(2)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{movement.notes || "-"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {stockMovements.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                          لا توجد حركات مخزون
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </main>
 
-      <Dialog open={isAddIngredientOpen} onOpenChange={setIsAddIngredientOpen}>
+      <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>إضافة مكون جديد</DialogTitle>
-            <DialogDescription>
-              أضف مكون جديد لاستخدامه في وصفات المشروبات
-            </DialogDescription>
+            <DialogDescription>أضف مكون لاستخدامه في وصفات المشروبات</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmitIngredient} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nameAr">الاسم بالعربي *</Label>
-                <Input
-                  id="nameAr"
-                  value={newIngredient.nameAr}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, nameAr: e.target.value }))}
-                  required
-                  data-testid="input-ingredient-name-ar"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="nameEn">الاسم بالإنجليزي</Label>
-                <Input
-                  id="nameEn"
-                  value={newIngredient.nameEn}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, nameEn: e.target.value }))}
-                  data-testid="input-ingredient-name-en"
-                />
-              </div>
+          <form onSubmit={handleSubmitItem} className="space-y-4">
+            <div className="space-y-2">
+              <Label>اسم المكون *</Label>
+              <Input
+                value={newItem.nameAr}
+                onChange={(e) => setNewItem(prev => ({ ...prev, nameAr: e.target.value }))}
+                placeholder="مثال: بن عربي"
+                required
+                data-testid="input-new-item-name"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="unit">الوحدة *</Label>
-                <Select
-                  value={newIngredient.unit}
-                  onValueChange={(value) => setNewIngredient(prev => ({ ...prev, unit: value }))}
-                >
-                  <SelectTrigger data-testid="select-ingredient-unit">
+                <Label>الوحدة</Label>
+                <Select value={newItem.unit} onValueChange={(v) => setNewItem(prev => ({ ...prev, unit: v }))}>
+                  <SelectTrigger data-testid="select-new-item-unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1023,12 +770,9 @@ export default function IngredientsRecipesInventoryPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">الفئة</Label>
-                <Select
-                  value={newIngredient.category}
-                  onValueChange={(value) => setNewIngredient(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger data-testid="select-ingredient-category">
+                <Label>الفئة</Label>
+                <Select value={newItem.category} onValueChange={(v) => setNewItem(prev => ({ ...prev, category: v }))}>
+                  <SelectTrigger data-testid="select-new-item-category">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1046,37 +790,35 @@ export default function IngredientsRecipesInventoryPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="unitCost">التكلفة لكل وحدة (ر.س) *</Label>
+                <Label>التكلفة لكل {unitLabelsFull[newItem.unit]} *</Label>
                 <Input
-                  id="unitCost"
                   type="number"
                   step="0.01"
-                  value={newIngredient.unitCost}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, unitCost: e.target.value }))}
+                  value={newItem.unitCost}
+                  onChange={(e) => setNewItem(prev => ({ ...prev, unitCost: e.target.value }))}
+                  placeholder="0.00"
                   required
-                  data-testid="input-ingredient-cost"
+                  data-testid="input-new-item-cost"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="minimumStock">الحد الأدنى للمخزون</Label>
+                <Label>الحد الأدنى</Label>
                 <Input
-                  id="minimumStock"
                   type="number"
                   step="0.1"
-                  value={newIngredient.minimumStock}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, minimumStock: e.target.value }))}
-                  placeholder="10"
-                  data-testid="input-ingredient-min-stock"
+                  value={newItem.minimumStock}
+                  onChange={(e) => setNewItem(prev => ({ ...prev, minimumStock: e.target.value }))}
+                  data-testid="input-new-item-min"
                 />
               </div>
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsAddIngredientOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setIsAddItemOpen(false)}>
                 إلغاء
               </Button>
-              <Button type="submit" disabled={createIngredientMutation.isPending} data-testid="button-submit-ingredient">
-                {createIngredientMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+              <Button type="submit" disabled={createItemMutation.isPending} data-testid="button-submit-new-item">
+                {createItemMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
                 إضافة
               </Button>
             </DialogFooter>
@@ -1084,172 +826,151 @@ export default function IngredientsRecipesInventoryPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isAddStockOpen} onOpenChange={setIsAddStockOpen}>
+      <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>إضافة مخزون</DialogTitle>
-            <DialogDescription>
-              أضف كمية جديدة للمخزون (مثل: اشتريت 2 كيلو قهوة)
-            </DialogDescription>
+            <DialogTitle>تعديل المكون</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmitStock} className="space-y-4">
-            <div className="space-y-2">
-              <Label>المكون *</Label>
-              <Select
-                value={newStock.rawItemId}
-                onValueChange={(value) => setNewStock(prev => ({ ...prev, rawItemId: value }))}
-              >
-                <SelectTrigger data-testid="select-stock-raw-item">
-                  <SelectValue placeholder="اختر المكون" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rawItems.map(item => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.nameAr} ({unitLabels[item.unit]})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="stockQuantity">الكمية *</Label>
-              <Input
-                id="stockQuantity"
-                type="number"
-                step="0.01"
-                value={newStock.quantity}
-                onChange={(e) => setNewStock(prev => ({ ...prev, quantity: e.target.value }))}
-                placeholder="مثال: 2 (كيلو)"
-                required
-                data-testid="input-stock-quantity"
-              />
-              <p className="text-xs text-muted-foreground">
-                أدخل الكمية بالوحدة الأساسية للمكون
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="stockNotes">ملاحظات</Label>
-              <Input
-                id="stockNotes"
-                value={newStock.notes}
-                onChange={(e) => setNewStock(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="مثال: فاتورة رقم 123"
-                data-testid="input-stock-notes"
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsAddStockOpen(false)}>
-                إلغاء
-              </Button>
-              <Button type="submit" disabled={addStockMutation.isPending} data-testid="button-submit-stock">
-                {addStockMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
-                إضافة للمخزون
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isViewRecipeOpen} onOpenChange={setIsViewRecipeOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>وصفة {selectedDrink?.nameAr}</DialogTitle>
-            <DialogDescription>
-              المكونات المطلوبة لتحضير المشروب (كوب 250 مل)
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedDrink && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                {selectedDrink.imageUrl ? (
-                  <img src={selectedDrink.imageUrl} alt={selectedDrink.nameAr} className="w-16 h-16 rounded-lg object-cover" />
-                ) : (
-                  <div className="p-4 rounded-lg bg-background">
-                    <Coffee className="h-8 w-8" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-bold text-lg">{selectedDrink.nameAr}</h3>
-                  <p className="text-muted-foreground">السعر: {selectedDrink.price.toFixed(2)} ر.س</p>
+          {editingItem && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              updateItemMutation.mutate({
+                id: editingItem.id,
+                updates: {
+                  nameAr: editingItem.nameAr,
+                  unit: editingItem.unit,
+                  unitCost: editingItem.unitCost,
+                  category: editingItem.category,
+                  minimumStock: editingItem.minimumStock,
+                },
+              });
+            }} className="space-y-4">
+              <div className="space-y-2">
+                <Label>اسم المكون</Label>
+                <Input
+                  value={editingItem.nameAr}
+                  onChange={(e) => setEditingItem(prev => prev ? { ...prev, nameAr: e.target.value } : null)}
+                  data-testid="input-edit-item-name"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>الوحدة</Label>
+                  <Select value={editingItem.unit} onValueChange={(v) => setEditingItem(prev => prev ? { ...prev, unit: v } : null)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kg">كيلوجرام</SelectItem>
+                      <SelectItem value="g">جرام</SelectItem>
+                      <SelectItem value="liter">لتر</SelectItem>
+                      <SelectItem value="ml">ملليلتر</SelectItem>
+                      <SelectItem value="piece">قطعة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>الفئة</Label>
+                  <Select value={editingItem.category || "other"} onValueChange={(v) => setEditingItem(prev => prev ? { ...prev, category: v } : null)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="coffee">قهوة</SelectItem>
+                      <SelectItem value="dairy">منتجات ألبان</SelectItem>
+                      <SelectItem value="syrups">شراب</SelectItem>
+                      <SelectItem value="cups">أكواب</SelectItem>
+                      <SelectItem value="chocolate">شوكولاتة</SelectItem>
+                      <SelectItem value="tea">شاي</SelectItem>
+                      <SelectItem value="other">أخرى</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-
-              {(selectedDrink as any).hasRecipe ? (
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>المكون</TableHead>
-                        <TableHead>الكمية</TableHead>
-                        <TableHead>التكلفة</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(selectedDrink as any).recipes.map((recipe: RecipeItem) => {
-                        const rawItem = rawItems.find(r => r.id === recipe.rawItemId);
-                        let cost = 0;
-                        if (rawItem) {
-                          let costPerUnit = rawItem.unitCost;
-                          if (rawItem.unit === "kg" && recipe.unit === "g") costPerUnit = rawItem.unitCost / 1000;
-                          if (rawItem.unit === "liter" && recipe.unit === "ml") costPerUnit = rawItem.unitCost / 1000;
-                          cost = costPerUnit * recipe.quantity;
-                        }
-                        return (
-                          <TableRow key={recipe.id}>
-                            <TableCell className="font-medium">{rawItem?.nameAr || recipe.rawItemId}</TableCell>
-                            <TableCell>{recipe.quantity} {unitLabels[recipe.unit] || recipe.unit}</TableCell>
-                            <TableCell>{cost.toFixed(2)} ر.س</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-
-                  <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">تكلفة المكونات</p>
-                      <p className="text-lg font-bold">{(selectedDrink as any).recipeCost.toFixed(2)} ر.س</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">الربح</p>
-                      <p className={`text-lg font-bold ${(selectedDrink as any).profit > 0 ? "text-green-600" : "text-destructive"}`}>
-                        {(selectedDrink as any).profit.toFixed(2)} ر.س
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">نسبة الربح</p>
-                      <p className="text-lg font-bold">{(selectedDrink as any).profitMargin.toFixed(0)}%</p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
-                  <p>لم يتم تحديد وصفة لهذا المشروب بعد</p>
-                  <p className="text-sm mt-2">يمكنك إضافة الوصفة من صفحة إدارة الوصفات</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>التكلفة</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editingItem.unitCost}
+                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, unitCost: parseFloat(e.target.value) || 0 } : null)}
+                  />
                 </div>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <Label>الحد الأدنى</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={editingItem.minimumStock || 10}
+                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, minimumStock: parseFloat(e.target.value) || 10 } : null)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>
+                  إلغاء
+                </Button>
+                <Button type="submit" disabled={updateItemMutation.isPending}>
+                  {updateItemMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+                  حفظ
+                </Button>
+              </DialogFooter>
+            </form>
           )}
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deletingIngredientId} onOpenChange={() => setDeletingIngredientId(null)}>
+      <Dialog open={!!addStockItem} onOpenChange={() => setAddStockItem(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة مخزون - {addStockItem?.nameAr}</DialogTitle>
+            <DialogDescription>
+              أدخل الكمية بـ{addStockItem ? unitLabelsFull[addStockItem.unit] : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>الكمية المضافة</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={addStockQuantity}
+                onChange={(e) => setAddStockQuantity(e.target.value)}
+                placeholder={`مثال: 2 ${addStockItem ? unitLabels[addStockItem.unit] : ""}`}
+                autoFocus
+                data-testid="input-add-stock-quantity"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setAddStockItem(null)}>
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleAddStock} 
+                disabled={addStockMutation.isPending || !addStockQuantity}
+                data-testid="button-confirm-add-stock"
+              >
+                {addStockMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+                إضافة
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingItemId} onOpenChange={() => setDeletingItemId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف هذا المكون؟ لا يمكن التراجع عن هذا الإجراء.
+              هل أنت متأكد من حذف هذا المكون؟ لا يمكن التراجع عن هذا.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deletingIngredientId && deleteIngredientMutation.mutate(deletingIngredientId)}
+              onClick={() => deletingItemId && deleteItemMutation.mutate(deletingItemId)}
               className="bg-destructive text-destructive-foreground"
             >
               حذف
@@ -1259,62 +980,73 @@ export default function IngredientsRecipesInventoryPage() {
       </AlertDialog>
 
       <Dialog open={isEditRecipeOpen} onOpenChange={setIsEditRecipeOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingRecipeDrink ? `تعديل وصفة ${editingRecipeDrink.nameAr}` : "تعديل الوصفة"}
+              وصفة {editingRecipeDrink?.nameAr}
             </DialogTitle>
             <DialogDescription>
-              حدد المكونات والكميات المطلوبة لتحضير هذا المشروب (كوب 250 مل)
+              حدد المكونات لكوب 250 مل
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {recipeIngredients.map((ingredient, index) => (
-              <div key={index} className="flex items-end gap-3 p-3 bg-muted rounded-lg">
-                <div className="flex-1 space-y-2">
-                  <Label>المكون</Label>
+              <div key={index} className="flex items-end gap-2 p-3 bg-muted rounded-lg">
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs">المكون</Label>
                   <Select
                     value={ingredient.rawItemId}
-                    onValueChange={(value) => updateRecipeIngredient(index, "rawItemId", value)}
+                    onValueChange={(value) => {
+                      setRecipeIngredients(prev => prev.map((item, i) => 
+                        i === index ? { ...item, rawItemId: value } : item
+                      ));
+                    }}
                   >
                     <SelectTrigger data-testid={`select-recipe-ingredient-${index}`}>
-                      <SelectValue placeholder="اختر المكون" />
+                      <SelectValue placeholder="اختر" />
                     </SelectTrigger>
                     <SelectContent>
                       {rawItems.map(item => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.nameAr} ({unitLabels[item.unit]})
+                          {item.nameAr}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="w-24 space-y-2">
-                  <Label>الكمية</Label>
+                <div className="w-20 space-y-1">
+                  <Label className="text-xs">الكمية</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={ingredient.quantity}
-                    onChange={(e) => updateRecipeIngredient(index, "quantity", e.target.value)}
-                    placeholder="الكمية"
+                    onChange={(e) => {
+                      setRecipeIngredients(prev => prev.map((item, i) => 
+                        i === index ? { ...item, quantity: e.target.value } : item
+                      ));
+                    }}
                     data-testid={`input-recipe-quantity-${index}`}
                   />
                 </div>
 
-                <div className="w-28 space-y-2">
-                  <Label>الوحدة</Label>
+                <div className="w-24 space-y-1">
+                  <Label className="text-xs">الوحدة</Label>
                   <Select
                     value={ingredient.unit}
-                    onValueChange={(value) => updateRecipeIngredient(index, "unit", value)}
+                    onValueChange={(value) => {
+                      setRecipeIngredients(prev => prev.map((item, i) => 
+                        i === index ? { ...item, unit: value } : item
+                      ));
+                    }}
                   >
                     <SelectTrigger data-testid={`select-recipe-unit-${index}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="g">جرام</SelectItem>
-                      <SelectItem value="ml">ملليلتر</SelectItem>
+                      <SelectItem value="ml">مل</SelectItem>
                       <SelectItem value="piece">قطعة</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1324,7 +1056,9 @@ export default function IngredientsRecipesInventoryPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => removeRecipeIngredient(index)}
+                  onClick={() => {
+                    setRecipeIngredients(prev => prev.filter((_, i) => i !== index));
+                  }}
                   disabled={recipeIngredients.length === 1}
                   data-testid={`button-remove-ingredient-${index}`}
                 >
@@ -1336,7 +1070,7 @@ export default function IngredientsRecipesInventoryPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={addRecipeIngredient}
+              onClick={() => setRecipeIngredients(prev => [...prev, { rawItemId: "", quantity: "", unit: "g" }])}
               className="w-full"
               data-testid="button-add-recipe-ingredient"
             >
