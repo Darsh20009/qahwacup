@@ -25,6 +25,40 @@ function serializeDoc(doc: any): any {
   return obj;
 }
 
+// Helper function to convert recipe units to raw item units for cost calculation
+function convertUnitsForCost(recipeQuantity: number, recipeUnit: string, rawItemUnit: string): number {
+  // Normalize units to lowercase for comparison
+  const rUnit = (recipeUnit || '').toLowerCase().trim();
+  const iUnit = (rawItemUnit || '').toLowerCase().trim();
+  
+  // If units match, no conversion needed
+  if (rUnit === iUnit) return recipeQuantity;
+  
+  // Gram to Kilogram conversions
+  if ((rUnit === 'g' || rUnit === 'gram' || rUnit === 'grams') && (iUnit === 'kg' || iUnit === 'kilogram' || iUnit === 'kilograms')) {
+    return recipeQuantity / 1000;
+  }
+  
+  // Milliliter to Liter conversions
+  if ((rUnit === 'ml' || rUnit === 'milliliter' || rUnit === 'milliliters') && (iUnit === 'liter' || iUnit === 'liters' || iUnit === 'l')) {
+    return recipeQuantity / 1000;
+  }
+  
+  // Kilogram to Gram conversions (reverse)
+  if ((rUnit === 'kg' || rUnit === 'kilogram' || rUnit === 'kilograms') && (iUnit === 'g' || iUnit === 'gram' || iUnit === 'grams')) {
+    return recipeQuantity * 1000;
+  }
+  
+  // Liter to Milliliter conversions (reverse)
+  if ((iUnit === 'ml' || iUnit === 'milliliter' || iUnit === 'milliliters') && (rUnit === 'liter' || rUnit === 'liters' || rUnit === 'l')) {
+    return recipeQuantity * 1000;
+  }
+  
+  // Default: return as-is if no known conversion
+  console.log(`[INVENTORY] Unknown unit conversion: ${recipeUnit} to ${rawItemUnit}, using quantity as-is`);
+  return recipeQuantity;
+}
+
 // Helper function to deduct inventory when order is in progress
 async function deductInventoryForOrder(orderId: string, branchId: string, employeeId: string): Promise<{
   success: boolean;
@@ -106,13 +140,17 @@ async function deductInventoryForOrder(orderId: string, branchId: string, employ
         const rawItemId = (rawItem._id as any).toString();
         const quantityToDeduct = recipeItem.quantity * orderQuantity;
         
+        // Convert quantity to raw item units for accurate cost calculation
+        const quantityInRawUnits = convertUnitsForCost(quantityToDeduct, recipeItem.unit, rawItem.unit);
+        
         // Validate unit cost exists
         const unitCost = rawItem.unitCost;
         if (unitCost === undefined || unitCost === null) {
           console.log(`[INVENTORY] Raw item ${rawItem.nameAr} has no unit cost - skipping cost calculation`);
         }
         const validUnitCost = unitCost || 0;
-        const itemTotalCost = quantityToDeduct * validUnitCost;
+        // Calculate cost using converted quantity (e.g., 18g coffee at 120 SAR/kg = 0.018kg * 120 = 2.16 SAR)
+        const itemTotalCost = quantityInRawUnits * validUnitCost;
 
         // Find existing branch stock - do NOT create if it doesn't exist
         const branchStock = await BranchStockModel.findOne({ branchId, rawItemId });
@@ -123,25 +161,27 @@ async function deductInventoryForOrder(orderId: string, branchId: string, employ
         }
 
         const previousQuantity = branchStock.currentQuantity;
-        const newQuantity = Math.max(0, previousQuantity - quantityToDeduct);
+        // Use converted quantity (in raw item units) for stock deduction
+        // e.g., if recipe says 18g and stock is in kg, deduct 0.018 kg
+        const newQuantity = Math.max(0, previousQuantity - quantityInRawUnits);
 
-        // Update branch stock
+        // Update branch stock with converted quantity
         await BranchStockModel.findByIdAndUpdate(branchStock._id, {
           currentQuantity: newQuantity,
           lastUpdated: new Date()
         });
 
-        // Record stock movement
+        // Record stock movement with converted quantity (in raw item units)
         await StockMovementModel.create({
           branchId,
           rawItemId,
           movementType: 'sale',
-          quantity: -quantityToDeduct,
+          quantity: -quantityInRawUnits,
           previousQuantity,
           newQuantity,
           referenceType: 'order',
           referenceId: orderId,
-          notes: `خصم تلقائي للطلب ${order.orderNumber}`,
+          notes: `خصم تلقائي للطلب ${order.orderNumber} (${quantityToDeduct} ${recipeItem.unit} = ${quantityInRawUnits.toFixed(4)} ${rawItem.unit})`,
           createdBy: employeeId,
           createdAt: new Date()
         });
@@ -150,22 +190,23 @@ async function deductInventoryForOrder(orderId: string, branchId: string, employ
         hasValidDeductions = true;
 
         // Check if this raw item was already added to deduction details
+        // Store in raw item units for consistency with stock tracking
         const existingDetail = deductionDetails.find(d => d.rawItemId === rawItemId);
         if (existingDetail) {
-          existingDetail.quantity += quantityToDeduct;
+          existingDetail.quantity += quantityInRawUnits;
           existingDetail.totalCost += itemTotalCost;
         } else {
           deductionDetails.push({
             rawItemId,
             rawItemName: rawItem.nameAr,
-            quantity: quantityToDeduct,
-            unit: recipeItem.unit || rawItem.unit,
+            quantity: quantityInRawUnits,
+            unit: rawItem.unit,
             unitCost: validUnitCost,
             totalCost: itemTotalCost
           });
         }
 
-        console.log(`[INVENTORY] Deducted ${quantityToDeduct} ${recipeItem.unit} of ${rawItem.nameAr} (${previousQuantity} -> ${newQuantity})`);
+        console.log(`[INVENTORY] Deducted ${quantityInRawUnits.toFixed(4)} ${rawItem.unit} of ${rawItem.nameAr} (recipe: ${quantityToDeduct} ${recipeItem.unit}) | Stock: ${previousQuantity.toFixed(4)} -> ${newQuantity.toFixed(4)}`);
       }
     }
 
