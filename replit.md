@@ -1,83 +1,128 @@
 # قهوة كوب - Coffee Shop Management System
 
 ## Overview
-
-قهوة كوب (Qahwa Cup) is a comprehensive coffee shop management system built for Saudi Arabian coffee shops. It handles the complete operational workflow including digital menu ordering, table management via QR codes, loyalty programs, employee management, inventory tracking, POS integration, and ZATCA-compliant tax invoicing. The system supports both Arabic (RTL) and English interfaces.
+قهوة كوب is a comprehensive coffee shop management system designed to streamline operations from order placement to loyalty programs. It supports in-store pickups, table ordering, and robust management of products, branches, employees, and loyalty cards. The system aims to enhance customer experience through efficient service and engaging loyalty features, while providing administrators with powerful tools for managing the business.
 
 ## User Preferences
-
-Preferred communication style: Simple, everyday language.
-
-Additional preferences:
-- All UI text is primarily in Arabic with English data support
-- The system fully supports RTL layout
-- Iterative development approach preferred
-- Ask before making major architectural changes
-- Provide detailed explanations for complex solutions
+- All texts are in Arabic with English support for data.
+- The system fully supports RTL.
+- I want iterative development.
+- Ask before making major changes.
+- Provide detailed explanations for complex solutions.
 
 ## System Architecture
 
-### Frontend Architecture
-- **Framework**: React with TypeScript, bundled using Vite
-- **UI Components**: Radix UI primitives with shadcn/ui component library
-- **Styling**: Tailwind CSS with CSS variables for theming (dark theme with golden accents)
-- **State Management**: TanStack React Query for server state
-- **Forms**: React Hook Form with Zod validation
-- **Path Aliases**: `@/*` maps to `client/src/*`, `@shared/*` maps to `shared/*`
+### UI/UX Decisions
+The UI/UX emphasizes a modern, attractive design. QR cards and employee badges feature a modern, attractive beige color scheme with warm tones, including a site logo and golden accents. Password fields across the system include show/hide icons for usability.
 
-### Backend Architecture
-- **Runtime**: Node.js with Express.js
-- **Language**: TypeScript compiled with esbuild for production
-- **Session Management**: express-session with MemoryStore
-- **Authentication**: Role-based access control (admin, manager, cashier, accountant, driver, kitchen)
-- **API Design**: RESTful endpoints under `/api/*`
+### Technical Implementations
+- **Table Management:** Managers can create tables with QR codes. Customers order as guests via QR scan. Cashiers manage table orders with real-time tracking and audio notifications.
+- **Order Lifecycle:** Orders track through statuses: `pending` → `payment_confirmed` → `preparing` → `delivering_to_table` → `delivered`/`cancelled`.
+- **Branch Management:** Supports soft deletion of branches (`isActive: 0`) and optional Google Maps links.
+- **Authentication & Employee Management:** Includes "Forgot Password" for employees and managers. New seeded employees use a default password.
+- **Customer Registration:** Phone (9 digits starting with 5) and email (validated) are mandatory for unregistered customers. An option to "create an account" during checkout allows automatic account creation with a password.
+- **Order Visibility:** Regular and table orders are consolidated. Managers and employees can view all orders from all branches, with branch names displayed.
+- **Geolocation:** Uses Point-in-Polygon for geographic validation and Haversine Distance for calculations.
+- **Admin Controls:** Features include an "Complete All Orders" button for quick order status updates (for testing) and an "Clear All Data" button (admin only) to delete all orders and customers (for development/testing).
+- **Branch Filtering:** Cashiers can filter table orders by branch.
+- **Smart Reservation Time Window:** Table reservations include a time-window system (-30 minutes to +5 minutes from reservation time) that automatically manages reservation lifecycle and customer ordering options.
+- **Branch-Restricted Table Access:** Managers can only access tables within their assigned branch, with API-level enforcement of this security measure.
+- **Phone Verification & Reservation Check:** Enhanced phone input for customer lookup and auto-fill, and accurate reservation verification logic for tables.
+- **Attendance Location Verification:** Check-in/out requires employee to be within 100 meters of their assigned branch. Distance is calculated using Haversine formula and stored with each attendance record (isAtBranch, distanceFromBranch fields).
+- **Enhanced Attendance Display:** Manager attendance page shows employee photos, branch names, location verification status (inside/outside branch), and distance from branch for both check-in and check-out.
+- **Employee Role Selection:** When creating employees, admins can select employee role (cashier, accountant, manager, admin) and assign them to specific branches.
+- **Branch Manager Assignment:** When creating a new branch, admins can either assign an existing manager or create a new manager account (without password - needs activation).
+- **POS Connection Settings:** The cashier interface includes a POS settings dialog with toggle switch to connect/disconnect the POS device, real-time status monitoring, and connection information. Cashiers can click the POS status indicator to access settings.
+- **Enhanced POS System:** Full-featured Point of Sale system similar to Foodics at `/employee/pos` with:
+  - Quick order screen with category-based item filtering (Espresso, Latte, Cold Drinks, Tea, Specialty)
+  - Multiple payment methods: Cash, Mada (POS), Alinma Pay, Ur Pay, Barq, Al Rajhi, Apple Pay
+  - Order parking/holding functionality for managing multiple customers
+  - Item-level and invoice-level discounts with discount code validation
+  - Offline mode support with automatic sync when connection is restored
+  - Hardware integration APIs for cash drawer and receipt printing
+  - Customer lookup by phone number with loyalty points display
+  - Receipt and tax invoice printing capabilities
+- **Automatic Tax Invoices:** Orders automatically send tax invoices via email (15% VAT) to customers who provide email addresses. Uses Maileroo SMTP integration.
+- **Driver Role Support:** Employee creation supports "driver" role (سائق توصيل) in both job title and system role dropdowns for delivery personnel management.
+- **ZATCA Compliance (Phase 1 + Phase 2):** Full Saudi Arabia tax authority compliance implementation:
+  - UUID-based invoice numbers with crypto.randomUUID()
+  - TLV format QR codes with Base64 encoding (ZATCA standard)
+  - UBL 2.1 compliant XML invoice generation
+  - Invoice hash chain (PIH - Previous Invoice Hash) for sequential validation
+  - Complete seller/buyer information with VAT numbers
+  - Invoice type codes: Standard (388), Simplified (388), Credit Note (381), Debit Note (383)
+  - Transaction types: B2B (0100000) and B2C (0200000)
+  - Tax calculations with proper rounding
+  - API endpoints: POST/GET /api/zatca/invoices, GET /api/zatca/invoices/:id/xml, GET /api/zatca/stats
+  - **Secure Environment Variables:** All sensitive ZATCA data stored in environment variables:
+    - VAT_RATE, ZATCA_SELLER_NAME, ZATCA_SELLER_NAME_EN, ZATCA_CITY, ZATCA_SELLER_ADDRESS
+    - ZATCA_VAT_NUMBER, ZATCA_CR_NUMBER (require user input for production)
+    - ZATCA_CSID, ZATCA_CSID_SECRET (for Phase 2 integration)
+- **Location-Based Order Preparation:** Customer location verification feature:
+  - Uses Haversine formula to calculate distance from branch
+  - 300-meter radius requirement for order preparation
+  - Real-time location tracking with permission handling
+  - Integrated into order tracking page with visual feedback
+- **Progressive Web App (PWA) Support:** Full mobile app experience:
+  - manifest.json with proper icons and metadata for Chrome and Safari
+  - Service Worker with network-first caching strategy
+  - Add to Home Screen support on iOS Safari and Android Chrome
+  - Offline capability with graceful degradation
+- **Full Accounting System:** Complete financial management with:
+  - Expense tracking (categories: inventory, salaries, rent, utilities, marketing, maintenance, supplies, other)
+  - Expense approval workflow (pending → approved/rejected → paid)
+  - Revenue tracking linked to orders and invoices
+  - Daily summary reports with cash/card breakdown
+  - Profit & Loss calculations (gross profit, net profit, margins)
+  - Cash register management for shift tracking
+  - API endpoints: POST/GET /api/accounting/expenses, POST/GET /api/accounting/revenue, GET /api/accounting/daily-summary, GET /api/accounting/dashboard
+- **New Employee Roles:**
+  - Barista (باريستا): Drink preparation staff with kitchen access
+  - Cook/Chef (طباخ): Kitchen staff for food preparation
+  - Waiter (نادل): Table service and delivery staff
+  - Role-based middleware: requireKitchenAccess, requireCashierAccess, requireDeliveryAccess
+- **Kitchen Display System:** Real-time order tracking for kitchen staff:
+  - Kitchen order queue with priority levels (normal, high, urgent)
+  - Order types: dine-in, takeaway, delivery
+  - Per-item status tracking (pending, preparing, ready)
+  - Assignment tracking with timestamps
+  - API endpoints: POST/GET/PATCH /api/kitchen/orders
 
-### Data Storage
-- **Primary Database**: MongoDB with Mongoose ODM
-- **Connection**: MONGODB_URI environment variable
-- **Schema Location**: `shared/schema.ts` contains all Mongoose models
-- **Alternative**: Legacy Drizzle ORM setup exists for PostgreSQL (not currently active)
+### Feature Specifications
+- **Product Management:** Add, modify, delete coffee products.
+- **Order System:** Create and track orders (pickup and table).
+- **Loyalty Cards:** Points and coupon system.
+- **Employee Management:** Cashier and manager accounts.
+- **Discount Codes:** Advanced discount system.
+- **Ingredients Management:** Manage beverage components.
+- **Payment System:** Cash, card, or electronic payment with receipt upload.
+- **In-Store Pickup:** Customers select a pickup branch.
+- **Table Reservations:** Cashiers can reserve tables.
+- **Security:** Table ordering is guest-only. Phone number search is cashier-only.
+- **High Print Quality:** Designs are created for professional printing.
+- **Pending Order Display:** When a customer scans a table QR, if a pending order exists for that table, a notification is displayed with an option to continue the previous order.
+- **Table Occupancy:** Tables are automatically marked as occupied upon order creation and released correctly upon action.
 
-### Key Features Implementation
-- **Order Lifecycle**: pending → payment_confirmed → preparing → delivering_to_table → delivered/cancelled
-- **Table Management**: QR code generation for table ordering with reservation time windows
-- **Geolocation**: Point-in-Polygon for zone validation, Haversine formula for distance calculations
-- **Attendance**: GPS-based check-in/out within 100 meters of assigned branch
-- **POS System**: Full-featured point of sale at `/employee/pos` with offline mode support
-- **Tax Compliance**: ZATCA Phase 1 & 2 with TLV QR codes and UBL 2.1 XML invoices
+### Inventory Management System
+- **Raw Materials:** Complete CRUD for raw materials with unit costs, suppliers, and stock levels. Enhanced UI with category-specific icons (Coffee, Milk, Package) and warm coffee-themed color palette.
+- **Suppliers:** Manage supplier information with contact details and status tracking.
+- **Branch Stock:** Track inventory levels per branch with automatic low-stock alerts.
+- **Stock Transfers:** Transfer stock between branches with approval workflow. Statistics cards show pending, approved, and completed transfers with unit display.
+- **Purchase Invoices:** Create and track purchase orders from suppliers. Statistics cards show total value, pending payments, and overdue invoices. Payment tracking with incremental payments and progress bars.
+- **Recipe Management:** Define ingredient recipes for each product with exact quantities. Recipes store quantities in user's input unit (e.g., 18g coffee beans), normalization only occurs during COGS calculation. Enhanced with unit conversion helpers, cost previews, profit margin calculations, and quick ingredient templates for espresso-based, milk-based, and iced drinks.
+- **Smart Inventory Deduction:** Automatically deducts raw materials when orders are placed based on product recipes. Example: A cappuccino order deducts 18g coffee beans + 120ml milk. Prevents negative stock by capping deductions at available quantity (partial deduction). Tracks shortage information per-order-item for actionable frontend feedback.
+- **COGS Tracking:** Calculates Cost of Goods Sold for each order based on ingredient costs. Tracks gross profit per order. Order.inventoryDeducted status: 0=not deducted, 1=fully deducted, 2=partially deducted (shortages).
+- **Order Deduction Display:** Employee order view includes collapsible inventory details panel showing deduction status badge, COGS, gross profit, profit margin percentage, and list of all deducted raw materials with quantities and costs.
+- **Stock Movements:** Complete audit trail of all inventory changes with movement types (purchase, sale, transfer_in, transfer_out, adjustment, waste, return). Statistics show incoming movements, sales deductions, and waste counts.
+- **Stock Alerts:** Automatic alerts for low stock and out-of-stock items. Statistics show counts by alert type (out of stock, low stock, expiring). Supports bulk "mark all as read" action. Shows deficit column indicating quantity shortage.
+- **Inventory Dashboard:** Enhanced with coffee-themed KPI tiles showing raw materials count, low stock alerts, pending transfers, and COGS summary with gradient accents and warm beige/brown color palette.
+- **Seeded Test Data:** System seeds 3 suppliers (coffee, dairy, packaging), 20 raw materials with proper units and costs, and 14 drink recipes with realistic ingredient quantities for testing the complete inventory flow.
 
-### Build & Deployment
-- **Development**: `npm run dev` runs Vite dev server with Express backend
-- **Production Build**: Vite builds frontend to `dist/public`, esbuild bundles server to `dist/index.js`
-- **Deployment Targets**: Render.com (primary), Vercel (configured)
+### System Design Choices
+- **Backend:** Node.js with Express.js, MongoDB with Mongoose, Zod for validation, bcryptjs for password hashing.
+- **Frontend:** React with TypeScript, Vite, TanStack Query, shadcn/ui, Tailwind CSS, Wouter for routing.
 
 ## External Dependencies
-
-### Database
-- **MongoDB Atlas**: Primary database (connection via MONGODB_URI)
-- **Mongoose**: ODM for MongoDB schema definition and queries
-
-### Email Services
-- **Maileroo SMTP**: Tax invoice delivery to customers (15% VAT invoices)
-- **Nodemailer**: Email transport library
-
-### Maps & Location
-- **Leaflet**: Interactive maps for delivery address selection
-- **Turf.js**: Geospatial analysis (point-in-polygon, distance calculations)
-
-### Document Generation
-- **jsPDF**: PDF generation for receipts and invoices
-- **html2canvas**: HTML to canvas conversion for PDF rendering
-- **QRCode**: QR code generation for tables and ZATCA compliance
-
-### Authentication & Security
-- **bcryptjs**: Password hashing
-- **express-session**: Session management
-- **memorystore**: Session storage
-
-### File Handling
-- **Multer**: File upload handling for payment receipts and employee photos
-
-### Payment Integration
-- POS device connectivity APIs (cash drawer, receipt printing)
-- Multiple payment method support: Cash, Mada, Alinma Pay, Ur Pay, Barq, Al Rajhi, Apple Pay
+- **MongoDB:** Database for storing application data.
+- **Google Maps:** Used for displaying branch locations and providing navigation links.
+- **qrcode library:** For generating QR codes.
