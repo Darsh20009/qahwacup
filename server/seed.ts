@@ -221,6 +221,36 @@ const drinkIngredients: Record<string, DrinkIngredientWithQuantity[]> = {
   ]
 };
 
+export async function cleanupDuplicateDrinkIngredients() {
+  console.log("\n🧹 Cleaning up duplicate drink ingredients...");
+  try {
+    const { CoffeeItemIngredientModel } = await import('@shared/schema');
+    
+    // Get all unique combinations
+    const allLinks = await CoffeeItemIngredientModel.find();
+    const seenCombos = new Map<string, string>();
+    const duplicateIds: string[] = [];
+    
+    for (const link of allLinks) {
+      const key = `${link.coffeeItemId}:${link.ingredientId}`;
+      if (seenCombos.has(key)) {
+        duplicateIds.push(link._id.toString());
+      } else {
+        seenCombos.set(key, link._id.toString());
+      }
+    }
+    
+    if (duplicateIds.length > 0) {
+      await CoffeeItemIngredientModel.deleteMany({ _id: { $in: duplicateIds } });
+      console.log(`✅ Removed ${duplicateIds.length} duplicate drink ingredient links`);
+    } else {
+      console.log(`ℹ️  No duplicate drink ingredient links found`);
+    }
+  } catch (error) {
+    console.error(`❌ Error cleaning up duplicates:`, error);
+  }
+}
+
 export async function linkDrinkIngredients(ingredientMap: Map<string, string>) {
   console.log("\n🔗 Linking drinks with ingredients...");
   
@@ -1054,6 +1084,9 @@ export async function runSeeds() {
   
   console.log("\n🥤 Seeding ingredients...");
   const ingredientMap = await seedIngredients();
+  
+  // Cleanup duplicates before re-linking
+  await cleanupDuplicateDrinkIngredients();
   
   console.log("\n🔗 Linking drinks with ingredients...");
   await linkDrinkIngredients(ingredientMap);

@@ -494,6 +494,8 @@ const CoffeeItemIngredientSchema = new Schema<ICoffeeItemIngredient>({
   createdAt: { type: Date, default: Date.now },
 });
 
+CoffeeItemIngredientSchema.index({ coffeeItemId: 1, ingredientId: 1 }, { unique: true });
+
 export const CoffeeItemIngredientModel = mongoose.model<ICoffeeItemIngredient>("CoffeeItemIngredient", CoffeeItemIngredientSchema);
 
 export interface IBranch extends Document {

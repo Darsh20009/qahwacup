@@ -1067,13 +1067,12 @@ export class DBStorage implements IStorage {
   }
 
   async addCoffeeItemIngredient(coffeeItemId: string, ingredientId: string, quantity: number = 0, unit: string = 'ml'): Promise<any> {
-    const newLink = await CoffeeItemIngredientModel.create({
-      coffeeItemId,
-      ingredientId,
-      quantity,
-      unit,
-    });
-    return newLink;
+    const result = await CoffeeItemIngredientModel.findOneAndUpdate(
+      { coffeeItemId, ingredientId },
+      { coffeeItemId, ingredientId, quantity, unit },
+      { upsert: true, new: true }
+    );
+    return result;
   }
 
   async removeCoffeeItemIngredient(coffeeItemId: string, ingredientId: string): Promise<void> {
