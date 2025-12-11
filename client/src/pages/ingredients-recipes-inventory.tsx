@@ -519,6 +519,37 @@ export default function IngredientsRecipesInventoryPage() {
           </Card>
         </div>
 
+        <Card className="bg-gradient-to-l from-blue-500/10 to-transparent border-blue-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/20 shrink-0">
+                <Package className="h-5 w-5 text-blue-500" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <h3 className="font-bold text-blue-600 dark:text-blue-400">نصائح سريعة</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    <span><strong>الأخضر:</strong> المخزون كافي - لا يحتاج إضافة</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <span><strong>البرتقالي:</strong> مخزون منخفض - يفضل الطلب قريباً</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                    <span><strong>الأحمر:</strong> مخزون حرج - يجب الطلب فوراً</span>
+                  </li>
+                  <li className="flex items-center gap-2 mt-2">
+                    <Calculator className="w-3 h-3 text-purple-500" />
+                    <span>تكلفة الوصفة تُحسب تلقائياً من المكونات لحساب الربح</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input

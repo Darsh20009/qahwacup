@@ -992,8 +992,19 @@ export default function POSSystem() {
                             </div>
                           )}
                           <CardContent className="p-4">
-                            <div className="aspect-square bg-gradient-to-br from-amber-900/40 to-amber-800/20 rounded-xl mb-3 flex items-center justify-center group-hover:from-amber-900/60 group-hover:to-amber-800/40 transition-all">
-                              <Coffee className="w-12 h-12 text-amber-500/60 group-hover:text-amber-500/80 transition-all" />
+                            <div className="aspect-square bg-gradient-to-br from-amber-900/40 to-amber-800/20 rounded-xl mb-3 flex items-center justify-center group-hover:from-amber-900/60 group-hover:to-amber-800/40 transition-all overflow-hidden">
+                              {item.imageUrl ? (
+                                <img 
+                                  src={item.imageUrl} 
+                                  alt={item.nameAr}
+                                  className="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-300"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <Coffee className={`w-12 h-12 text-amber-500/60 group-hover:text-amber-500/80 transition-all ${item.imageUrl ? 'hidden' : ''}`} />
                             </div>
                             <h3 className="text-sm font-semibold text-amber-400 truncate mb-1">{item.nameAr}</h3>
                             {item.nameEn && (

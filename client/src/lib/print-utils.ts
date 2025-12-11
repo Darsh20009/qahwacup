@@ -1122,6 +1122,19 @@ export async function printSimpleReceipt(data: TaxInvoiceData): Promise<void> {
     `;
   }).join('');
 
+  const trackingUrl = `${window.location.origin}/tracking?order=${data.orderNumber}`;
+  let trackingQRCode = "";
+  try {
+    trackingQRCode = await QRCode.toDataURL(trackingUrl, {
+      width: 100,
+      margin: 1,
+      color: { dark: '#000000', light: '#FFFFFF' },
+      errorCorrectionLevel: 'M'
+    });
+  } catch (error) {
+    console.error("Error generating tracking QR code:", error);
+  }
+
   const receiptHtml = `
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1260,6 +1273,14 @@ export async function printSimpleReceipt(data: TaxInvoiceData): Promise<void> {
         <span><strong>${data.paymentMethod}</strong></span>
       </div>
     </div>
+
+    ${trackingQRCode ? `
+    <div style="text-align: center; padding: 16px 0; border-top: 2px dashed #333; margin-top: 16px;">
+      <p style="font-size: 12px; color: #666; margin-bottom: 8px;">امسح لتتبع طلبك</p>
+      <img src="${trackingQRCode}" alt="تتبع الطلب" style="width: 80px; height: 80px;" />
+      <p style="font-size: 10px; color: #888; margin-top: 4px;">رقم الطلب: ${data.orderNumber}</p>
+    </div>
+    ` : ''}
 
     <div class="footer">
       <p>شكراً لزيارتكم</p>

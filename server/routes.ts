@@ -6,8 +6,23 @@ import { requireAuth, requireManager, requireAdmin, filterByBranch, requireKitch
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { nanoid } from "nanoid";
 import nodemailer from "nodemailer";
+
+// Ensure upload directories exist
+const uploadDirs = [
+  path.join(import.meta.dirname, '..', 'attached_assets', 'drinks'),
+  path.join(import.meta.dirname, '..', 'attached_assets', 'employees'),
+  path.join(import.meta.dirname, '..', 'attached_assets', 'attendance'),
+  path.join(import.meta.dirname, '..', 'attached_assets', 'receipts'),
+];
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`📁 Created upload directory: ${dir}`);
+  }
+});
 
 // Helper function to serialize MongoDB documents
 function serializeDoc(doc: any): any {
