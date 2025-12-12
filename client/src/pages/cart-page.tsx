@@ -98,7 +98,7 @@ export default function CartPage() {
  <div className="flex items-center space-x-4 space-x-reverse">
  <div className="relative">
  <img 
- src={getCoffeeImage(item.coffeeItem?.id || '')}
+ src={item.coffeeItem?.imageUrl || getCoffeeImage(item.coffeeItem?.id || '')}
  alt={item.coffeeItem?.nameAr}
  className="w-20 h-20 object-cover rounded-xl shadow-lg"
  loading="lazy"

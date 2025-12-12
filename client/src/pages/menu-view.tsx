@@ -197,7 +197,7 @@ export default function MenuView() {
  <div className="relative bg-card/95 backdrop-blur-xl rounded-3xl p-8 border-2 border-primary/30 shadow-2xl group-hover:shadow-primary/20 transition-all duration-700">
  <div className="relative overflow-hidden rounded-2xl">
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-full h-96 object-cover transition-all duration-700 group-hover:scale-105"
  data-testid="img-current-drink"
@@ -256,7 +256,7 @@ export default function MenuView() {
  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-orange-600/30 rounded-full blur-3xl animate-pulse"></div>
  <div className="relative bg-card/95 backdrop-blur-xl rounded-full p-12 border-2 border-primary/40 shadow-2xl">
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-80 h-80 object-cover rounded-full mx-auto group-hover:scale-105 transition-all duration-700"
  data-testid="img-showcase-drink"
@@ -288,7 +288,7 @@ export default function MenuView() {
  <Card className="group cursor-pointer transform transition-all duration-500 hover:scale-105 bg-card/95 backdrop-blur-xl border-2 border-primary/20 hover:border-primary/40 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl w-full max-w-2xl">
  <div className="relative overflow-hidden">
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-full h-96 object-cover transition-all duration-500 group-hover:scale-110"
  onError={(e) => {
@@ -331,7 +331,7 @@ export default function MenuView() {
  {/* Large Featured Item */}
  <div className="col-span-2 lg:col-span-2 group relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 cursor-pointer" style={{ minHeight: '500px' }}>
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
  onError={(e) => {
@@ -381,7 +381,7 @@ export default function MenuView() {
  <Card className="group cursor-pointer bg-card/95 backdrop-blur-xl border-2 border-primary/20 hover:border-primary/40 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500">
  <div className="relative overflow-hidden">
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-full h-80 object-cover transition-all duration-500 group-hover:scale-105"
  onError={(e) => {
@@ -456,7 +456,7 @@ export default function MenuView() {
  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-orange-600/30 rounded-3xl blur-2xl animate-pulse"></div>
  <div className="relative bg-card/95 backdrop-blur-xl rounded-3xl p-8 border-2 border-primary/30 shadow-2xl">
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-full h-96 object-cover rounded-2xl transition-all duration-700 group-hover:scale-105"
  onError={(e) => {
@@ -580,7 +580,7 @@ export default function MenuView() {
  <div className="bg-card/95 backdrop-blur-xl border-2 border-primary/30 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl w-full">
  <div className="relative">
  <img 
- src={getCoffeeImage(currentItem.id)}
+ src={currentItem.imageUrl || getCoffeeImage(currentItem.id)}
  alt={currentItem.nameAr}
  className="w-full h-32 md:h-64 object-cover"
  onError={(e) => {

@@ -860,7 +860,7 @@ export default function EmployeeMenuManagement() {
  >
  <div className="flex items-center gap-4 flex-1">
  <img
- src={getCoffeeImage(item.id)}
+ src={item.imageUrl || getCoffeeImage(item.id)}
  alt={item.nameAr}
  className="w-16 h-16 rounded-lg object-cover"
  onError={(e) => {
