@@ -233,10 +233,11 @@ export async function cleanupDuplicateDrinkIngredients() {
     
     for (const link of allLinks) {
       const key = `${link.coffeeItemId}:${link.ingredientId}`;
+      const linkId = (link as any)._id?.toString() || link.id;
       if (seenCombos.has(key)) {
-        duplicateIds.push(link._id.toString());
+        duplicateIds.push(linkId);
       } else {
-        seenCombos.set(key, link._id.toString());
+        seenCombos.set(key, linkId);
       }
     }
     

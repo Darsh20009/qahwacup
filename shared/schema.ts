@@ -459,6 +459,7 @@ const LoyaltyRewardSchema = new Schema<ILoyaltyReward>({
 export const LoyaltyRewardModel = mongoose.model<ILoyaltyReward>("LoyaltyReward", LoyaltyRewardSchema);
 
 export interface IIngredient extends Document {
+  id: string;
   nameAr: string;
   nameEn?: string;
   isAvailable: number;
