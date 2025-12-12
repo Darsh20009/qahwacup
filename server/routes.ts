@@ -6568,10 +6568,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       if (finalBranchId) invoiceQuery.branchId = finalBranchId;
       
-      const [orders, expenses, invoices] = await Promise.all([
+      // Build queries for trend data (last 30 days for daily, last 12 weeks for weekly, last 12 months for monthly)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      thirtyDaysAgo.setHours(0, 0, 0, 0);
+      
+      const allOrdersQuery: any = {
+        createdAt: { $gte: thirtyDaysAgo },
+        status: { $ne: 'cancelled' },
+      };
+      if (finalBranchId) allOrdersQuery.branchId = finalBranchId;
+      
+      const allExpensesQuery: any = {
+        date: { $gte: thirtyDaysAgo },
+        status: { $in: ['approved', 'paid'] },
+      };
+      if (finalBranchId) allExpensesQuery.branchId = finalBranchId;
+      
+      const [orders, expenses, invoices, allOrders, allExpenses] = await Promise.all([
         OrderModel.find(orderQuery),
         ExpenseModel.find(expenseQuery),
         TaxInvoiceModel.find(invoiceQuery),
+        OrderModel.find(allOrdersQuery),
+        ExpenseModel.find(allExpensesQuery),
       ]);
       
       const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
@@ -6593,6 +6612,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return acc;
       }, {});
       
+      // Generate daily trend data (last 7 days)
+      const dailyTrend: Array<{ date: string; revenue: number; expenses: number; cogs: number; netProfit: number }> = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        const nextDay = new Date(date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        
+        const dayOrders = allOrders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate >= date && orderDate < nextDay;
+        });
+        const dayExpenses = allExpenses.filter(e => {
+          const expenseDate = new Date(e.date);
+          return expenseDate >= date && expenseDate < nextDay;
+        });
+        
+        const dayRevenue = dayOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const dayCogs = dayOrders.reduce((sum, o) => sum + (o.costOfGoods || 0), 0);
+        const dayExp = dayExpenses.reduce((sum, e) => sum + e.totalAmount, 0);
+        
+        dailyTrend.push({
+          date: date.toISOString().split('T')[0],
+          revenue: Math.round(dayRevenue * 100) / 100,
+          expenses: Math.round(dayExp * 100) / 100,
+          cogs: Math.round(dayCogs * 100) / 100,
+          netProfit: Math.round((dayRevenue - dayCogs - dayExp) * 100) / 100,
+        });
+      }
+      
+      // Generate weekly trend data (last 4 weeks)
+      const weeklyTrend: Array<{ week: string; revenue: number; expenses: number; cogs: number; netProfit: number }> = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekEnd = new Date();
+        weekEnd.setDate(weekEnd.getDate() - (i * 7));
+        weekEnd.setHours(23, 59, 59, 999);
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekStart.getDate() - 6);
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekOrders = allOrders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate >= weekStart && orderDate <= weekEnd;
+        });
+        const weekExpenses = allExpenses.filter(e => {
+          const expenseDate = new Date(e.date);
+          return expenseDate >= weekStart && expenseDate <= weekEnd;
+        });
+        
+        const weekRevenue = weekOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const weekCogs = weekOrders.reduce((sum, o) => sum + (o.costOfGoods || 0), 0);
+        const weekExp = weekExpenses.reduce((sum, e) => sum + e.totalAmount, 0);
+        
+        weeklyTrend.push({
+          week: `${weekStart.getDate()}/${weekStart.getMonth() + 1} - ${weekEnd.getDate()}/${weekEnd.getMonth() + 1}`,
+          revenue: Math.round(weekRevenue * 100) / 100,
+          expenses: Math.round(weekExp * 100) / 100,
+          cogs: Math.round(weekCogs * 100) / 100,
+          netProfit: Math.round((weekRevenue - weekCogs - weekExp) * 100) / 100,
+        });
+      }
+      
+      // Top selling items
+      const itemSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
+      orders.forEach(order => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach((item: any) => {
+            if (!item) return;
+            const itemId = item.coffeeItemId || item.id || 'unknown';
+            if (!itemId || itemId === 'unknown') return;
+            const itemName = item.coffeeItem?.nameAr || item.nameAr || 'غير معروف';
+            const itemQty = Number(item.quantity) || 1;
+            const itemPrice = Number(item.price) || 0;
+            
+            if (!itemSales[itemId]) {
+              itemSales[itemId] = { name: itemName, quantity: 0, revenue: 0 };
+            }
+            itemSales[itemId].quantity += itemQty;
+            itemSales[itemId].revenue += itemPrice * itemQty;
+          });
+        }
+      });
+      
+      const topSellingItems = Object.entries(itemSales)
+        .filter(([id]) => id && id !== 'unknown')
+        .map(([id, data]) => ({ id, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 10);
+      
       res.json({
         period,
         summary: {
@@ -6608,6 +6717,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         expensesByCategory,
         revenueByPayment,
+        dailyTrend,
+        weeklyTrend,
+        topSellingItems,
       });
     } catch (error) {
       console.error("Error fetching accounting dashboard:", error);

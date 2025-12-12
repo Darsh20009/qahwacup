@@ -49,10 +49,28 @@ import {
   Banknote,
   PiggyBank,
   BarChart3,
-  Building2
+  Building2,
+  Package,
+  ShoppingCart,
+  Percent
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from "recharts";
 
 interface Branch {
   id?: string;
@@ -93,6 +111,22 @@ interface Revenue {
   createdAt: string;
 }
 
+interface TrendData {
+  date?: string;
+  week?: string;
+  revenue: number;
+  expenses: number;
+  cogs: number;
+  netProfit: number;
+}
+
+interface TopSellingItem {
+  id: string;
+  name: string;
+  quantity: number;
+  revenue: number;
+}
+
 interface DashboardData {
   totalRevenue: number;
   totalVat: number;
@@ -102,8 +136,12 @@ interface DashboardData {
   netProfit: number;
   orderCount: number;
   invoiceCount: number;
+  profitMargin: number;
   expensesByCategory: Record<string, number>;
   revenueByPayment: Record<string, number>;
+  dailyTrend: TrendData[];
+  weeklyTrend: TrendData[];
+  topSellingItems: TopSellingItem[];
 }
 
 const expenseCategories = [
@@ -131,6 +169,8 @@ const paymentMethodLabels: Record<string, string> = {
   stc: "STC Pay",
   alinma: "Alinma Pay",
 };
+
+const CHART_COLORS = ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899'];
 
 export default function AccountingDashboardPage() {
   const [, setLocation] = useLocation();
@@ -162,7 +202,6 @@ export default function AccountingDashboardPage() {
       const res = await fetch(`/api/accounting/dashboard?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch dashboard");
       const data = await res.json();
-      // Transform API response to match expected DashboardData structure
       return {
         totalRevenue: data.summary?.totalRevenue || 0,
         totalVat: data.summary?.totalVatCollected || 0,
@@ -172,8 +211,12 @@ export default function AccountingDashboardPage() {
         netProfit: data.summary?.netProfit || 0,
         orderCount: data.summary?.orderCount || 0,
         invoiceCount: data.summary?.invoiceCount || 0,
+        profitMargin: data.summary?.profitMargin || 0,
         expensesByCategory: data.expensesByCategory || {},
         revenueByPayment: data.revenueByPayment || {},
+        dailyTrend: data.dailyTrend || [],
+        weeklyTrend: data.weeklyTrend || [],
+        topSellingItems: data.topSellingItems || [],
       };
     },
   });
@@ -261,10 +304,24 @@ export default function AccountingDashboardPage() {
     return branch?.nameAr || "غير محدد";
   };
 
+  const paymentMethodData = dashboardData?.revenueByPayment 
+    ? Object.entries(dashboardData.revenueByPayment).map(([method, amount]) => ({
+        name: paymentMethodLabels[method] || method,
+        value: amount as number,
+      }))
+    : [];
+
+  const expenseCategoryData = dashboardData?.expensesByCategory 
+    ? Object.entries(dashboardData.expensesByCategory).map(([category, amount]) => ({
+        name: expenseCategories.find(c => c.value === category)?.label || category,
+        value: amount as number,
+      }))
+    : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-[#1a1410] dark:via-[#1f1815] dark:to-[#231c17]" dir="rtl">
       <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6">
           <Button 
             variant="ghost" 
             onClick={() => setLocation("/employee/dashboard")}
@@ -275,7 +332,7 @@ export default function AccountingDashboardPage() {
             العودة
           </Button>
           <h1 className="text-2xl md:text-3xl font-bold text-amber-800 dark:text-amber-400">
-            نظام المحاسبة والفواتير
+            نظام المحاسبة المتكامل
           </h1>
           <div className="w-20"></div>
         </div>
@@ -332,13 +389,14 @@ export default function AccountingDashboardPage() {
               </div>
             ) : dashboardData ? (
               <>
+                {/* Main KPI Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
                           <p className="text-green-100 text-sm">إجمالي الإيرادات</p>
-                          <p className="text-3xl font-bold mt-1">{(dashboardData.totalRevenue || 0).toFixed(2)}</p>
+                          <p className="text-3xl font-bold mt-1" data-testid="text-total-revenue">{dashboardData.totalRevenue.toFixed(2)}</p>
                           <p className="text-green-200 text-xs mt-1">ريال سعودي</p>
                         </div>
                         <TrendingUp className="w-12 h-12 text-green-200" />
@@ -346,12 +404,25 @@ export default function AccountingDashboardPage() {
                     </CardContent>
                   </Card>
 
+                  <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-orange-100 text-sm">تكلفة المكونات (COGS)</p>
+                          <p className="text-3xl font-bold mt-1" data-testid="text-total-cogs">{dashboardData.totalCogs.toFixed(2)}</p>
+                          <p className="text-orange-200 text-xs mt-1">ريال سعودي</p>
+                        </div>
+                        <Package className="w-12 h-12 text-orange-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-red-100 text-sm">إجمالي المصروفات</p>
-                          <p className="text-3xl font-bold mt-1">{(dashboardData.totalExpenses || 0).toFixed(2)}</p>
+                          <p className="text-red-100 text-sm">المصروفات الشهرية</p>
+                          <p className="text-3xl font-bold mt-1" data-testid="text-total-expenses">{dashboardData.totalExpenses.toFixed(2)}</p>
                           <p className="text-red-200 text-xs mt-1">ريال سعودي</p>
                         </div>
                         <TrendingDown className="w-12 h-12 text-red-200" />
@@ -359,96 +430,34 @@ export default function AccountingDashboardPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  <Card className={`bg-gradient-to-br ${dashboardData.netProfit >= 0 ? 'from-blue-500 to-blue-600' : 'from-red-600 to-red-700'} text-white`}>
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-blue-100 text-sm">صافي الربح</p>
-                          <p className="text-3xl font-bold mt-1">{(dashboardData.netProfit || 0).toFixed(2)}</p>
-                          <p className="text-blue-200 text-xs mt-1">ريال سعودي</p>
+                          <p className={`${dashboardData.netProfit >= 0 ? 'text-blue-100' : 'text-red-100'} text-sm`}>صافي الربح</p>
+                          <p className="text-3xl font-bold mt-1" data-testid="text-net-profit">{dashboardData.netProfit.toFixed(2)}</p>
+                          <p className={`${dashboardData.netProfit >= 0 ? 'text-blue-200' : 'text-red-200'} text-xs mt-1`}>ريال سعودي</p>
                         </div>
-                        <PiggyBank className="w-12 h-12 text-blue-200" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-amber-100 text-sm">ضريبة القيمة المضافة</p>
-                          <p className="text-3xl font-bold mt-1">{(dashboardData.totalVat || 0).toFixed(2)}</p>
-                          <p className="text-amber-200 text-xs mt-1">ريال سعودي</p>
-                        </div>
-                        <Receipt className="w-12 h-12 text-amber-200" />
+                        <PiggyBank className={`w-12 h-12 ${dashboardData.netProfit >= 0 ? 'text-blue-200' : 'text-red-200'}`} />
                       </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-amber-600" />
-                        المصروفات حسب الفئة
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {Object.entries(dashboardData.expensesByCategory || {}).map(([category, amount]) => (
-                          <div key={category} className="flex items-center justify-between">
-                            <span className="text-muted-foreground">
-                              {expenseCategories.find(c => c.value === category)?.label || category}
-                            </span>
-                            <span className="font-bold text-red-600">{Number(amount).toFixed(2)} ر.س</span>
-                          </div>
-                        ))}
-                        {Object.keys(dashboardData.expensesByCategory || {}).length === 0 && (
-                          <p className="text-muted-foreground text-center py-4">لا توجد مصروفات</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-green-600" />
-                        الإيرادات حسب طريقة الدفع
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {Object.entries(dashboardData.revenueByPayment || {}).map(([method, amount]) => (
-                          <div key={method} className="flex items-center justify-between">
-                            <span className="text-muted-foreground">
-                              {paymentMethodLabels[method] || method}
-                            </span>
-                            <span className="font-bold text-green-600">{Number(amount).toFixed(2)} ر.س</span>
-                          </div>
-                        ))}
-                        {Object.keys(dashboardData.revenueByPayment || {}).length === 0 && (
-                          <p className="text-muted-foreground text-center py-4">لا توجد إيرادات</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card className="mb-6">
+                {/* Profit Breakdown Card */}
+                <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <PiggyBank className="w-5 h-5 text-green-600" />
-                      حسابات الأرباح
+                      <DollarSign className="w-5 h-5 text-green-600" />
+                      تحليل الأرباح التفصيلي
                     </CardTitle>
-                    <CardDescription>تفاصيل الأرباح وهوامش الربح</CardDescription>
+                    <CardDescription>تفاصيل حسابات الأرباح وهوامش الربح</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                       <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
                         <p className="text-muted-foreground text-sm">إجمالي الربح</p>
-                        <p className="text-2xl font-bold text-green-600">{(dashboardData.grossProfit || 0).toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-green-600" data-testid="text-gross-profit">{dashboardData.grossProfit.toFixed(2)}</p>
                         <p className="text-xs text-muted-foreground">ر.س</p>
                       </div>
                       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
@@ -462,41 +471,46 @@ export default function AccountingDashboardPage() {
                       </div>
                       <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
                         <p className="text-muted-foreground text-sm">صافي الربح</p>
-                        <p className="text-2xl font-bold text-purple-600">{(dashboardData.netProfit || 0).toFixed(2)}</p>
+                        <p className={`text-2xl font-bold ${dashboardData.netProfit >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                          {dashboardData.netProfit.toFixed(2)}
+                        </p>
                         <p className="text-xs text-muted-foreground">ر.س</p>
                       </div>
                       <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-center">
                         <p className="text-muted-foreground text-sm">هامش صافي الربح</p>
-                        <p className="text-2xl font-bold text-amber-600">
-                          {dashboardData.totalRevenue > 0 
-                            ? ((dashboardData.netProfit / dashboardData.totalRevenue) * 100).toFixed(1) 
-                            : "0"}%
+                        <p className={`text-2xl font-bold ${dashboardData.profitMargin >= 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                          {dashboardData.profitMargin.toFixed(1)}%
                         </p>
                         <p className="text-xs text-muted-foreground">من الإيرادات</p>
                       </div>
                     </div>
-                    <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    
+                    <div className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex justify-between">
                           <span>إجمالي الإيرادات</span>
-                          <span className="font-medium text-green-600">+{(dashboardData.totalRevenue || 0).toFixed(2)} ر.س</span>
+                          <span className="font-medium text-green-600">+{dashboardData.totalRevenue.toFixed(2)} ر.س</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>تكلفة البضاعة المباعة (COGS)</span>
-                          <span className="font-medium text-red-600">-{(dashboardData.totalCogs || 0).toFixed(2)} ر.س</span>
+                          <span>ضريبة القيمة المضافة</span>
+                          <span className="font-medium text-amber-600">-{dashboardData.totalVat.toFixed(2)} ر.س</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>تكلفة المكونات (COGS)</span>
+                          <span className="font-medium text-red-600">-{dashboardData.totalCogs.toFixed(2)} ر.س</span>
                         </div>
                         <div className="flex justify-between border-t pt-2">
                           <span className="font-medium">= إجمالي الربح</span>
-                          <span className="font-bold text-green-600">{(dashboardData.grossProfit || 0).toFixed(2)} ر.س</span>
+                          <span className="font-bold text-green-600">{dashboardData.grossProfit.toFixed(2)} ر.س</span>
                         </div>
                         <div className="flex justify-between">
                           <span>المصروفات التشغيلية</span>
-                          <span className="font-medium text-red-600">-{(dashboardData.totalExpenses || 0).toFixed(2)} ر.س</span>
+                          <span className="font-medium text-red-600">-{dashboardData.totalExpenses.toFixed(2)} ر.س</span>
                         </div>
-                        <div className="flex justify-between border-t pt-2">
-                          <span className="font-medium">= صافي الربح</span>
-                          <span className={`font-bold ${(dashboardData.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {(dashboardData.netProfit || 0).toFixed(2)} ر.س
+                        <div className="flex justify-between border-t pt-2 border-primary">
+                          <span className="font-bold">= صافي الربح</span>
+                          <span className={`font-bold text-lg ${dashboardData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {dashboardData.netProfit.toFixed(2)} ر.س
                           </span>
                         </div>
                       </div>
@@ -504,16 +518,173 @@ export default function AccountingDashboardPage() {
                   </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Daily Trend Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-amber-600" />
+                      صافي الربح اليومي (آخر 7 أيام)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {dashboardData.dailyTrend && dashboardData.dailyTrend.length > 0 ? (
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={dashboardData.dailyTrend}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="date" 
+                              tickFormatter={(value) => {
+                                const date = new Date(value);
+                                return `${date.getDate()}/${date.getMonth() + 1}`;
+                              }}
+                            />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value: number) => [`${value.toFixed(2)} ر.س`]}
+                              labelFormatter={(label) => {
+                                const date = new Date(label);
+                                return format(date, "EEEE dd/MM/yyyy", { locale: ar });
+                              }}
+                            />
+                            <Legend />
+                            <Area 
+                              type="monotone" 
+                              dataKey="revenue" 
+                              stackId="1"
+                              stroke="#10b981" 
+                              fill="#10b981" 
+                              fillOpacity={0.6}
+                              name="الإيرادات"
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="netProfit" 
+                              stackId="2"
+                              stroke="#3b82f6" 
+                              fill="#3b82f6" 
+                              fillOpacity={0.6}
+                              name="صافي الربح"
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-8">لا توجد بيانات كافية لعرض الرسم البياني</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Weekly Trend Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-purple-600" />
+                      صافي الربح الأسبوعي (آخر 4 أسابيع)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {dashboardData.weeklyTrend && dashboardData.weeklyTrend.length > 0 ? (
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={dashboardData.weeklyTrend}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="week" />
+                            <YAxis />
+                            <Tooltip formatter={(value: number) => [`${value.toFixed(2)} ر.س`]} />
+                            <Legend />
+                            <Bar dataKey="revenue" fill="#10b981" name="الإيرادات" />
+                            <Bar dataKey="cogs" fill="#f97316" name="تكلفة المكونات" />
+                            <Bar dataKey="expenses" fill="#ef4444" name="المصروفات" />
+                            <Bar dataKey="netProfit" fill="#3b82f6" name="صافي الربح" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-8">لا توجد بيانات كافية لعرض الرسم البياني</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Payment Methods Pie Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-green-600" />
+                        الإيرادات حسب طريقة الدفع
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {paymentMethodData.length > 0 ? (
+                        <div className="h-[250px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={paymentMethodData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                paddingAngle={5}
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                              >
+                                {paymentMethodData.map((_, index) => (
+                                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value: number) => [`${value.toFixed(2)} ر.س`]} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">لا توجد بيانات</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Expenses by Category */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-red-600" />
+                        المصروفات حسب الفئة
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {expenseCategoryData.length > 0 ? (
+                        <div className="h-[250px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={expenseCategoryData} layout="vertical">
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis type="number" />
+                              <YAxis type="category" dataKey="name" width={120} />
+                              <Tooltip formatter={(value: number) => [`${value.toFixed(2)} ر.س`]} />
+                              <Bar dataKey="value" fill="#ef4444" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">لا توجد مصروفات</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-full">
-                          <FileText className="w-6 h-6 text-amber-600" />
+                          <ShoppingCart className="w-6 h-6 text-amber-600" />
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">عدد الطلبات</p>
-                          <p className="text-2xl font-bold">{dashboardData.orderCount}</p>
+                          <p className="text-2xl font-bold" data-testid="text-order-count">{dashboardData.orderCount}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -527,7 +698,25 @@ export default function AccountingDashboardPage() {
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">عدد الفواتير</p>
-                          <p className="text-2xl font-bold">{dashboardData.invoiceCount}</p>
+                          <p className="text-2xl font-bold" data-testid="text-invoice-count">{dashboardData.invoiceCount}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+                          <Percent className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">متوسط قيمة الطلب</p>
+                          <p className="text-2xl font-bold">
+                            {dashboardData.orderCount > 0 
+                              ? (dashboardData.totalRevenue / dashboardData.orderCount).toFixed(2)
+                              : "0"}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -537,20 +726,57 @@ export default function AccountingDashboardPage() {
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                          <Wallet className="w-6 h-6 text-purple-600" />
+                          <DollarSign className="w-6 h-6 text-purple-600" />
                         </div>
                         <div>
-                          <p className="text-muted-foreground text-sm">تكلفة البضاعة المباعة</p>
-                          <p className="text-2xl font-bold">{(dashboardData.totalCogs || 0).toFixed(2)}</p>
+                          <p className="text-muted-foreground text-sm">ضريبة القيمة المضافة</p>
+                          <p className="text-2xl font-bold">{dashboardData.totalVat.toFixed(2)}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Top Selling Items */}
+                {dashboardData.topSellingItems && dashboardData.topSellingItems.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-amber-600" />
+                        المنتجات الأكثر مبيعاً
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">المنتج</TableHead>
+                            <TableHead className="text-right">الكمية المباعة</TableHead>
+                            <TableHead className="text-right">الإيرادات</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {dashboardData.topSellingItems.map((item, index) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{index + 1}</Badge>
+                                  {item.name}
+                                </div>
+                              </TableCell>
+                              <TableCell>{item.quantity}</TableCell>
+                              <TableCell className="font-bold text-green-600">{item.revenue.toFixed(2)} ر.س</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                )}
               </>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                لا توجد بيانات متاحة
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">لا توجد بيانات متاحة</p>
               </div>
             )}
           </TabsContent>
@@ -600,12 +826,12 @@ export default function AccountingDashboardPage() {
                             {expense.status === "pending" && (
                               <Button
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 onClick={() => approveExpenseMutation.mutate(expense.id)}
                                 disabled={approveExpenseMutation.isPending}
                                 data-testid={`button-approve-expense-${expense.id}`}
                               >
-                                <Check className="w-4 h-4 text-green-600" />
+                                <Check className="w-4 h-4" />
                               </Button>
                             )}
                           </TableCell>
@@ -613,7 +839,7 @@ export default function AccountingDashboardPage() {
                       ))}
                       {(!expensesData?.expenses || expensesData.expenses.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                             لا توجد مصروفات مسجلة
                           </TableCell>
                         </TableRow>
@@ -629,7 +855,7 @@ export default function AccountingDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>سجل الإيرادات</CardTitle>
-                <CardDescription>جميع الإيرادات المسجلة من المبيعات</CardDescription>
+                <CardDescription>جميع الإيرادات المسجلة في النظام</CardDescription>
               </CardHeader>
               <CardContent>
                 {isRevenuesLoading ? (
@@ -665,7 +891,7 @@ export default function AccountingDashboardPage() {
                       ))}
                       {(!revenuesData?.revenues || revenuesData.revenues.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                             لا توجد إيرادات مسجلة
                           </TableCell>
                         </TableRow>
@@ -677,146 +903,168 @@ export default function AccountingDashboardPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="reports" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="hover-elevate cursor-pointer" onClick={() => setLocation("/manager/zatca-invoices")}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
-                      <FileText className="w-8 h-8 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">الفواتير الضريبية (ZATCA)</h3>
-                      <p className="text-muted-foreground text-sm">عرض وإدارة الفواتير الضريبية</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <TabsContent value="reports" className="space-y-6">
+            {isDashboardLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+              </div>
+            ) : dashboardData ? (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Revenue Trend */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>تطور الإيرادات اليومية</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {dashboardData.dailyTrend && dashboardData.dailyTrend.length > 0 ? (
+                        <div className="h-[300px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={dashboardData.dailyTrend}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="date" 
+                                tickFormatter={(value) => {
+                                  const date = new Date(value);
+                                  return `${date.getDate()}/${date.getMonth() + 1}`;
+                                }}
+                              />
+                              <YAxis />
+                              <Tooltip 
+                                formatter={(value: number) => [`${value.toFixed(2)} ر.س`]}
+                                labelFormatter={(label) => {
+                                  const date = new Date(label);
+                                  return format(date, "EEEE dd/MM/yyyy", { locale: ar });
+                                }}
+                              />
+                              <Area 
+                                type="monotone" 
+                                dataKey="revenue" 
+                                stroke="#10b981" 
+                                fill="#10b981" 
+                                fillOpacity={0.3}
+                                name="الإيرادات"
+                              />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">لا توجد بيانات</p>
+                      )}
+                    </CardContent>
+                  </Card>
 
-              <Card className="hover-elevate cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                      <Calendar className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">التقرير اليومي</h3>
-                      <p className="text-muted-foreground text-sm">ملخص المبيعات والمصروفات اليومية</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover-elevate cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                      <BarChart3 className="w-8 h-8 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">تقرير الأرباح والخسائر</h3>
-                      <p className="text-muted-foreground text-sm">تحليل الربحية الشهرية</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover-elevate cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-amber-100 dark:bg-amber-900/30 rounded-full">
-                      <Building2 className="w-8 h-8 text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">تقرير الفروع</h3>
-                      <p className="text-muted-foreground text-sm">مقارنة أداء الفروع</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  {/* Profit vs Expenses */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>مقارنة الأرباح والمصروفات</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {dashboardData.weeklyTrend && dashboardData.weeklyTrend.length > 0 ? (
+                        <div className="h-[300px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={dashboardData.weeklyTrend}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="week" />
+                              <YAxis />
+                              <Tooltip formatter={(value: number) => [`${value.toFixed(2)} ر.س`]} />
+                              <Legend />
+                              <Bar dataKey="netProfit" fill="#10b981" name="صافي الربح" />
+                              <Bar dataKey="expenses" fill="#ef4444" name="المصروفات" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">لا توجد بيانات</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">لا توجد بيانات متاحة</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
+        {/* Add Expense Dialog */}
         <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
-          <DialogContent className="max-w-md" dir="rtl">
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>إضافة مصروف جديد</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="space-y-2">
+              <div>
                 <Label>الفئة</Label>
-                <Select value={newExpense.category} onValueChange={(v) => setNewExpense({ ...newExpense, category: v })}>
+                <Select value={newExpense.category} onValueChange={(v) => setNewExpense(prev => ({ ...prev, category: v }))}>
                   <SelectTrigger data-testid="select-expense-category">
                     <SelectValue placeholder="اختر الفئة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {expenseCategories.map((cat) => (
+                    {expenseCategories.map(cat => (
                       <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <Label>الوصف</Label>
-                <Input
+                <Input 
                   value={newExpense.description}
-                  onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                  onChange={(e) => setNewExpense(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="وصف المصروف"
                   data-testid="input-expense-description"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>المبلغ (قبل الضريبة)</Label>
-                  <Input
+                <div>
+                  <Label>المبلغ</Label>
+                  <Input 
                     type="number"
                     value={newExpense.amount}
-                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                    onChange={(e) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
                     placeholder="0.00"
                     data-testid="input-expense-amount"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label>ضريبة القيمة المضافة</Label>
-                  <Input
+                <div>
+                  <Label>الضريبة</Label>
+                  <Input 
                     type="number"
                     value={newExpense.vatAmount}
-                    onChange={(e) => setNewExpense({ ...newExpense, vatAmount: e.target.value })}
+                    onChange={(e) => setNewExpense(prev => ({ ...prev, vatAmount: e.target.value }))}
                     placeholder="0.00"
                     data-testid="input-expense-vat"
                   />
                 </div>
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <Label>طريقة الدفع</Label>
-                <Select value={newExpense.paymentMethod} onValueChange={(v) => setNewExpense({ ...newExpense, paymentMethod: v })}>
+                <Select value={newExpense.paymentMethod} onValueChange={(v) => setNewExpense(prev => ({ ...prev, paymentMethod: v }))}>
                   <SelectTrigger data-testid="select-expense-payment">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cash">نقدي</SelectItem>
                     <SelectItem value="bank_transfer">تحويل بنكي</SelectItem>
-                    <SelectItem value="pos">شبكة</SelectItem>
+                    <SelectItem value="credit_card">بطاقة ائتمان</SelectItem>
+                    <SelectItem value="check">شيك</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-2">
-                <Label>ملاحظات (اختياري)</Label>
-                <Textarea
+              <div>
+                <Label>ملاحظات</Label>
+                <Textarea 
                   value={newExpense.notes}
-                  onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
-                  placeholder="أي ملاحظات إضافية..."
+                  onChange={(e) => setNewExpense(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="ملاحظات إضافية (اختياري)"
                   data-testid="input-expense-notes"
                 />
               </div>
             </div>
-            <DialogFooter className="gap-2">
+            <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddExpenseOpen(false)}>
                 إلغاء
               </Button>
