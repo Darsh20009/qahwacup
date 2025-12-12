@@ -5685,6 +5685,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Smart Inventory Routes - Stock Adjustment (+/-)
+  app.post("/api/inventory/stock-adjustment", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { rawItemId, branchId, quantity, type, notes } = req.body;
+      
+      if (!rawItemId || !branchId || quantity === undefined || !type) {
+        return res.status(400).json({ error: "البيانات المطلوبة غير مكتملة" });
+      }
+      
+      const adjustedQuantity = type === 'subtract' ? -Math.abs(quantity) : Math.abs(quantity);
+      
+      const stock = await storage.updateBranchStock(
+        branchId,
+        rawItemId,
+        adjustedQuantity,
+        req.employee?.id || 'system',
+        'adjustment',
+        notes || (type === 'add' ? 'إضافة كمية' : 'خصم كمية')
+      );
+      
+      res.json(stock);
+    } catch (error) {
+      console.error("Error adjusting stock:", error);
+      res.status(500).json({ error: "فشل في تعديل المخزون" });
+    }
+  });
+
+  // Smart Inventory Routes - Add Stock Batch
+  app.post("/api/inventory/stock-batch", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { rawItemId, branchId, quantity, unitCost, notes } = req.body;
+      
+      if (!rawItemId || !branchId || !quantity || quantity <= 0) {
+        return res.status(400).json({ error: "البيانات المطلوبة غير مكتملة" });
+      }
+      
+      // Update raw item cost if provided
+      if (unitCost && unitCost > 0) {
+        await RawItemModel.findByIdAndUpdate(rawItemId, { unitCost });
+      }
+      
+      const stock = await storage.updateBranchStock(
+        branchId,
+        rawItemId,
+        Math.abs(quantity),
+        req.employee?.id || 'system',
+        'purchase',
+        notes || 'دفعة جديدة'
+      );
+      
+      res.json(stock);
+    } catch (error) {
+      console.error("Error adding stock batch:", error);
+      res.status(500).json({ error: "فشل في إضافة الدفعة" });
+    }
+  });
+
+  // Branch Stocks for Smart Inventory
+  app.get("/api/inventory/branch-stocks", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { branchId } = req.query;
+      if (branchId && branchId !== 'all') {
+        const stock = await storage.getBranchStock(branchId as string);
+        res.json(stock);
+      } else {
+        const allStock = await storage.getAllBranchesStock();
+        res.json(allStock);
+      }
+    } catch (error) {
+      console.error("Error fetching branch stocks:", error);
+      res.status(500).json({ error: "فشل في جلب المخزون" });
+    }
+  });
+
   // Stock Transfers Routes
   app.get("/api/inventory/transfers", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {

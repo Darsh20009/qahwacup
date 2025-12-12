@@ -62,6 +62,8 @@ import KitchenDisplay from "@/pages/kitchen-display";
 import AccountingDashboard from "@/pages/accounting-dashboard";
 import IngredientsRecipesInventory from "@/pages/ingredients-recipes-inventory";
 import OrderStatusDisplay from "@/pages/order-status-display";
+import InventorySmartPage from "@/pages/inventory-smart";
+import AccountingSmartPage from "@/pages/accounting-smart";
 
 function Router() {
  return (
@@ -118,6 +120,8 @@ function Router() {
  <Route path="/manager/inventory/alerts" component={InventoryAlerts} />
  <Route path="/manager/inventory/movements" component={InventoryMovements} />
  <Route path="/manager/accounting" component={AccountingDashboard} />
+ <Route path="/manager/inventory/smart" component={InventorySmartPage} />
+ <Route path="/manager/accounting/smart" component={AccountingSmartPage} />
  <Route path="/manager/ingredients-recipes" component={IngredientsRecipesInventory} />
  <Route path="/order-status" component={OrderStatusDisplay} />
  <Route path="/employee/attendance" component={EmployeeAttendance} />
