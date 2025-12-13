@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { playNotificationSound } from "@/lib/notification-sounds";
 import { 
   Clock, 
   ChefHat, 
@@ -23,7 +24,9 @@ import {
   ArrowLeft,
   MapPin,
   Store,
-  Truck
+  Truck,
+  Volume2,
+  VolumeX
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -319,11 +322,36 @@ export default function KitchenDisplay() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("all");
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const previousOrderCountRef = useRef<number>(0);
+  const previousReadyCountRef = useRef<number>(0);
 
   const { data: orders = [], isLoading, refetch } = useQuery<Order[]>({
     queryKey: ["/api/orders/kitchen"],
     refetchInterval: autoRefresh ? 5000 : false,
   });
+
+  useEffect(() => {
+    if (!soundEnabled || orders.length === 0) return;
+    
+    const pendingOrders = orders.filter(o => o.status === "pending" || o.status === "payment_confirmed");
+    const readyOrders = orders.filter(o => o.status === "ready");
+    
+    if (pendingOrders.length > previousOrderCountRef.current) {
+      playNotificationSound('newOrder', 0.7);
+      toast({
+        title: "طلب جديد!",
+        description: `وصل طلب جديد - الإجمالي: ${pendingOrders.length} طلب`,
+      });
+    }
+    
+    if (readyOrders.length > previousReadyCountRef.current) {
+      playNotificationSound('success', 0.8);
+    }
+    
+    previousOrderCountRef.current = pendingOrders.length;
+    previousReadyCountRef.current = readyOrders.length;
+  }, [orders, soundEnabled, toast]);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -432,6 +460,17 @@ export default function KitchenDisplay() {
                   جاهز: {readyOrders.length}
                 </Badge>
               </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={soundEnabled ? "border-green-500 text-green-500" : "border-muted text-muted-foreground"}
+                data-testid="button-toggle-sound"
+              >
+                {soundEnabled ? <Volume2 className="h-4 w-4 ml-1" /> : <VolumeX className="h-4 w-4 ml-1" />}
+                {soundEnabled ? "الصوت" : "صامت"}
+              </Button>
               
               <Button
                 variant="outline"
