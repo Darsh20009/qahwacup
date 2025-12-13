@@ -89,7 +89,7 @@ export function ManagerLayout({
   ];
 
   const inventoryItems = [
-    { path: "/manager/inventory", label: "نظرة عامة", id: "inventory-overview" },
+    { path: "/manager/inventory", label: "لوحة التحكم", id: "inventory-smart" },
     { path: "/manager/inventory/raw-items", label: "المواد الخام", id: "inventory-raw-items" },
     { path: "/manager/inventory/stock", label: "المخزون", id: "inventory-stock" },
     { path: "/manager/inventory/recipes", label: "الوصفات", id: "inventory-recipes" },

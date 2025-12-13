@@ -126,7 +126,7 @@ function Router() {
  <Route path="/manager/dashboard">{() => <AuthGuard userType="manager"><ManagerDashboard /></AuthGuard>}</Route>
  <Route path="/manager/tables">{() => <AuthGuard userType="manager"><ManagerTables /></AuthGuard>}</Route>
  <Route path="/manager/attendance">{() => <AuthGuard userType="manager"><ManagerAttendance /></AuthGuard>}</Route>
- <Route path="/manager/inventory">{() => <AuthGuard userType="manager"><InventoryDashboard /></AuthGuard>}</Route>
+ <Route path="/manager/inventory">{() => <AuthGuard userType="manager"><InventorySmartPage /></AuthGuard>}</Route>
  <Route path="/manager/inventory/raw-items">{() => <AuthGuard userType="manager"><InventoryRawItems /></AuthGuard>}</Route>
  <Route path="/manager/inventory/suppliers">{() => <AuthGuard userType="manager"><InventorySuppliers /></AuthGuard>}</Route>
  <Route path="/manager/inventory/purchases">{() => <AuthGuard userType="manager"><InventoryPurchases /></AuthGuard>}</Route>

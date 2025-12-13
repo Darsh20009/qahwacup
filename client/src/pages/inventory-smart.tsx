@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +45,12 @@ import {
   Sparkles,
   Layers,
   BarChart3,
+  Users,
+  ShoppingCart,
+  ArrowRightLeft,
+  Bell,
+  BookOpen,
+  ChevronLeft,
 } from "lucide-react";
 
 const categoryLabels: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
@@ -361,6 +368,101 @@ export default function InventorySmartPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Quick Navigation Links */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+        <Link href="/manager/inventory/raw-items" data-testid="link-raw-items">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-amber-50/50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 group-hover:scale-110 transition-transform">
+                <Coffee className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">المواد الخام</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/manager/inventory/stock" data-testid="link-stock">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 group-hover:scale-110 transition-transform">
+                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">المخزون</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/manager/inventory/recipes" data-testid="link-recipes">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-purple-50/50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 group-hover:scale-110 transition-transform">
+                <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">الوصفات</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/manager/inventory/suppliers" data-testid="link-suppliers">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-teal-50/50 to-teal-100/50 dark:from-teal-900/20 dark:to-teal-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/50 group-hover:scale-110 transition-transform">
+                <Users className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">الموردين</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/manager/inventory/purchases" data-testid="link-purchases">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-emerald-50/50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 group-hover:scale-110 transition-transform">
+                <ShoppingCart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">المشتريات</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/manager/inventory/transfers" data-testid="link-transfers">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-indigo-50/50 to-indigo-100/50 dark:from-indigo-900/20 dark:to-indigo-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 group-hover:scale-110 transition-transform">
+                <ArrowRightLeft className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">التحويلات</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/manager/inventory/alerts" data-testid="link-alerts">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-rose-50/50 to-rose-100/50 dark:from-rose-900/20 dark:to-rose-800/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-rose-100 dark:bg-rose-900/50 group-hover:scale-110 transition-transform">
+                <Bell className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">التنبيهات</p>
+              </div>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <Card className="border-0 shadow-lg">
