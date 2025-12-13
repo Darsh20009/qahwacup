@@ -725,8 +725,8 @@ export default function IngredientsRecipesInventoryPage() {
                     )}
 
                     {drink.hasRecipe && drink.recipes.length > 0 && (
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        {drink.recipes.slice(0, 3).map((recipe, idx) => {
+                      <div className="text-xs text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
+                        {drink.recipes.map((recipe, idx) => {
                           const rawItem = rawItems.find(r => r.id === recipe.rawItemId);
                           return (
                             <p key={idx}>
@@ -734,9 +734,6 @@ export default function IngredientsRecipesInventoryPage() {
                             </p>
                           );
                         })}
-                        {drink.recipes.length > 3 && (
-                          <p className="text-muted-foreground">+{drink.recipes.length - 3} مكونات أخرى</p>
-                        )}
                       </div>
                     )}
 
