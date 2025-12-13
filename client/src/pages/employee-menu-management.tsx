@@ -714,7 +714,7 @@ export default function EmployeeMenuManagement() {
      <Label className="text-gray-300 text-lg">المكونات والكميات (اختياري)</Label>
      <p className="text-gray-500 text-sm mb-3">اختر المكونات اللازمة لتحضير المشروب</p>
      
-     <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+     <div className="space-y-2 max-h-80 overflow-y-auto mb-3">
        {ingredients.map((ing) => {
          const isSelected = selectedIngredients.some(s => s.ingredientId === ing.id);
          const selected = selectedIngredients.find(s => s.ingredientId === ing.id);
