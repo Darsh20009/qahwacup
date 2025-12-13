@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthGuard } from "@/components/guards/AuthGuard";
 import SplashScreen from "@/pages/splash";
 import MenuPage from "@/pages/menu";
 import ProductDetails from "@/pages/product-details";
@@ -69,65 +70,79 @@ import UnauthorizedPage from "@/pages/unauthorized";
 function Router() {
  return (
  <Switch>
+ {/* Public routes */}
  <Route path="/" component={SplashScreen} />
  <Route path="/0" component={UnifiedHub} />
  <Route path="/auth" component={CustomerAuth} />
  <Route path="/forgot-password" component={ForgotPassword} />
  <Route path="/reset-password" component={ResetPassword} />
- <Route path="/copy-card" component={CopyCard} />
- <Route path="/my-orders" component={MyOrdersPage} />
  <Route path="/menu" component={MenuPage} />
  <Route path="/menu-view" component={MenuView} />
+ <Route path="/product/:id" component={ProductDetails} />
  <Route path="/table-menu/:qrToken" component={TableMenu} />
  <Route path="/table-checkout/:tableId/:tableNumber" component={TableCheckout} />
  <Route path="/table-reservation" component={TableReservation} />
  <Route path="/table-order-tracking/:orderId" component={TableOrderTracking} />
- <Route path="/my-card" component={MyCard} />
- <Route path="/cart" component={CartPage} />
- <Route path="/delivery" component={DeliverySelectionPage} />
- <Route path="/delivery/map" component={DeliveryMapPage} />
- <Route path="/checkout" component={CheckoutPage} />
- <Route path="/tracking" component={OrderTrackingPage} />
- <Route path="/product/:id" component={ProductDetails} />
+ <Route path="/order-status" component={OrderStatusDisplay} />
+ <Route path="/unauthorized" component={UnauthorizedPage} />
+ 
+ {/* Customer protected routes */}
+ <Route path="/copy-card">{() => <AuthGuard userType="customer"><CopyCard /></AuthGuard>}</Route>
+ <Route path="/my-orders">{() => <AuthGuard userType="customer"><MyOrdersPage /></AuthGuard>}</Route>
+ <Route path="/my-card">{() => <AuthGuard userType="customer"><MyCard /></AuthGuard>}</Route>
+ <Route path="/cart">{() => <AuthGuard userType="customer"><CartPage /></AuthGuard>}</Route>
+ <Route path="/delivery">{() => <AuthGuard userType="customer"><DeliverySelectionPage /></AuthGuard>}</Route>
+ <Route path="/delivery/map">{() => <AuthGuard userType="customer"><DeliveryMapPage /></AuthGuard>}</Route>
+ <Route path="/checkout">{() => <AuthGuard userType="customer"><CheckoutPage /></AuthGuard>}</Route>
+ <Route path="/tracking">{() => <AuthGuard userType="customer"><OrderTrackingPage /></AuthGuard>}</Route>
+ 
+ {/* Employee auth routes (public) */}
  <Route path="/employee/gateway" component={EmployeeGateway} />
  <Route path="/employee/login" component={EmployeeLogin} />
  <Route path="/employee/forgot-password" component={EmployeeForgotPassword} />
  <Route path="/employee/activate" component={EmployeeActivation} />
- <Route path="/employee/dashboard" component={EmployeeDashboard} />
- <Route path="/employee/cashier" component={EmployeeCashier} />
- <Route path="/employee/pos" component={POSSystem} />
- <Route path="/employee/kitchen" component={KitchenDisplay} />
- <Route path="/employee/tables" component={CashierTables} />
- <Route path="/employee/table-orders" component={CashierTableOrders} />
- <Route path="/employee/orders" component={EmployeeOrders} />
- <Route path="/employee/loyalty" component={EmployeeLoyalty} />
- <Route path="/employee/menu-management" component={EmployeeMenuManagement} />
- <Route path="/employee/ingredients" component={EmployeeIngredientsManagement} />
+ 
+ {/* Employee protected routes */}
+ <Route path="/employee/dashboard">{() => <AuthGuard userType="employee"><EmployeeDashboard /></AuthGuard>}</Route>
+ <Route path="/employee/cashier">{() => <AuthGuard userType="employee"><EmployeeCashier /></AuthGuard>}</Route>
+ <Route path="/employee/pos">{() => <AuthGuard userType="employee"><POSSystem /></AuthGuard>}</Route>
+ <Route path="/employee/kitchen">{() => <AuthGuard userType="employee"><KitchenDisplay /></AuthGuard>}</Route>
+ <Route path="/employee/tables">{() => <AuthGuard userType="employee"><CashierTables /></AuthGuard>}</Route>
+ <Route path="/employee/table-orders">{() => <AuthGuard userType="employee"><CashierTableOrders /></AuthGuard>}</Route>
+ <Route path="/employee/orders">{() => <AuthGuard userType="employee"><EmployeeOrders /></AuthGuard>}</Route>
+ <Route path="/employee/loyalty">{() => <AuthGuard userType="employee"><EmployeeLoyalty /></AuthGuard>}</Route>
+ <Route path="/employee/menu-management">{() => <AuthGuard userType="employee" allowedRoles={["manager", "admin"]}><EmployeeMenuManagement /></AuthGuard>}</Route>
+ <Route path="/employee/ingredients">{() => <AuthGuard userType="employee" allowedRoles={["manager", "admin"]}><EmployeeIngredientsManagement /></AuthGuard>}</Route>
+ <Route path="/employee/attendance">{() => <AuthGuard userType="employee"><EmployeeAttendance /></AuthGuard>}</Route>
+ 
+ {/* Manager auth routes (public) */}
  <Route path="/manager" component={ManagerLogin} />
  <Route path="/manager/forgot-password" component={ManagerForgotPassword} />
  <Route path="/manager/login" component={ManagerLogin} />
- <Route path="/manager/employees" component={ManagerEmployees} />
- <Route path="/manager/drivers" component={ManagerDrivers} />
- <Route path="/manager/dashboard" component={ManagerDashboard} />
- <Route path="/manager/tables" component={ManagerTables} />
- <Route path="/manager/attendance" component={ManagerAttendance} />
- <Route path="/manager/inventory" component={InventoryDashboard} />
- <Route path="/manager/inventory/raw-items" component={InventoryRawItems} />
- <Route path="/manager/inventory/suppliers" component={InventorySuppliers} />
- <Route path="/manager/inventory/purchases" component={InventoryPurchases} />
- <Route path="/manager/inventory/transfers" component={InventoryTransfers} />
- <Route path="/manager/inventory/recipes" component={InventoryRecipes} />
- <Route path="/manager/inventory/stock" component={InventoryStock} />
- <Route path="/manager/inventory/alerts" component={InventoryAlerts} />
- <Route path="/manager/inventory/movements" component={InventoryMovements} />
- <Route path="/manager/accounting" component={AccountingDashboard} />
- <Route path="/manager/inventory/smart" component={InventorySmartPage} />
- <Route path="/manager/accounting/smart" component={AccountingSmartPage} />
- <Route path="/manager/ingredients-recipes" component={IngredientsRecipesInventory} />
- <Route path="/order-status" component={OrderStatusDisplay} />
- <Route path="/employee/attendance" component={EmployeeAttendance} />
- <Route path="/owner/dashboard" component={OwnerDashboard} />
- <Route path="/unauthorized" component={UnauthorizedPage} />
+ 
+ {/* Manager protected routes */}
+ <Route path="/manager/employees">{() => <AuthGuard userType="manager"><ManagerEmployees /></AuthGuard>}</Route>
+ <Route path="/manager/drivers">{() => <AuthGuard userType="manager"><ManagerDrivers /></AuthGuard>}</Route>
+ <Route path="/manager/dashboard">{() => <AuthGuard userType="manager"><ManagerDashboard /></AuthGuard>}</Route>
+ <Route path="/manager/tables">{() => <AuthGuard userType="manager"><ManagerTables /></AuthGuard>}</Route>
+ <Route path="/manager/attendance">{() => <AuthGuard userType="manager"><ManagerAttendance /></AuthGuard>}</Route>
+ <Route path="/manager/inventory">{() => <AuthGuard userType="manager"><InventoryDashboard /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/raw-items">{() => <AuthGuard userType="manager"><InventoryRawItems /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/suppliers">{() => <AuthGuard userType="manager"><InventorySuppliers /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/purchases">{() => <AuthGuard userType="manager"><InventoryPurchases /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/transfers">{() => <AuthGuard userType="manager"><InventoryTransfers /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/recipes">{() => <AuthGuard userType="manager"><InventoryRecipes /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/stock">{() => <AuthGuard userType="manager"><InventoryStock /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/alerts">{() => <AuthGuard userType="manager"><InventoryAlerts /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/movements">{() => <AuthGuard userType="manager"><InventoryMovements /></AuthGuard>}</Route>
+ <Route path="/manager/accounting">{() => <AuthGuard userType="manager"><AccountingDashboard /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/smart">{() => <AuthGuard userType="manager"><InventorySmartPage /></AuthGuard>}</Route>
+ <Route path="/manager/accounting/smart">{() => <AuthGuard userType="manager"><AccountingSmartPage /></AuthGuard>}</Route>
+ <Route path="/manager/ingredients-recipes">{() => <AuthGuard userType="manager"><IngredientsRecipesInventory /></AuthGuard>}</Route>
+ 
+ {/* Owner protected routes */}
+ <Route path="/owner/dashboard">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin"]}><OwnerDashboard /></AuthGuard>}</Route>
+ 
  <Route component={SplashScreen} />
  </Switch>
  );
