@@ -17,7 +17,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { getCoffeeImage } from "@/lib/coffee-images";
 import { nanoid } from "nanoid";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { CoffeeItem, Employee, Ingredient } from "@shared/schema";
+import type { CoffeeItem, Employee, Ingredient, RawItem } from "@shared/schema";
 
 export default function EmployeeMenuManagement() {
  const [, setLocation] = useLocation();
@@ -66,6 +66,58 @@ export default function EmployeeMenuManagement() {
  const { data: ingredients = [] } = useQuery<Ingredient[]>({
  queryKey: ["/api/ingredients"],
  });
+
+ const { data: rawItems = [] } = useQuery<RawItem[]>({
+   queryKey: ["/api/inventory/raw-items"],
+   enabled: employee?.role === "manager",
+ });
+
+ const calculatePreviewCost = () => {
+   if (selectedIngredients.length === 0) return { totalCost: 0, breakdown: [], unmatched: [] };
+   
+   const breakdown: Array<{name: string, quantity: number, unit: string, unitCost: number, cost: number, rawUnit: string}> = [];
+   const unmatched: string[] = [];
+   let totalCost = 0;
+   
+   for (const ing of selectedIngredients) {
+     const matchedRawItem = rawItems.find(ri => 
+       ri.nameAr === ing.name || 
+       ri.nameEn?.toLowerCase() === ing.name.toLowerCase()
+     );
+     
+     if (matchedRawItem) {
+       const ingUnit = ing.unit.toLowerCase();
+       const rawUnit = matchedRawItem.unit.toLowerCase();
+       
+       let convertedQuantity = ing.quantity;
+       
+       if (rawUnit === 'kg' && ingUnit === 'g') {
+         convertedQuantity = ing.quantity / 1000;
+       } else if (rawUnit === 'g' && ingUnit === 'kg') {
+         convertedQuantity = ing.quantity * 1000;
+       } else if ((rawUnit === 'liter' || rawUnit === 'l') && ingUnit === 'ml') {
+         convertedQuantity = ing.quantity / 1000;
+       } else if ((rawUnit === 'ml') && (ingUnit === 'liter' || ingUnit === 'l')) {
+         convertedQuantity = ing.quantity * 1000;
+       }
+       
+       const itemCost = convertedQuantity * matchedRawItem.unitCost;
+       totalCost += itemCost;
+       breakdown.push({
+         name: ing.name,
+         quantity: ing.quantity,
+         unit: ing.unit,
+         unitCost: matchedRawItem.unitCost,
+         rawUnit: matchedRawItem.unit,
+         cost: itemCost
+       });
+     } else {
+       unmatched.push(ing.name);
+     }
+   }
+   
+   return { totalCost, breakdown, unmatched };
+ };
 
  const createItemMutation = useMutation({
  mutationFn: async (payload: { itemData: any; ingredientsList: Array<{ingredientId: string, quantity: number, unit: string}> }) => {
@@ -797,6 +849,69 @@ export default function EmployeeMenuManagement() {
              </button>
            </Badge>
          ))}
+       </div>
+     )}
+
+     {selectedIngredients.length > 0 && employee?.role === "manager" && (
+       <div className="bg-gradient-to-r from-[#1a1410] to-[#2d1f1a] p-4 rounded-lg border border-amber-500/30 mt-3" data-testid="cost-preview-section">
+         {(() => {
+           const { totalCost, breakdown, unmatched } = calculatePreviewCost();
+           const sellingPrice = step1Data?.price ? parseFloat(step1Data.price) : 0;
+           const grossProfit = sellingPrice - totalCost;
+           const profitMargin = sellingPrice > 0 ? ((grossProfit / sellingPrice) * 100) : 0;
+           
+           return (
+             <>
+               <div className="flex items-center justify-between mb-3">
+                 <span className="text-gray-300 font-medium">معاينة التكلفة</span>
+                 {rawItems.length === 0 && (
+                   <span className="text-xs text-gray-500">لا توجد بيانات تكلفة</span>
+                 )}
+               </div>
+               
+               {breakdown.length > 0 && (
+                 <div className="space-y-1 mb-3 text-sm">
+                   {breakdown.map((item, idx) => (
+                     <div key={idx} className="flex justify-between text-gray-400">
+                       <span>{item.name} ({item.quantity} {item.unit})</span>
+                       <span>{item.cost.toFixed(2)} ريال</span>
+                     </div>
+                   ))}
+                 </div>
+               )}
+               
+               {unmatched.length > 0 && (
+                 <div className="mb-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded text-xs">
+                   <span className="text-yellow-500">مكونات بدون تكلفة: </span>
+                   <span className="text-yellow-400">{unmatched.join("، ")}</span>
+                 </div>
+               )}
+               
+               <div className="border-t border-amber-500/20 pt-3 space-y-2">
+                 <div className="flex justify-between items-center">
+                   <span className="text-gray-300">تكلفة المكونات:</span>
+                   <span className="text-amber-500 font-bold" data-testid="text-total-cost">{totalCost.toFixed(2)} ريال</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                   <span className="text-gray-300">سعر البيع:</span>
+                   <span className="text-white font-bold">{sellingPrice.toFixed(2)} ريال</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                   <span className="text-gray-300">الربح المتوقع:</span>
+                   <span className={`font-bold ${grossProfit >= 0 ? 'text-green-500' : 'text-red-500'}`} data-testid="text-gross-profit">
+                     {grossProfit.toFixed(2)} ريال ({profitMargin.toFixed(1)}%)
+                   </span>
+                 </div>
+               </div>
+               
+               {breakdown.length === 0 && selectedIngredients.length > 0 && (
+                 <p className="text-xs text-gray-500 mt-2">
+                   لا توجد بيانات تكلفة للمكونات المحددة. تأكد من إضافة المواد الخام في إدارة المخزون.
+                 </p>
+               )}
+             </>
+           );
+         })()}
        </div>
      )}
    </div>
