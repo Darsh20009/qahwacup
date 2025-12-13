@@ -37,6 +37,8 @@ export default function EmployeeMenuManagement() {
  const queryClient = useQueryClient();
  const [selectedIngredients, setSelectedIngredients] = useState<Array<{ingredientId: string, name: string, quantity: number, unit: string}>>([]);
  const [addStep, setAddStep] = useState<1 | 2>(1);
+ const [selectedCategory, setSelectedCategory] = useState<string>("hot");
+ const [selectedCoffeeStrength, setSelectedCoffeeStrength] = useState<string>("classic");
  const [step1Data, setStep1Data] = useState<{
    nameAr: string;
    nameEn: string;
@@ -44,6 +46,7 @@ export default function EmployeeMenuManagement() {
    category: string;
    price: string;
    oldPrice: string;
+   coffeeStrength: string;
    imageUrl?: string;
  } | null>(null);
 
@@ -90,6 +93,8 @@ export default function EmployeeMenuManagement() {
    resetImageState();
    setAddStep(1);
    setStep1Data(null);
+   setSelectedCategory("hot");
+   setSelectedCoffeeStrength("classic");
    toast({
      title: "تم إضافة المشروب",
      description: "تم إضافة المشروب بنجاح إلى القائمة",
@@ -220,10 +225,9 @@ export default function EmployeeMenuManagement() {
    const formData = new FormData(e.currentTarget);
    
    const nameAr = formData.get("nameAr") as string;
-   const category = formData.get("category") as string;
    const price = formData.get("price") as string;
    
-   if (!nameAr || !category || !price) {
+   if (!nameAr || !selectedCategory || !price) {
      toast({
        title: "خطأ",
        description: "يرجى ملء جميع الحقول المطلوبة",
@@ -254,9 +258,10 @@ export default function EmployeeMenuManagement() {
      nameAr,
      nameEn: formData.get("nameEn") as string || "",
      description: formData.get("description") as string || "",
-     category,
+     category: selectedCategory,
      price,
      oldPrice: formData.get("oldPrice") as string || "",
+     coffeeStrength: selectedCoffeeStrength,
      imageUrl
    });
    setAddStep(2);
@@ -274,6 +279,7 @@ export default function EmployeeMenuManagement() {
      price: parseFloat(step1Data.price),
      oldPrice: step1Data.oldPrice ? parseFloat(step1Data.oldPrice) : undefined,
      category: step1Data.category,
+     coffeeStrength: step1Data.coffeeStrength || "classic",
      imageUrl: step1Data.imageUrl,
      isAvailable: 1,
      availabilityStatus: "available",
@@ -302,6 +308,7 @@ export default function EmployeeMenuManagement() {
      price: parseFloat(step1Data.price),
      oldPrice: step1Data.oldPrice ? parseFloat(step1Data.oldPrice) : undefined,
      category: step1Data.category,
+     coffeeStrength: step1Data.coffeeStrength || "classic",
      imageUrl: step1Data.imageUrl,
      isAvailable: 1,
      availabilityStatus: "available",
@@ -510,6 +517,8 @@ export default function EmployeeMenuManagement() {
     setStep1Data(null);
     setSelectedIngredients([]);
     resetImageState();
+    setSelectedCategory("hot");
+    setSelectedCoffeeStrength("classic");
   }
 }}>
  <DialogTrigger asChild>
@@ -580,7 +589,7 @@ export default function EmployeeMenuManagement() {
  <div className="grid grid-cols-2 gap-4">
  <div>
  <Label htmlFor="category" className="text-gray-300">القسم *</Label>
- <Select name="category" required defaultValue={step1Data?.category}>
+ <Select value={selectedCategory} onValueChange={setSelectedCategory}>
  <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-category">
  <SelectValue placeholder="اختر القسم" />
  </SelectTrigger>
@@ -657,11 +666,26 @@ export default function EmployeeMenuManagement() {
  </div>
  </div>
 
+ <div>
+ <Label htmlFor="coffeeStrength" className="text-gray-300">قوة القهوة</Label>
+ <Select value={selectedCoffeeStrength} onValueChange={setSelectedCoffeeStrength}>
+ <SelectTrigger className="bg-[#1a1410] border-amber-500/30 text-white" data-testid="select-coffee-strength">
+ <SelectValue placeholder="اختر قوة القهوة" />
+ </SelectTrigger>
+ <SelectContent className="bg-[#2d1f1a] border-amber-500/20 text-white">
+ <SelectItem value="mild">خفيفة (1-4)</SelectItem>
+ <SelectItem value="classic">كلاسيكية/العادي</SelectItem>
+ <SelectItem value="medium">متوسطة (4-8)</SelectItem>
+ <SelectItem value="strong">قوية (8-12)</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
+
  <div className="flex justify-end gap-2">
  <Button
  type="button"
  variant="outline"
- onClick={() => { setIsAddDialogOpen(false); resetImageState(); setSelectedIngredients([]); setAddStep(1); setStep1Data(null); }}
+ onClick={() => { setIsAddDialogOpen(false); resetImageState(); setSelectedIngredients([]); setAddStep(1); setStep1Data(null); setSelectedCategory("hot"); setSelectedCoffeeStrength("classic"); }}
  className="border-gray-600 text-gray-300"
  data-testid="button-cancel"
  >
