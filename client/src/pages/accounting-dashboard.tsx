@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -32,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, 
   DollarSign,
@@ -52,7 +54,9 @@ import {
   Building2,
   Package,
   ShoppingCart,
-  Percent
+  Percent,
+  Eye,
+  ChevronLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -127,6 +131,31 @@ interface TopSellingItem {
   revenue: number;
 }
 
+interface Order {
+  id: string;
+  orderNumber: string;
+  customerName?: string;
+  totalAmount: number;
+  costOfGoods?: number;
+  paymentMethod: string;
+  status: string;
+  createdAt: string;
+  items?: Array<{ nameAr?: string; quantity: number; price?: number }>;
+}
+
+interface StockMovement {
+  id: string;
+  rawItemName?: string;
+  movementType: string;
+  quantity: number;
+  previousQuantity: number;
+  newQuantity: number;
+  notes?: string;
+  createdAt: string;
+}
+
+type DrilldownType = 'revenue' | 'cogs' | 'expenses' | 'orders' | null;
+
 interface DashboardData {
   totalRevenue: number;
   totalVat: number;
@@ -189,6 +218,9 @@ export default function AccountingDashboardPage() {
     paymentMethod: "cash",
     notes: "",
   });
+  
+  const [drilldownType, setDrilldownType] = useState<DrilldownType>(null);
+  const [drilldownOpen, setDrilldownOpen] = useState(false);
 
   const { data: branches = [] } = useQuery<Branch[]>({
     queryKey: ["/api/branches"],
@@ -222,9 +254,9 @@ export default function AccountingDashboardPage() {
   });
 
   const { data: expensesData, isLoading: isExpensesLoading } = useQuery<{ expenses: Expense[]; total: number }>({
-    queryKey: ["/api/accounting/expenses", selectedBranch],
+    queryKey: ["/api/accounting/expenses", period, selectedBranch],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: "50" });
+      const params = new URLSearchParams({ limit: "50", period });
       if (selectedBranch !== "all") params.append("branchId", selectedBranch);
       const res = await fetch(`/api/accounting/expenses?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch expenses");
@@ -233,15 +265,51 @@ export default function AccountingDashboardPage() {
   });
 
   const { data: revenuesData, isLoading: isRevenuesLoading } = useQuery<{ revenues: Revenue[]; total: number }>({
-    queryKey: ["/api/accounting/revenue", selectedBranch],
+    queryKey: ["/api/accounting/revenue", period, selectedBranch],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: "50" });
+      const params = new URLSearchParams({ limit: "50", period });
       if (selectedBranch !== "all") params.append("branchId", selectedBranch);
       const res = await fetch(`/api/accounting/revenue?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch revenues");
       return res.json();
     },
   });
+
+  const { data: ordersData, isLoading: isOrdersLoading } = useQuery<{ orders: Order[] }>({
+    queryKey: ["/api/orders", period, selectedBranch],
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: "100", period });
+      if (selectedBranch !== "all") params.append("branchId", selectedBranch);
+      const res = await fetch(`/api/orders?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch orders");
+      const orders = await res.json();
+      return { orders: Array.isArray(orders) ? orders : [] };
+    },
+    enabled: drilldownOpen && (drilldownType === 'revenue' || drilldownType === 'cogs' || drilldownType === 'orders'),
+  });
+
+  const { data: stockMovementsData, isLoading: isStockLoading } = useQuery<{ movements: StockMovement[] }>({
+    queryKey: ["/api/inventory/stock-movements", period, selectedBranch],
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: "50", period });
+      if (selectedBranch !== "all") params.append("branchId", selectedBranch);
+      const res = await fetch(`/api/inventory/stock-movements?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch stock movements");
+      const data = await res.json();
+      return { movements: data.movements || [] };
+    },
+    enabled: drilldownOpen && drilldownType === 'cogs',
+  });
+
+  const openDrilldown = (type: DrilldownType) => {
+    setDrilldownType(type);
+    setDrilldownOpen(true);
+  };
+
+  const closeDrilldown = () => {
+    setDrilldownOpen(false);
+    setDrilldownType(null);
+  };
 
   const createExpenseMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -389,54 +457,82 @@ export default function AccountingDashboardPage() {
               </div>
             ) : dashboardData ? (
               <>
-                {/* Main KPI Cards */}
+                {/* Main KPI Cards - Clickable for Drilldown */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+                  <Card 
+                    className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer transition-transform hover:scale-[1.02]"
+                    onClick={() => openDrilldown('revenue')}
+                    data-testid="card-revenue-drilldown"
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-green-100 text-sm">إجمالي الإيرادات</p>
+                          <p className="text-green-100 text-sm flex items-center gap-1">
+                            إجمالي الإيرادات
+                            <Eye className="w-3 h-3" />
+                          </p>
                           <p className="text-3xl font-bold mt-1" data-testid="text-total-revenue">{dashboardData.totalRevenue.toFixed(2)}</p>
-                          <p className="text-green-200 text-xs mt-1">ريال سعودي</p>
+                          <p className="text-green-200 text-xs mt-1">ريال سعودي - انقر للتفاصيل</p>
                         </div>
                         <TrendingUp className="w-12 h-12 text-green-200" />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                  <Card 
+                    className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer transition-transform hover:scale-[1.02]"
+                    onClick={() => openDrilldown('cogs')}
+                    data-testid="card-cogs-drilldown"
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-orange-100 text-sm">تكلفة المكونات (COGS)</p>
+                          <p className="text-orange-100 text-sm flex items-center gap-1">
+                            تكلفة المكونات (COGS)
+                            <Eye className="w-3 h-3" />
+                          </p>
                           <p className="text-3xl font-bold mt-1" data-testid="text-total-cogs">{dashboardData.totalCogs.toFixed(2)}</p>
-                          <p className="text-orange-200 text-xs mt-1">ريال سعودي</p>
+                          <p className="text-orange-200 text-xs mt-1">ريال سعودي - انقر للتفاصيل</p>
                         </div>
                         <Package className="w-12 h-12 text-orange-200" />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+                  <Card 
+                    className="bg-gradient-to-br from-red-500 to-red-600 text-white cursor-pointer transition-transform hover:scale-[1.02]"
+                    onClick={() => openDrilldown('expenses')}
+                    data-testid="card-expenses-drilldown"
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-red-100 text-sm">المصروفات الشهرية</p>
+                          <p className="text-red-100 text-sm flex items-center gap-1">
+                            المصروفات الشهرية
+                            <Eye className="w-3 h-3" />
+                          </p>
                           <p className="text-3xl font-bold mt-1" data-testid="text-total-expenses">{dashboardData.totalExpenses.toFixed(2)}</p>
-                          <p className="text-red-200 text-xs mt-1">ريال سعودي</p>
+                          <p className="text-red-200 text-xs mt-1">ريال سعودي - انقر للتفاصيل</p>
                         </div>
                         <TrendingDown className="w-12 h-12 text-red-200" />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className={`bg-gradient-to-br ${dashboardData.netProfit >= 0 ? 'from-blue-500 to-blue-600' : 'from-red-600 to-red-700'} text-white`}>
+                  <Card 
+                    className={`bg-gradient-to-br ${dashboardData.netProfit >= 0 ? 'from-blue-500 to-blue-600' : 'from-red-600 to-red-700'} text-white cursor-pointer transition-transform hover:scale-[1.02]`}
+                    onClick={() => openDrilldown('orders')}
+                    data-testid="card-profit-drilldown"
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className={`${dashboardData.netProfit >= 0 ? 'text-blue-100' : 'text-red-100'} text-sm`}>صافي الربح</p>
+                          <p className={`${dashboardData.netProfit >= 0 ? 'text-blue-100' : 'text-red-100'} text-sm flex items-center gap-1`}>
+                            صافي الربح
+                            <Eye className="w-3 h-3" />
+                          </p>
                           <p className="text-3xl font-bold mt-1" data-testid="text-net-profit">{dashboardData.netProfit.toFixed(2)}</p>
-                          <p className={`${dashboardData.netProfit >= 0 ? 'text-blue-200' : 'text-red-200'} text-xs mt-1`}>ريال سعودي</p>
+                          <p className={`${dashboardData.netProfit >= 0 ? 'text-blue-200' : 'text-red-200'} text-xs mt-1`}>ريال سعودي - انقر للتفاصيل</p>
                         </div>
                         <PiggyBank className={`w-12 h-12 ${dashboardData.netProfit >= 0 ? 'text-blue-200' : 'text-red-200'}`} />
                       </div>
@@ -988,6 +1084,211 @@ export default function AccountingDashboardPage() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Drilldown Dialog */}
+        <Dialog open={drilldownOpen} onOpenChange={closeDrilldown}>
+          <DialogContent className="max-w-4xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={closeDrilldown}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                {drilldownType === 'revenue' && 'تفاصيل الإيرادات'}
+                {drilldownType === 'cogs' && 'تفاصيل تكلفة المكونات (COGS)'}
+                {drilldownType === 'expenses' && 'تفاصيل المصروفات'}
+                {drilldownType === 'orders' && 'تفاصيل الطلبات والأرباح'}
+              </DialogTitle>
+              <DialogDescription>
+                {drilldownType === 'revenue' && 'جميع الطلبات المساهمة في الإيرادات'}
+                {drilldownType === 'cogs' && 'تكلفة المكونات المستخدمة في الطلبات'}
+                {drilldownType === 'expenses' && 'جميع المصروفات التشغيلية'}
+                {drilldownType === 'orders' && 'تفصيل الطلبات مع هوامش الربح'}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <ScrollArea className="h-[60vh]">
+              {(drilldownType === 'revenue' || drilldownType === 'orders') && (
+                isOrdersLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">رقم الطلب</TableHead>
+                        <TableHead className="text-right">العميل</TableHead>
+                        <TableHead className="text-right">الإجمالي</TableHead>
+                        <TableHead className="text-right">التكلفة</TableHead>
+                        <TableHead className="text-right">الربح</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ordersData?.orders?.filter(o => o.status !== 'cancelled').map((order) => {
+                        const profit = order.totalAmount - (order.costOfGoods || 0);
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                            <TableCell>{order.customerName || 'عميل'}</TableCell>
+                            <TableCell className="text-green-600 font-medium">{order.totalAmount?.toFixed(2)} ر.س</TableCell>
+                            <TableCell className="text-orange-600">{(order.costOfGoods || 0).toFixed(2)} ر.س</TableCell>
+                            <TableCell className={profit >= 0 ? 'text-blue-600 font-medium' : 'text-red-600'}>
+                              {profit.toFixed(2)} ر.س
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
+                                {order.status === 'completed' ? 'مكتمل' : order.status === 'pending' ? 'قيد الانتظار' : order.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{format(new Date(order.createdAt), "yyyy/MM/dd HH:mm", { locale: ar })}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {(!ordersData?.orders || ordersData.orders.length === 0) && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                            لا توجد طلبات
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                )
+              )}
+
+              {drilldownType === 'cogs' && (
+                <>
+                  <div className="mb-4">
+                    <h4 className="font-semibold mb-2">تكلفة المكونات حسب الطلب</h4>
+                    {isOrdersLoading ? (
+                      <div className="flex justify-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">رقم الطلب</TableHead>
+                            <TableHead className="text-right">الإجمالي</TableHead>
+                            <TableHead className="text-right">تكلفة المكونات</TableHead>
+                            <TableHead className="text-right">هامش الربح</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {ordersData?.orders?.filter(o => o.costOfGoods && o.costOfGoods > 0).map((order) => {
+                            const margin = order.totalAmount > 0 ? ((order.totalAmount - (order.costOfGoods || 0)) / order.totalAmount * 100) : 0;
+                            return (
+                              <TableRow key={order.id}>
+                                <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                                <TableCell>{order.totalAmount?.toFixed(2)} ر.س</TableCell>
+                                <TableCell className="text-orange-600 font-medium">{order.costOfGoods?.toFixed(2)} ر.س</TableCell>
+                                <TableCell className={margin >= 50 ? 'text-green-600' : margin >= 30 ? 'text-amber-600' : 'text-red-600'}>
+                                  {margin.toFixed(1)}%
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </div>
+                  
+                  <div className="mt-6">
+                    <h4 className="font-semibold mb-2">حركات المخزون</h4>
+                    {isStockLoading ? (
+                      <div className="flex justify-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">المادة</TableHead>
+                            <TableHead className="text-right">النوع</TableHead>
+                            <TableHead className="text-right">الكمية</TableHead>
+                            <TableHead className="text-right">الرصيد السابق</TableHead>
+                            <TableHead className="text-right">الرصيد الجديد</TableHead>
+                            <TableHead className="text-right">ملاحظات</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {stockMovementsData?.movements?.slice(0, 20).map((movement) => (
+                            <TableRow key={movement.id}>
+                              <TableCell>{movement.rawItemName || 'مادة'}</TableCell>
+                              <TableCell>
+                                <Badge variant={movement.movementType === 'sale' ? 'destructive' : movement.movementType === 'purchase' ? 'default' : 'secondary'}>
+                                  {movement.movementType === 'sale' ? 'بيع' : movement.movementType === 'purchase' ? 'شراء' : movement.movementType}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className={movement.quantity < 0 ? 'text-red-600' : 'text-green-600'}>
+                                {movement.quantity.toFixed(3)}
+                              </TableCell>
+                              <TableCell>{movement.previousQuantity.toFixed(3)}</TableCell>
+                              <TableCell>{movement.newQuantity.toFixed(3)}</TableCell>
+                              <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
+                                {movement.notes}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {drilldownType === 'expenses' && (
+                isExpensesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">الفئة</TableHead>
+                        <TableHead className="text-right">الوصف</TableHead>
+                        <TableHead className="text-right">المبلغ</TableHead>
+                        <TableHead className="text-right">الضريبة</TableHead>
+                        <TableHead className="text-right">الإجمالي</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expensesData?.expenses?.map((expense) => (
+                        <TableRow key={expense.id}>
+                          <TableCell>{format(new Date(expense.date), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                          <TableCell>
+                            {expenseCategories.find(c => c.value === expense.category)?.label || expense.category}
+                          </TableCell>
+                          <TableCell>{expense.description}</TableCell>
+                          <TableCell>{expense.amount.toFixed(2)} ر.س</TableCell>
+                          <TableCell>{expense.vatAmount.toFixed(2)} ر.س</TableCell>
+                          <TableCell className="font-bold text-red-600">{expense.totalAmount.toFixed(2)} ر.س</TableCell>
+                          <TableCell>
+                            <Badge variant={statusLabels[expense.status]?.variant || "secondary"}>
+                              {statusLabels[expense.status]?.label || expense.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {(!expensesData?.expenses || expensesData.expenses.length === 0) && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                            لا توجد مصروفات
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                )
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
 
         {/* Add Expense Dialog */}
         <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
