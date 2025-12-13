@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock, Clock, MonitorSmartphone, ChefHat, Wallet, Warehouse } from "lucide-react";
+import { Coffee, LogOut, ShoppingCart, ClipboardList, User, Award, Gift, Sparkles, Download, IdCard, Settings, BarChart3, Table, Lock, Clock, MonitorSmartphone, ChefHat, Wallet, Warehouse, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import html2canvas from "html2canvas";
 import type { Employee } from "@shared/schema";
@@ -522,6 +522,19 @@ export default function EmployeeDashboard() {
  <div className="text-center">
  <div className="font-bold text-lg">إدارة المخزون</div>
  <div className="text-sm opacity-90">المواد الخام والوصفات</div>
+ </div>
+ </Button>
+
+ <Button
+ size="lg"
+ className="h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-pink-600 to-pink-800 hover:from-pink-700 hover:to-pink-900 text-white"
+ onClick={() => setLocation("/menu-view")}
+ data-testid="button-menu-view"
+ >
+ <Eye className="w-10 h-10" />
+ <div className="text-center">
+ <div className="font-bold text-lg">عرض المنيو</div>
+ <div className="text-sm opacity-90">شاشات العرض والتلفزيون</div>
  </div>
  </Button>
  </>

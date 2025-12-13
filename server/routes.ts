@@ -3132,7 +3132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pointsRequired: 1000,
           benefits: ['خصم 25% على كل طلب', 'قهوة يومية مجانية', 'خدمة VIP', 'بطاقة فيزيائية مطبوعة'],
           color: '#E5E4E2',
-          icon: '💎'
+          icon: 'platinum'
         }
       ];
 
