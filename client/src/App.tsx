@@ -64,6 +64,7 @@ import IngredientsRecipesInventory from "@/pages/ingredients-recipes-inventory";
 import OrderStatusDisplay from "@/pages/order-status-display";
 import InventorySmartPage from "@/pages/inventory-smart";
 import AccountingSmartPage from "@/pages/accounting-smart";
+import UnauthorizedPage from "@/pages/unauthorized";
 
 function Router() {
  return (
@@ -126,6 +127,7 @@ function Router() {
  <Route path="/order-status" component={OrderStatusDisplay} />
  <Route path="/employee/attendance" component={EmployeeAttendance} />
  <Route path="/owner/dashboard" component={OwnerDashboard} />
+ <Route path="/unauthorized" component={UnauthorizedPage} />
  <Route component={SplashScreen} />
  </Switch>
  );
