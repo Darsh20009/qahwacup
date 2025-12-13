@@ -44,7 +44,17 @@ import {
   Banknote,
   Clock,
   CheckCircle,
+  Eye,
+  X,
+  Coffee,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { format, subDays, startOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
@@ -114,11 +124,14 @@ const paymentMethodLabels: Record<string, string> = {
   wallet: "محفظة",
 };
 
+type DrilldownType = "revenue" | "expenses" | "orders" | null;
+
 export default function AccountingSmartPage() {
   const { toast } = useToast();
   const [period, setPeriod] = useState("today");
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [drilldownType, setDrilldownType] = useState<DrilldownType>(null);
   const [newExpense, setNewExpense] = useState({
     category: "",
     description: "",
@@ -136,6 +149,16 @@ export default function AccountingSmartPage() {
 
   const { data: recentOrders = [] } = useQuery<any[]>({
     queryKey: ["/api/orders", { limit: 5 }],
+  });
+
+  const { data: allOrders = [], isLoading: loadingOrders } = useQuery<any[]>({
+    queryKey: [`/api/orders?period=${period}&branchId=${selectedBranch}&limit=50`],
+    enabled: drilldownType === "revenue" || drilldownType === "orders",
+  });
+
+  const { data: allExpenses = [], isLoading: loadingExpenses } = useQuery<any[]>({
+    queryKey: [`/api/accounting/expenses?period=${period}&branchId=${selectedBranch}`],
+    enabled: drilldownType === "expenses",
   });
 
   const createExpenseMutation = useMutation({
@@ -266,11 +289,18 @@ export default function AccountingSmartPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 overflow-hidden">
+        <Card 
+          className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 cursor-pointer hover-elevate"
+          onClick={() => setDrilldownType("revenue")}
+          data-testid="card-revenue-drilldown"
+        >
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">إجمالي الإيرادات</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  إجمالي الإيرادات
+                  <Eye className="h-3 w-3 opacity-50" />
+                </p>
                 <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300" data-testid="text-revenue">
                   {data.totalRevenue.toFixed(0)}
                   <span className="text-lg mr-1">ر.س</span>
@@ -287,11 +317,18 @@ export default function AccountingSmartPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 overflow-hidden">
+        <Card 
+          className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 cursor-pointer hover-elevate"
+          onClick={() => setDrilldownType("orders")}
+          data-testid="card-cogs-drilldown"
+        >
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">تكلفة المكونات (COGS)</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  تكلفة المكونات (COGS)
+                  <Eye className="h-3 w-3 opacity-50" />
+                </p>
                 <p className="text-3xl font-bold text-amber-700 dark:text-amber-300" data-testid="text-cogs">
                   {data.totalCogs.toFixed(0)}
                   <span className="text-lg mr-1">ر.س</span>
@@ -308,11 +345,18 @@ export default function AccountingSmartPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 overflow-hidden">
+        <Card 
+          className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 cursor-pointer hover-elevate"
+          onClick={() => setDrilldownType("expenses")}
+          data-testid="card-expenses-drilldown"
+        >
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">المصروفات</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  المصروفات
+                  <Eye className="h-3 w-3 opacity-50" />
+                </p>
                 <p className="text-3xl font-bold text-red-700 dark:text-red-300" data-testid="text-expenses">
                   {data.totalExpenses.toFixed(0)}
                   <span className="text-lg mr-1">ر.س</span>
@@ -329,7 +373,7 @@ export default function AccountingSmartPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 overflow-hidden">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
@@ -703,6 +747,137 @@ export default function AccountingSmartPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Sheet open={drilldownType !== null} onOpenChange={(open) => !open && setDrilldownType(null)}>
+        <SheetContent side="left" className="w-full sm:max-w-xl" dir="rtl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              {drilldownType === "revenue" && (
+                <>
+                  <TrendingUp className="h-5 w-5 text-emerald-600" />
+                  تفاصيل الإيرادات
+                </>
+              )}
+              {drilldownType === "orders" && (
+                <>
+                  <Coffee className="h-5 w-5 text-amber-600" />
+                  تفاصيل الطلبات (COGS)
+                </>
+              )}
+              {drilldownType === "expenses" && (
+                <>
+                  <Wallet className="h-5 w-5 text-red-600" />
+                  تفاصيل المصروفات
+                </>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+          
+          <ScrollArea className="h-[calc(100vh-120px)] mt-4">
+            {(drilldownType === "revenue" || drilldownType === "orders") && (
+              <div className="space-y-3">
+                {loadingOrders ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : allOrders.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    لا توجد طلبات في هذه الفترة
+                  </div>
+                ) : (
+                  allOrders.map((order: any) => (
+                    <Card key={order._id || order.id} className="border shadow-sm" data-testid={`card-order-${order._id || order.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">#{order.orderNumber || order._id?.slice(-6)}</Badge>
+                            <Badge 
+                              variant={order.status === "completed" ? "default" : "secondary"}
+                              className={order.status === "completed" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : ""}
+                            >
+                              {order.status === "completed" ? "مكتمل" : 
+                               order.status === "pending" ? "قيد الانتظار" :
+                               order.status === "preparing" ? "قيد التحضير" : order.status}
+                            </Badge>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {order.createdAt && format(new Date(order.createdAt), "dd/MM HH:mm", { locale: ar })}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-muted-foreground">
+                            {order.items?.length || 0} عناصر
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold text-emerald-600">{(order.totalAmount || 0).toFixed(2)} ر.س</p>
+                            {drilldownType === "orders" && order.totalCost !== undefined && (
+                              <p className="text-xs text-amber-600">COGS: {(order.totalCost || 0).toFixed(2)} ر.س</p>
+                            )}
+                          </div>
+                        </div>
+                        {order.items && order.items.length > 0 && (
+                          <div className="mt-2 pt-2 border-t">
+                            <p className="text-xs text-muted-foreground mb-1">العناصر:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {order.items.slice(0, 3).map((item: any, idx: number) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {item.nameAr || item.name} x{item.quantity}
+                                </Badge>
+                              ))}
+                              {order.items.length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{order.items.length - 3} أخرى
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+
+            {drilldownType === "expenses" && (
+              <div className="space-y-3">
+                {loadingExpenses ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : allExpenses.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    لا توجد مصروفات في هذه الفترة
+                  </div>
+                ) : (
+                  allExpenses.map((expense: any) => (
+                    <Card key={expense._id || expense.id} className="border shadow-sm" data-testid={`card-expense-${expense._id || expense.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant="outline">
+                            {expenseCategories.find(c => c.value === expense.category)?.label || expense.category}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {expense.date && format(new Date(expense.date), "dd/MM/yyyy", { locale: ar })}
+                          </span>
+                        </div>
+                        <p className="font-medium mb-1">{expense.description}</p>
+                        {expense.notes && (
+                          <p className="text-sm text-muted-foreground mb-2">{expense.notes}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">المبلغ:</span>
+                          <span className="font-bold text-red-600">{(expense.amount || 0).toFixed(2)} ر.س</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
