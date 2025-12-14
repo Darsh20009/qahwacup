@@ -9,180 +9,173 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowRight, Gift, UserPlus, Search } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingState, EmptyState } from "@/components/ui/states";
 import LoyaltyCardComponent from "@/components/loyalty-card";
 import type { LoyaltyCard } from "@shared/schema";
 
 export default function EmployeeLoyalty() {
- const [, setLocation] = useLocation();
- const { toast } = useToast();
- const [isDialogOpen, setIsDialogOpen] = useState(false);
- const [customerName, setCustomerName] = useState("");
- const [phoneNumber, setPhoneNumber] = useState("");
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
- // Fetch all loyalty cards
- const { data: cards = [], isLoading } = useQuery<LoyaltyCard[]>({
- queryKey: ["/api/loyalty/cards"]
- });
+  // Fetch all loyalty cards
+  const { data: cards = [], isLoading } = useQuery<LoyaltyCard[]>({
+    queryKey: ["/api/loyalty/cards"]
+  });
 
- // Create loyalty card mutation
- const createCardMutation = useMutation({
- mutationFn: async (customerData: { customerName: string; phoneNumber: string }) => {
- const response = await apiRequest("POST", "/api/loyalty/cards", customerData);
- return response.json();
- },
- onSuccess: () => {
- queryClient.invalidateQueries({ queryKey: ["/api/loyalty/cards"] });
- toast({
- title: "تم إنشاء بطاقة الولاء! ",
- description: `تم إصدار بطاقة جديدةللعميل ${customerName}`,
- className: "bg-green-900 border-green-700 text-white"
- });
- setIsDialogOpen(false);
- setCustomerName("");
- setPhoneNumber("");
- },
- onError: (error: any) => {
- toast({
- variant: "destructive",
- title: "خطأ",
- description: error.message || "فشل في إنشاء بطاقة الولاء"
- });
- }
- });
+  // Create loyalty card mutation
+  const createCardMutation = useMutation({
+    mutationFn: async (customerData: { customerName: string; phoneNumber: string }) => {
+      const response = await apiRequest("POST", "/api/loyalty/cards", customerData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/loyalty/cards"] });
+      toast({
+        title: "تم إنشاء بطاقة الولاء!",
+        description: `تم إصدار بطاقة جديدة للعميل ${customerName}`,
+      });
+      setIsDialogOpen(false);
+      setCustomerName("");
+      setPhoneNumber("");
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: error.message || "فشل في إنشاء بطاقة الولاء"
+      });
+    }
+  });
 
- const handleCreateCard = () => {
- if (!phoneNumber.trim()) {
- toast({
- variant: "destructive",
- title: "خطأ",
- description: "الرجاء إدخال رقم الهاتف"
- });
- return;
- }
- createCardMutation.mutate({
- customerName: customerName.trim(),
- phoneNumber: phoneNumber.trim()
- });
- };
+  const handleCreateCard = () => {
+    if (!phoneNumber.trim()) {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "الرجاء إدخال رقم الهاتف"
+      });
+      return;
+    }
+    createCardMutation.mutate({
+      customerName: customerName.trim(),
+      phoneNumber: phoneNumber.trim()
+    });
+  };
 
- return (
- <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 p-4">
- {/* Header */}
- <div className="max-w-7xl mx-auto mb-6">
- <div className="flex items-center justify-between">
- <Button
- variant="ghost"
- onClick={() => setLocation("/employee/dashboard")}
- className="text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
- data-testid="button-back"
- >
- <ArrowRight className="w-5 h-5 ml-2" />
- العودةللوحةالتحكم
- </Button>
+  return (
+    <div dir="rtl" className="min-h-screen bg-background p-4">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation("/employee/dashboard")}
+            data-testid="button-back"
+          >
+            <ArrowRight className="w-5 h-5 ml-2" />
+            العودة للوحة التحكم
+          </Button>
 
- <div className="flex items-center gap-3">
- <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-2 rounded-lg shadow-lg">
- <Gift className="w-5 h-5" />
- <span className="font-bold">إدارةبطاقات الولاء</span>
- </div>
- </div>
- </div>
- </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg">
+              <Gift className="w-5 h-5" />
+              <span className="font-bold">إدارة بطاقات الولاء</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
- <div className="max-w-7xl mx-auto space-y-6">
- {/* Create Card Section */}
- <Card className="bg-slate-900/50 border-purple-500/20 backdrop-blur-sm">
- <CardHeader>
- <CardTitle className="text-purple-400 flex items-center gap-2">
- <UserPlus className="w-5 h-5" />
- إصدار بطاقة ولاء جديدة
- </CardTitle>
- </CardHeader>
- <CardContent>
- <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
- <DialogTrigger asChild>
- <Button 
- className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600"
- data-testid="button-create-card"
- >
- <UserPlus className="w-4 h-4 ml-2" />
- إنشاء بطاقة ولاء جديدة
- </Button>
- </DialogTrigger>
- <DialogContent className="bg-slate-900 border-purple-500/30">
- <DialogHeader>
- <DialogTitle className="text-purple-400">بيانات العميل</DialogTitle>
- </DialogHeader>
- <div className="space-y-4 py-4">
- <div className="space-y-2">
- <Label htmlFor="customer-name" className="text-slate-300">اسم العميل</Label>
- <Input
- id="customer-name"
- value={customerName}
- onChange={(e) => setCustomerName(e.target.value)}
- placeholder="محمد أحمد"
- className="bg-slate-800 border-slate-700 text-white"
- data-testid="input-customer-name"
- />
- </div>
- <div className="space-y-2">
- <Label htmlFor="phone-number" className="text-slate-300">رقم الهاتف (9 أرقام تبدأ بـ 5)</Label>
- <Input
- id="phone-number"
- value={phoneNumber}
- onChange={(e) => setPhoneNumber(e.target.value)}
- placeholder="5xxxxxxxx"
- className="bg-slate-800 border-slate-700 text-white"
- data-testid="input-phone-number"
- />
- </div>
- <Button 
- onClick={handleCreateCard}
- disabled={createCardMutation.isPending}
- className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600"
- data-testid="button-submit-card"
- >
- {createCardMutation.isPending ? "جاري الإنشاء..." : "إصدار البطاقة"}
- </Button>
- </div>
- </DialogContent>
- </Dialog>
- </CardContent>
- </Card>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Create Card Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              إصدار بطاقة ولاء جديدة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full"
+                  data-testid="button-create-card"
+                >
+                  <UserPlus className="w-4 h-4 ml-2" />
+                  إنشاء بطاقة ولاء جديدة
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>بيانات العميل</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="customer-name">اسم العميل</Label>
+                    <Input
+                      id="customer-name"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="محمد أحمد"
+                      data-testid="input-customer-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone-number">رقم الهاتف (9 أرقام تبدأ بـ 5)</Label>
+                    <Input
+                      id="phone-number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="5xxxxxxxx"
+                      data-testid="input-phone-number"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleCreateCard}
+                    disabled={createCardMutation.isPending}
+                    className="w-full"
+                    data-testid="button-submit-card"
+                  >
+                    {createCardMutation.isPending ? "جاري الإنشاء..." : "إصدار البطاقة"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
- {/* Cards List */}
- <Card className="bg-slate-900/50 border-purple-500/20 backdrop-blur-sm">
- <CardHeader>
- <CardTitle className="text-purple-400 flex items-center gap-2">
- <Search className="w-5 h-5" />
- بطاقات الولاء المُصدرة({cards.length})
- </CardTitle>
- </CardHeader>
- <CardContent>
- {isLoading ? (
- <div className="text-center py-8 text-slate-400">جاري التحميل...</div>
- ) : cards.length === 0 ? (
- <div className="text-center py-8 text-slate-400">
- لا توجد بطاقات ولاء حالياً. قم بإنشاء أول بطاقة !
- </div>
- ) : (
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- {cards.map((card) => (
- <div key={card.id} data-testid={`loyalty-card-${card.id}`}>
- <LoyaltyCardComponent card={card} />
- </div>
- ))}
- </div>
- )}
- </CardContent>
- </Card>
- </div>
-
- {/* Decorative Elements */}
- <div className="fixed inset-0 pointer-events-none">
- <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl"></div>
- <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl"></div>
- </div>
- </div>
- );
+        {/* Cards List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="w-5 h-5" />
+              بطاقات الولاء المُصدرة ({cards.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <LoadingState message="جاري تحميل بطاقات الولاء..." />
+            ) : cards.length === 0 ? (
+              <EmptyState 
+                title="لا توجد بطاقات ولاء"
+                description="لم يتم إصدار أي بطاقات ولاء حتى الآن. قم بإنشاء أول بطاقة للبدء!"
+                icon={<Gift className="h-10 w-10 text-muted-foreground" />}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {cards.map((card) => (
+                  <div key={card.id} data-testid={`loyalty-card-${card.id}`}>
+                    <LoyaltyCardComponent card={card} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }

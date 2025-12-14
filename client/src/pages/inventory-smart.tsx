@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { LoadingState, EmptyState } from "@/components/ui/states";
 import {
   Select,
   SelectContent,
@@ -57,32 +58,32 @@ const categoryLabels: Record<string, { label: string; icon: any; color: string; 
   ingredient: { 
     label: "مكون", 
     icon: Coffee,
-    color: "text-amber-700 dark:text-amber-400",
-    bgColor: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/40 dark:to-amber-800/40"
+    color: "text-primary",
+    bgColor: "bg-muted"
   },
   packaging: { 
     label: "تغليف", 
     icon: Box,
-    color: "text-blue-700 dark:text-blue-400",
-    bgColor: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40"
+    color: "text-primary",
+    bgColor: "bg-muted"
   },
   equipment: { 
     label: "معدات", 
     icon: Wrench,
-    color: "text-slate-700 dark:text-slate-400",
-    bgColor: "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/40 dark:to-slate-800/40"
+    color: "text-muted-foreground",
+    bgColor: "bg-muted"
   },
   consumable: { 
     label: "مستهلكات", 
     icon: Droplet,
-    color: "text-green-700 dark:text-green-400",
-    bgColor: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/40 dark:to-green-800/40"
+    color: "text-primary",
+    bgColor: "bg-muted"
   },
   other: { 
     label: "أخرى", 
     icon: HelpCircle,
-    color: "text-gray-700 dark:text-gray-400",
-    bgColor: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/40 dark:to-gray-800/40"
+    color: "text-muted-foreground",
+    bgColor: "bg-muted"
   },
 };
 
@@ -195,15 +196,15 @@ export default function InventorySmartPage() {
     const maxLevel = item.maxStockLevel || minLevel * 3;
     
     if (currentQty <= 0) {
-      return { status: "out", label: "نفد", color: "bg-red-500", textColor: "text-red-700 dark:text-red-400" };
+      return { status: "out", label: "نفد", color: "bg-destructive", textColor: "text-destructive" };
     }
     if (currentQty <= minLevel) {
-      return { status: "low", label: "منخفض", color: "bg-orange-500", textColor: "text-orange-700 dark:text-orange-400" };
+      return { status: "low", label: "منخفض", color: "bg-orange-500", textColor: "text-orange-600 dark:text-orange-400" };
     }
     if (currentQty >= maxLevel * 0.8) {
-      return { status: "high", label: "مرتفع", color: "bg-green-500", textColor: "text-green-700 dark:text-green-400" };
+      return { status: "high", label: "مرتفع", color: "bg-green-500", textColor: "text-green-600 dark:text-green-400" };
     }
-    return { status: "normal", label: "طبيعي", color: "bg-blue-500", textColor: "text-blue-700 dark:text-blue-400" };
+    return { status: "normal", label: "طبيعي", color: "bg-primary", textColor: "text-primary" };
   };
 
   const getStockPercentage = (item: RawItem, stock?: BranchStock) => {
@@ -258,27 +259,21 @@ export default function InventorySmartPage() {
 
   if (loadingItems || loadingStocks) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="relative">
-            <Package className="h-16 w-16 text-amber-600 animate-pulse mx-auto" />
-            <Loader2 className="h-8 w-8 animate-spin text-amber-500 absolute -bottom-2 -right-2" />
-          </div>
-          <p className="text-muted-foreground mt-4 text-lg">جاري تحميل المخزون...</p>
-        </div>
+      <div dir="rtl">
+        <LoadingState message="جاري تحميل المخزون..." />
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
+    <div className="p-6 space-y-6 bg-background" dir="rtl">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/50 dark:to-amber-800/50 shadow-lg">
-            <Layers className="h-10 w-10 text-amber-700 dark:text-amber-400" />
+          <div className="p-4 rounded-2xl bg-primary/10 shadow-lg">
+            <Layers className="h-10 w-10 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-l from-amber-600 to-amber-800 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-foreground">
               المخزون الذكي
             </h1>
             <p className="text-muted-foreground">إدارة مبسطة وذكية للمخزون</p>
@@ -300,7 +295,6 @@ export default function InventorySmartPage() {
           </Select>
           <Button 
             onClick={() => setIsAddStockOpen(true)} 
-            className="bg-gradient-to-l from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
             data-testid="button-add-stock-batch"
           >
             <PackagePlus className="h-4 w-4 ml-2" />
@@ -310,59 +304,59 @@ export default function InventorySmartPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30">
+        <Card className="border-0 shadow-lg bg-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">إجمالي المواد</p>
-                <p className="text-4xl font-bold text-amber-700 dark:text-amber-300" data-testid="text-total-items">{totalItems}</p>
+                <p className="text-4xl font-bold text-foreground" data-testid="text-total-items">{totalItems}</p>
               </div>
-              <div className="p-3 rounded-full bg-amber-200/50 dark:bg-amber-700/30">
-                <Package className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              <div className="p-3 rounded-full bg-primary/10">
+                <Package className="h-8 w-8 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30">
+        <Card className="border-0 shadow-lg bg-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">مخزون منخفض</p>
-                <p className="text-4xl font-bold text-orange-700 dark:text-orange-300" data-testid="text-low-stock">{lowStockItems}</p>
+                <p className="text-4xl font-bold text-orange-600 dark:text-orange-400" data-testid="text-low-stock">{lowStockItems}</p>
               </div>
-              <div className="p-3 rounded-full bg-orange-200/50 dark:bg-orange-700/30">
+              <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/30">
                 <TrendingDown className="h-8 w-8 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30">
+        <Card className="border-0 shadow-lg bg-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">نفد المخزون</p>
-                <p className="text-4xl font-bold text-red-700 dark:text-red-300" data-testid="text-out-stock">{outOfStockItems}</p>
+                <p className="text-4xl font-bold text-destructive" data-testid="text-out-stock">{outOfStockItems}</p>
               </div>
-              <div className="p-3 rounded-full bg-red-200/50 dark:bg-red-700/30">
-                <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+              <div className="p-3 rounded-full bg-destructive/10">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30">
+        <Card className="border-0 shadow-lg bg-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">قيمة المخزون (COGS)</p>
-                <p className="text-3xl font-bold text-green-700 dark:text-green-300" data-testid="text-cogs">
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400" data-testid="text-cogs">
                   {totalCOGS.toFixed(0)}
                   <span className="text-lg mr-1">ر.س</span>
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-green-200/50 dark:bg-green-700/30">
+              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
                 <DollarSign className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
@@ -370,94 +364,93 @@ export default function InventorySmartPage() {
         </Card>
       </div>
 
-      {/* Quick Navigation Links */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
         <Link href="/manager/inventory/raw-items" data-testid="link-raw-items">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-amber-50/50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 group-hover:scale-110 transition-transform">
-                <Coffee className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
+                <Coffee className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">المواد الخام</p>
+                <p className="font-medium text-sm truncate text-foreground">المواد الخام</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
           </Card>
         </Link>
         <Link href="/manager/inventory/stock" data-testid="link-stock">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 group-hover:scale-110 transition-transform">
-                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
+                <Package className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">المخزون</p>
+                <p className="font-medium text-sm truncate text-foreground">المخزون</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
           </Card>
         </Link>
         <Link href="/manager/inventory/recipes" data-testid="link-recipes">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-purple-50/50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 group-hover:scale-110 transition-transform">
-                <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
+                <BookOpen className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">الوصفات</p>
+                <p className="font-medium text-sm truncate text-foreground">الوصفات</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
           </Card>
         </Link>
         <Link href="/manager/inventory/suppliers" data-testid="link-suppliers">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-teal-50/50 to-teal-100/50 dark:from-teal-900/20 dark:to-teal-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/50 group-hover:scale-110 transition-transform">
-                <Users className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
+                <Users className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">الموردين</p>
+                <p className="font-medium text-sm truncate text-foreground">الموردين</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
           </Card>
         </Link>
         <Link href="/manager/inventory/purchases" data-testid="link-purchases">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-emerald-50/50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 group-hover:scale-110 transition-transform">
-                <ShoppingCart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
+                <ShoppingCart className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">المشتريات</p>
+                <p className="font-medium text-sm truncate text-foreground">المشتريات</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
           </Card>
         </Link>
         <Link href="/manager/inventory/transfers" data-testid="link-transfers">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-indigo-50/50 to-indigo-100/50 dark:from-indigo-900/20 dark:to-indigo-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 group-hover:scale-110 transition-transform">
-                <ArrowRightLeft className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:scale-110 transition-transform">
+                <ArrowRightLeft className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">التحويلات</p>
+                <p className="font-medium text-sm truncate text-foreground">التحويلات</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
           </Card>
         </Link>
         <Link href="/manager/inventory/alerts" data-testid="link-alerts">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-gradient-to-br from-rose-50/50 to-rose-100/50 dark:from-rose-900/20 dark:to-rose-800/20">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-rose-100 dark:bg-rose-900/50 group-hover:scale-110 transition-transform">
-                <Bell className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+              <div className="p-2 rounded-lg bg-destructive/10 group-hover:scale-110 transition-transform">
+                <Bell className="h-5 w-5 text-destructive" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">التنبيهات</p>
+                <p className="font-medium text-sm truncate text-foreground">التنبيهات</p>
               </div>
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </CardContent>
@@ -465,8 +458,8 @@ export default function InventorySmartPage() {
         </Link>
       </div>
 
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="bg-gradient-to-l from-stone-50/80 to-transparent dark:from-stone-900/30 border-b">
+      <Card className="border-0 shadow-lg bg-card">
+        <CardHeader className="bg-muted/50 border-b">
           <div className="flex flex-wrap items-center gap-4">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -492,11 +485,11 @@ export default function InventorySmartPage() {
         </CardHeader>
         <CardContent className="p-6">
           {filteredItems.length === 0 ? (
-            <div className="text-center py-16">
-              <Package className="h-20 w-20 mx-auto mb-4 opacity-20" />
-              <p className="text-xl font-medium text-muted-foreground">لا توجد مواد</p>
-              <p className="text-muted-foreground">أضف مواد خام جديدة للبدء</p>
-            </div>
+            <EmptyState
+              title="لا توجد مواد"
+              description="أضف مواد خام جديدة للبدء"
+              icon={<Package className="h-10 w-10 text-muted-foreground" />}
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredItems.map((item) => {
@@ -510,19 +503,19 @@ export default function InventorySmartPage() {
                 return (
                   <Card 
                     key={item.id} 
-                    className={`border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden ${categoryInfo.bgColor}`}
+                    className="border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden bg-card"
                     data-testid={`card-item-${item.id}`}
                   >
                     <CardContent className="p-0">
                       <div className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className={`p-2.5 rounded-xl bg-white/60 dark:bg-black/20 ${categoryInfo.color}`}>
+                            <div className={`p-2.5 rounded-xl bg-muted ${categoryInfo.color}`}>
                               <CategoryIcon className="h-6 w-6" />
                             </div>
                             <div>
-                              <h3 className="font-bold text-lg leading-tight">{item.nameAr}</h3>
-                              <code className="text-xs text-muted-foreground bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                              <h3 className="font-bold text-lg leading-tight text-foreground">{item.nameAr}</h3>
+                              <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                                 {item.code}
                               </code>
                             </div>
@@ -537,7 +530,7 @@ export default function InventorySmartPage() {
 
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-3xl font-bold" data-testid={`text-qty-${item.id}`}>
+                            <span className="text-3xl font-bold text-foreground" data-testid={`text-qty-${item.id}`}>
                               {currentQty.toFixed(currentQty < 1 ? 3 : 1)}
                             </span>
                             <span className="text-muted-foreground text-lg">
@@ -556,16 +549,15 @@ export default function InventorySmartPage() {
                             />
                           </div>
 
-                          <div className="flex items-center justify-between pt-2 border-t border-black/10 dark:border-white/10">
+                          <div className="flex items-center justify-between pt-2 border-t border-border">
                             <div className="text-sm">
                               <span className="text-muted-foreground">التكلفة: </span>
-                              <span className="font-semibold">{item.unitCost.toFixed(2)} ر.س</span>
+                              <span className="font-semibold text-foreground">{item.unitCost.toFixed(2)} ر.س</span>
                             </div>
                             <div className="flex gap-1">
                               <Button
                                 size="icon"
                                 variant="outline"
-                                className="h-9 w-9 rounded-full bg-white/50 dark:bg-black/20 border-0"
                                 onClick={() => handleQuickAdjust(item, "subtract")}
                                 disabled={currentQty <= 0}
                                 data-testid={`button-minus-${item.id}`}
@@ -575,7 +567,6 @@ export default function InventorySmartPage() {
                               <Button
                                 size="icon"
                                 variant="outline"
-                                className="h-9 w-9 rounded-full bg-white/50 dark:bg-black/20 border-0"
                                 onClick={() => handleQuickAdjust(item, "add")}
                                 data-testid={`button-plus-${item.id}`}
                               >
@@ -589,8 +580,8 @@ export default function InventorySmartPage() {
                       {stockStatus.status === "low" || stockStatus.status === "out" ? (
                         <div className={`px-4 py-2 flex items-center gap-2 text-sm ${
                           stockStatus.status === "out" 
-                            ? "bg-red-500/20 text-red-700 dark:text-red-300" 
-                            : "bg-orange-500/20 text-orange-700 dark:text-orange-300"
+                            ? "bg-destructive/10 text-destructive" 
+                            : "bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400"
                         }`}>
                           <AlertTriangle className="h-4 w-4" />
                           {stockStatus.status === "out" ? "نفد المخزون - يرجى إعادة التعبئة" : "المخزون منخفض - يرجى الطلب"}
@@ -612,7 +603,7 @@ export default function InventorySmartPage() {
               {adjustType === "add" ? (
                 <Plus className="h-5 w-5 text-green-600" />
               ) : (
-                <Minus className="h-5 w-5 text-red-600" />
+                <Minus className="h-5 w-5 text-destructive" />
               )}
               {adjustType === "add" ? "إضافة كمية" : "خصم كمية"} - {selectedItem?.nameAr}
             </DialogTitle>
@@ -651,8 +642,8 @@ export default function InventorySmartPage() {
             </div>
 
             {selectedBranch === "all" && (
-              <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700">
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              <div className="p-3 rounded-lg bg-muted border border-border">
+                <p className="text-sm text-muted-foreground">
                   يرجى اختيار فرع محدد من القائمة أعلاه للتعديل على المخزون
                 </p>
               </div>
@@ -663,7 +654,7 @@ export default function InventorySmartPage() {
             <Button
               onClick={handleAdjustSubmit}
               disabled={adjustStockMutation.isPending || selectedBranch === "all" || adjustQuantity <= 0}
-              className={adjustType === "add" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              variant={adjustType === "add" ? "default" : "destructive"}
             >
               {adjustStockMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin ml-2" />
@@ -678,7 +669,7 @@ export default function InventorySmartPage() {
         <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <PackagePlus className="h-5 w-5 text-amber-600" />
+              <PackagePlus className="h-5 w-5 text-primary" />
               إضافة دفعة مخزون جديدة
             </DialogTitle>
           </DialogHeader>
@@ -748,10 +739,10 @@ export default function InventorySmartPage() {
             </div>
 
             {newStockData.rawItemId && newStockData.quantity > 0 && (
-              <div className="p-4 rounded-xl bg-gradient-to-l from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30">
+              <div className="p-4 rounded-xl bg-green-100 dark:bg-green-900/20">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">إجمالي التكلفة:</span>
-                  <span className="text-2xl font-bold text-green-700 dark:text-green-300">
+                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {(newStockData.quantity * newStockData.unitCost).toFixed(2)} ر.س
                   </span>
                 </div>
@@ -759,8 +750,8 @@ export default function InventorySmartPage() {
             )}
 
             {selectedBranch === "all" && (
-              <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700">
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              <div className="p-3 rounded-lg bg-muted border border-border">
+                <p className="text-sm text-muted-foreground">
                   يرجى اختيار فرع محدد من القائمة أعلاه لإضافة الدفعة
                 </p>
               </div>
@@ -775,7 +766,6 @@ export default function InventorySmartPage() {
                 }
               }}
               disabled={addStockBatchMutation.isPending || selectedBranch === "all" || !newStockData.rawItemId || newStockData.quantity <= 0}
-              className="bg-amber-600 hover:bg-amber-700"
             >
               {addStockBatchMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin ml-2" />

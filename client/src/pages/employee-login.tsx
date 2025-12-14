@@ -20,7 +20,6 @@ export default function EmployeeLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username?: string; employeeId?: string; password?: string }) => {
-      // Determine which endpoint to use based on credentials
       const isQRLogin = !!credentials.employeeId && !credentials.username;
       const endpoint = isQRLogin ? "/api/employees/login-qr" : "/api/employees/login";
       
@@ -59,7 +58,6 @@ export default function EmployeeLogin() {
     loginMutation.mutate({ username, password });
   };
 
-  // Handle QR code scan result
   useEffect(() => {
     if (!showQRScanner) return;
 
@@ -72,13 +70,11 @@ export default function EmployeeLogin() {
     scanner.render(
       (decodedText) => {
         try {
-          // QR code contains employee ID
           const scannedEmployeeId = decodedText.trim();
           if (scannedEmployeeId) {
             setError("");
             scanner.clear();
             setShowQRScanner(false);
-            // QR login (no password needed)
             loginMutation.mutate({
               employeeId: scannedEmployeeId,
             });
@@ -90,7 +86,6 @@ export default function EmployeeLogin() {
         }
       },
       (error) => {
-        // Only log errors, don't display them to avoid spam
         console.debug("QR scan error:", error);
       }
     );
@@ -110,30 +105,30 @@ export default function EmployeeLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] flex items-center justify-center p-4">
+    <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full mb-4">
-            <Coffee className="w-10 h-10 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-4">
+            <Coffee className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-amber-500 mb-2">قهوة كوب</h1>
-          <p className="text-gray-400">تسجيل دخول الموظف</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">قهوة كوب</h1>
+          <p className="text-muted-foreground">تسجيل دخول الموظف</p>
         </div>
 
         {showQRScanner ? (
-          <Card className="bg-[#2d1f1a] border-amber-500/20">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-2xl text-center text-amber-500">
+              <CardTitle className="text-2xl text-center">
                 مسح بطاقة الموظف
               </CardTitle>
-              <CardDescription className="text-center text-gray-400">
+              <CardDescription className="text-center">
                 وجه الكاميرا نحو QR الكود الموجود على بطاقتك
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div id="qr-reader" className="w-full" />
               {error && (
-                <p className="text-red-500 text-sm text-center" data-testid="text-qr-error">
+                <p className="text-destructive text-sm text-center" data-testid="text-qr-error">
                   {error}
                 </p>
               )}
@@ -141,7 +136,7 @@ export default function EmployeeLogin() {
                 type="button"
                 variant="outline"
                 onClick={handleToggleQRScanner}
-                className="w-full border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                className="w-full"
                 data-testid="button-cancel-qr"
               >
                 إلغاء
@@ -149,12 +144,12 @@ export default function EmployeeLogin() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="bg-[#2d1f1a] border-amber-500/20">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-2xl text-center text-amber-500">
+              <CardTitle className="text-2xl text-center">
                 تسجيل الدخول
               </CardTitle>
-              <CardDescription className="text-center text-gray-400">
+              <CardDescription className="text-center">
                 أدخل بيانات حسابك للوصول
               </CardDescription>
             </CardHeader>
@@ -162,13 +157,13 @@ export default function EmployeeLogin() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <div className="relative">
-                    <User className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
+                    <User className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                     <Input
                       type="text"
                       placeholder="اسم المستخدم"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="pr-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
+                      className="pr-10"
                       data-testid="input-username"
                       autoFocus
                       disabled={loginMutation.isPending}
@@ -178,20 +173,20 @@ export default function EmployeeLogin() {
 
                 <div className="space-y-2">
                   <div className="relative">
-                    <Lock className="absolute right-3 top-3 h-5 w-5 text-amber-500" />
+                    <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="كلمة المرور"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10 pl-10 bg-[#1a1410] border-amber-500/30 text-white placeholder:text-gray-500 text-right"
+                      className="pr-10 pl-10"
                       data-testid="input-password"
                       disabled={loginMutation.isPending}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 top-3 text-amber-500 hover:text-amber-400"
+                      className="absolute left-3 top-3 text-muted-foreground hover:text-foreground"
                       data-testid="button-toggle-password"
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -201,14 +196,14 @@ export default function EmployeeLogin() {
                     <button
                       type="button"
                       onClick={() => setLocation("/employee/forgot-password")}
-                      className="text-xs text-amber-500 hover:text-amber-400 underline"
+                      className="text-xs text-primary hover:text-primary/80 underline"
                       data-testid="link-forgot-password"
                     >
                       نسيت كلمة المرور؟
                     </button>
                   </div>
                   {error && (
-                    <p className="text-red-500 text-sm text-right" data-testid="text-error">
+                    <p className="text-destructive text-sm text-right" data-testid="text-error">
                       {error}
                     </p>
                   )}
@@ -217,12 +212,12 @@ export default function EmployeeLogin() {
                 <Button
                   type="submit"
                   disabled={loginMutation.isPending}
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-bold"
+                  className="w-full"
                   data-testid="button-login"
                 >
                   {loginMutation.isPending ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                       جاري تسجيل الدخول...
                     </>
                   ) : (
@@ -230,24 +225,24 @@ export default function EmployeeLogin() {
                   )}
                 </Button>
 
-                <div className="pt-4 border-t border-amber-500/20 space-y-2">
+                <div className="pt-4 border-t border-border space-y-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     onClick={handleToggleQRScanner}
-                    className="w-full border-blue-500/30 text-blue-500 hover:bg-blue-500/10"
+                    className="w-full"
                     data-testid="button-scan-qr"
                   >
                     <QrCode className="w-4 h-4 ml-2" />
                     مسح بطاقة الموظف
                   </Button>
 
-                  <p className="text-sm text-gray-400 text-center">موظف جديد؟</p>
+                  <p className="text-sm text-muted-foreground text-center">موظف جديد؟</p>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setLocation("/employee/activate")}
-                    className="w-full border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                    className="w-full"
                     data-testid="button-activate"
                   >
                     تفعيل حساب جديد
@@ -262,7 +257,6 @@ export default function EmployeeLogin() {
           <Button
             variant="ghost"
             onClick={() => setLocation("/employee/gateway")}
-            className="text-amber-500 hover:text-amber-400"
             data-testid="link-back"
           >
             رجوع

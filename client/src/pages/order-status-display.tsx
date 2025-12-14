@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ui/states";
 import { playNotificationSound } from "@/lib/notification-sounds";
 import { 
   Coffee, 
@@ -47,7 +48,7 @@ const getOrderTypeDisplay = (order: Order) => {
   if (type === 'delivery') {
     return { label: "توصيل", icon: Truck, color: "bg-blue-500/20 text-blue-400 border-blue-500/50" };
   }
-  return { label: "طلب", icon: Coffee, color: "bg-gray-500/20 text-gray-400 border-gray-500/50" };
+  return { label: "طلب", icon: Coffee, color: "bg-muted text-muted-foreground border-border" };
 };
 
 function OrderCard({ order, isReady, isFullscreen }: { order: Order; isReady: boolean; isFullscreen: boolean }) {
@@ -178,32 +179,32 @@ export default function OrderStatusDisplayPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] flex items-center justify-center">
-        <Loader2 className="h-12 w-12 text-amber-500 animate-spin" />
+      <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingState message="جاري تحميل الطلبات..." />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-[#1a1410] via-[#2d1f1a] to-[#1a1410] ${isFullscreen ? 'p-8' : 'p-6'}`}>
+    <div dir="rtl" className={`min-h-screen bg-background ${isFullscreen ? 'p-8' : 'p-6'}`}>
       <div className={`mx-auto ${isFullscreen ? 'max-w-none' : 'max-w-7xl'}`}>
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <div className={`bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center ${isFullscreen ? 'w-20 h-20' : 'w-14 h-14'}`}>
-              <Coffee className={`text-white ${isFullscreen ? 'w-10 h-10' : 'w-7 h-7'}`} />
+            <div className={`bg-primary rounded-full flex items-center justify-center ${isFullscreen ? 'w-20 h-20' : 'w-14 h-14'}`}>
+              <Coffee className={`text-primary-foreground ${isFullscreen ? 'w-10 h-10' : 'w-7 h-7'}`} />
             </div>
             <div>
-              <h1 className={`font-bold text-amber-500 ${isFullscreen ? 'text-5xl' : 'text-3xl'}`}>
+              <h1 className={`font-bold text-foreground ${isFullscreen ? 'text-5xl' : 'text-3xl'}`}>
                 حالة الطلبات
               </h1>
-              <p className={`text-gray-400 ${isFullscreen ? 'text-xl' : 'text-base'}`}>
+              <p className={`text-muted-foreground ${isFullscreen ? 'text-xl' : 'text-base'}`}>
                 متابعة الطلبات الجارية والجاهزة
               </p>
             </div>
           </div>
           
           <div className="flex items-center gap-4 flex-wrap">
-            <div className={`font-mono text-amber-400 ${isFullscreen ? 'text-4xl' : 'text-2xl'}`}>
+            <div className={`font-mono text-foreground ${isFullscreen ? 'text-4xl' : 'text-2xl'}`}>
               {currentTime.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </div>
             
@@ -211,7 +212,7 @@ export default function OrderStatusDisplayPage() {
               variant="outline"
               size={isFullscreen ? "lg" : "icon"}
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`border-amber-500/30 ${soundEnabled ? 'text-green-400 border-green-500/50' : 'text-gray-400'}`}
+              className={soundEnabled ? 'text-green-400 border-green-500/50' : 'text-muted-foreground'}
               data-testid="button-toggle-sound"
               aria-label={soundEnabled ? "كتم الصوت" : "تفعيل الصوت"}
             >
@@ -222,7 +223,6 @@ export default function OrderStatusDisplayPage() {
               variant="outline"
               size={isFullscreen ? "lg" : "icon"}
               onClick={toggleFullscreen}
-              className="border-amber-500/30"
               data-testid="button-toggle-fullscreen"
               aria-label={isFullscreen ? "إلغاء ملء الشاشة" : "ملء الشاشة"}
             >
@@ -233,7 +233,6 @@ export default function OrderStatusDisplayPage() {
               variant="outline"
               size={isFullscreen ? "lg" : "icon"}
               onClick={() => refetch()}
-              className="border-amber-500/30"
               data-testid="button-refresh-orders"
               aria-label="تحديث الطلبات"
             >
@@ -252,7 +251,7 @@ export default function OrderStatusDisplayPage() {
                 <h2 className={`font-bold text-amber-400 ${isFullscreen ? 'text-3xl' : 'text-xl'}`}>
                   جاري التحضير
                 </h2>
-                <p className={`text-gray-400 ${isFullscreen ? 'text-lg' : 'text-sm'}`}>
+                <p className={`text-muted-foreground ${isFullscreen ? 'text-lg' : 'text-sm'}`}>
                   {inProgressOrders.length} طلب
                 </p>
               </div>
@@ -260,7 +259,7 @@ export default function OrderStatusDisplayPage() {
             
             <div className={`grid gap-4 ${isFullscreen ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
               {inProgressOrders.length === 0 ? (
-                <div className="col-span-full text-center py-12 text-gray-500">
+                <div className="col-span-full text-center py-12 text-muted-foreground">
                   <Loader2 className={`mx-auto mb-4 opacity-30 ${isFullscreen ? 'h-16 w-16' : 'h-12 w-12'}`} />
                   <p className={isFullscreen ? 'text-xl' : ''}>لا توجد طلبات قيد التحضير</p>
                 </div>
@@ -281,7 +280,7 @@ export default function OrderStatusDisplayPage() {
                 <h2 className={`font-bold text-green-400 ${isFullscreen ? 'text-3xl' : 'text-xl'}`}>
                   جاهز للاستلام
                 </h2>
-                <p className={`text-gray-400 ${isFullscreen ? 'text-lg' : 'text-sm'}`}>
+                <p className={`text-muted-foreground ${isFullscreen ? 'text-lg' : 'text-sm'}`}>
                   {readyOrders.length} طلب
                 </p>
               </div>
@@ -289,7 +288,7 @@ export default function OrderStatusDisplayPage() {
             
             <div className={`grid gap-4 ${isFullscreen ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
               {readyOrders.length === 0 ? (
-                <div className="col-span-full text-center py-12 text-gray-500">
+                <div className="col-span-full text-center py-12 text-muted-foreground">
                   <CheckCircle2 className={`mx-auto mb-4 opacity-30 ${isFullscreen ? 'h-16 w-16' : 'h-12 w-12'}`} />
                   <p className={isFullscreen ? 'text-xl' : ''}>لا توجد طلبات جاهزة</p>
                 </div>
@@ -303,7 +302,7 @@ export default function OrderStatusDisplayPage() {
         </div>
 
         <div className={`mt-8 text-center ${isFullscreen ? 'text-lg' : 'text-sm'}`}>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             يتم تحديث الشاشة تلقائياً كل 5 ثوانٍ
           </p>
         </div>

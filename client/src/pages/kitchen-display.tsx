@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LoadingState } from "@/components/ui/states";
 import { useToast } from "@/hooks/use-toast";
 import { playNotificationSound } from "@/lib/notification-sounds";
 import { 
@@ -66,11 +67,11 @@ const WARNING_THRESHOLD_MINUTES = 5;
 
 const categoryMapping: Record<string, { nameAr: string; icon: any; color: string }> = {
   "hot-drinks": { nameAr: "مشروبات ساخنة", icon: Coffee, color: "bg-orange-500/20 text-orange-400" },
-  "cold-drinks": { nameAr: "مشروبات باردة", icon: Snowflake, color: "bg-blue-500/20 text-blue-400" },
+  "cold-drinks": { nameAr: "مشروبات باردة", icon: Snowflake, color: "bg-primary/20 text-primary" },
   "tea": { nameAr: "شاي", icon: Coffee, color: "bg-green-500/20 text-green-400" },
   "matcha": { nameAr: "ماتشا", icon: Coffee, color: "bg-emerald-500/20 text-emerald-400" },
   "desserts": { nameAr: "حلويات", icon: UtensilsCrossed, color: "bg-pink-500/20 text-pink-400" },
-  "default": { nameAr: "أخرى", icon: Coffee, color: "bg-gray-500/20 text-gray-400" },
+  "default": { nameAr: "أخرى", icon: Coffee, color: "bg-muted text-muted-foreground" },
 };
 
 function getItemCategory(item: OrderItem): string {
@@ -152,22 +153,22 @@ function OrderCard({
 
   const statusBadge = () => {
     if (isReady) {
-      return <Badge className="bg-green-500/20 text-green-400">جاهز</Badge>;
+      return <Badge className="bg-green-500/20 text-green-500 dark:text-green-400">جاهز</Badge>;
     }
     if (isPreparing) {
-      return <Badge className="bg-yellow-500/20 text-yellow-400">قيد التحضير</Badge>;
+      return <Badge className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400">قيد التحضير</Badge>;
     }
     if (isDelayed) {
-      return <Badge className="bg-red-500/20 text-red-400">متأخر</Badge>;
+      return <Badge className="bg-destructive/20 text-destructive">متأخر</Badge>;
     }
     if (isWarning) {
-      return <Badge className="bg-orange-500/20 text-orange-400">تنبيه</Badge>;
+      return <Badge className="bg-orange-500/20 text-orange-600 dark:text-orange-400">تنبيه</Badge>;
     }
-    return <Badge className="bg-blue-500/20 text-blue-400">جديد</Badge>;
+    return <Badge className="bg-primary/20 text-primary">جديد</Badge>;
   };
 
   const cardBorderClass = isDelayed 
-    ? "border-red-500/50 animate-pulse" 
+    ? "border-destructive/50 animate-pulse" 
     : isWarning 
     ? "border-orange-500/50" 
     : isPreparing 
@@ -180,8 +181,8 @@ function OrderCard({
     <Card className={`relative overflow-visible ${cardBorderClass} transition-all duration-300`}>
       {isDelayed && (
         <div className="absolute -top-2 -right-2 z-10">
-          <div className="bg-red-500 rounded-full p-1.5 animate-bounce">
-            <AlertTriangle className="h-4 w-4 text-white" />
+          <div className="bg-destructive rounded-full p-1.5 animate-bounce">
+            <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
           </div>
         </div>
       )}
@@ -416,10 +417,7 @@ export default function KitchenDisplay() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">جاري تحميل الطلبات...</p>
-        </div>
+        <LoadingState message="جاري تحميل الطلبات..." />
       </div>
     );
   }
@@ -443,14 +441,14 @@ export default function KitchenDisplay() {
             
             <div className="flex items-center gap-3 flex-wrap">
               {delayedCount > 0 && (
-                <Badge className="bg-red-500 text-white animate-pulse">
+                <Badge className="bg-destructive text-destructive-foreground animate-pulse">
                   <AlertTriangle className="h-3 w-3 ml-1" />
                   {delayedCount} طلب متأخر
                 </Badge>
               )}
               
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-blue-500/10">
+                <Badge variant="outline" className="bg-primary/10">
                   انتظار: {pendingOrders.length}
                 </Badge>
                 <Badge variant="outline" className="bg-yellow-500/10">
