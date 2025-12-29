@@ -4059,10 +4059,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         manager: managerInfo,
       });
     } catch (error) {
+      console.error("Error creating branch:", error);
       if (error instanceof Error && 'issues' in error) {
-        return res.status(400).json({ error: "Validation error", details: error.issues });
+        return res.status(400).json({ error: "Validation error", details: (error as any).issues });
       }
-      res.status(500).json({ error: "Failed to create branch" });
+      res.status(500).json({ error: "Failed to create branch", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
