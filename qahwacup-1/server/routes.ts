@@ -714,7 +714,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new employee (admin and managers)
   app.post("/api/employees", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
+      const { insertEmployeeSchema, EmployeeModel } = await import("@shared/schema");
       const validatedData = insertEmployeeSchema.parse(req.body);
+      const tenantId = req.employee?.tenantId || 'demo-tenant';
 
       // For non-admin managers, enforce their branch ID
       if (req.employee?.role !== "admin") {
@@ -735,14 +737,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username already exists" });
       }
 
-      const employee = await storage.createEmployee(validatedData);
+      // Directly create using Model for robustness
+      const newEmployee = await EmployeeModel.create({
+        ...validatedData,
+        tenantId,
+        id: nanoid(),
+        isActivated: validatedData.password ? 1 : 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
 
-      // Don't send password back, transform _id to id
-      const { password: _, _id, ...employeeData } = employee as any;
-      res.status(201).json({ ...employeeData, id: _id || employeeData.id });
+      const employee = serializeDoc(newEmployee);
+      
+      // Don't send password back
+      const { password: _, ...employeeData } = employee;
+      res.status(201).json(employeeData);
     } catch (error) {
+      console.error("Error creating employee:", error);
       if (error instanceof Error && 'issues' in error) {
-        return res.status(400).json({ error: "Validation error", details: error.issues });
+        return res.status(400).json({ error: "Validation error", details: (error as any).issues });
       }
       res.status(500).json({ error: "Failed to create employee" });
     }
