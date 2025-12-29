@@ -3952,8 +3952,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { managerAssignment, ...branchData } = req.body;
       
       // Ensure cafeId is present
+      const tenantId = req.employee?.tenantId || 'demo-tenant';
       if (!branchData.cafeId) {
-        branchData.cafeId = req.employee?.tenantId || 'demo-tenant';
+        branchData.cafeId = tenantId;
       }
       
       const validatedData = insertBranchSchema.parse(branchData);
@@ -4003,6 +4004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               jobTitle: 'مدير الفرع',
               isActivated: 0, // Not activated - needs password setup
               branchId: branchId,
+              tenantId: tenantId, // Pass tenantId to manager creation
             });
             
             await storage.updateBranch(branchId, {
