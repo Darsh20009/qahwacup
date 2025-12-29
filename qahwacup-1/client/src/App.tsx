@@ -95,6 +95,7 @@ const OSRecipeManagement = lazy(() => import("@/pages/os-recipe-management"));
 const OSAccountingDashboard = lazy(() => import("@/pages/os-accounting-dashboard"));
 const OSStockManagement = lazy(() => import("@/pages/os-stock-management"));
 const OSRolesManagement = lazy(() => import("@/pages/os-roles-management"));
+const ExecutiveDashboard = lazy(() => import("@/pages/executive-dashboard"));
 const PageLoader = () => <div className="w-full h-screen flex items-center justify-center bg-background" />;
 
 function Router() {
@@ -216,6 +217,7 @@ function Router() {
  
  {/* Owner protected routes */}
  <Route path="/owner/dashboard">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin"]}><OwnerDashboard /></AuthGuard>}</Route>
+ <Route path="/executive">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><ExecutiveDashboard /></AuthGuard>}</Route>
 
  {/* Admin protected routes */}
  <Route path="/admin/dashboard">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminDashboard /></AuthGuard>}</Route>

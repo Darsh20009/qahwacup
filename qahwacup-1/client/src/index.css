@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -33,64 +33,93 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Beige & Orange Coffee Shop Theme - User Requested */
-  --background: 35 30% 92%; /* Warm beige background */
-  --foreground: 25 30% 25%; /* Dark brown text for readability */
-  --border: 35 20% 82%; /* Beige border */
-  --card: 35 25% 95%; /* Light beige cards */
-  --card-foreground: 25 30% 20%; /* Dark text on cards */
-  --card-border: 35 20% 85%; /* Soft beige border */
+  /* ═══════════════════════════════════════════════════════════════
+     🌟 SIGNATURE GOLD - Premium Enterprise Design System 🌟
+     Luxury Café Management System Theme
+     ═══════════════════════════════════════════════════════════════ */
+  
+  /* Base Colors - Ivory & Charcoal with Gold Accents */
+  --background: 40 20% 97%; /* Pure ivory background */
+  --foreground: 220 15% 20%; /* Deep charcoal text */
+  --border: 40 15% 88%; /* Subtle ivory border */
+  --card: 0 0% 100%; /* Pure white cards */
+  --card-foreground: 220 15% 18%; /* Rich charcoal text */
+  --card-border: 40 20% 90%; /* Elegant border */
 
-  --sidebar: 35 28% 90%; /* Light beige sidebar */
-  --sidebar-foreground: 25 30% 25%; /* Dark text */
-  --sidebar-border: 35 20% 82%; /* Beige border */
-  --sidebar-primary: 25 95% 55%; /* Vibrant orange */
-  --sidebar-primary-foreground: 0 0% 100%; /* White text on orange */
-  --sidebar-accent: 35 25% 85%; /* Light beige accent */
-  --sidebar-accent-foreground: 25 30% 25%; /* Dark text */
-  --sidebar-ring: 25 95% 55%; /* Orange ring */
+  /* Sidebar - Premium Dark Theme */
+  --sidebar: 225 25% 15%; /* Deep espresso/charcoal */
+  --sidebar-foreground: 40 25% 95%; /* Ivory text */
+  --sidebar-border: 225 20% 20%; /* Subtle border */
+  --sidebar-primary: 43 80% 55%; /* Rich gold */
+  --sidebar-primary-foreground: 225 25% 12%; /* Dark text on gold */
+  --sidebar-accent: 225 20% 22%; /* Elevated dark */
+  --sidebar-accent-foreground: 40 25% 90%; /* Light text */
+  --sidebar-ring: 43 80% 55%; /* Gold ring */
 
-  --popover: 35 25% 95%; /* Same as card */
-  --popover-foreground: 25 30% 20%; /* Dark text */
-  --popover-border: 35 20% 82%; /* Beige border */
+  /* Popover */
+  --popover: 0 0% 100%; /* Pure white */
+  --popover-foreground: 220 15% 18%; /* Charcoal text */
+  --popover-border: 40 20% 88%; /* Subtle border */
 
-  --primary: 25 95% 55%; /* Vibrant orange for buttons */
-  --primary-foreground: 0 0% 100%; /* White text on orange buttons */
+  /* Primary - Signature Gold */
+  --primary: 43 80% 50%; /* Rich gold */
+  --primary-foreground: 225 30% 12%; /* Dark text for contrast */
 
-  --secondary: 35 25% 85%; /* Light beige */
-  --secondary-foreground: 25 30% 25%; /* Dark text */
+  /* Secondary - Platinum Gray */
+  --secondary: 220 10% 94%; /* Light platinum */
+  --secondary-foreground: 220 15% 25%; /* Charcoal text */
 
-  --muted: 0 0% 45%; /* Dark gray for badges/toasts */
-  --muted-foreground: 0 0% 100%; /* White text on gray */
+  /* Muted - Executive Gray */
+  --muted: 220 12% 40%; /* Professional gray */
+  --muted-foreground: 0 0% 100%; /* White text */
 
-  --accent: 25 95% 55%; /* Orange accent */
-  --accent-foreground: 0 0% 100%; /* White text */
+  /* Accent - Gold Highlight */
+  --accent: 43 85% 52%; /* Bright gold accent */
+  --accent-foreground: 225 30% 12%; /* Dark text */
 
-  --destructive: 0 70% 50%; /* Red */
+  /* Destructive - Premium Red */
+  --destructive: 0 75% 55%; /* Elegant red */
   --destructive-foreground: 0 0% 100%; /* White text */
 
-  --input: 35 25% 94%; /* Light beige input background */
-  --ring: 25 95% 55%; /* Orange focus ring */
+  /* Success - Emerald */
+  --success: 160 70% 40%; /* Elegant emerald */
+  --success-foreground: 0 0% 100%; /* White text */
 
-  --chart-1: 25 95% 55%; /* Orange */
-  --chart-2: 35 30% 85%; /* Beige */
-  --chart-3: 0 0% 45%; /* Gray */
-  --chart-4: 25 30% 20%; /* Dark brown */
-  --chart-5: 0 70% 50%; /* Red accent */
+  /* Warning - Amber */
+  --warning: 38 95% 55%; /* Rich amber */
+  --warning-foreground: 38 100% 15%; /* Dark text */
 
-  --font-sans: 'Tajawal', sans-serif;
-  --font-serif: 'IBM Plex Sans Arabic', sans-serif;
-  --font-mono: Menlo, monospace;
-  --radius: .75rem; /* 12px for luxury feel */
+  /* Input & Focus */
+  --input: 40 15% 96%; /* Light ivory input */
+  --ring: 43 80% 50%; /* Gold focus ring */
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.1);
-  --shadow-sm: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.1), 0px 1px 2px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.1), 0px 1px 2px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-md: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.15), 0px 2px 4px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-lg: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.2), 0px 4px 6px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-xl: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.25), 0px 8px 10px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-2xl: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.3);
+  /* Charts - Premium Palette */
+  --chart-1: 43 80% 50%; /* Gold */
+  --chart-2: 220 15% 45%; /* Charcoal */
+  --chart-3: 160 70% 40%; /* Emerald */
+  --chart-4: 0 75% 55%; /* Ruby */
+  --chart-5: 270 60% 55%; /* Amethyst */
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'SF Mono', Menlo, monospace;
+  --radius: 0.625rem; /* 10px - subtle rounded corners */
+
+  /* Premium Shadows with Gold Tint */
+  --shadow-2xs: 0 1px 2px 0 rgba(43, 40, 35, 0.03);
+  --shadow-xs: 0 1px 3px 0 rgba(43, 40, 35, 0.05);
+  --shadow-sm: 0 2px 4px -1px rgba(43, 40, 35, 0.06), 0 1px 2px -1px rgba(43, 40, 35, 0.04);
+  --shadow: 0 4px 6px -1px rgba(43, 40, 35, 0.08), 0 2px 4px -2px rgba(43, 40, 35, 0.05);
+  --shadow-md: 0 6px 10px -2px rgba(43, 40, 35, 0.1), 0 3px 6px -3px rgba(43, 40, 35, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(43, 40, 35, 0.12), 0 4px 6px -4px rgba(43, 40, 35, 0.08);
+  --shadow-xl: 0 20px 25px -5px rgba(43, 40, 35, 0.15), 0 8px 10px -6px rgba(43, 40, 35, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(43, 40, 35, 0.25);
+  
+  /* Gold Glow Shadows */
+  --shadow-gold: 0 4px 14px -2px rgba(212, 175, 55, 0.25);
+  --shadow-gold-lg: 0 10px 30px -5px rgba(212, 175, 55, 0.35);
 
   --tracking-normal: 0em;
   --spacing: 0.25rem;
@@ -122,64 +151,76 @@
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
 
-  --opaque-button-border-intensity: 9;  /* In terms of percentages */
+  --opaque-button-border-intensity: 9;
 
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Dark mode - Beige & Orange Theme */
-  --background: 30 15% 12%; /* Dark beige-brown background */
-  --foreground: 35 25% 90%; /* Light beige text */
-  --border: 30 12% 22%; /* Dark beige border */
-  --card: 30 18% 16%; /* Dark cards */
-  --card-foreground: 35 25% 90%; /* Light beige text */
-  --card-border: 30 15% 20%; /* Dark border */
+  /* ═══════════════════════════════════════════════════════════════
+     🌙 SIGNATURE GOLD DARK MODE - Executive Night Theme
+     ═══════════════════════════════════════════════════════════════ */
+  
+  --background: 225 25% 8%; /* Deep charcoal-navy */
+  --foreground: 40 20% 92%; /* Warm ivory text */
+  --border: 225 20% 15%; /* Subtle dark border */
+  --card: 225 22% 12%; /* Elevated card surface */
+  --card-foreground: 40 20% 90%; /* Ivory text */
+  --card-border: 225 18% 18%; /* Card border */
 
-  --sidebar: 30 18% 14%; /* Dark sidebar */
-  --sidebar-foreground: 35 25% 90%; /* Light text */
-  --sidebar-border: 30 12% 20%; /* Dark border */
-  --sidebar-primary: 25 95% 55%; /* Vibrant orange */
-  --sidebar-primary-foreground: 0 0% 100%; /* White text */
-  --sidebar-accent: 30 18% 22%; /* Dark accent */
-  --sidebar-accent-foreground: 35 25% 85%; /* Light text */
-  --sidebar-ring: 25 95% 55%; /* Orange ring */
+  --sidebar: 225 28% 6%; /* Almost black sidebar */
+  --sidebar-foreground: 40 20% 90%; /* Ivory text */
+  --sidebar-border: 225 20% 12%; /* Dark border */
+  --sidebar-primary: 43 80% 55%; /* Rich gold */
+  --sidebar-primary-foreground: 225 30% 10%; /* Dark text */
+  --sidebar-accent: 225 22% 14%; /* Elevated accent */
+  --sidebar-accent-foreground: 40 20% 85%; /* Light text */
+  --sidebar-ring: 43 80% 55%; /* Gold ring */
 
-  --popover: 30 18% 16%; /* Same as card */
-  --popover-foreground: 35 25% 90%; /* Light text */
-  --popover-border: 30 15% 20%; /* Dark border */
+  --popover: 225 22% 12%; /* Card surface */
+  --popover-foreground: 40 20% 90%; /* Ivory text */
+  --popover-border: 225 18% 18%; /* Border */
 
-  --primary: 25 95% 55%; /* Vibrant orange */
-  --primary-foreground: 0 0% 100%; /* White text */
+  --primary: 43 80% 55%; /* Signature gold */
+  --primary-foreground: 225 30% 10%; /* Dark text */
 
-  --secondary: 30 18% 22%; /* Dark beige */
-  --secondary-foreground: 35 25% 85%; /* Light text */
+  --secondary: 225 18% 18%; /* Dark secondary */
+  --secondary-foreground: 40 20% 85%; /* Light text */
 
-  --muted: 0 0% 35%; /* Dark gray for badges/toasts */
+  --muted: 225 15% 35%; /* Muted gray */
   --muted-foreground: 0 0% 100%; /* White text */
 
-  --accent: 25 95% 55%; /* Orange accent */
-  --accent-foreground: 0 0% 100%; /* White text */
+  --accent: 43 85% 52%; /* Bright gold */
+  --accent-foreground: 225 30% 10%; /* Dark text */
 
-  --destructive: 0 70% 50%;
+  --destructive: 0 70% 55%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 30 18% 18%;
-  --ring: 25 95% 55%;
+  --success: 160 70% 45%;
+  --success-foreground: 0 0% 100%;
 
-  --chart-1: 25 95% 55%;
-  --chart-2: 35 25% 85%;
-  --chart-3: 0 0% 35%;
-  --chart-4: 30 18% 16%;
-  --chart-5: 0 70% 50%;
+  --warning: 38 95% 55%;
+  --warning-foreground: 38 100% 12%;
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.1);
-  --shadow-sm: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.1), 0px 1px 2px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.1), 0px 1px 2px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-md: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.15), 0px 2px 4px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-lg: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.2), 0px 4px 6px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-xl: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.25), 0px 8px 10px -1px hsl(25, 95%, 55%, 0.1);
-  --shadow-2xl: 0px 2px 0px 0px hsl(25, 95%, 55%, 0.3);
+  --input: 225 20% 15%;
+  --ring: 43 80% 55%;
+
+  --chart-1: 43 80% 55%;
+  --chart-2: 40 20% 75%;
+  --chart-3: 160 70% 45%;
+  --chart-4: 0 70% 55%;
+  --chart-5: 270 60% 60%;
+
+  --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.35), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 10px -2px rgba(0, 0, 0, 0.45), 0 3px 6px -3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.55), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+  --shadow-gold: 0 4px 14px -2px rgba(212, 175, 55, 0.2);
+  --shadow-gold-lg: 0 10px 30px -5px rgba(212, 175, 55, 0.3);
 }
 
 @layer base {
@@ -246,14 +287,246 @@
     100% { transform: translateY(-10px) rotate(2deg); opacity: 1; }
   }
 
-  /* Card Hover Effects */
+  /* ═══════════════════════════════════════════════════════════════
+     Premium Card Effects - Signature Gold
+     ═══════════════════════════════════════════════════════════════ */
+  
   .card-hover {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Executive KPI Card */
+  .kpi-card {
+    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(40 20% 98%) 100%);
+    border: 1px solid hsl(40 20% 90%);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .kpi-card:hover {
+    box-shadow: var(--shadow-gold);
+    border-color: hsl(43 80% 70%);
+  }
+
+  .dark .kpi-card {
+    background: linear-gradient(135deg, hsl(225 22% 14%) 0%, hsl(225 22% 12%) 100%);
+    border-color: hsl(225 18% 20%);
+  }
+
+  .dark .kpi-card:hover {
+    border-color: hsl(43 80% 45%);
+  }
+
+  /* Premium Stat Card */
+  .stat-card-premium {
+    background: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(40 15% 97%) 100%);
+    border: 1px solid hsl(40 15% 88%);
+    border-radius: 0.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, hsl(43 80% 50%) 0%, hsl(43 85% 60%) 50%, hsl(43 80% 50%) 100%);
+  }
+
+  /* Gold Gradient Header */
+  .header-gold {
+    background: linear-gradient(135deg, hsl(225 25% 15%) 0%, hsl(225 22% 18%) 100%);
+    color: hsl(40 20% 95%);
+  }
+
+  /* Executive Title */
+  .title-executive {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* Gold Accent Line */
+  .gold-accent-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, hsl(43 80% 50%) 50%, transparent 100%);
+  }
+
+  /* Premium Navigation Item */
+  .nav-item-premium {
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .nav-item-premium.active::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: hsl(43 80% 50%);
+    border-radius: 3px 0 0 3px;
+  }
+
+  /* Executive Dashboard Grid */
+  .dashboard-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Premium Table */
+  .table-premium {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+  }
+
+  .table-premium thead th {
+    background: hsl(40 15% 96%);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(220 15% 40%);
+    padding: 0.875rem 1rem;
+    border-bottom: 2px solid hsl(40 15% 88%);
+  }
+
+  .dark .table-premium thead th {
+    background: hsl(225 22% 14%);
+    color: hsl(40 20% 75%);
+    border-bottom-color: hsl(225 18% 22%);
+  }
+
+  .table-premium tbody tr {
+    transition: background 0.2s ease;
+  }
+
+  .table-premium tbody tr:hover {
+    background: hsl(40 20% 98%);
+  }
+
+  .dark .table-premium tbody tr:hover {
+    background: hsl(225 22% 15%);
+  }
+
+  .table-premium tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid hsl(40 15% 92%);
+  }
+
+  .dark .table-premium tbody td {
+    border-bottom-color: hsl(225 18% 18%);
+  }
+
+  /* Premium Badge */
+  .badge-premium {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .badge-gold {
+    background: linear-gradient(135deg, hsl(43 80% 50%) 0%, hsl(43 85% 55%) 100%);
+    color: hsl(225 30% 12%);
+  }
+
+  .badge-success {
+    background: hsl(160 70% 92%);
+    color: hsl(160 70% 30%);
+  }
+
+  .dark .badge-success {
+    background: hsl(160 70% 20%);
+    color: hsl(160 70% 75%);
+  }
+
+  .badge-warning {
+    background: hsl(38 95% 92%);
+    color: hsl(38 95% 30%);
+  }
+
+  .dark .badge-warning {
+    background: hsl(38 95% 20%);
+    color: hsl(38 95% 75%);
+  }
+
+  /* Premium Button */
+  .btn-premium {
+    background: linear-gradient(135deg, hsl(43 80% 50%) 0%, hsl(43 75% 45%) 100%);
+    color: hsl(225 30% 12%);
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(212, 175, 55, 0.2);
+  }
+
+  .btn-premium:hover {
+    background: linear-gradient(135deg, hsl(43 80% 55%) 0%, hsl(43 75% 50%) 100%);
+    box-shadow: var(--shadow-gold);
+    transform: translateY(-1px);
+  }
+
+  .btn-premium:active {
+    transform: translateY(0);
+  }
+
+  /* Executive Section Header */
+  .section-header-executive {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid hsl(40 15% 90%);
+  }
+
+  .dark .section-header-executive {
+    border-bottom-color: hsl(225 18% 20%);
+  }
+
+  /* Chart Container Premium */
+  .chart-container-premium {
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(40 15% 90%);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+  }
+
+  .dark .chart-container-premium {
+    background: hsl(225 22% 12%);
+    border-color: hsl(225 18% 18%);
   }
 
   /* Price Styling */
