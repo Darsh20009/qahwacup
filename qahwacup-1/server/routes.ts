@@ -3948,19 +3948,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/branches", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
-      const { insertBranchSchema } = await import("@shared/schema");
+      const { insertBranchSchema, BranchModel } = await import("@shared/schema");
       const { managerAssignment, ...branchData } = req.body;
       
-      // Ensure cafeId is present
+      // Force cafeId and tenantId for safety
       const tenantId = req.employee?.tenantId || 'demo-tenant';
-      if (!branchData.cafeId) {
-        branchData.cafeId = tenantId;
-      }
+      const cafeId = branchData.cafeId || tenantId;
       
-      const validatedData = insertBranchSchema.parse(branchData);
-      const branch = await storage.createBranch(validatedData);
+      const id = branchData.id || nanoid();
       
-      const branchId = (branch as any)._id.toString();
+      const newBranch = await BranchModel.create({
+        ...branchData,
+        id,
+        cafeId,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      const branch = serializeDoc(newBranch);
+      const branchId = branch.id;
       let managerInfo: any = null;
       
       // Handle manager assignment based on type
