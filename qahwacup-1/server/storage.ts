@@ -646,6 +646,9 @@ export class DBStorage implements IStorage {
     const addon = await ProductAddonModel.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean();
     return addon ? serializeDoc(addon) : undefined;
   }
+
+  async updateDiscountCode(id: string, updates: Partial<DiscountCode>): Promise<DiscountCode | undefined> {
+    const updated = await DiscountCodeModel.findByIdAndUpdate(id, updates, { new: true });
     return updated || undefined;
   }
 
