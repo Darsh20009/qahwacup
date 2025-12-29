@@ -1225,7 +1225,7 @@ export class DBStorage implements IStorage {
   }
 
   async getBranches(cafeId?: string): Promise<IBranch[]> {
-    const query: any = { isActive: { $ne: false } };
+    const query: any = { isActive: { $ne: false, $ne: 0 } };
     if (cafeId) query.cafeId = cafeId;
     const branches = await BranchModel.find(query).sort({ createdAt: -1 }).lean();
     return (branches as any[]).map(b => serializeDoc(b));

@@ -519,7 +519,7 @@ const BranchSchema = new Schema<IBranch>({
     lat: { type: Number },
     lng: { type: Number }
   },
-  isActive: { type: Boolean, default: true },
+  isActive: { type: Schema.Types.Mixed, default: true },
   managerName: { type: String },
   isMainBranch: { type: Boolean, default: false },
   printSettings: {

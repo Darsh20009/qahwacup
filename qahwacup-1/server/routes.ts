@@ -1937,7 +1937,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         for (const branchId of branchesToCheck) {
           const branchInfo = branchAvailability.find((b: any) => b.branchId === branchId);
-          const isBranchAvailable = branchInfo?.isAvailable === 1 ? 1 : 0;
+          // Fix: item is available if it's in published branches AND either has no specific availability record OR explicitly marked as available
+          const isBranchAvailable = (!branchInfo || branchInfo.isAvailable === 1 || (branchInfo.isAvailable as any) === true) ? 1 : 0;
           const status = !recipeAvailable ? 'out_of_stock' : (isBranchAvailable ? 'available' : 'out_of_stock');
           availabilityByBranch[branchId] = { isAvailable: isBranchAvailable, status };
         }
