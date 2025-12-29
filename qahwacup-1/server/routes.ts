@@ -844,22 +844,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activate employee account
   app.post("/api/employees/activate", async (req, res) => {
     try {
+      const { EmployeeModel } = await import("@shared/schema");
       const { phone, fullName, password } = req.body;
 
       if (!phone || !fullName || !password) {
         return res.status(400).json({ error: "رقم الهاتف والاسم وكلمة المرور مطلوبة" });
       }
 
-      const employee = await storage.activateEmployee(phone, fullName, password);
+      // Look for employee that is NOT activated and matches name/phone
+      // We trim and use case-insensitive regex for fullName to be robust
+      const employee = await EmployeeModel.findOne({
+        phone: phone.trim(),
+        fullName: { $regex: new RegExp(`^${fullName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i") },
+        isActivated: 0
+      });
 
       if (!employee) {
         return res.status(404).json({ error: "الموظف غير موجود أو تم تفعيله مسبقاً" });
       }
 
-      // Don't send password back, transform _id to id
-      const { password: _, _id, ...employeeData } = employee as any;
-      res.json({ ...employeeData, id: _id || employeeData.id });
+      const hashedPassword = await hashPassword(password);
+      
+      const updatedEmployee = await EmployeeModel.findByIdAndUpdate(employee._id, {
+        password: hashedPassword,
+        isActivated: 1,
+        updatedAt: new Date()
+      }, { new: true });
+
+      if (!updatedEmployee) {
+        return res.status(500).json({ error: "فشل تحديث بيانات الموظف" });
+      }
+
+      const serialized = serializeDoc(updatedEmployee);
+      const { password: _, ...employeeData } = serialized;
+      res.json(employeeData);
     } catch (error) {
+      console.error("Error activating employee:", error);
       res.status(500).json({ error: "Failed to activate employee" });
     }
   });
