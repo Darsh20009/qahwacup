@@ -863,8 +863,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "الموظف غير موجود أو تم تفعيله مسبقاً" });
       }
 
-      const { hashPassword } = await import("./middleware/auth");
-      const hashedPassword = await hashPassword(password);
+      // Hash password using bcrypt directly
+      const bcrypt = await import("bcryptjs");
+      const hashedPassword = await bcrypt.hash(password, 10);
       
       const updatedEmployee = await EmployeeModel.findByIdAndUpdate(employee._id, {
         password: hashedPassword,
