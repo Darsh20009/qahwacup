@@ -3883,11 +3883,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // BRANCH MANAGEMENT ROUTES
-  app.get("/api/branches", async (req, res) => {
+  app.get("/api/branches", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { BranchModel } = await import("@shared/schema");
-      // Find all branches without isActive filtering to see everything
-      const branches = await BranchModel.find().lean();
+      const tenantId = req.employee?.tenantId || 'demo-tenant';
+      const userRole = req.employee?.role;
+      const userBranchId = req.employee?.branchId;
+
+      let query: any = { 
+        $or: [
+          { cafeId: tenantId },
+          { tenantId: tenantId }
+        ]
+      };
+
+      // If manager (not admin/owner), restrict to their own branch
+      if (userRole === "manager" && userBranchId) {
+        query = { id: userBranchId };
+      }
+
+      const branches = await BranchModel.find(query).lean();
       
       const serialized = branches.map((b: any) => ({
         ...b,
