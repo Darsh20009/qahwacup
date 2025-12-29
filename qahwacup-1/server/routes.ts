@@ -3850,17 +3850,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // BRANCH MANAGEMENT ROUTES
   app.get("/api/branches", async (req, res) => {
     try {
-      // Query for all branches, then filter in code
+      const { BranchModel } = await import("@shared/schema");
+      // Find all branches without isActive filtering to see everything
       const branches = await BranchModel.find().lean();
-      const serialized = branches
-        .filter((b: any) => b.isActive === 1) // Only active branches
-        .map((b: any) => ({
-          ...b,
-          id: b._id.toString(),
-          _id: b._id.toString() // Keep both for compatibility
-        }));
+      
+      const serialized = branches.map((b: any) => ({
+        ...b,
+        id: b.id || b._id.toString(),
+        _id: b._id.toString()
+      }));
+      
       res.json(serialized);
     } catch (error) {
+      console.error("Error fetching branches:", error);
       res.status(500).json({ error: "Failed to fetch branches" });
     }
   });
