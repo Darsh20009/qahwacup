@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import compression from "compression";
 import path from "path";
 import mongoose from "mongoose";
 import { registerRoutes } from "./routes";
@@ -116,6 +117,16 @@ setInterval(async () => {
 }, 60000); // Run every 60 seconds (1 minute)
 
 const app = express();
+
+// Enable gzip compression for all responses
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
