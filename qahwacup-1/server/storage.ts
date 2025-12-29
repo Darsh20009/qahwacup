@@ -310,6 +310,22 @@ export interface IStorage {
   }>;
 }
 
+// Helper function to serialize MongoDB documents
+function serializeDoc(doc: any): any {
+  if (!doc) return null;
+  const obj = doc.toObject ? doc.toObject() : doc;
+  
+  // Only set id from _id if there's no existing id field
+  if (obj._id && !obj.id) {
+    obj.id = obj._id.toString();
+  }
+  
+  // Always clean up MongoDB internal fields
+  delete obj._id;
+  delete obj.__v;
+  return obj;
+}
+
 export class DBStorage implements IStorage {
   private orderCounter: number = 1;
 
@@ -889,10 +905,9 @@ export class DBStorage implements IStorage {
     return updated || undefined;
   }
 
-  async getOrders(tenantId?: string, limit?: number, offset?: number): Promise<Order[]> {
-    const query = tenantId ? { tenantId } : {};
-    const orders = await OrderModel.find(query).sort({ createdAt: -1 }).skip(offset || 0).limit(limit || 50);
-    return orders.map(serializeDoc);
+  async getOrders(limit?: number, offset?: number): Promise<Order[]> {
+    const orders = await OrderModel.find({}).sort({ createdAt: -1 }).skip(offset || 0).limit(limit || 50);
+    return orders.map((order: any) => serializeDoc(order));
   }
 
   async createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem> {
@@ -1107,7 +1122,8 @@ export class DBStorage implements IStorage {
   }
 
   async getIngredients(): Promise<any[]> {
-    return await IngredientModel.find();
+    const items = await IngredientModel.find();
+    return items.map(serializeDoc);
   }
 
   async createIngredient(ingredient: any): Promise<any> {
@@ -1125,7 +1141,8 @@ export class DBStorage implements IStorage {
   }
 
   async getCoffeeItemIngredients(coffeeItemId: string): Promise<any[]> {
-    return await CoffeeItemIngredientModel.find({ coffeeItemId });
+    const items = await CoffeeItemIngredientModel.find({ coffeeItemId });
+    return items.map(serializeDoc);
   }
 
   async addCoffeeItemIngredient(coffeeItemId: string, ingredientId: string, quantity: number = 0, unit: string = 'ml'): Promise<any> {
@@ -1252,7 +1269,8 @@ export class DBStorage implements IStorage {
   }
 
   async getCategories(): Promise<Category[]> {
-    return await CategoryModel.find().sort({ sortOrder: 1, nameAr: 1 });
+    const categories = await CategoryModel.find().sort({ sortOrder: 1, nameAr: 1 });
+    return categories.map(serializeDoc);
   }
 
   async getCategory(id: string): Promise<Category | null> {
