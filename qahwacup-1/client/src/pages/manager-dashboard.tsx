@@ -119,7 +119,7 @@ export default function ManagerDashboard() {
  enabled: !!manager,
  });
 
- const branches = isAdmin ? allBranches : allBranches.filter(branch => branch._id === managerBranchId);
+ const branches = isAdmin ? allBranches : allBranches.filter(branch => branch.id === managerBranchId || branch._id === managerBranchId);
 
  const availableManagers = allEmployees.filter(emp => 
  emp.role === "manager" || emp.role === "admin"
@@ -665,74 +665,132 @@ export default function ManagerDashboard() {
 
  <Tabs defaultValue="orders" className="space-y-4">
  <TabsList className="grid w-full grid-cols-5 h-14">
- <TabsTrigger value="orders" data-testid="tab-orders">
- <Receipt className="w-4 h-4 ml-2" />
- الطلبات
- </TabsTrigger>
- <TabsTrigger value="customers" data-testid="tab-customers">
- <Users className="w-4 h-4 ml-2" />
- العملاء
- </TabsTrigger>
- <TabsTrigger value="employees" data-testid="tab-employees">
- <UserCheck className="w-4 h-4 ml-2" />
- الموظفين
- </TabsTrigger>
- <TabsTrigger value="branches" data-testid="tab-branches">
- <MapPin className="w-4 h-4 ml-2" />
- الفروع
- </TabsTrigger>
- <TabsTrigger value="reports" data-testid="tab-reports">
- <BarChart3 className="w-4 h-4 ml-2" />
- التقارير
- </TabsTrigger>
+ <TabsTrigger value="orders" className="rounded-lg">الطلبات</TabsTrigger>
+ <TabsTrigger value="analytics" className="rounded-lg">التحليلات</TabsTrigger>
+ <TabsTrigger value="top-items" className="rounded-lg">الأكثر مبيعاً</TabsTrigger>
+ <TabsTrigger value="employees" className="rounded-lg">أداء الموظفين</TabsTrigger>
+ <TabsTrigger value="branches" className="rounded-lg">الفروع</TabsTrigger>
  </TabsList>
 
- <TabsContent value="customers" className="space-y-4">
+ <TabsContent value="orders" className="space-y-4">
  <Card>
  <CardHeader>
- <CardTitle className="text-primary">قائمة العملاء المسجلين</CardTitle>
- <CardDescription>
- جميع العملاء الذين لديهم حسابات في النظام
- </CardDescription>
+ <CardTitle>سجل الطلبات</CardTitle>
+ <CardDescription>آخر الطلبات المسجلة في النظام</CardDescription>
  </CardHeader>
  <CardContent>
- <div className="space-y-3">
- {customers.length === 0 ? (
- <EmptyState 
- title="لا يوجد عملاء" 
- description="لا يوجد عملاء مسجلين في النظام حالياً"
- icon={<Users className="w-10 h-10 text-muted-foreground" />}
- />
+ <div className="space-y-4">
+ {filteredOrders.length === 0 ? (
+ <EmptyState title="لا يوجد طلبات" description="لم يتم العثور على طلبات في هذه الفترة" />
  ) : (
- customers.map((customer: any) => (
- <div
- key={customer._id}
- className="flex items-center justify-between gap-4 p-4 bg-muted rounded-lg border border-border"
- data-testid={`customer-${customer._id}`}
- >
- <div className="flex-1">
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
- <Users className="w-5 h-5 text-primary-foreground" />
+ filteredOrders.slice(0, 10).map((order) => {
+ const employee = employees.find(e => e._id === order.employeeId);
+ return (
+ <div key={order._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-xl bg-muted/30 gap-4">
+ <div className="flex items-center gap-4">
+ <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+ <Receipt className="w-6 h-6 text-primary" />
  </div>
  <div>
- <h3 className="font-semibold text-foreground">{customer.name}</h3>
- <p className="text-sm text-muted-foreground">{customer.phone}</p>
- {customer.email && (
- <p className="text-xs text-muted-foreground">{customer.email}</p>
+ <p className="font-bold text-foreground">طلب #{order.orderNumber}</p>
+ <div className="flex items-center gap-2 text-xs text-muted-foreground">
+ <span>{order.createdAt ? new Date(order.createdAt).toLocaleString('ar-SA') : ''}</span>
+ <span>•</span>
+ <span>{order.customerInfo?.name || 'عميل'}</span>
+ </div>
+ </div>
+ </div>
+ <div className="flex items-center gap-4 justify-between sm:justify-end">
+ <div className="text-left sm:text-right">
+ <p className="font-bold text-primary">{Number(order.totalAmount).toFixed(2)} ر.س</p>
+ <Badge variant={order.status === "completed" ? "default" : "secondary"}>
+ {order.status}
+ </Badge>
+ </div>
+ <Button variant="ghost" size="icon" onClick={() => setLocation(`/order-receipt/${order._id}`)}>
+ <ExternalLink className="w-4 h-4" />
+ </Button>
+ </div>
+ </div>
+ );
+ })
  )}
  </div>
+ </CardContent>
+ </Card>
+ </TabsContent>
+
+ <TabsContent value="analytics" className="space-y-4">
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+ <Card>
+ <CardHeader>
+ <CardTitle>إجمالي المبيعات اليومية</CardTitle>
+ </CardHeader>
+ <CardContent className="h-[300px]">
+ <ResponsiveContainer width="100%" height="100%">
+ <AreaChart data={dailyRevenueData}>
+ <defs>
+ <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+ <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+ </linearGradient>
+ </defs>
+ <CartesianGrid strokeDasharray="3 3" vertical={false} />
+ <XAxis dataKey="date" />
+ <YAxis />
+ <Tooltip />
+ <Area type="monotone" dataKey="revenue" name="المبيعات" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorRevenue)" />
+ </AreaChart>
+ </ResponsiveContainer>
+ </CardContent>
+ </Card>
+
+ <Card>
+ <CardHeader>
+ <CardTitle>توزيع طرق الدفع</CardTitle>
+ </CardHeader>
+ <CardContent className="h-[300px]">
+ <ResponsiveContainer width="100%" height="100%">
+ <PieChart>
+ <Pie
+ data={paymentMethodsData}
+ cx="50%"
+ cy="50%"
+ innerRadius={60}
+ outerRadius={80}
+ paddingAngle={5}
+ dataKey="value"
+ >
+ {paymentMethodsData.map((_, index) => (
+ <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+ ))}
+ </Pie>
+ <Tooltip />
+ <Legend />
+ </PieChart>
+ </ResponsiveContainer>
+ </CardContent>
+ </Card>
  </div>
- </div>
- <div className="text-left">
- <Badge variant="outline">عميل</Badge>
- <p className="text-xs text-muted-foreground mt-1">
- منذ {new Date(customer.createdAt).toLocaleDateString('ar-SA')}
- </p>
- </div>
- </div>
- ))
- )}
+ </TabsContent>
+
+ <TabsContent value="top-items" className="space-y-4">
+ <Card>
+ <CardHeader>
+ <CardTitle>المنتجات الأكثر مبيعاً</CardTitle>
+ <CardDescription>ترتيب المنتجات حسب عدد المبيعات</CardDescription>
+ </CardHeader>
+ <CardContent>
+ <div className="h-[400px]">
+ <ResponsiveContainer width="100%" height="100%">
+ <RechartsBar data={topItemsData} layout="vertical" margin={{ left: 40 }}>
+ <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+ <XAxis type="number" />
+ <YAxis dataKey="name" type="category" width={100} />
+ <Tooltip />
+ <RechartsBar dataKey="count" name="عدد المبيعات" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+ </RechartsBar>
+ </ResponsiveContainer>
  </div>
  </CardContent>
  </Card>
@@ -741,137 +799,37 @@ export default function ManagerDashboard() {
  <TabsContent value="employees" className="space-y-4">
  <Card>
  <CardHeader>
- <CardTitle className="text-primary">الموظفين وأداءهم</CardTitle>
- <CardDescription>
- تفاصيل الموظفين مع إحصائيات المبيعات
- </CardDescription>
+ <CardTitle>أداء الموظفين</CardTitle>
+ <CardDescription>مبيعات الموظفين وعدد الطلبات لكل موظف</CardDescription>
  </CardHeader>
  <CardContent>
- <div className="space-y-3">
- {employeesWithStats.length === 0 ? (
- <EmptyState 
- title="لا يوجد موظفين" 
- description="لا يوجد موظفين مسجلين في النظام حالياً"
- icon={<UserCheck className="w-10 h-10 text-muted-foreground" />}
- />
- ) : (
- employeesWithStats.map((emp) => (
- <div
- key={emp._id?.toString() || emp.id || Math.random()}
- className="flex items-center justify-between gap-4 p-4 bg-muted rounded-lg border border-border"
- data-testid={`employee-${emp._id || emp.id}`}
- >
- <div className="flex-1">
- <div className="flex items-center gap-3">
- {emp.imageUrl ? (
- <img 
- src={emp.imageUrl} 
- alt={emp.fullName}
- className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
- />
- ) : (
- <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
- <UserCheck className="w-6 h-6 text-primary-foreground" />
- </div>
- )}
- <div>
- <h3 className="font-semibold text-foreground">{emp.fullName}</h3>
- <p className="text-sm text-muted-foreground">{emp.jobTitle} - {emp.role === 'manager' ? 'مدير' : 'كاشير'}</p>
- <p className="text-xs text-muted-foreground">{emp.phone}</p>
- </div>
- </div>
- </div>
- <div className="text-left space-y-1">
- <Badge variant={emp.role === 'manager' ? 'default' : 'secondary'}>
- {emp.role === 'manager' ? 'مدير' : 'كاشير'}
- </Badge>
- <div className="text-sm text-muted-foreground">
- <p>{emp.orderCount || 0} طلب</p>
- <p className="text-primary font-semibold">{(emp.totalSales || 0).toFixed(2)} ر.س</p>
- </div>
- </div>
- </div>
- ))
- )}
- </div>
- </CardContent>
- </Card>
- </TabsContent>
-
- <TabsContent value="orders" className="space-y-4">
- <Card>
- <CardHeader>
- <CardTitle className="text-primary">جميع الطلبات</CardTitle>
- <CardDescription>
- عرض تفاصيل الطلبات مع معلومات الموظف وطريقة الدفع
- </CardDescription>
- </CardHeader>
- <CardContent>
- <div className="space-y-3 max-h-[600px] overflow-y-auto">
- {orders.length === 0 ? (
- <EmptyState 
- title="لا توجد طلبات" 
- description="لا توجد طلبات في النظام حالياً"
- icon={<ShoppingBag className="w-10 h-10 text-muted-foreground" />}
- />
- ) : (
- orders.slice().reverse().map((order: any) => {
- const employee = employees.find(e => e._id === order.employeeId);
- const branch = allBranches.find(b => b._id === order.branchId);
-
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+ {employeesWithStats.map((emp) => {
+ const empId = emp._id?.toString() || emp.id?.toString();
  return (
- <div
- key={order._id}
- className="p-4 bg-muted rounded-lg border border-border"
- data-testid={`order-${order._id}`}
- >
- {branch && (
- <Badge className="mb-2">{branch.nameAr}</Badge>
- )}
- <div className="flex justify-between items-start mb-3 gap-2">
+ <div key={empId} className="p-4 border border-border rounded-xl bg-muted/30">
+ <div className="flex items-center gap-3 mb-4">
+ <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+ <Users className="w-5 h-5 text-primary" />
+ </div>
  <div>
- <p className="font-semibold text-primary">#{order.orderNumber}</p>
- <p className="text-sm text-muted-foreground">
- {new Date(order.createdAt).toLocaleString('ar-SA')}
- </p>
- {order.tableNumber && (
- <p className="text-sm text-accent">طاولةرقم: {order.tableNumber}</p>
- )}
+ <p className="font-bold">{emp.fullName}</p>
+ <Badge variant="outline" className="text-[10px]">{emp.role === 'admin' ? 'مدير عام' : emp.role === 'manager' ? 'مدير' : 'موظف'}</Badge>
  </div>
- <Badge variant={
- order.status === 'completed' ? 'default' :
- order.status === 'cancelled' ? 'destructive' :
- order.status === 'ready' ? 'default' :
- 'secondary'
- }>
- {order.status}
- </Badge>
  </div>
- 
- <div className="space-y-2 text-sm">
- <div className="flex justify-between text-muted-foreground">
- <span>العميل:</span>
- <span className="text-foreground">{order.customerInfo?.name || 'غير محدد'}</span>
+ <div className="space-y-2">
+ <div className="flex justify-between text-sm">
+ <span className="text-muted-foreground">عدد الطلبات:</span>
+ <span className="font-bold">{emp.orderCount || 0}</span>
  </div>
- <div className="flex justify-between text-muted-foreground">
- <span>طريقة الدفع:</span>
- <span className="text-foreground">{order.paymentMethod === 'cash' ? 'نقدي' : order.paymentMethod}</span>
- </div>
- {employee && (
- <div className="flex justify-between text-muted-foreground">
- <span>الكاشير:</span>
- <span className="text-foreground">{employee.fullName}</span>
- </div>
- )}
- <div className="flex justify-between text-muted-foreground pt-2 border-t border-border">
- <span>الإجمالي:</span>
- <span className="text-primary font-bold">{Number(order.totalAmount).toFixed(2)} ر.س</span>
+ <div className="flex justify-between text-sm">
+ <span className="text-muted-foreground">إجمالي المبيعات:</span>
+ <span className="font-bold text-primary">{(emp.totalSales || 0).toFixed(2)} ر.س</span>
  </div>
  </div>
  </div>
  );
- })
- )}
+ })}
  </div>
  </CardContent>
  </Card>
@@ -884,9 +842,10 @@ export default function ManagerDashboard() {
  <div>
  <CardTitle className="text-primary">الفروع</CardTitle>
  <CardDescription>
- إدارةفروع المقهى
+ إدارة فروع المقهى
  </CardDescription>
  </div>
+ {isAdmin && (
  <Dialog open={isAddBranchOpen} onOpenChange={setIsAddBranchOpen}>
  <DialogTrigger asChild>
  <Button data-testid="button-add-branch">
@@ -1003,327 +962,129 @@ export default function ManagerDashboard() {
  )}
  </div>
  ) : (
- <div className="space-y-3">
- <div className="grid gap-2">
- <Label>اسم المدير الكامل *</Label>
+ <div className="grid gap-3">
+ <div className="grid gap-1.5">
+ <Label htmlFor="mgr-name">الاسم الكامل *</Label>
  <Input
+ id="mgr-name"
  value={newManagerForm.fullName}
  onChange={(e) => setNewManagerForm({ ...newManagerForm, fullName: e.target.value })}
- placeholder="مثال: أحمد محمد"
+ placeholder="الاسم الكامل للمدير"
  data-testid="input-new-manager-name"
  />
  </div>
- <div className="grid gap-2">
- <Label>اسم المستخدم *</Label>
+ <div className="grid gap-1.5">
+ <Label htmlFor="mgr-user">اسم المستخدم *</Label>
  <Input
+ id="mgr-user"
  value={newManagerForm.username}
  onChange={(e) => setNewManagerForm({ ...newManagerForm, username: e.target.value })}
- placeholder="مثال: ahmed_manager"
+ placeholder="اسم المستخدم للدخول"
  data-testid="input-new-manager-username"
  />
  </div>
- <div className="grid gap-2">
- <Label>رقم الهاتف *</Label>
+ <div className="grid gap-1.5">
+ <Label htmlFor="mgr-phone">رقم الجوال *</Label>
  <Input
+ id="mgr-phone"
  value={newManagerForm.phone}
  onChange={(e) => setNewManagerForm({ ...newManagerForm, phone: e.target.value })}
- placeholder="مثال: 0501234567"
+ placeholder="مثال: 05XXXXXXXX"
  data-testid="input-new-manager-phone"
  />
  </div>
- <p className="text-xs text-muted-foreground">سيتم إنشاء المدير بدون كلمة مرور. يمكنه تفعيل حسابه لاحقاً.</p>
  </div>
  )}
  </div>
+ 
  <div className="grid gap-2">
- <Label htmlFor="mapsUrl">رابط Google Maps</Label>
- <Input
- id="mapsUrl"
- value={branchForm.mapsUrl}
- onChange={(e) => setBranchForm({ ...branchForm, mapsUrl: e.target.value })}
- placeholder="https://maps.app.goo.gl/..."
- data-testid="input-branch-maps-url"
+ <Label>موقع الفرع على الخريطة</Label>
+ <div className="h-[250px] rounded-lg overflow-hidden border border-border">
+ <BranchLocationPicker
+ lat={branchForm.latitude}
+ lng={branchForm.longitude}
+ onChange={(lat, lng) => setBranchForm({ ...branchForm, latitude: lat, longitude: lng })}
  />
+ </div>
+ <div className="flex gap-4 text-xs text-muted-foreground">
+ <span>خط العرض: {branchForm.latitude.toFixed(6)}</span>
+ <span>خط الطول: {branchForm.longitude.toFixed(6)}</span>
+ </div>
  </div>
  
- <BranchLocationPicker
- initialLat={branchForm.latitude}
- initialLng={branchForm.longitude}
- onLocationSelect={(lat, lng) => {
- setBranchForm({ ...branchForm, latitude: lat, longitude: lng });
- }}
- />
- </div>
- <div className="flex gap-2 justify-end flex-wrap">
- <Button
- variant="outline"
- onClick={() => setIsAddBranchOpen(false)}
- >
- إلغاء
- </Button>
- <Button
- onClick={handleCreateBranch}
+ <Button 
+ onClick={handleCreateBranch} 
  disabled={createBranchMutation.isPending}
- data-testid="button-submit-branch"
+ className="w-full h-12 text-lg"
+ data-testid="button-save-branch"
  >
- {createBranchMutation.isPending ? "جاري الإضافة..." : "إضافة الفرع"}
+ {createBranchMutation.isPending ? "جاري الحفظ..." : "حفظ الفرع"}
  </Button>
  </div>
  </DialogContent>
  </Dialog>
+ )}
  </div>
  </CardHeader>
  <CardContent>
- <div className="space-y-3">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {branches.length === 0 ? (
- <EmptyState 
- title="لا توجد فروع" 
- description="لا توجد فروع مسجلة في النظام"
- icon={<MapPin className="w-10 h-10 text-muted-foreground" />}
- />
+ <EmptyState title="لا يوجد فروع" description="لم يتم العثور على فروع مسجلة" />
  ) : (
- branches.map((branch: any) => (
- <div
- key={branch.id || branch._id}
- className="p-4 bg-muted rounded-lg border border-border"
- data-testid={`branch-${branch.id || branch._id}`}
- >
- <div className="flex items-center gap-3 flex-wrap">
- <MapPin className="w-8 h-8 text-primary" />
- <div className="flex-1 min-w-0">
- <h3 className="font-semibold text-foreground">{branch.nameAr}</h3>
- <p className="text-sm text-muted-foreground">{branch.address}, {branch.city}</p>
- <p className="text-sm text-muted-foreground">{branch.phone}</p>
- {branch.mapsUrl && (
- <a 
- href={branch.mapsUrl} 
- target="_blank" 
- rel="noopener noreferrer"
- className="text-xs text-primary hover:underline flex items-center gap-1 mt-1"
- data-testid={`link-map-${branch.id || branch._id}`}
- >
- <MapPin className="w-3 h-3" />
- عرض على الخريطة
- <ExternalLink className="w-3 h-3" />
- </a>
- )}
+ branches.map((branch) => (
+ <Card key={branch._id || branch.id} className="border-border/50 hover:border-primary/50 transition-colors">
+ <CardContent className="p-4">
+ <div className="flex justify-between items-start mb-4">
+ <div className="flex items-center gap-3">
+ <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+ <MapPin className="w-5 h-5 text-primary" />
+ </div>
+ <div>
+ <h3 className="font-bold text-lg">{branch.nameAr}</h3>
+ <p className="text-sm text-muted-foreground">{branch.city}</p>
+ </div>
+ </div>
+ <Badge variant={branch.isActive === 1 || branch.isActive === true ? "default" : "secondary"}>
+ {branch.isActive === 1 || branch.isActive === true ? "نشط" : "غير نشط"}
+ </Badge>
+ </div>
+ <div className="space-y-2 text-sm text-muted-foreground">
+ <div className="flex items-center gap-2">
+ <Users className="w-4 h-4" />
+ <span>{branch.managerName || 'لا يوجد مدير'}</span>
  </div>
  <div className="flex items-center gap-2">
- <Badge variant={branch.isActive ? 'default' : 'destructive'}>
- {branch.isActive ? 'نشط' : 'غير نشط'}
- </Badge>
- <Button
- variant="destructive"
- size="icon"
+ <Activity className="w-4 h-4" />
+ <span>{branch.phone}</span>
+ </div>
+ <div className="flex items-center gap-2">
+ <MapPin className="w-4 h-4" />
+ <span>{branch.address}</span>
+ </div>
+ </div>
+ {isAdmin && (
+ <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+ <Button 
+ variant="outline" 
+ size="sm" 
+ className="flex-1"
  onClick={() => {
- if (window.confirm(`هل أنت متأكد من حذف الفرع: ${branch.nameAr}؟`)) {
- deleteBranchMutation.mutate(branch.id || branch._id);
+ if (confirm('هل أنت متأكد من حذف هذا الفرع؟')) {
+ deleteBranchMutation.mutate(branch._id || branch.id);
  }
  }}
  disabled={deleteBranchMutation.isPending}
- data-testid={`button-delete-branch-${branch.id || branch._id}`}
  >
- <Trash2 className="w-4 h-4" />
+ <Trash2 className="w-4 h-4 ml-2" />
+ حذف
  </Button>
  </div>
- </div>
- </div>
+ )}
+ </CardContent>
+ </Card>
  ))
  )}
  </div>
- </CardContent>
- </Card>
- </TabsContent>
-
- <TabsContent value="reports" className="space-y-4">
- <Card>
- <CardHeader>
- <div className="flex justify-between items-center gap-4 flex-wrap">
- <div>
- <CardTitle className="text-primary">مخطط المبيعات اليومية</CardTitle>
- <CardDescription>
- تطور المبيعات خلال الفترةالمحددة 
- </CardDescription>
- </div>
- <Button 
- variant="outline" 
- onClick={handleExportData}
- data-testid="button-export-data"
- >
- <Download className="w-4 h-4 ml-2" />
- تصدير
- </Button>
- </div>
- </CardHeader>
- <CardContent>
- {dailyRevenueData.length > 0 ? (
- <ResponsiveContainer width="100%" height={300}>
- <AreaChart data={dailyRevenueData}>
- <defs>
- <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
- <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
- </linearGradient>
- </defs>
- <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
- <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
- <YAxis stroke="hsl(var(--muted-foreground))" />
- <Tooltip 
- contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
- labelStyle={{ color: 'hsl(var(--primary))' }}
- />
- <Area 
- type="monotone" 
- dataKey="revenue" 
- stroke="hsl(var(--primary))" 
- fillOpacity={1} 
- fill="url(#colorRevenue)" 
- />
- </AreaChart>
- </ResponsiveContainer>
- ) : (
- <EmptyState 
- title="لا توجد بيانات" 
- description="لا توجد بيانات للعرض في الفترة المحددة"
- />
- )}
- </CardContent>
- </Card>
-
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
- <Card>
- <CardHeader>
- <CardTitle className="text-primary">أكثر المنتجات مبيعاً</CardTitle>
- <CardDescription>
- أعلى 10 منتجات من حيث الإيرادات
- </CardDescription>
- </CardHeader>
- <CardContent>
- {topItemsData.length > 0 ? (
- <>
- <ResponsiveContainer width="100%" height={300}>
- <RechartsBar data={topItemsData}>
- <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
- <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" angle={-45} textAnchor="end" height={100} />
- <YAxis stroke="hsl(var(--muted-foreground))" />
- <Tooltip 
- contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
- labelStyle={{ color: 'hsl(var(--primary))' }}
- />
- <Bar dataKey="revenue" fill="hsl(var(--primary))" />
- </RechartsBar>
- </ResponsiveContainer>
- 
- <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
- {topItemsData.slice(0, 5).map((item, index) => (
- <div key={index} className="flex justify-between items-center gap-2 p-2 bg-muted rounded">
- <div className="flex items-center gap-2">
- <Badge>{index + 1}</Badge>
- <span className="text-foreground">{item.name}</span>
- </div>
- <div className="text-left">
- <p className="text-primary font-semibold">{item.revenue.toFixed(2)} ر.س</p>
- <p className="text-xs text-muted-foreground">{item.count} مبيعات</p>
- </div>
- </div>
- ))}
- </div>
- </>
- ) : (
- <EmptyState 
- title="لا توجد بيانات" 
- description="لا توجد بيانات للعرض"
- />
- )}
- </CardContent>
- </Card>
-
- <Card>
- <CardHeader>
- <CardTitle className="text-primary">توزيع طرق الدفع</CardTitle>
- <CardDescription>
- نسب استخدام وسائل الدفع المختلفة
- </CardDescription>
- </CardHeader>
- <CardContent>
- {paymentMethodsData.length > 0 ? (
- <>
- <ResponsiveContainer width="100%" height={250}>
- <PieChart>
- <Pie
- data={paymentMethodsData}
- cx="50%"
- cy="50%"
- labelLine={false}
- label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
- outerRadius={80}
- fill="hsl(var(--primary))"
- dataKey="value"
- >
- {paymentMethodsData.map((entry, index) => (
- <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
- ))}
- </Pie>
- <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
- </PieChart>
- </ResponsiveContainer>
- 
- <div className="mt-4 space-y-2">
- {paymentMethodsData.map((method, index) => (
- <div key={index} className="flex justify-between items-center gap-2 p-2 bg-muted rounded">
- <div className="flex items-center gap-2">
- <div 
- className="w-4 h-4 rounded" 
- style={{ backgroundColor: COLORS[index % COLORS.length] }}
- />
- <span className="text-foreground">{method.name}</span>
- </div>
- <Badge variant="outline">
- {method.value} طلب
- </Badge>
- </div>
- ))}
- </div>
- </>
- ) : (
- <EmptyState 
- title="لا توجد بيانات" 
- description="لا توجد بيانات للعرض"
- />
- )}
- </CardContent>
- </Card>
- </div>
-
- <Card>
- <CardHeader>
- <CardTitle className="text-primary">أداء الموظفين</CardTitle>
- <CardDescription>
- مبيعات كل موظف خلال الفترةالمحددة 
- </CardDescription>
- </CardHeader>
- <CardContent>
- {employeesWithStats.length > 0 ? (
- <ResponsiveContainer width="100%" height={300}>
- <RechartsBar data={employeesWithStats}>
- <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
- <XAxis dataKey="fullName" stroke="hsl(var(--muted-foreground))" />
- <YAxis stroke="hsl(var(--muted-foreground))" />
- <Tooltip 
- contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
- labelStyle={{ color: 'hsl(var(--primary))' }}
- />
- <Legend />
- <Bar dataKey="orderCount" fill="hsl(var(--chart-1))" name="عدد الطلبات" />
- <Bar dataKey="totalSales" fill="hsl(var(--accent))" name="إجمالي المبيعات" />
- </RechartsBar>
- </ResponsiveContainer>
- ) : (
- <EmptyState 
- title="لا توجد بيانات" 
- description="لا توجد بيانات للعرض"
- />
- )}
  </CardContent>
  </Card>
  </TabsContent>
