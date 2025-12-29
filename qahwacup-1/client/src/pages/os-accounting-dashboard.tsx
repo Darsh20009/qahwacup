@@ -14,7 +14,7 @@ export default function OSAccountingDashboard() {
   const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/orders", startDate, endDate],
   });
 

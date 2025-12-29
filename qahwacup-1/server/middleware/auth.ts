@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { PermissionsEngine, type Permission } from "../permissions-engine";
 
 export interface AuthRequest extends Request {
   employee?: {
@@ -8,6 +9,24 @@ export interface AuthRequest extends Request {
     branchId?: string;
     tenantId: string;
     fullName: string;
+  };
+}
+
+export function requirePermission(permission: Permission) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.employee) {
+      return res.status(401).json({ error: "Unauthorized - Please log in" });
+    }
+
+    if (!PermissionsEngine.hasPermission(req.employee.role, permission)) {
+      return res.status(403).json({ 
+        error: "Forbidden - Insufficient permissions",
+        required: permission,
+        yourRole: req.employee.role
+      });
+    }
+
+    next();
   };
 }
 

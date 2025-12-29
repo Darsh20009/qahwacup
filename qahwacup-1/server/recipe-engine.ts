@@ -1,9 +1,10 @@
 /**
- * Recipe Intelligence Engine - Phase 1
- * Handles recipe cost calculation, validation, and integration with orders
+ * Recipe Intelligence Engine - Phase 1 Enhanced
+ * Handles recipe cost calculation, validation, modifiers, and integration with orders
+ * Competitive advantage: Full cost transparency for every drink
  */
 
-import { RecipeModel, RawItemModel, CoffeeItemModel, type IRecipe } from "@shared/schema";
+import { RecipeModel, RawItemModel, CoffeeItemModel, ProductAddonModel, type IRecipe } from "@shared/schema";
 import { nanoid } from "nanoid";
 
 interface RecipeIngredient {
@@ -16,6 +17,27 @@ interface CalculatedRecipeIngredient extends RecipeIngredient {
   rawItemName: string;
   unitCost: number;
   totalCost: number;
+}
+
+interface ModifierCost {
+  modifierId: string;
+  modifierName: string;
+  quantity: number;
+  priceImpact: number;
+  recipeCost: number;
+  totalCost: number;
+}
+
+interface OrderItemCostSnapshot {
+  baseRecipeCost: number;
+  modifiersCost: number;
+  totalCost: number;
+  sellingPrice: number;
+  profitAmount: number;
+  profitMargin: number;
+  ingredients: CalculatedRecipeIngredient[];
+  modifiers: ModifierCost[];
+  snapshotTime: Date;
 }
 
 /**
@@ -191,11 +213,169 @@ export class RecipeEngine {
     profitMargin: number;
   } {
     const profitAmount = sellingPrice - costOfGoods;
-    const profitMargin = (profitAmount / sellingPrice) * 100;
+    const profitMargin = sellingPrice > 0 ? (profitAmount / sellingPrice) * 100 : 0;
 
     return {
       profitAmount: parseFloat(profitAmount.toFixed(2)),
       profitMargin: parseFloat(profitMargin.toFixed(2)),
+    };
+  }
+
+  /**
+   * 1.3 Calculate modifier cost with recipe impact
+   * Each modifier can have a price impact AND recipe/inventory impact
+   */
+  static async calculateModifiersCost(
+    modifiers: Array<{ modifierId: string; quantity: number }>
+  ): Promise<{
+    success: boolean;
+    totalCost: number;
+    modifiers: ModifierCost[];
+    errors?: string[];
+  }> {
+    const errors: string[] = [];
+    let totalCost = 0;
+    const calculatedModifiers: ModifierCost[] = [];
+
+    for (const mod of modifiers) {
+      let addon = await ProductAddonModel.findOne({ id: mod.modifierId });
+      if (!addon) {
+        addon = await ProductAddonModel.findById(mod.modifierId);
+      }
+      if (!addon) {
+        continue;
+      }
+
+      const priceImpact = (addon.price || 0) * mod.quantity;
+      let recipeCost = 0;
+
+      if (addon.rawItemId && addon.quantityPerUnit) {
+        const rawItem = await RawItemModel.findOne({ _id: addon.rawItemId });
+        if (rawItem) {
+          const unitCost = (rawItem as any).unitCost || (rawItem as any).costPerUnit || 0;
+          recipeCost = addon.quantityPerUnit * mod.quantity * unitCost;
+        }
+      }
+
+      const modifierTotalCost = recipeCost;
+      totalCost += modifierTotalCost;
+
+      calculatedModifiers.push({
+        modifierId: mod.modifierId,
+        modifierName: addon.nameAr,
+        quantity: mod.quantity,
+        priceImpact,
+        recipeCost,
+        totalCost: modifierTotalCost,
+      });
+    }
+
+    return {
+      success: errors.length === 0,
+      totalCost: parseFloat(totalCost.toFixed(2)),
+      modifiers: calculatedModifiers,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  }
+
+  /**
+   * 1.5 Enhanced: Create complete cost snapshot for order item
+   * Freezes recipe + modifiers cost at order creation time
+   */
+  static async createOrderItemCostSnapshot(
+    coffeeItemId: string,
+    sellingPrice: number,
+    quantity: number,
+    modifiers?: Array<{ modifierId: string; quantity: number }>
+  ): Promise<OrderItemCostSnapshot | null> {
+    const recipe = await this.getActiveRecipe(coffeeItemId);
+    
+    const unitRecipeCost = recipe ? recipe.totalCost : 0;
+    const ingredients = recipe ? recipe.ingredients : [];
+
+    let unitModifiersCost = 0;
+    let calculatedModifiers: ModifierCost[] = [];
+
+    if (modifiers && modifiers.length > 0) {
+      const modResult = await this.calculateModifiersCost(modifiers);
+      unitModifiersCost = modResult.totalCost;
+      calculatedModifiers = modResult.modifiers;
+    }
+
+    const unitTotalCost = unitRecipeCost + unitModifiersCost;
+    const totalCost = unitTotalCost * quantity;
+    const totalSellingPrice = sellingPrice * quantity;
+    const { profitAmount, profitMargin } = this.calculateProfit(totalSellingPrice, totalCost);
+
+    return {
+      baseRecipeCost: unitRecipeCost,
+      modifiersCost: unitModifiersCost,
+      totalCost,
+      sellingPrice: totalSellingPrice,
+      profitAmount,
+      profitMargin,
+      ingredients,
+      modifiers: calculatedModifiers,
+      snapshotTime: new Date(),
+    };
+  }
+
+  /**
+   * Calculate total COGS for entire order
+   */
+  static async calculateOrderCOGS(
+    items: Array<{
+      coffeeItemId: string;
+      price: number;
+      quantity: number;
+      selectedAddons?: Array<{ id: string; quantity?: number }>;
+      addons?: Array<{ id: string; quantity?: number }>;
+      customization?: { selectedAddons?: Array<{ id: string; quantity?: number }> };
+    }>
+  ): Promise<{
+    totalCOGS: number;
+    totalRevenue: number;
+    totalProfit: number;
+    profitMargin: number;
+    itemSnapshots: OrderItemCostSnapshot[];
+  }> {
+    const itemSnapshots: OrderItemCostSnapshot[] = [];
+    let totalCOGS = 0;
+    let totalRevenue = 0;
+
+    for (const item of items) {
+      const rawAddons = item.selectedAddons || 
+                        item.addons || 
+                        (item.customization as any)?.selectedAddons || 
+                        [];
+      const modifiers = rawAddons.map((a: any) => ({
+        modifierId: a.id || a.addonId || a.modifierId || a._id,
+        quantity: (a.quantity || 1),
+      }));
+
+      const snapshot = await this.createOrderItemCostSnapshot(
+        item.coffeeItemId,
+        item.price,
+        item.quantity,
+        modifiers
+      );
+
+      if (snapshot) {
+        itemSnapshots.push(snapshot);
+        totalCOGS += snapshot.totalCost;
+        totalRevenue += snapshot.sellingPrice;
+      }
+    }
+
+    const totalProfit = totalRevenue - totalCOGS;
+    const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+    return {
+      totalCOGS: parseFloat(totalCOGS.toFixed(2)),
+      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+      totalProfit: parseFloat(totalProfit.toFixed(2)),
+      profitMargin: parseFloat(profitMargin.toFixed(2)),
+      itemSnapshots,
     };
   }
 

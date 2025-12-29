@@ -31,6 +31,7 @@ export interface ICoffeeItem extends Document {
     branchId: string;
     isAvailable: number;
   }>;
+  recipeId?: string;
   hasRecipe?: number;
   requiresRecipe?: number;
   createdByEmployeeId?: string;

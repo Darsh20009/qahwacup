@@ -535,3 +535,95 @@ export type WasteReport = {
   notes: string;
   createdAt: Date;
 };
+
+/**
+ * 3.4 Export functionality - CSV export
+ */
+export class ReportExporter {
+  static exportOrdersToCSV(orders: any[]): string {
+    const headers = [
+      'رقم الطلب',
+      'التاريخ',
+      'العميل',
+      'المبلغ',
+      'تكلفة البضاعة',
+      'الربح',
+      'طريقة الدفع',
+      'الحالة',
+    ];
+
+    const rows = orders.map(order => [
+      order.orderNumber || order._id,
+      new Date(order.createdAt).toLocaleDateString('ar-SA'),
+      order.customerName || 'زائر',
+      order.totalAmount?.toFixed(2) || '0.00',
+      order.costOfGoods?.toFixed(2) || '0.00',
+      ((order.totalAmount || 0) - (order.costOfGoods || 0)).toFixed(2),
+      order.paymentMethod || 'cash',
+      order.status || 'unknown',
+    ]);
+
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  }
+
+  static exportInventoryToCSV(items: any[]): string {
+    const headers = [
+      'اسم المكون',
+      'الكمية الحالية',
+      'الوحدة',
+      'الحد الأدنى',
+      'التكلفة للوحدة',
+      'الحالة',
+    ];
+
+    const rows = items.map(item => [
+      item.nameAr,
+      item.currentStock?.toString() || '0',
+      item.unit || 'piece',
+      item.minStockThreshold?.toString() || '0',
+      item.unitCost?.toFixed(2) || '0.00',
+      item.currentStock <= (item.minStockThreshold || 0) ? 'منخفض' : 'طبيعي',
+    ]);
+
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  }
+
+  static exportProfitReportToCSV(profitData: any[]): string {
+    const headers = [
+      'المنتج',
+      'الفئة',
+      'الكمية المباعة',
+      'إجمالي الإيرادات',
+      'تكلفة البضاعة',
+      'الربح',
+      'نسبة الربح %',
+    ];
+
+    const rows = profitData.map(item => [
+      item.itemName,
+      item.category,
+      item.quantitySold?.toString() || '0',
+      item.totalRevenue?.toFixed(2) || '0.00',
+      item.totalCOGS?.toFixed(2) || '0.00',
+      item.totalProfit?.toFixed(2) || '0.00',
+      item.profitMargin?.toFixed(1) || '0.0',
+    ]);
+
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  }
+
+  static generateDailySummaryReport(snapshot: DailySnapshot): string {
+    return `
+تقرير يومي - ${snapshot.date}
+=====================================
+عدد الطلبات: ${snapshot.salesCount}
+إجمالي المبيعات: ${snapshot.totalRevenue.toFixed(2)} ريال
+تكلفة البضاعة: ${snapshot.totalCOGS.toFixed(2)} ريال
+إجمالي الربح: ${snapshot.grossProfit.toFixed(2)} ريال
+نسبة الربح: ${snapshot.profitMargin.toFixed(1)}%
+قيمة الهدر: ${snapshot.wasteAmount.toFixed(2)} ريال
+نسبة الهدر: ${snapshot.wastePercentage.toFixed(1)}%
+=====================================
+    `.trim();
+  }
+}
