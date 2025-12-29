@@ -138,8 +138,8 @@ export default function ManagerDashboard() {
  managerName: branchData.managerName || undefined,
  mapsUrl: branchData.mapsUrl || undefined,
  location: {
- latitude: branchData.latitude,
- longitude: branchData.longitude,
+ lat: branchData.latitude,
+ lng: branchData.longitude,
  },
  isActive: 1,
  managerAssignment: branchData.managerAssignment,

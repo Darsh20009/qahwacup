@@ -9,8 +9,8 @@ interface Branch {
   nameAr: string;
   nameEn?: string;
   location?: {
-    latitude: number;
-    longitude: number;
+    lat: number;
+    lng: number;
   };
 }
 
@@ -113,11 +113,11 @@ export function checkDeliveryAvailability(
   }
 
   const branchesWithDistance = branches
-    .filter(b => b.location && b.location.latitude && b.location.longitude)
+    .filter(b => b.location && b.location.lat && b.location.lng)
     .map(branch => {
       const branchPoint: Point = {
-        lat: branch.location!.latitude,
-        lng: branch.location!.longitude,
+        lat: branch.location!.lat,
+        lng: branch.location!.lng,
       };
       const distanceMeters = calculateDistanceMeters(customerLocation, branchPoint);
       return {

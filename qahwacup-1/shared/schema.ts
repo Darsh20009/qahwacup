@@ -1855,8 +1855,8 @@ export const insertBranchSchema = z.object({
   phone: z.string().min(9, "رقم الهاتف مطلوب"),
   city: z.string().min(2, "المدينة مطلوبة"),
   location: z.object({
-    latitude: z.number(),
-    longitude: z.number()
+    lat: z.number(),
+    lng: z.number()
   }).optional(),
   mapsUrl: z.string().optional(),
   isActive: z.number().optional(),

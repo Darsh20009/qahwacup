@@ -3902,7 +3902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if branch has location data
-      if (!branch.location || !branch.location.latitude || !branch.location.longitude) {
+      if (!branch.location || !branch.location.lat || !branch.location.lng) {
         // If branch has no location, allow ordering (skip check)
         return res.json({ 
           withinRange: true, 
@@ -3914,9 +3914,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate distance using Haversine formula
       const R = 6371e3; // Earth's radius in meters
       const lat1 = latitude * Math.PI / 180;
-      const lat2 = branch.location.latitude * Math.PI / 180;
-      const deltaLat = (branch.location.latitude - latitude) * Math.PI / 180;
-      const deltaLon = (branch.location.longitude - longitude) * Math.PI / 180;
+      const lat2 = branch.location.lat * Math.PI / 180;
+      const deltaLat = (branch.location.lat - latitude) * Math.PI / 180;
+      const deltaLon = (branch.location.lng - longitude) * Math.PI / 180;
 
       const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
                 Math.cos(lat1) * Math.cos(lat2) *
@@ -5782,8 +5782,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if employee is within 500 meters of the branch
-      const branchLat = branch.location.latitude;
-      const branchLng = branch.location.longitude;
+      const branchLat = branch.location.lat;
+      const branchLng = branch.location.lng;
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
       if (distance > 500) {
@@ -5896,8 +5896,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if employee is within 500 meters of the branch
-      const branchLat = branch.location.latitude;
-      const branchLng = branch.location.longitude;
+      const branchLat = branch.location.lat;
+      const branchLng = branch.location.lng;
       const distance = calculateDistance(location.lat, location.lng, branchLat, branchLng);
 
       if (distance > 500) {
