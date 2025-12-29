@@ -1,0 +1,96 @@
+{
+  "name": "MA3K CAFE SYSTEM - Employee Portal",
+  "short_name": "MA3K Employee",
+  "description": "نظام إدارة الموظفين - MA3K Cafe System Employee Management Portal",
+  "start_url": "/employee-login",
+  "display": "standalone",
+  "background_color": "#2c3e50",
+  "theme_color": "#c9a227",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "scope": "/",
+  "id": "/employee",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/employee-icon.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/employee-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "الكاشير",
+      "short_name": "كاشير",
+      "description": "نظام الكاشير ونقاط البيع",
+      "url": "/employee-cashier",
+      "icons": [{ "src": "/employee-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "المطبخ",
+      "short_name": "مطبخ",
+      "description": "شاشة عرض المطبخ",
+      "url": "/kitchen-display",
+      "icons": [{ "src": "/employee-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "الحضور",
+      "short_name": "حضور",
+      "description": "تسجيل الحضور والانصراف",
+      "url": "/employee-attendance",
+      "icons": [{ "src": "/employee-icon.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
