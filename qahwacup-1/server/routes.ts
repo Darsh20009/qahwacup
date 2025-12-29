@@ -457,8 +457,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(alerts);
   });
 
-  // POS STATUS ROUTES
-  app.get("/api/pos/status", (req, res) => {
+  // Branches API
+  app.get("/api/branches", async (req, res) => {
+    try {
+      const tenantId = getTenantIdFromRequest(req as AuthRequest) || 'demo-tenant';
+      const cafe = await CafeModel.findOne({ id: tenantId });
+      const branches = await storage.getBranches(cafe?.id || tenantId);
+      res.json(branches);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch branches" });
+    }
+  });
+
+  app.get("/api/branches/:id", async (req, res) => {
+    try {
+      const branch = await storage.getBranch(req.params.id);
+      if (!branch) return res.status(404).json({ error: "Branch not found" });
+      res.json(branch);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch branch" });
+    }
+  });
     try {
       res.json({ 
         connected: posDeviceStatus.connected,
