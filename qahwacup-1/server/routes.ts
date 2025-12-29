@@ -414,6 +414,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(addons);
   });
 
+  app.post("/api/addons", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req);
+    const newAddon = await ProductAddonModel.create({ ...req.body, tenantId });
+    res.json(newAddon);
+  });
+
+  app.patch("/api/addons/:id", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    const updated = await ProductAddonModel.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    res.json(updated);
+  });
+
   // Stock Movements API
   app.post("/api/inventory/movements", requireAuth, requireManager, async (req: AuthRequest, res) => {
     const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';

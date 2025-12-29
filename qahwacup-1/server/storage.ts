@@ -633,12 +633,19 @@ export class DBStorage implements IStorage {
     return await DiscountCodeModel.find();
   }
 
-  async getDiscountCodesByEmployee(employeeId: string): Promise<DiscountCode[]> {
-    return await DiscountCodeModel.find({ employeeId });
+  async getAddons(tenantId: string): Promise<any[]> {
+    return await ProductAddonModel.find({ tenantId }).lean();
   }
 
-  async updateDiscountCode(id: string, updates: Partial<DiscountCode>): Promise<DiscountCode | undefined> {
-    const updated = await DiscountCodeModel.findByIdAndUpdate(id, updates, { new: true });
+  async createAddon(addon: any): Promise<any> {
+    const newAddon = await ProductAddonModel.create(addon);
+    return serializeDoc(newAddon);
+  }
+
+  async updateAddon(id: string, updates: any): Promise<any | undefined> {
+    const addon = await ProductAddonModel.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean();
+    return addon ? serializeDoc(addon) : undefined;
+  }
     return updated || undefined;
   }
 

@@ -113,7 +113,7 @@ const ProductAddonSchema = new Schema<IProductAddon>({
   id: { type: String, required: true, unique: true },
   nameAr: { type: String, required: true },
   nameEn: { type: String },
-  category: { type: String, enum: ['sugar', 'milk', 'shot', 'syrup', 'topping', 'size', 'other', 'flavor'], required: true },
+  category: { type: String, enum: ['sugar', 'milk', 'shot', 'syrup', 'topping', 'size', 'other', 'flavor', 'Flavor', 'Shot'], required: true },
   price: { type: Number, required: true, default: 0 },
   isAvailable: { type: Number, default: 1 },
   rawItemId: { type: String },
