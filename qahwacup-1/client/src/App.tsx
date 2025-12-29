@@ -96,6 +96,7 @@ const OSAccountingDashboard = lazy(() => import("@/pages/os-accounting-dashboard
 const OSStockManagement = lazy(() => import("@/pages/os-stock-management"));
 const OSRolesManagement = lazy(() => import("@/pages/os-roles-management"));
 const ExecutiveDashboard = lazy(() => import("@/pages/executive-dashboard"));
+const UnifiedInventoryRecipes = lazy(() => import("@/pages/unified-inventory-recipes"));
 const PageLoader = () => <div className="w-full h-screen flex items-center justify-center bg-background" />;
 
 function Router() {
@@ -210,6 +211,7 @@ function Router() {
  <Route path="/manager/accounting/smart">{() => <AuthGuard userType="manager"><AccountingSmartPage /></AuthGuard>}</Route>
  <Route path="/manager/ingredients-recipes">{() => <AuthGuard userType="manager"><IngredientsRecipesInventory /></AuthGuard>}</Route>
  <Route path="/manager/os-inventory">{() => <AuthGuard userType="manager"><OSInventoryManagement /></AuthGuard>}</Route>
+ <Route path="/manager/unified-inventory">{() => <AuthGuard userType="manager"><UnifiedInventoryRecipes /></AuthGuard>}</Route>
  <Route path="/manager/os-recipes">{() => <AuthGuard userType="manager"><OSRecipeManagement /></AuthGuard>}</Route>
  <Route path="/manager/os-accounting">{() => <AuthGuard userType="manager"><OSAccountingDashboard /></AuthGuard>}</Route>
  <Route path="/manager/os-stock">{() => <AuthGuard userType="manager"><OSStockManagement /></AuthGuard>}</Route>

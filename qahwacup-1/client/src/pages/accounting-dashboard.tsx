@@ -56,7 +56,18 @@ import {
   ShoppingCart,
   Percent,
   Eye,
-  ChevronLeft
+  ChevronLeft,
+  Download,
+  FileSpreadsheet,
+  Printer,
+  Filter,
+  RefreshCw,
+  PieChart as PieChartIcon,
+  LineChart,
+  LayoutDashboard,
+  Clock,
+  Users,
+  Briefcase
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -200,6 +211,13 @@ const paymentMethodLabels: Record<string, string> = {
 };
 
 const CHART_COLORS = ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899'];
+
+const periodLabels: Record<string, string> = {
+  today: 'اليوم',
+  week: 'هذا الأسبوع',
+  month: 'هذا الشهر',
+  year: 'هذه السنة'
+};
 
 export default function AccountingDashboardPage() {
   const [, setLocation] = useLocation();
@@ -370,6 +388,109 @@ export default function AccountingDashboardPage() {
   const getBranchName = (branchId: string) => {
     const branch = branches.find(b => (b.id || b._id) === branchId);
     return branch?.nameAr || "غير محدد";
+  };
+
+  const exportToExcel = (data: any[], filename: string, headers: string[]) => {
+    import('xlsx').then((XLSX) => {
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'تقرير');
+      XLSX.writeFile(wb, `${filename}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      toast({ title: 'تم تصدير التقرير بنجاح', description: 'تم حفظ الملف بصيغة Excel' });
+    }).catch(() => {
+      toast({ title: 'فشل التصدير', variant: 'destructive' });
+    });
+  };
+
+  const exportToPDF = (title: string, data: any) => {
+    import('jspdf').then(({ jsPDF }) => {
+      const doc = new jsPDF({ orientation: 'portrait' });
+      doc.setFont('helvetica');
+      doc.setFontSize(18);
+      doc.text(title, 105, 20, { align: 'center' });
+      doc.setFontSize(12);
+      doc.text(`الفترة: ${periodLabels[period]}`, 105, 30, { align: 'center' });
+      doc.text(`التاريخ: ${format(new Date(), 'yyyy/MM/dd')}`, 105, 38, { align: 'center' });
+      
+      let y = 55;
+      if (data.summary) {
+        doc.setFontSize(14);
+        doc.text('ملخص الأداء المالي', 105, y, { align: 'center' });
+        y += 12;
+        doc.setFontSize(11);
+        doc.text(`إجمالي الإيرادات: ${data.summary.totalRevenue?.toFixed(2) || 0} ر.س`, 20, y);
+        y += 8;
+        doc.text(`تكلفة المكونات: ${data.summary.totalCogs?.toFixed(2) || 0} ر.س`, 20, y);
+        y += 8;
+        doc.text(`المصروفات: ${data.summary.totalExpenses?.toFixed(2) || 0} ر.س`, 20, y);
+        y += 8;
+        doc.text(`صافي الربح: ${data.summary.netProfit?.toFixed(2) || 0} ر.س`, 20, y);
+        y += 8;
+        doc.text(`هامش الربح: ${data.summary.profitMargin?.toFixed(1) || 0}%`, 20, y);
+      }
+      
+      doc.save(`${title}_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast({ title: 'تم تصدير التقرير بنجاح', description: 'تم حفظ الملف بصيغة PDF' });
+    }).catch(() => {
+      toast({ title: 'فشل التصدير', variant: 'destructive' });
+    });
+  };
+
+  const handleExportSummaryExcel = () => {
+    if (!dashboardData) return;
+    const data = [
+      { البند: 'إجمالي الإيرادات', القيمة: dashboardData.totalRevenue },
+      { البند: 'ضريبة القيمة المضافة', القيمة: dashboardData.totalVat },
+      { البند: 'تكلفة المكونات (COGS)', القيمة: dashboardData.totalCogs },
+      { البند: 'إجمالي الربح', القيمة: dashboardData.grossProfit },
+      { البند: 'المصروفات التشغيلية', القيمة: dashboardData.totalExpenses },
+      { البند: 'صافي الربح', القيمة: dashboardData.netProfit },
+      { البند: 'هامش الربح %', القيمة: dashboardData.profitMargin },
+      { البند: 'عدد الطلبات', القيمة: dashboardData.orderCount },
+    ];
+    exportToExcel(data, 'ملخص_محاسبي', ['البند', 'القيمة']);
+  };
+
+  const handleExportExpensesExcel = () => {
+    if (!expensesData?.expenses) return;
+    const data = expensesData.expenses.map(exp => ({
+      التاريخ: format(new Date(exp.date), 'yyyy/MM/dd'),
+      الفئة: expenseCategories.find(c => c.value === exp.category)?.label || exp.category,
+      الوصف: exp.description,
+      المبلغ: exp.amount,
+      الضريبة: exp.vatAmount,
+      الإجمالي: exp.totalAmount,
+      الحالة: statusLabels[exp.status]?.label || exp.status
+    }));
+    exportToExcel(data, 'سجل_المصروفات', ['التاريخ', 'الفئة', 'الوصف', 'المبلغ', 'الضريبة', 'الإجمالي', 'الحالة']);
+  };
+
+  const handleExportRevenuesExcel = () => {
+    if (!revenuesData?.revenues) return;
+    const data = revenuesData.revenues.map(rev => ({
+      التاريخ: format(new Date(rev.date), 'yyyy/MM/dd'),
+      الفرع: getBranchName(rev.branchId),
+      الفئة: rev.category,
+      الوصف: rev.description,
+      المبلغ: rev.amount,
+      الضريبة: rev.vatAmount,
+      الإجمالي: rev.totalAmount,
+      'طريقة الدفع': paymentMethodLabels[rev.paymentMethod] || rev.paymentMethod
+    }));
+    exportToExcel(data, 'سجل_الإيرادات', ['التاريخ', 'الفرع', 'الفئة', 'الوصف', 'المبلغ', 'الضريبة', 'الإجمالي', 'طريقة الدفع']);
+  };
+
+  const handleExportSummaryPDF = () => {
+    if (!dashboardData) return;
+    exportToPDF('التقرير المالي الشامل', {
+      summary: {
+        totalRevenue: dashboardData.totalRevenue,
+        totalCogs: dashboardData.totalCogs,
+        totalExpenses: dashboardData.totalExpenses,
+        netProfit: dashboardData.netProfit,
+        profitMargin: dashboardData.profitMargin
+      }
+    });
   };
 
   const paymentMethodData = dashboardData?.revenueByPayment 
@@ -1006,11 +1127,157 @@ export default function AccountingDashboardPage() {
               </div>
             ) : dashboardData ? (
               <>
+                {/* Report Header with Export Buttons */}
+                <Card className="bg-gradient-to-l from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
+                  <CardHeader>
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
+                          <FileText className="w-6 h-6" />
+                          مركز التقارير المالية
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          تقارير شاملة للفترة: <Badge variant="outline">{periodLabels[period]}</Badge>
+                        </CardDescription>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleExportSummaryExcel}
+                          className="border-green-500 text-green-700 hover:bg-green-50"
+                        >
+                          <FileSpreadsheet className="w-4 h-4 ml-2" />
+                          تصدير Excel
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleExportSummaryPDF}
+                          className="border-red-500 text-red-700 hover:bg-red-50"
+                        >
+                          <Download className="w-4 h-4 ml-2" />
+                          تصدير PDF
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => window.print()}
+                          className="border-blue-500 text-blue-700 hover:bg-blue-50"
+                        >
+                          <Printer className="w-4 h-4 ml-2" />
+                          طباعة
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                {/* Financial Summary Report */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <LayoutDashboard className="w-5 h-5 text-blue-600" />
+                      ملخص الأداء المالي
+                    </CardTitle>
+                    <CardDescription>تقرير شامل للوضع المالي للفترة المحددة</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="w-5 h-5 text-green-600" />
+                          <span className="text-sm text-green-700 dark:text-green-400 font-medium">الإيرادات</span>
+                        </div>
+                        <p className="text-2xl font-bold text-green-800 dark:text-green-300">{dashboardData.totalRevenue.toFixed(2)}</p>
+                        <p className="text-xs text-green-600">ر.س</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="w-5 h-5 text-orange-600" />
+                          <span className="text-sm text-orange-700 dark:text-orange-400 font-medium">تكلفة المكونات</span>
+                        </div>
+                        <p className="text-2xl font-bold text-orange-800 dark:text-orange-300">{dashboardData.totalCogs.toFixed(2)}</p>
+                        <p className="text-xs text-orange-600">ر.س</p>
+                      </div>
+                      <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Wallet className="w-5 h-5 text-red-600" />
+                          <span className="text-sm text-red-700 dark:text-red-400 font-medium">المصروفات</span>
+                        </div>
+                        <p className="text-2xl font-bold text-red-800 dark:text-red-300">{dashboardData.totalExpenses.toFixed(2)}</p>
+                        <p className="text-xs text-red-600">ر.س</p>
+                      </div>
+                      <div className={`p-4 rounded-xl border ${dashboardData.netProfit >= 0 ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-900/20 border-red-200 dark:border-red-800'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <PiggyBank className={`w-5 h-5 ${dashboardData.netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`} />
+                          <span className={`text-sm font-medium ${dashboardData.netProfit >= 0 ? 'text-blue-700 dark:text-blue-400' : 'text-red-700 dark:text-red-400'}`}>صافي الربح</span>
+                        </div>
+                        <p className={`text-2xl font-bold ${dashboardData.netProfit >= 0 ? 'text-blue-800 dark:text-blue-300' : 'text-red-800 dark:text-red-300'}`}>{dashboardData.netProfit.toFixed(2)}</p>
+                        <p className={`text-xs ${dashboardData.netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>ر.س</p>
+                      </div>
+                    </div>
+
+                    {/* Detailed Financial Breakdown */}
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        تفصيل العمليات المالية
+                      </h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">البند</TableHead>
+                            <TableHead className="text-right">القيمة</TableHead>
+                            <TableHead className="text-right">النسبة من الإيرادات</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">إجمالي الإيرادات</TableCell>
+                            <TableCell className="text-green-600 font-bold">{dashboardData.totalRevenue.toFixed(2)} ر.س</TableCell>
+                            <TableCell>100%</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">ضريبة القيمة المضافة (المحصلة)</TableCell>
+                            <TableCell className="text-amber-600">{dashboardData.totalVat.toFixed(2)} ر.س</TableCell>
+                            <TableCell>{dashboardData.totalRevenue > 0 ? ((dashboardData.totalVat / dashboardData.totalRevenue) * 100).toFixed(1) : 0}%</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">تكلفة المكونات (COGS)</TableCell>
+                            <TableCell className="text-orange-600">{dashboardData.totalCogs.toFixed(2)} ر.س</TableCell>
+                            <TableCell>{dashboardData.totalRevenue > 0 ? ((dashboardData.totalCogs / dashboardData.totalRevenue) * 100).toFixed(1) : 0}%</TableCell>
+                          </TableRow>
+                          <TableRow className="bg-green-50/50 dark:bg-green-900/20">
+                            <TableCell className="font-bold">= إجمالي الربح</TableCell>
+                            <TableCell className="text-green-700 font-bold">{dashboardData.grossProfit.toFixed(2)} ر.س</TableCell>
+                            <TableCell className="font-medium">{dashboardData.totalRevenue > 0 ? ((dashboardData.grossProfit / dashboardData.totalRevenue) * 100).toFixed(1) : 0}%</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">المصروفات التشغيلية</TableCell>
+                            <TableCell className="text-red-600">{dashboardData.totalExpenses.toFixed(2)} ر.س</TableCell>
+                            <TableCell>{dashboardData.totalRevenue > 0 ? ((dashboardData.totalExpenses / dashboardData.totalRevenue) * 100).toFixed(1) : 0}%</TableCell>
+                          </TableRow>
+                          <TableRow className={`${dashboardData.netProfit >= 0 ? 'bg-blue-50/50 dark:bg-blue-900/20' : 'bg-red-50/50 dark:bg-red-900/20'}`}>
+                            <TableCell className="font-bold text-lg">= صافي الربح</TableCell>
+                            <TableCell className={`font-bold text-lg ${dashboardData.netProfit >= 0 ? 'text-blue-700' : 'text-red-700'}`}>{dashboardData.netProfit.toFixed(2)} ر.س</TableCell>
+                            <TableCell className="font-bold">{dashboardData.profitMargin.toFixed(1)}%</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Revenue Trend */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>تطور الإيرادات اليومية</CardTitle>
+                      <CardTitle className="flex items-center gap-2">
+                        <LineChart className="w-5 h-5 text-green-600" />
+                        تطور الإيرادات اليومية
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {dashboardData.dailyTrend && dashboardData.dailyTrend.length > 0 ? (
@@ -1053,7 +1320,10 @@ export default function AccountingDashboardPage() {
                   {/* Profit vs Expenses */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>مقارنة الأرباح والمصروفات</CardTitle>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-purple-600" />
+                        مقارنة الأرباح والمصروفات
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {dashboardData.weeklyTrend && dashboardData.weeklyTrend.length > 0 ? (
@@ -1076,6 +1346,166 @@ export default function AccountingDashboardPage() {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Additional Reports */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Payment Methods Analysis */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-green-600" />
+                        تحليل طرق الدفع
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {paymentMethodData.length > 0 ? (
+                        <>
+                          <div className="h-[200px] mb-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={paymentMethodData}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={50}
+                                  outerRadius={70}
+                                  fill="#8884d8"
+                                  paddingAngle={5}
+                                  dataKey="value"
+                                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                >
+                                  {paymentMethodData.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip formatter={(value: number) => [`${value.toFixed(2)} ر.س`]} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-right">طريقة الدفع</TableHead>
+                                <TableHead className="text-right">المبلغ</TableHead>
+                                <TableHead className="text-right">النسبة</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {paymentMethodData.map((item, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="font-medium">{item.name}</TableCell>
+                                  <TableCell>{item.value.toFixed(2)} ر.س</TableCell>
+                                  <TableCell>
+                                    {dashboardData.totalRevenue > 0 
+                                      ? ((item.value / dashboardData.totalRevenue) * 100).toFixed(1) 
+                                      : 0}%
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">لا توجد بيانات</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Expense Categories Analysis */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-red-600" />
+                        تحليل فئات المصروفات
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={handleExportExpensesExcel}>
+                        <FileSpreadsheet className="w-4 h-4 ml-1" />
+                        تصدير
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      {expenseCategoryData.length > 0 ? (
+                        <>
+                          <div className="h-[200px] mb-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={expenseCategoryData} layout="vertical">
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis type="number" />
+                                <YAxis type="category" dataKey="name" width={100} />
+                                <Tooltip formatter={(value: number) => [`${value.toFixed(2)} ر.س`]} />
+                                <Bar dataKey="value" fill="#ef4444" />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-right">الفئة</TableHead>
+                                <TableHead className="text-right">المبلغ</TableHead>
+                                <TableHead className="text-right">النسبة</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {expenseCategoryData.map((item, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="font-medium">{item.name}</TableCell>
+                                  <TableCell className="text-red-600">{item.value.toFixed(2)} ر.س</TableCell>
+                                  <TableCell>
+                                    {dashboardData.totalExpenses > 0 
+                                      ? ((item.value / dashboardData.totalExpenses) * 100).toFixed(1) 
+                                      : 0}%
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">لا توجد مصروفات</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Key Performance Indicators */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Briefcase className="w-5 h-5 text-amber-600" />
+                      مؤشرات الأداء الرئيسية (KPIs)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <ShoppingCart className="w-8 h-8 mx-auto mb-2 text-amber-600" />
+                        <p className="text-2xl font-bold">{dashboardData.orderCount}</p>
+                        <p className="text-sm text-muted-foreground">عدد الطلبات</p>
+                      </div>
+                      <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <Receipt className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                        <p className="text-2xl font-bold">{dashboardData.invoiceCount}</p>
+                        <p className="text-sm text-muted-foreground">عدد الفواتير</p>
+                      </div>
+                      <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <DollarSign className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                        <p className="text-2xl font-bold">
+                          {dashboardData.orderCount > 0 
+                            ? (dashboardData.totalRevenue / dashboardData.orderCount).toFixed(2)
+                            : "0"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">متوسط قيمة الطلب</p>
+                      </div>
+                      <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <Percent className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                        <p className={`text-2xl font-bold ${dashboardData.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {dashboardData.profitMargin.toFixed(1)}%
+                        </p>
+                        <p className="text-sm text-muted-foreground">هامش الربح الصافي</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </>
             ) : (
               <div className="text-center py-12">
