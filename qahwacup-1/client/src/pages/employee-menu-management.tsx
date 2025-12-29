@@ -950,7 +950,7 @@ export default function EmployeeMenuManagement() {
      <Label className="text-gray-300">متوفر في الفروع</Label>
      <p className="text-gray-500 text-xs mb-2">اختر الفروع التي سيتوفر فيها هذا المنتج (اتركه فارغاً للتوفر في جميع الفروع)</p>
      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto bg-[#1a1410] p-3 rounded-lg border border-amber-500/20">
-       {branches.filter(b => b.isActive === 1).map((branch) => {
+       {branches.filter(b => b.isActive === 1 || (b.isActive as any) === true || (b.isActive as any) === "1").map((branch) => {
          const branchId = branch.id;
          const isSelected = selectedBranches.some(sb => sb.branchId === branchId);
          return (

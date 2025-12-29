@@ -30,8 +30,7 @@ export async function runSeeds() {
     const existingAdmin = await storage.getEmployeeByPhone(adminPhone);
     
     if (!existingAdmin) {
-      const superAdmin: InsertEmployee = {
-        id: "super-admin",
+      const superAdmin: any = {
         username: "admin",
         fullName: "مدير النظام",
         role: "admin",

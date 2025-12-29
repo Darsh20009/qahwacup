@@ -773,7 +773,7 @@ export class DBStorage implements IStorage {
     const otpRecord = await PasswordSetupOTPModel.findOne({ 
       phone, 
       used: 0,
-      otp 
+      otp: otp 
     }).sort({ createdAt: -1 });
     
     if (!otpRecord) {
@@ -1225,7 +1225,8 @@ export class DBStorage implements IStorage {
   }
 
   async getBranches(cafeId?: string): Promise<IBranch[]> {
-    const query = cafeId ? { cafeId, isActive: true } : { isActive: true };
+    const query: any = { isActive: { $ne: false, $ne: 0 } };
+    if (cafeId) query.cafeId = cafeId;
     const branches = await BranchModel.find(query).sort({ createdAt: -1 }).lean();
     return (branches as any[]).map(b => serializeDoc(b));
   }
@@ -1238,7 +1239,7 @@ export class DBStorage implements IStorage {
   async getBranch(id: string): Promise<IBranch | null> {
     const branch = await BranchModel.findOne({ id }).lean();
     // Only return branch if it's active
-    if (branch && (branch as any).isActive !== 0) {
+    if (branch && (branch as any).isActive !== false && (branch as any).isActive !== 0) {
       return serializeDoc(branch);
     }
     return null;

@@ -738,9 +738,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new employee (admin and managers)
   app.post("/api/employees", requireAuth, requireManager, async (req: AuthRequest, res) => {
     try {
-      const { insertEmployeeSchema, EmployeeModel } = await import("@shared/schema");
-      const validatedData = insertEmployeeSchema.parse(req.body);
+      const { EmployeeModel } = await import("@shared/schema");
       const tenantId = req.employee?.tenantId || 'demo-tenant';
+      const validatedData = req.body;
 
       // For non-admin managers, enforce their branch ID
       if (req.employee?.role !== "admin") {
@@ -778,9 +778,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(employeeData);
     } catch (error) {
       console.error("Error creating employee:", error);
-      if (error instanceof Error && 'issues' in error) {
-        return res.status(400).json({ error: "Validation error", details: (error as any).issues });
-      }
       res.status(500).json({ error: "Failed to create employee" });
     }
   });
