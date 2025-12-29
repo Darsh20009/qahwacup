@@ -679,11 +679,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       req.session.destroy((err) => {
         if (err) {
+          console.error("Logout session destroy error:", err);
           return res.status(500).json({ error: "Logout failed" });
         }
-        res.json({ success: true });
+        res.clearCookie("connect.sid", { path: '/' });
+        res.json({ success: true, redirect: '/employee/login' });
       });
     } catch (error) {
+      console.error("Logout catch error:", error);
       res.status(500).json({ error: "Logout failed" });
     }
   });
