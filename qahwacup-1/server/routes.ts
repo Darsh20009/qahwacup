@@ -416,12 +416,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Stock Movements API
   app.post("/api/inventory/movements", requireAuth, requireManager, async (req: AuthRequest, res) => {
-    const tenantId = getTenantIdFromRequest(req);
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
     const { ingredientId, type, quantity, notes, branchId } = req.body;
     
+    const ingredientItems = await storage.getIngredientItems(tenantId);
+    const foundIngredient = ingredientItems.find((i: any) => i._id.toString() === ingredientId);
+    const currentStock = foundIngredient?.currentStock || 0;
+    
     const ingredientUpdates = type === 'in' ? 
-      { currentStock: (await storage.getIngredientItems(tenantId)).find((i: any) => i._id.toString() === ingredientId)!.currentStock + quantity } : 
-      { currentStock: (await storage.getIngredientItems(tenantId)).find((i: any) => i._id.toString() === ingredientId)!.currentStock - quantity };
+      { currentStock: currentStock + quantity } : 
+      { currentStock: currentStock - quantity };
 
     const ingredient = await storage.updateIngredientItem(ingredientId, ingredientUpdates);
 
@@ -3094,7 +3098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limitNum = limit ? parseInt(limit as string) : undefined;
       const offsetNum = offset ? parseInt(offset as string) : undefined;
 
-      const allOrders = await storage.getOrders(limitNum, offsetNum);
+      const allOrders = await storage.getOrders(undefined, limitNum, offsetNum);
 
       // Admin and owner see all orders, others see only their branch
       const orders = filterByBranch(allOrders, req.employee);
@@ -8813,7 +8817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all tenants (Admin only)
   app.get("/api/admin/tenants", requireAdmin, async (req, res) => {
     try {
-      const tenants = await TenantModel.find().lean();
+      const tenants = await CafeModel.find().lean();
       res.json(tenants);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch tenants" });
@@ -8823,7 +8827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get specific tenant
   app.get("/api/admin/tenants/:tenantId", requireAdmin, async (req, res) => {
     try {
-      const tenant = await TenantModel.findOne({ id: req.params.tenantId }).lean();
+      const tenant = await CafeModel.findOne({ id: req.params.tenantId }).lean();
       if (!tenant) return res.status(404).json({ error: "Tenant not found" });
       res.json(tenant);
     } catch (error) {
@@ -8840,7 +8844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      const tenant = new TenantModel({
+      const tenant = new CafeModel({
         id,
         nameAr,
         nameEn,
@@ -8863,7 +8867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update tenant (Admin only)
   app.patch("/api/admin/tenants/:tenantId", requireAdmin, async (req, res) => {
     try {
-      const tenant = await TenantModel.findOneAndUpdate(
+      const tenant = await CafeModel.findOneAndUpdate(
         { id: req.params.tenantId },
         { $set: { ...req.body, updatedAt: new Date() } },
         { new: true }
@@ -8878,7 +8882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete tenant (Admin only - soft delete)
   app.delete("/api/admin/tenants/:tenantId", requireAdmin, async (req, res) => {
     try {
-      await TenantModel.updateOne({ id: req.params.tenantId }, { status: 'inactive' });
+      await CafeModel.updateOne({ id: req.params.tenantId }, { status: 'inactive' });
       res.json({ success: true, message: "Tenant deactivated" });
     } catch (error) {
       res.status(500).json({ error: "Failed to deactivate tenant" });
@@ -8891,7 +8895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = req.employee?.tenantId;
       if (!tenantId) return res.status(400).json({ error: "No tenant context" });
       
-      const tenant = await TenantModel.findOne({ id: tenantId }).lean();
+      const tenant = await CafeModel.findOne({ id: tenantId }).lean();
       if (!tenant) return res.status(404).json({ error: "Tenant not found" });
       res.json(tenant);
     } catch (error) {
