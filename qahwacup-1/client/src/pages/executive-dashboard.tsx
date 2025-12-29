@@ -10,7 +10,8 @@ import {
   TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users, 
   Coffee, Package, BarChart3, Calendar, ArrowUpRight, ArrowDownRight,
   Wallet, CreditCard, Building2, ChefHat, Settings, LogOut,
-  FileText, PieChart, Activity, Target, Award, Sparkles
+  FileText, PieChart, Activity, Target, Award, Sparkles,
+  GitCompare, UserCheck, Clock, Briefcase
 } from "lucide-react";
 import { 
   AreaChart, Area, BarChart, Bar, 
@@ -142,6 +143,120 @@ export default function ExecutiveDashboard() {
   })();
 
   const CHART_COLORS = ['#D4AF37', '#2D3748', '#38A169', '#E53E3E', '#805AD5'];
+
+  const branchAnalytics = (() => {
+    const analytics: Record<string, { 
+      name: string; 
+      revenue: number; 
+      orders: number; 
+      avgOrder: number;
+      growth: number;
+      previousRevenue: number;
+    }> = {};
+    
+    const getPreviousPeriodOrders = () => {
+      const now = new Date();
+      return orders.filter(order => {
+        if (!order.createdAt) return false;
+        const orderDate = new Date(order.createdAt);
+        if (isNaN(orderDate.getTime())) return false;
+        
+        switch (dateFilter) {
+          case "today":
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            return orderDate.toDateString() === yesterday.toDateString();
+          case "week":
+            const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return orderDate >= twoWeeksAgo && orderDate < oneWeekAgo;
+          case "month":
+            const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return orderDate >= twoMonthsAgo && orderDate < oneMonthAgo;
+          case "year":
+            const twoYearsAgo = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000);
+            const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+            return orderDate >= twoYearsAgo && orderDate < oneYearAgo;
+          default:
+            return false;
+        }
+      });
+    };
+    
+    const previousOrders = getPreviousPeriodOrders();
+    
+    branches.forEach((branch: any) => {
+      const branchOrders = filteredOrders.filter((o: any) => o.branchId === branch._id);
+      const prevBranchOrders = previousOrders.filter((o: any) => o.branchId === branch._id);
+      const revenue = branchOrders.reduce((sum: number, o: any) => sum + Number(o.totalAmount || 0), 0);
+      const prevRevenue = prevBranchOrders.reduce((sum: number, o: any) => sum + Number(o.totalAmount || 0), 0);
+      const orderCount = branchOrders.length;
+      const growth = prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue) * 100 : 0;
+      
+      analytics[branch._id] = {
+        name: branch.name || branch.nameAr || 'فرع',
+        revenue,
+        orders: orderCount,
+        avgOrder: orderCount > 0 ? revenue / orderCount : 0,
+        growth,
+        previousRevenue: prevRevenue
+      };
+    });
+    
+    return Object.values(analytics).sort((a, b) => b.revenue - a.revenue);
+  })();
+
+  const laborAnalytics = (() => {
+    const roles: Record<string, { count: number; costEstimate: number }> = {};
+    const roleSalaries: Record<string, number> = {
+      'cashier': 4500,
+      'barista': 4000,
+      'manager': 8000,
+      'admin': 10000,
+      'owner': 0,
+      'driver': 3500,
+      'kitchen': 4000,
+      'waiter': 3800
+    };
+    
+    employees.forEach((emp: any) => {
+      const role = emp.role || 'other';
+      if (!roles[role]) roles[role] = { count: 0, costEstimate: 0 };
+      roles[role].count += 1;
+      roles[role].costEstimate += roleSalaries[role] || 3500;
+    });
+    
+    const totalMonthlyLaborCost = Object.values(roles).reduce((sum, r) => sum + r.costEstimate, 0);
+    
+    const getMonthlyProjectedRevenue = () => {
+      const daysInPeriod = dateFilter === 'today' ? 1 : 
+                          dateFilter === 'week' ? 7 : 
+                          dateFilter === 'month' ? 30 : 365;
+      return (totalRevenue / daysInPeriod) * 30;
+    };
+    
+    const projectedMonthlyRevenue = getMonthlyProjectedRevenue();
+    const laborCostPercent = projectedMonthlyRevenue > 0 ? (totalMonthlyLaborCost / projectedMonthlyRevenue) * 100 : 0;
+    
+    return {
+      byRole: Object.entries(roles).map(([role, data]) => ({
+        role: role === 'cashier' ? 'كاشير' : 
+              role === 'barista' ? 'باريستا' :
+              role === 'manager' ? 'مدير' :
+              role === 'admin' ? 'مشرف' :
+              role === 'driver' ? 'سائق' :
+              role === 'kitchen' ? 'مطبخ' :
+              role === 'waiter' ? 'نادل' : role,
+        ...data
+      })),
+      totalCost: totalMonthlyLaborCost,
+      laborPercent: laborCostPercent,
+      projectedMonthlyRevenue,
+      totalEmployees: employees.length,
+      avgCostPerEmployee: employees.length > 0 ? totalMonthlyLaborCost / employees.length : 0,
+      isMonthlyEstimate: true
+    };
+  })();
 
   const handleLogout = () => {
     localStorage.removeItem("currentEmployee");
@@ -417,6 +532,181 @@ export default function ExecutiveDashboard() {
                   </div>
                   <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">{todayRevenue.toFixed(0)}</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Branch Comparison Section */}
+        <Card className="stat-card-premium">
+          <CardHeader className="section-header-executive pb-4">
+            <div className="flex items-center gap-3">
+              <GitCompare className="w-5 h-5 text-amber-500" />
+              <CardTitle className="text-lg title-executive">مقارنة أداء الفروع</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {branchAnalytics.length > 0 ? (
+              <div className="space-y-4">
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={branchAnalytics} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={12}
+                      width={80}
+                    />
+                    <Tooltip
+                      contentStyle={{ 
+                        background: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                      formatter={(value: number) => [`${value.toLocaleString('ar-SA')} ر.س`, 'الإيرادات']}
+                    />
+                    <Bar dataKey="revenue" fill="#D4AF37" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+                
+                <div className="table-premium">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">الفرع</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">الإيرادات</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">الطلبات</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">متوسط الطلب</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">النمو</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {branchAnalytics.slice(0, 5).map((branch, idx) => (
+                        <tr key={idx} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-4 font-medium">{branch.name}</td>
+                          <td className="py-3 px-4">{branch.revenue.toLocaleString('ar-SA')} ر.س</td>
+                          <td className="py-3 px-4">{branch.orders}</td>
+                          <td className="py-3 px-4">{branch.avgOrder.toFixed(0)} ر.س</td>
+                          <td className="py-3 px-4">
+                            <Badge className={branch.growth >= 0 ? 'badge-premium badge-success' : 'badge-premium badge-danger'}>
+                              {branch.growth >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                              {Math.abs(branch.growth).toFixed(1)}%
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">لا توجد بيانات فروع متاحة</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Labor Cost Analytics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="stat-card-premium">
+            <CardHeader className="section-header-executive pb-4">
+              <div className="flex items-center gap-3">
+                <Briefcase className="w-5 h-5 text-amber-500" />
+                <CardTitle className="text-lg title-executive">تحليل تكلفة العمالة</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm text-amber-700 dark:text-amber-300">التكلفة الشهرية (تقديرية)</span>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-800 dark:text-amber-200">
+                    {laborAnalytics.totalCost.toLocaleString('ar-SA')} <span className="text-sm font-normal">ر.س</span>
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-700 dark:text-blue-300">نسبة من الإيرادات المتوقعة</span>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+                    {laborAnalytics.laborPercent.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
+                    (إيراد شهري متوقع: {laborAnalytics.projectedMonthlyRevenue.toLocaleString('ar-SA')} ر.س)
+                  </p>
+                </div>
+              </div>
+
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={laborAnalytics.byRole}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="role" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{ 
+                      background: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: number, name: string) => [
+                      name === 'count' ? `${value} موظف` : `${value.toLocaleString('ar-SA')} ر.س`,
+                      name === 'count' ? 'العدد' : 'التكلفة'
+                    ]}
+                  />
+                  <Bar dataKey="costEstimate" fill="#D4AF37" radius={[4, 4, 0, 0]} name="التكلفة" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="stat-card-premium">
+            <CardHeader className="section-header-executive pb-4">
+              <div className="flex items-center gap-3">
+                <UserCheck className="w-5 h-5 text-amber-500" />
+                <CardTitle className="text-lg title-executive">توزيع الموظفين</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border border-emerald-200 dark:border-emerald-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm text-emerald-700 dark:text-emerald-300">إجمالي الموظفين</span>
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">{laborAnalytics.totalEmployees}</p>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm text-purple-700 dark:text-purple-300">متوسط التكلفة</span>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">
+                    {laborAnalytics.avgCostPerEmployee.toFixed(0)} <span className="text-sm font-normal">ر.س</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {laborAnalytics.byRole.map((roleData, idx) => (
+                  <div key={idx} className="flex items-center gap-4">
+                    <div className="w-24 text-sm font-medium">{roleData.role}</div>
+                    <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                        style={{ 
+                          width: `${(roleData.count / laborAnalytics.totalEmployees) * 100}%` 
+                        }}
+                      />
+                    </div>
+                    <div className="w-16 text-sm text-muted-foreground text-left">{roleData.count} موظف</div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
