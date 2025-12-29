@@ -77,6 +77,8 @@ const CoffeeItemSchema = new Schema<ICoffeeItem>({
   createdByEmployeeId: { type: String },
   createdByBranchId: { type: String },
   publishedBranches: [{ type: String }],
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -280,6 +282,8 @@ const CafeSchema = new Schema<ICafe>({
     primaryColor: { type: String },
     secondaryColor: { type: String },
   },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -313,6 +317,8 @@ const BusinessConfigSchema = new Schema<IBusinessConfig>({
   vatPercentage: { type: Number, default: 15 },
   currency: { type: String, default: 'SAR' },
   timezone: { type: String, default: 'Asia/Riyadh' },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -364,6 +370,8 @@ const IngredientItemSchema = new Schema<IIngredientItem>({
     cost: { type: Number }
   }],
   isActive: { type: Boolean, default: true },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -422,6 +430,8 @@ const RecipeDefinitionSchema = new Schema<IRecipeDefinition>({
   version: { type: Number, default: 1 },
   isActive: { type: Boolean, default: true },
   description: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -659,6 +669,8 @@ const OrderSchema = new Schema<IOrder>({
     unitCost: { type: Number },
     totalCost: { type: Number }
   }],
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -791,6 +803,8 @@ const LoyaltyCardSchema = new Schema<ILoyaltyCard>({
   status: { type: String, default: "active", required: true },
   isActive: { type: Boolean, default: true, required: true },
   lastUsedAt: { type: Date },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -894,6 +908,8 @@ const IngredientSchema = new Schema<IIngredient>({
   nameEn: { type: String },
   isAvailable: { type: Number, default: 1, required: true },
   icon: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -948,6 +964,8 @@ const CategorySchema = new Schema<ICategory>({
   icon: { type: String },
   sortOrder: { type: Number, default: 0 },
   isActive: { type: Number, default: 1, required: true },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -985,6 +1003,8 @@ const DeliveryZoneSchema = new Schema<IDeliveryZone>({
   }],
   deliveryFee: { type: Number, required: true, default: 10 },
   isActive: { type: Number, default: 1, required: true },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1046,6 +1066,8 @@ const TableSchema = new Schema<ITable>({
     lastExtendedAt: { type: Date }, // آخر تمديد
     emailNotificationSent: { type: Boolean, default: false }, // تم إرسال الإشعار
   },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1189,6 +1211,8 @@ const TaxInvoiceSchema = new Schema<ITaxInvoice>({
 
   createdBy: { type: String },
 
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1280,6 +1304,8 @@ const ExpenseSchema = new Schema<IExpense>({
   createdBy: { type: String, required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'paid'], default: 'pending' },
   notes: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1353,6 +1379,8 @@ const CashRegisterSchema = new Schema<ICashRegister>({
   status: { type: String, enum: ['open', 'closed'], default: 'open' },
   notes: { type: String },
 
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1438,6 +1466,8 @@ const DailySummarySchema = new Schema<IDailySummary>({
   isGenerated: { type: Number, default: 0 },
   generatedAt: { type: Date },
 
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1497,6 +1527,8 @@ const KitchenOrderSchema = new Schema<IKitchenOrder>({
   completedAt: { type: Date },
   estimatedTime: { type: Number },
   notes: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1559,6 +1591,8 @@ const AttendanceSchema = new Schema<IAttendance>({
   distanceFromBranch: { type: Number, default: 0 },
   checkOutIsAtBranch: { type: Number },
   checkOutDistanceFromBranch: { type: Number },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1680,6 +1714,8 @@ const EmployeeSchema = new Schema<IEmployee>({
     lng: { type: Number },
     updatedAt: { type: Date }
   },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   permissions: { type: [String], default: [] },
   allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
@@ -2059,6 +2095,8 @@ const RawItemSchema = new Schema<IRawItem>({
   maxStockLevel: { type: Number },
   supplierId: { type: String },
   isActive: { type: Number, default: 1, required: true },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2096,6 +2134,8 @@ const SupplierSchema = new Schema<ISupplier>({
   paymentTerms: { type: String },
   notes: { type: String },
   isActive: { type: Number, default: 1, required: true },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2164,6 +2204,8 @@ const StockTransferSchema = new Schema<IStockTransfer>({
   approvalDate: { type: Date },
   completionDate: { type: Date },
   notes: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2227,6 +2269,8 @@ const PurchaseInvoiceSchema = new Schema<IPurchaseInvoice>({
   approvedBy: { type: String },
   notes: { type: String },
   attachmentUrl: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2250,6 +2294,8 @@ const RecipeItemSchema = new Schema<IRecipeItem>({
   quantity: { type: Number, required: true },
   unit: { type: String, required: true },
   notes: { type: String },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2294,6 +2340,8 @@ const RecipeSchema = new Schema<IRecipe>({
     unitCost: { type: Number, required: true },
     totalCost: { type: Number, required: true }
   }],
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2689,6 +2737,8 @@ const ProductReviewSchema = new Schema<IProductReview>({
   adminReplyDate: { type: Date },
   isVerifiedPurchase: { type: Number, default: 0 },
   helpful: { type: Number, default: 0 },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2886,6 +2936,8 @@ const AccountingSnapshotSchema = new Schema<IAccountingSnapshot>({
   approvedBy: { type: String },
   approvalDate: { type: Date },
   isApproved: { type: Number, default: 0, required: true },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
