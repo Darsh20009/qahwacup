@@ -863,7 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "الموظف غير موجود أو تم تفعيله مسبقاً" });
       }
 
-      const { hashPassword } = await import("./auth");
+      const { hashPassword } = await import("./middleware/auth");
       const hashedPassword = await hashPassword(password);
       
       const updatedEmployee = await EmployeeModel.findByIdAndUpdate(employee._id, {
