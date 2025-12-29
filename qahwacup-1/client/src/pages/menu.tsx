@@ -85,7 +85,8 @@ const MenuPage = memo(function MenuPage() {
     queryFn: async () => {
       const url = `/api/coffee-items${selectedBranch ? `?branchId=${selectedBranch}` : ""}`;
       const res = await fetch(url);
-      return res.json();
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     }
   });
 
