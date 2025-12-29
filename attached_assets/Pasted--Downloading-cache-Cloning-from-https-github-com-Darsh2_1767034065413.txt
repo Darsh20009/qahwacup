@@ -1,0 +1,295 @@
+==> Downloading cache...
+==> Cloning from https://github.com/Darsh20009/qahwacup
+==> Checking out commit 940214317ae98dea654e8d4832415c0614d2c29d in branch main
+==> Downloaded 177MB in 2s. Extraction took 2s.
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+added 5 packages, and audited 28 packages in 681ms
+3 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+> qahwacup-root@1.0.0 build
+> cd qahwacup-1 && npm install && npm run build
+added 810 packages, and audited 811 packages in 9s
+191 packages are looking for funding
+  run `npm fund` for details
+8 vulnerabilities (3 low, 3 moderate, 2 high)
+To address issues that do not require attention, run:
+  npm audit fix
+Some issues need review, and may require choosing
+a different dependency.
+Run `npm audit` for details.
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+vite v5.4.19 building for production...
+transforming...
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 4526 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                                          9.26 kB │ gzip:   2.68 kB
+../dist/public/assets/qahwacup-logo-DJFzRGmL.png                               1,526.44 kB
+../dist/public/assets/leaflet-Dgihpmma.css                                        15.04 kB │ gzip:   6.38 kB
+../dist/public/assets/index-COoyaeEF.css                                         251.67 kB │ gzip:  34.51 kB
+../dist/public/assets/Elegant Coffee Culture Design_1757428233689-BGvtAZke.js      0.06 kB │ gzip:   0.08 kB
+../dist/public/assets/index.browser-OxPLOBIU.js                                    0.20 kB │ gzip:   0.20 kB
+../dist/public/assets/hooks-C6SASQCc.js                                            0.24 kB │ gzip:   0.18 kB
+../dist/public/assets/chevron-down-DDvYjCU-.js                                     0.30 kB │ gzip:   0.24 kB
+../dist/public/assets/chevron-right-BC4P10Er.js                                    0.30 kB │ gzip:   0.24 kB
+../dist/public/assets/chevron-left-DcZrZP2L.js                                     0.30 kB │ gzip:   0.24 kB
+../dist/public/assets/play-BFpoibHy.js                                             0.30 kB │ gzip:   0.25 kB
+../dist/public/assets/navigation-CgLxGZTA.js                                       0.32 kB │ gzip:   0.25 kB
+../dist/public/assets/arrow-up-BCtluTBC.js                                         0.33 kB │ gzip:   0.26 kB
+../dist/public/assets/arrow-left-CyWIkygp.js                                       0.33 kB │ gzip:   0.26 kB
+../dist/public/assets/filter-DTb92BtH.js                                           0.33 kB │ gzip:   0.26 kB
+../dist/public/assets/arrow-down-BZDqWL5B.js                                       0.33 kB │ gzip:   0.26 kB
+../dist/public/assets/circle-check-CX2104jN.js                                     0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/message-square-D4yfaNjI.js                                   0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/clock-CzEl18vk.js                                            0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/clock-3-CDECIhjM.js                                          0.36 kB │ gzip:   0.28 kB
+../dist/public/assets/circle-check-big-CFHAxF1c.js                                 0.36 kB │ gzip:   0.28 kB
+../dist/public/assets/trending-up-eoHwgnzK.js                                      0.37 kB │ gzip:   0.28 kB
+../dist/public/assets/lock-_-bKPseD.js                                             0.38 kB │ gzip:   0.29 kB
+../dist/public/assets/circle-x-BPashzXQ.js                                         0.38 kB │ gzip:   0.28 kB
+../dist/public/assets/trending-down-CuX9NzLp.js                                    0.38 kB │ gzip:   0.28 kB
+../dist/public/assets/bell-DeppHQ9G.js                                             0.38 kB │ gzip:   0.29 kB
+../dist/public/assets/droplet-D7KTUGxU.js                                          0.38 kB │ gzip:   0.29 kB
+../dist/public/assets/mail-BaDwGxbA.js                                             0.38 kB │ gzip:   0.30 kB
+../dist/public/assets/dollar-sign-BL0g5QkD.js                                      0.39 kB │ gzip:   0.29 kB
+../dist/public/assets/briefcase-DShUX25y.js                                        0.39 kB │ gzip:   0.30 kB
+../dist/public/assets/beaker-Be1t6bMG.js                                           0.39 kB │ gzip:   0.28 kB
+../dist/public/assets/target-C458RQb5.js                                           0.40 kB │ gzip:   0.26 kB
+../dist/public/assets/activity-Dnss0Y31.js                                         0.40 kB │ gzip:   0.30 kB
+../dist/public/assets/pen-Cgiae1UK.js                                              0.40 kB │ gzip:   0.31 kB
+../dist/public/assets/history-Ctj4zo2y.js                                          0.41 kB │ gzip:   0.30 kB
+../dist/public/assets/circle-help-8eBnr6dR.js                                      0.41 kB │ gzip:   0.30 kB
+../dist/public/assets/percent-CbL_t5qR.js                                          0.41 kB │ gzip:   0.29 kB
+../dist/public/assets/database-Cf3cIm3N.js                                         0.41 kB │ gzip:   0.30 kB
+../dist/public/assets/circle-dollar-sign-CQ_CNT2i.js                               0.42 kB │ gzip:   0.31 kB
+../dist/public/assets/arrow-right-left-DZLS193x.js                                 0.42 kB │ gzip:   0.30 kB
+../dist/public/assets/camera-oVk5ExhA.js                                           0.42 kB │ gzip:   0.31 kB
+../dist/public/assets/circle-alert-DsS-wMI5.js                                     0.42 kB │ gzip:   0.29 kB
+../dist/public/assets/shopping-bag-DtpJ9Qrs.js                                     0.42 kB │ gzip:   0.30 kB
+../dist/public/assets/external-link-BjcrW6Wn.js                                    0.42 kB │ gzip:   0.30 kB
+../dist/public/assets/chart-column-C9TXm5Y0.js                                     0.42 kB │ gzip:   0.29 kB
+../dist/public/assets/user-check-vfQ3mQY_.js                                       0.42 kB │ gzip:   0.32 kB
+../dist/public/assets/eye-BO5NUg0w.js                                              0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/table-BQKHtDnf.js                                            0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/calendar-B3z_tORe.js                                         0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/log-out-DydRAQxN.js                                          0.43 kB │ gzip:   0.32 kB
+../dist/public/assets/download-BcncUZAU.js                                         0.43 kB │ gzip:   0.32 kB
+../dist/public/assets/wrench-CtZ5ZwJy.js                                           0.43 kB │ gzip:   0.31 kB
+../dist/public/assets/triangle-alert-BJA94V3P.js                                   0.43 kB │ gzip:   0.31 kB
+../dist/public/assets/leaf-CjSbCH6z.js                                             0.43 kB │ gzip:   0.33 kB
+../dist/public/assets/shield-HLIczoxQ.js                                           0.44 kB │ gzip:   0.33 kB
+../dist/public/assets/award-CSYQFvDN.js                                            0.44 kB │ gzip:   0.33 kB
+../dist/public/assets/book-open-y4Ds1U9B.js                                        0.45 kB │ gzip:   0.31 kB
+../dist/public/assets/wifi-D63ZbctX.js                                             0.45 kB │ gzip:   0.31 kB
+../dist/public/assets/lightbulb-Dkan3IJ7.js                                        0.46 kB │ gzip:   0.32 kB
+../dist/public/assets/send-DRK1DCOc.js                                             0.46 kB │ gzip:   0.33 kB
+../dist/public/assets/receipt-CPQ01CWh.js                                          0.46 kB │ gzip:   0.31 kB
+../dist/public/assets/grid-3x3-CHiDcWrf.js                                         0.46 kB │ gzip:   0.31 kB
+../dist/public/assets/users-DitnwUVn.js                                            0.47 kB │ gzip:   0.33 kB
+../dist/public/assets/chef-hat-B5v4VuDg.js                                         0.48 kB │ gzip:   0.34 kB
+../dist/public/assets/flask-conical-CUEHm0dB.js                                    0.48 kB │ gzip:   0.34 kB
+../dist/public/assets/user-plus-BI7oERcN.js                                        0.48 kB │ gzip:   0.33 kB
+../dist/public/assets/box-38o1vWdh.js                                              0.48 kB │ gzip:   0.32 kB
+../dist/public/assets/square-pen-Bbr-xTKa.js                                       0.49 kB │ gzip:   0.34 kB
+../dist/public/assets/printer-BTdWHtpX.js                                          0.49 kB │ gzip:   0.33 kB
+../dist/public/assets/refresh-cw-CPzcBNTN.js                                       0.49 kB │ gzip:   0.32 kB
+../dist/public/assets/monitor-smartphone-BQchxceW.js                               0.49 kB │ gzip:   0.34 kB
+../dist/public/assets/save-BrvW9Td8.js                                             0.50 kB │ gzip:   0.33 kB
+../dist/public/assets/layout-dashboard-DZC-fb5O.js                                 0.52 kB │ gzip:   0.31 kB
+../dist/public/assets/warehouse-Ca5GN4rb.js                                        0.53 kB │ gzip:   0.35 kB
+../dist/public/assets/snowflake-B1eLNa_H.js                                        0.53 kB │ gzip:   0.33 kB
+../dist/public/assets/layers-B2M-F2T0.js                                           0.53 kB │ gzip:   0.34 kB
+../dist/public/assets/package-Cw5wX0lz.js                                          0.56 kB │ gzip:   0.36 kB
+../dist/public/assets/car-BXO-dm36.js                                              0.58 kB │ gzip:   0.39 kB
+../dist/public/assets/clipboard-list-CH9P0g1L.js                                   0.58 kB │ gzip:   0.36 kB
+../dist/public/assets/loader-DSlQNFhr.js                                           0.58 kB │ gzip:   0.34 kB
+../dist/public/assets/eye-off-DnGnIao3.js                                          0.60 kB │ gzip:   0.38 kB
+../dist/public/assets/building-2-D2VeazIW.js                                       0.61 kB │ gzip:   0.35 kB
+../dist/public/assets/arrow-up-right-CkHWO42R.js                                   0.62 kB │ gzip:   0.31 kB
+../dist/public/assets/package-plus-D_bV1hEF.js                                     0.62 kB │ gzip:   0.40 kB
+../dist/public/assets/wifi-off-9_vCy8a8.js                                         0.63 kB │ gzip:   0.38 kB
+../dist/public/assets/sparkles-D3VqMSr4.js                                         0.68 kB │ gzip:   0.40 kB
+../dist/public/assets/calculator-CYM1zF95.js                                       0.70 kB │ gzip:   0.39 kB
+../dist/public/assets/palette-BnYLRK3f.js                                          0.78 kB │ gzip:   0.45 kB
+../dist/public/assets/phone-input-GRAKNcQ6.js                                      0.79 kB │ gzip:   0.49 kB
+../dist/public/assets/badge-b2S8zibE.js                                            0.80 kB │ gzip:   0.42 kB
+../dist/public/assets/qr-code-C6D3clrL.js                                          0.82 kB │ gzip:   0.41 kB
+../dist/public/assets/settings-DrO0gV_7.js                                         0.89 kB │ gzip:   0.44 kB
+../dist/public/assets/tabs-Dc-hg7G7.js                                             1.15 kB │ gzip:   0.48 kB
+../dist/public/assets/coffee-images-Dz8pKvUl.js                                    1.41 kB │ gzip:   0.47 kB
+../dist/public/assets/table-BE5qLeut.js                                            1.56 kB │ gzip:   0.55 kB
+../dist/public/assets/sprout-D6IRuFjY.js                                           1.58 kB │ gzip:   0.64 kB
+../dist/public/assets/notification-sound-Bh8FfpuB.js                               1.65 kB │ gzip:   0.43 kB
+../dist/public/assets/progress-BAolQ4oc.js                                         1.98 kB │ gzip:   0.98 kB
+../dist/public/assets/notification-sounds-DHtPMz1_.js                              2.13 kB │ gzip:   0.62 kB
+../dist/public/assets/index-B9f8YcWo.js                                            2.20 kB │ gzip:   0.98 kB
+../dist/public/assets/switch-D7qqHWhY.js                                           2.41 kB │ gzip:   1.22 kB
+../dist/public/assets/employee-gateway-DhtTVYei.js                                 2.76 kB │ gzip:   1.25 kB
+../dist/public/assets/checkbox-erQ3Qugf.js                                         2.81 kB │ gzip:   1.39 kB
+../dist/public/assets/unauthorized-DHF0Yl5F.js                                     3.03 kB │ gzip:   1.35 kB
+../dist/public/assets/product-reviews-D0-kyOh3.js                                  3.21 kB │ gzip:   1.36 kB
+../dist/public/assets/location-distance-map-BK_p73_v.js                            3.24 kB │ gzip:   1.35 kB
+../dist/public/assets/websocket-eWdwzkwG.js                                        3.32 kB │ gzip:   1.39 kB
+../dist/public/assets/employee-availability-D1EuWYqr.js                            3.35 kB │ gzip:   1.50 kB
+../dist/public/assets/select-DNHq3K1m.js                                           3.38 kB │ gzip:   1.31 kB
+../dist/public/assets/customer-storage-Cl_q0d3o.js                                 3.44 kB │ gzip:   1.13 kB
+../dist/public/assets/inventory-smart-dashboard-BTCgWLjZ.js                        3.70 kB │ gzip:   1.53 kB
+../dist/public/assets/notifications-DwtZot9K.js                                    3.73 kB │ gzip:   1.49 kB
+../dist/public/assets/employee-splash-DRV90gW7.js                                  3.98 kB │ gzip:   1.45 kB
+../dist/public/assets/os-recipe-management-DGMlxKP7.js                             4.01 kB │ gzip:   1.76 kB
+../dist/public/assets/manager-login-C_ejCUOZ.js                                    4.05 kB │ gzip:   1.72 kB
+../dist/public/assets/stock-movements-DPG2wziR.js                                  4.58 kB │ gzip:   1.49 kB
+../dist/public/assets/employee-orders-display-DEpYQ52Z.js                          4.64 kB │ gzip:   1.93 kB
+../dist/public/assets/order-tracker-B-o-VAZX.js                                    4.72 kB │ gzip:   1.85 kB
+../dist/public/assets/alert-dialog-B8gh4IV7.js                                     4.77 kB │ gzip:   1.74 kB
+../dist/public/assets/os-stock-management-CmlhpSbW.js                              4.95 kB │ gzip:   1.98 kB
+../dist/public/assets/delivery-map-BTkzTx-0.js                                     5.07 kB │ gzip:   2.42 kB
+../dist/public/assets/unified-hub-JwTMaYdr.js                                      5.13 kB │ gzip:   1.77 kB
+../dist/public/assets/employee-login-DPZtsJQC.js                                   5.22 kB │ gzip:   2.15 kB
+../dist/public/assets/employee-activation-JlOR_t7N.js                              5.40 kB │ gzip:   2.06 kB
+../dist/public/assets/os-roles-management-QB1W0qfB.js                              5.52 kB │ gzip:   1.72 kB
+../dist/public/assets/recipes-management-C3KSSLPB.js                               5.56 kB │ gzip:   1.94 kB
+../dist/public/assets/accounting-smart-dashboard-26GYR3rW.js                       5.64 kB │ gzip:   1.45 kB
+../dist/public/assets/employee-forgot-password-DFhwWW2J.js                         5.69 kB │ gzip:   2.01 kB
+../dist/public/assets/manager-forgot-password-BbGsFXLF.js                          5.75 kB │ gzip:   2.03 kB
+../dist/public/assets/referral-program-B1rDTMKy.js                                 5.76 kB │ gzip:   2.21 kB
+../dist/public/assets/ResetPassword-SrgAy3h8.js                                    6.14 kB │ gzip:   2.19 kB
+../dist/public/assets/admin-dashboard-C6Q3pNzN.js                                  6.44 kB │ gzip:   2.21 kB
+../dist/public/assets/ar-CeWsqWSX.js                                               6.49 kB │ gzip:   2.28 kB
+../dist/public/assets/os-accounting-dashboard-CHJ7Z3jP.js                          6.53 kB │ gzip:   2.18 kB
+../dist/public/assets/leave-request-lMQtFHdj.js                                    6.53 kB │ gzip:   2.41 kB
+../dist/public/assets/table-order-tracking-SNc_qsqU.js                             6.70 kB │ gzip:   2.68 kB
+../dist/public/assets/admin-settings-mxfDew5i.js                                   6.80 kB │ gzip:   2.34 kB
+../dist/public/assets/customer-reservations-DUl14yvv.js                            6.98 kB │ gzip:   2.35 kB
+../dist/public/assets/cart-page-CqwDmUXs.js                                        7.62 kB │ gzip:   2.19 kB
+../dist/public/assets/table-checkout-BiMornTj.js                                   7.75 kB │ gzip:   3.07 kB
+../dist/public/assets/employee-ingredients-management-BfK-fzR_.js                  7.94 kB │ gzip:   3.21 kB
+../dist/public/assets/inventory-movements-Utk7MeiI.js                              7.95 kB │ gzip:   2.56 kB
+../dist/public/assets/product-details-BK-4H3d9.js                                  8.21 kB │ gzip:   2.96 kB
+../dist/public/assets/table-reservation-BCJFnDf2.js                                8.27 kB │ gzip:   2.96 kB
+../dist/public/assets/tenant-signup-Bwf8JUK0.js                                    8.48 kB │ gzip:   2.95 kB
+../dist/public/assets/cashier-reservations-CczsGIQa.js                             8.55 kB │ gzip:   2.62 kB
+../dist/public/assets/ForgotPassword-Cl280D0Q.js                                   8.74 kB │ gzip:   2.57 kB
+../dist/public/assets/order-status-display-CvnfO-L7.js                             8.92 kB │ gzip:   3.12 kB
+../dist/public/assets/reports-BM-95RT8.js                                          8.98 kB │ gzip:   2.49 kB
+../dist/public/assets/admin-reports-DGHmQaGd.js                                    9.49 kB │ gzip:   3.02 kB
+../dist/public/assets/inventory-alerts-DgoyMN0V.js                                 9.88 kB │ gzip:   3.15 kB
+../dist/public/assets/CustomerAuth-DNPW88lX.js                                     9.93 kB │ gzip:   2.96 kB
+../dist/public/assets/admin-employees-DImEHOZc.js                                 10.25 kB │ gzip:   3.39 kB
+../dist/public/assets/AreaChart-EwIn2y1e.js                                       11.04 kB │ gzip:   4.09 kB
+../dist/public/assets/cashier-table-orders-UzTZIEkT.js                            11.08 kB │ gzip:   3.36 kB
+../dist/public/assets/LineChart-BOzbQhgh.js                                       11.19 kB │ gzip:   4.32 kB
+../dist/public/assets/inventory-suppliers-Bid7DRs7.js                             11.72 kB │ gzip:   2.84 kB
+../dist/public/assets/card-customization-DW9aKWE4.js                              11.83 kB │ gzip:   3.86 kB
+../dist/public/assets/scroll-area-BkCWzf_A.js                                     12.46 kB │ gzip:   3.93 kB
+../dist/public/assets/manager-tables-DmyMv5GB.js                                  12.51 kB │ gzip:   4.55 kB
+../dist/public/assets/employee-attendance-BjCkYHXE.js                             12.55 kB │ gzip:   3.74 kB
+../dist/public/assets/owner-dashboard-Ctg0FVEB.js                                 12.72 kB │ gzip:   4.00 kB
+../dist/public/assets/delivery-selection-CC2Tm1Yv.js                              13.29 kB │ gzip:   4.62 kB
+../dist/public/assets/employee-loyalty-BpzqpyQ2.js                                13.38 kB │ gzip:   4.55 kB
+../dist/public/assets/manager-drivers-Dv6F4qlD.js                                 13.56 kB │ gzip:   3.19 kB
+../dist/public/assets/tracking-CYcfHCGC.js                                        13.62 kB │ gzip:   4.49 kB
+../dist/public/assets/inventory-transfers-DkW0kuyf.js                             14.07 kB │ gzip:   3.88 kB
+../dist/public/assets/cashier-tables-BsMxOxtf.js                                  14.11 kB │ gzip:   4.29 kB
+../dist/public/assets/table-menu-BktCp3JW.js                                      14.64 kB │ gzip:   4.95 kB
+../dist/public/assets/my-orders-B0jqcfSm.js                                       14.74 kB │ gzip:   5.03 kB
+../dist/public/assets/inventory-dashboard-DHZsMuQe.js                             15.92 kB │ gzip:   4.67 kB
+../dist/public/assets/kitchen-display-BdLhF4UX.js                                 17.36 kB │ gzip:   5.21 kB
+../dist/public/assets/user-guide-D_sPz7N2.js                                      17.73 kB │ gzip:   7.52 kB
+../dist/public/assets/inventory-raw-items-Cno6Kvzx.js                             18.00 kB │ gzip:   4.22 kB
+../dist/public/assets/inventory-smart-U-Wv1MZf.js                                 19.84 kB │ gzip:   4.95 kB
+../dist/public/assets/my-card-w_niBvEH.js                                         19.93 kB │ gzip:   5.73 kB
+../dist/public/assets/manager-employees-BMekOUqN.js                               20.06 kB │ gzip:   4.69 kB
+../dist/public/assets/inventory-purchases-FLPxT2li.js                             20.17 kB │ gzip:   4.74 kB
+../dist/public/assets/unified-inventory-recipes-DJ_ahVL8.js                       20.18 kB │ gzip:   5.04 kB
+../dist/public/assets/manager-attendance-XH885PvW.js                              20.30 kB │ gzip:   4.73 kB
+../dist/public/assets/supplier-management-YjTB-KaD.js                             20.34 kB │ gzip:   4.72 kB
+../dist/public/assets/external-integrations-C008Hkhh.js                           21.64 kB │ gzip:   5.28 kB
+../dist/public/assets/purify.es-BFmuJLeH.js                                       21.93 kB │ gzip:   8.62 kB
+../dist/public/assets/support-system-eOgEE4lQ.js                                  22.05 kB │ gzip:   5.83 kB
+../dist/public/assets/inventory-stock-DYcT_U5l.js                                 22.34 kB │ gzip:   6.02 kB
+../dist/public/assets/loyalty-program-D1rXmE2O.js                                 22.53 kB │ gzip:   6.00 kB
+../dist/public/assets/advanced-analytics-Cq-57aiD.js                              23.03 kB │ gzip:   5.87 kB
+../dist/public/assets/zatca-invoices-CjjhOudy.js                                  23.73 kB │ gzip:   5.69 kB
+../dist/public/assets/executive-dashboard-lgrmxX6w.js                             23.98 kB │ gzip:   5.92 kB
+../dist/public/assets/ingredients-recipes-inventory-o565eT-u.js                   24.37 kB │ gzip:   6.42 kB
+../dist/public/assets/menu-view-Cy3zMGxs.js                                       24.53 kB │ gzip:   4.92 kB
+../dist/public/assets/menu-b0fcq7PR.js                                            24.59 kB │ gzip:   7.58 kB
+../dist/public/assets/accounting-smart-BIzghOR4.js                                25.02 kB │ gzip:   6.52 kB
+../dist/public/assets/PieChart-CcImm4lT.js                                        25.99 kB │ gzip:   7.04 kB
+../dist/public/assets/employee-orders-DvAInxIV.js                                 26.28 kB │ gzip:   7.35 kB
+../dist/public/assets/employee-dashboard-BVhWlPPz.js                              27.34 kB │ gzip:   7.15 kB
+../dist/public/assets/manager-dashboard-njK0BXw0.js                               30.40 kB │ gzip:   8.78 kB
+../dist/public/assets/inventory-recipes-AagLYZKO.js                               31.47 kB │ gzip:   7.79 kB
+../dist/public/assets/employee-cashier-MLFkDLH2.js                                31.88 kB │ gzip:   8.85 kB
+../dist/public/assets/CopyCard-KGoagqen.js                                        32.39 kB │ gzip:   9.20 kB
+../dist/public/assets/vendor-query-7NaXMFGn.js                                    33.30 kB │ gzip:   9.89 kB
+../dist/public/assets/print-utils-Dxkxe-CC.js                                     36.78 kB │ gzip:   9.52 kB
+../dist/public/assets/employee-menu-management-lvf0kneR.js                        38.88 kB │ gzip:   8.94 kB
+../dist/public/assets/vendor-utils-BKCsaWdX.js                                    42.56 kB │ gzip:  13.12 kB
+../dist/public/assets/accounting-dashboard-DCihyqwd.js                            49.04 kB │ gzip:  10.20 kB
+../dist/public/assets/pos-system-C4UA2QU4.js                                      54.39 kB │ gzip:  14.85 kB
+../dist/public/assets/checkout-cTyi5oQF.js                                        54.77 kB │ gzip:  13.90 kB
+../dist/public/assets/JsBarcode-71-VwQ93.js                                       65.89 kB │ gzip:  13.18 kB
+../dist/public/assets/vendor-ui-B0EiwAZZ.js                                       84.01 kB │ gzip:  28.96 kB
+../dist/public/assets/os-inventory-management-WIhfUPwt.js                         92.88 kB │ gzip:  26.43 kB
+../dist/public/assets/index-BaixhrMh.js                                          113.89 kB │ gzip:  37.50 kB
+../dist/public/assets/vendor-react-Bzsngnqy.js                                   141.40 kB │ gzip:  45.48 kB
+../dist/public/assets/index.es-D4Alv9_3.js                                       150.70 kB │ gzip:  51.57 kB
+../dist/public/assets/index-Caf-MGot.js                                          153.60 kB │ gzip:  47.94 kB
+../dist/public/assets/leaflet-hENV6ihg.js                                        154.09 kB │ gzip:  45.01 kB
+../dist/public/assets/html2canvas.esm-BfxBtG_O.js                                201.41 kB │ gzip:  48.03 kB
+../dist/public/assets/BarChart-C-BXurcz.js                                       374.06 kB │ gzip: 103.20 kB
+../dist/public/assets/html5-qrcode-scanner-BAmOd9U4.js                           375.05 kB │ gzip: 110.63 kB
+../dist/public/assets/jspdf.es.min-BA41_9WC.js                                   412.73 kB │ gzip: 134.74 kB
+../dist/public/assets/xlsx-62rwurJE.js                                           429.31 kB │ gzip: 143.18 kB
+✓ built in 19.50s
+  dist/index.js  569.6kb
+⚡ Done in 29ms
+==> Uploading build...
+==> Uploaded in 15.9s. Compression took 4.9s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'npm run start'
+> qahwacup-root@1.0.0 start
+> cd qahwacup-1 && npm run start
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+✅ WebSocket server initialized at /ws/orders
+5:10:08 PM [express] serving on port 10000
+📧 Performing startup email connection test...
+📧 Mail service initializing - credentials status:
+   SMTP_HOST: ✅
+   SMTP_USER: ✅
+📧 Attempting to connect to SMTP: pro.eu.turbo-smtp.com:587 with user 7503570baf039fb81335
+[2025-12-29 17:10:09] DEBUG Creating transport: nodemailer (7.0.11; +https://nodemailer.com/; SMTP/7.0.11[client:7.0.11])
+[2025-12-29 17:10:09] DEBUG [bH3rbKIozKI] Resolved pro.eu.turbo-smtp.com as 185.228.39.23 [cache miss]
+✅ MongoDB connected successfully
+🌱 Starting clean re-initialization...
+🌱 Starting clean re-initialization...
+✅ System re-initialized successfully with clean state.
+==> Application exited early
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'npm run start'
+> qahwacup-root@1.0.0 start
+> cd qahwacup-1 && npm run start
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+✅ WebSocket server initialized at /ws/orders
+5:10:27 PM [express] serving on port 10000
+📧 Performing startup email connection test...
+📧 Mail service initializing - credentials status:
+   SMTP_HOST: ✅
+   SMTP_USER: ✅
+📧 Attempting to connect to SMTP: pro.eu.turbo-smtp.com:587 with user 7503570baf039fb81335
+[2025-12-29 17:10:27] DEBUG Creating transport: nodemailer (7.0.11; +https://nodemailer.com/; SMTP/7.0.11[client:7.0.11])
+[2025-12-29 17:10:27] DEBUG [NHnxFrDWRs] Resolved pro.eu.turbo-smtp.com as 185.228.39.23 [cache miss]
+✅ MongoDB connected successfully
+🌱 Starting clean re-initialization...
+🌱 Starting clean re-initialization...
+✅ System re-initialized successfully with clean state.
