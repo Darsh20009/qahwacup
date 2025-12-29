@@ -1,14 +1,12 @@
 {
-  "name": "workspace",
+  "name": "qahwacup-root",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "cd qahwacup-1 && npm install && npm run build",
+    "start": "cd qahwacup-1 && npm run start",
+    "dev": "cd qahwacup-1 && npm run dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@types/compression": "^1.8.1",
     "compression": "^1.8.1",

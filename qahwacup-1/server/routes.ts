@@ -740,33 +740,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { EmployeeModel } = await import("@shared/schema");
       const tenantId = req.employee?.tenantId || 'demo-tenant';
-      const validatedData = req.body;
+      const bodyData = req.body;
 
       // For non-admin managers, enforce their branch ID
       if (req.employee?.role !== "admin") {
         if (req.employee?.branchId) {
           // Manager can only create employees in their branch
-          if (validatedData.branchId && validatedData.branchId !== req.employee.branchId) {
+          if (bodyData.branchId && bodyData.branchId !== req.employee.branchId) {
             return res.status(403).json({ error: "Cannot create employee in different branch" });
           }
-          validatedData.branchId = req.employee.branchId;
+          bodyData.branchId = req.employee.branchId;
         } else {
           return res.status(403).json({ error: "Manager must have a branch assigned" });
         }
       }
 
       // Check if username already exists
-      const existing = await storage.getEmployeeByUsername(validatedData.username);
+      const existing = await storage.getEmployeeByUsername(bodyData.username);
       if (existing) {
         return res.status(400).json({ error: "Username already exists" });
       }
 
       // Directly create using Model for robustness
       const newEmployee = await EmployeeModel.create({
-        ...validatedData,
+        ...bodyData,
         tenantId,
         id: nanoid(),
-        isActivated: validatedData.password ? 1 : 0,
+        isActivated: bodyData.password ? 1 : 0,
         createdAt: new Date(),
         updatedAt: new Date()
       });
