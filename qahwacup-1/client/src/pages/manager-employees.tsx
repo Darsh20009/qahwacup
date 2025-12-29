@@ -35,7 +35,26 @@ export default function ManagerEmployees() {
  const editFileInputRef = useRef<HTMLInputElement>(null);
  const [isUploadingImage, setIsUploadingImage] = useState(false);
  const [selectedRole, setSelectedRole] = useState<string>("cashier");
- const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [selectedPages, setSelectedPages] = useState<string[]>([]);
+
+  const PERMISSIONS_OPTIONS = [
+    { id: 'create_order', label: 'إنشاء طلبات' },
+    { id: 'cancel_order', label: 'إلغاء طلبات' },
+    { id: 'manage_inventory', label: 'إدارة المخزون' },
+    { id: 'view_reports', label: 'عرض التقارير' },
+    { id: 'manage_employees', label: 'إدارة الموظفين' },
+  ];
+
+  const PAGES_OPTIONS = [
+    { id: '/employee/pos', label: 'نقطة البيع' },
+    { id: '/employee/orders', label: 'الطلبات' },
+    { id: '/employee/inventory', label: 'المخزون' },
+    { id: '/employee/accounting', label: 'المحاسبة' },
+    { id: '/manager/dashboard', label: 'لوحة التحكم' },
+  ];
+
 
  // Get current manager info and verify session
  useEffect(() => {
