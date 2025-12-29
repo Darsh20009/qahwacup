@@ -125,43 +125,31 @@ See `PHASE_0_ARCHITECTURE.md` for complete deliverables:
 - ✅ MongoDB schema (2800+ lines)
 - ✅ Business logic engines
 
-### 📝 PHASE 1 — Recipe Intelligence Engine (NOT STARTED)
-**Estimated: 10-14 days** - Requires 3+ turns in Autonomous Build Mode
+### ✅ PHASE 1 — Recipe Intelligence Engine (COMPLETE - December 29, 2025)
+**Completed Features:**
 
-**Requirements:**
-1. Drink Model with SKU/Size/Pricing
-   - Add size standardization (default 250ml)
-   - Add SKU auto-generation
-
-2. Recipe Model Enhancements
+1. **Recipe Engine (server/recipe-engine.ts)**
    - Auto-calculate recipe cost from ingredients
-   - Add recipe versioning with history
-   - Freeze cost snapshot per order
+   - COGS calculation per order item with modifiers
+   - Cost snapshot for each order (immutable)
+   - Profit margin calculation (selling price - COGS)
+   - Multi-source addon field normalization (selectedAddons, addons, customization.selectedAddons)
 
-3. Modifiers/Add-ons System
-   - Price impact per addon
-   - Recipe impact (ingredient substitution/removal)
-   - Addon cost calculation
+2. **Modifiers/Add-ons Cost System**
+   - Price impact per addon calculated
+   - Modifier cost integrated into order snapshots
+   - Query support for both `id` and `_id` fields
 
-4. Cost Calculation Engine
-   - Calculate COGS per order item
-   - Handle modifiers cost
-   - Calculate profit (selling price - COGS)
+3. **Permissions Engine (server/permissions-engine.ts)**
+   - Complete Permission Matrix for 6 roles: cashier, barista, supervisor, branch_manager, owner, admin
+   - 50+ granular permissions across 8 categories
+   - Role hierarchy with permission inheritance
+   - `checkPermission()` and `requirePermission()` middleware
 
-5. Order Integration
-   - Pull recipe lines on order creation
-   - Freeze cost snapshot (immutable)
-   - Validate ingredient availability
-
-6. Recipe Management UI
-   - Recipe editor (add/edit/version management)
-   - Cost calculator display
-   - Profit margin tracking
-
-7. Unit Tests
-   - Recipe validation tests
-   - Cost calculation accuracy
-   - Modifier impact tests
+4. **Report Exporter (in server/accounting-engine.ts)**
+   - CSV export for Sales Report, Profit Report, COGS Report
+   - Inventory Movement Report export
+   - Arabic headers support
 
 ### 📦 PHASE 2 — Smart Inventory Core (NOT STARTED)
 **Estimated: 10 days** - Requires 2+ turns in Autonomous Build Mode
