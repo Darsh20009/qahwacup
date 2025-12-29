@@ -520,13 +520,8 @@ const BranchSchema = new Schema<IBranch>({
     lng: { type: Number }
   },
   isActive: { type: Schema.Types.Mixed, default: true },
-  managerName: { type: String },
-  isMainBranch: { type: Boolean, default: false },
-  printSettings: {
-    headerText: { type: String },
-    footerText: { type: String },
-    showVat: { type: Boolean, default: true }
-  },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
 }, { timestamps: false });
 
@@ -1650,6 +1645,8 @@ export interface IEmployee extends Document {
     lng: number;
     updatedAt?: Date;
   };
+  permissions?: string[];
+  allowedPages?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -1683,6 +1680,8 @@ const EmployeeSchema = new Schema<IEmployee>({
     lng: { type: Number },
     updatedAt: { type: Date }
   },
+  permissions: { type: [String], default: [] },
+  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
