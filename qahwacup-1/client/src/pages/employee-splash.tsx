@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Coffee, Settings, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import logoImage from "@assets/Elegant Coffee Culture Design_1757441959827.png";
 
 export default function EmployeeSplash() {
