@@ -35,9 +35,19 @@ export default function ManagerEmployees() {
  const editFileInputRef = useRef<HTMLInputElement>(null);
  const [isUploadingImage, setIsUploadingImage] = useState(false);
  const [selectedRole, setSelectedRole] = useState<string>("cashier");
-  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (editingEmployee) {
+      setSelectedPermissions(editingEmployee.permissions || []);
+      setSelectedPages(editingEmployee.allowedPages || []);
+    } else {
+      setSelectedPermissions([]);
+      setSelectedPages([]);
+    }
+  }, [editingEmployee]);
 
   const PERMISSIONS_OPTIONS = [
     { id: 'create_order', label: 'إنشاء طلبات' },
@@ -51,6 +61,9 @@ export default function ManagerEmployees() {
     { id: '/employee/pos', label: 'نقطة البيع' },
     { id: '/employee/orders', label: 'الطلبات' },
     { id: '/employee/inventory', label: 'المخزون' },
+    { id: '/employee/accounting', label: 'المحاسبة' },
+    { id: '/manager/dashboard', label: 'لوحة التحكم' },
+  ];
     { id: '/employee/accounting', label: 'المحاسبة' },
     { id: '/manager/dashboard', label: 'لوحة التحكم' },
   ];
@@ -180,16 +193,6 @@ export default function ManagerEmployees() {
  // Determine branch ID - admin can select, manager uses their branch
  const branchId = isAdminOrOwner && selectedBranchId ? selectedBranchId : currentManager?.branchId;
  
- // Validate manager role requires a branch
- if (selectedRole === "manager" && !branchId) {
- toast({
- variant: "destructive",
- title: "خطأ",
- description: "يجب تحديد الفرع عند إنشاء مدير",
- });
- return;
- }
- 
  const employeeData = {
  username: username,
  fullName: formData.get("fullName") as string,
@@ -197,6 +200,8 @@ export default function ManagerEmployees() {
  jobTitle: formData.get("jobTitle") as string,
  role: selectedRole,
  branchId: branchId,
+ permissions: selectedPermissions,
+ allowedPages: selectedPages,
  shiftTime: shiftStartTime && shiftEndTime ? `${shiftStartTime}-${shiftEndTime}` : undefined,
  shiftStartTime: shiftStartTime || undefined,
  shiftEndTime: shiftEndTime || undefined,
@@ -219,6 +224,8 @@ export default function ManagerEmployees() {
  fullName: formData.get("fullName") as string,
  phone: formData.get("phone") as string,
  jobTitle: formData.get("jobTitle") as string,
+ permissions: selectedPermissions,
+ allowedPages: selectedPages,
  shiftTime: formData.get("shiftTime") as string,
  shiftStartTime: formData.get("shiftStartTime") as string || undefined,
  shiftEndTime: formData.get("shiftEndTime") as string || undefined,
@@ -478,21 +485,61 @@ export default function ManagerEmployees() {
  </div>
 
  <div>
- <Label className="text-gray-300 block mb-2">أيام الدوام</Label>
- <div className="grid grid-cols-3 gap-2">
- {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
- <label key={day} className="flex items-center gap-2 text-gray-300 cursor-pointer">
- <input
- type="checkbox"
- name="workDays"
- value={day}
- className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
- data-testid={`checkbox-workday-${day}`}
- />
- <span className="text-sm">{day}</span>
- </label>
- ))}
+   <Label className="text-gray-300 block mb-2">أيام الدوام</Label>
+   <div className="grid grid-cols-3 gap-2">
+   {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
+   <label key={day} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+   <input
+   type="checkbox"
+   name="workDays"
+   value={day}
+   className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+   data-testid={`checkbox-workday-${day}`}
+   />
+   <span className="text-sm">{day}</span>
+   </label>
+   ))}
+   </div>
  </div>
+
+ <div>
+   <Label className="text-gray-300 block mb-2">الصلاحيات</Label>
+   <div className="grid grid-cols-2 gap-2 bg-[#1a1410] p-3 rounded-lg border border-amber-500/10">
+     {PERMISSIONS_OPTIONS.map(opt => (
+       <label key={opt.id} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+         <input
+           type="checkbox"
+           checked={selectedPermissions.includes(opt.id)}
+           onChange={(e) => {
+             if (e.target.checked) setSelectedPermissions([...selectedPermissions, opt.id]);
+             else setSelectedPermissions(selectedPermissions.filter(id => id !== opt.id));
+           }}
+           className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+         />
+         <span className="text-sm">{opt.label}</span>
+       </label>
+     ))}
+   </div>
+ </div>
+
+ <div>
+   <Label className="text-gray-300 block mb-2">الصفحات المسموحة</Label>
+   <div className="grid grid-cols-2 gap-2 bg-[#1a1410] p-3 rounded-lg border border-amber-500/10">
+     {PAGES_OPTIONS.map(opt => (
+       <label key={opt.id} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+         <input
+           type="checkbox"
+           checked={selectedPages.includes(opt.id)}
+           onChange={(e) => {
+             if (e.target.checked) setSelectedPages([...selectedPages, opt.id]);
+             else setSelectedPages(selectedPages.filter(id => id !== opt.id));
+           }}
+           className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+         />
+         <span className="text-sm">{opt.label}</span>
+       </label>
+     ))}
+   </div>
  </div>
 
  <div className="grid grid-cols-2 gap-4">
@@ -762,22 +809,62 @@ export default function ManagerEmployees() {
  </div>
 
  <div>
- <Label className="text-gray-300 block mb-2">أيام الدوام</Label>
- <div className="grid grid-cols-3 gap-2">
- {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
- <label key={day} className="flex items-center gap-2 text-gray-300 cursor-pointer">
- <input
- type="checkbox"
- name="workDays"
- value={day}
- defaultChecked={editingEmployee.workDays?.includes(day)}
- className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
- data-testid={`checkbox-edit-workday-${day}`}
- />
- <span className="text-sm">{day}</span>
- </label>
- ))}
+   <Label className="text-gray-300 block mb-2">أيام الدوام</Label>
+   <div className="grid grid-cols-3 gap-2">
+   {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(day => (
+   <label key={day} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+   <input
+   type="checkbox"
+   name="workDays"
+   value={day}
+   defaultChecked={editingEmployee.workDays?.includes(day)}
+   className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+   data-testid={`checkbox-edit-workday-${day}`}
+   />
+   <span className="text-sm">{day}</span>
+   </label>
+   ))}
+   </div>
  </div>
+
+ <div>
+   <Label className="text-gray-300 block mb-2">الصلاحيات</Label>
+   <div className="grid grid-cols-2 gap-2 bg-[#1a1410] p-3 rounded-lg border border-amber-500/10">
+     {PERMISSIONS_OPTIONS.map(opt => (
+       <label key={opt.id} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+         <input
+           type="checkbox"
+           checked={selectedPermissions.includes(opt.id)}
+           onChange={(e) => {
+             if (e.target.checked) setSelectedPermissions([...selectedPermissions, opt.id]);
+             else setSelectedPermissions(selectedPermissions.filter(id => id !== opt.id));
+           }}
+           className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+         />
+         <span className="text-sm">{opt.label}</span>
+       </label>
+     ))}
+   </div>
+ </div>
+
+ <div>
+   <Label className="text-gray-300 block mb-2">الصفحات المسموحة</Label>
+   <div className="grid grid-cols-2 gap-2 bg-[#1a1410] p-3 rounded-lg border border-amber-500/10">
+     {PAGES_OPTIONS.map(opt => (
+       <label key={opt.id} className="flex items-center gap-2 text-gray-300 cursor-pointer">
+         <input
+           type="checkbox"
+           checked={selectedPages.includes(opt.id)}
+           onChange={(e) => {
+             if (e.target.checked) setSelectedPages([...selectedPages, opt.id]);
+             else setSelectedPages(selectedPages.filter(id => id !== opt.id));
+           }}
+           className="w-4 h-4 rounded border-amber-500/30 bg-[#1a1410]"
+         />
+         <span className="text-sm">{opt.label}</span>
+       </label>
+     ))}
+   </div>
  </div>
 
  <div className="grid grid-cols-2 gap-4">

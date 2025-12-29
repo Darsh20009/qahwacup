@@ -1643,6 +1643,8 @@ export const insertEmployeeSchema = z.object({
   vehicleColor: z.string().optional(),
   licenseNumber: z.string().optional(),
   isAvailableForDelivery: z.number().optional(),
+  permissions: z.array(z.string()).optional(),
+  allowedPages: z.array(z.string()).optional(),
   currentLocation: z.object({
     lat: z.number(),
     lng: z.number(),
@@ -1714,8 +1716,6 @@ const EmployeeSchema = new Schema<IEmployee>({
     lng: { type: Number },
     updatedAt: { type: Date }
   },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   permissions: { type: [String], default: [] },
   allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
