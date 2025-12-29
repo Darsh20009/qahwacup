@@ -478,6 +478,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch branch" });
     }
   });
+
+  app.get("/api/pos/status", (req, res) => {
     try {
       res.json({ 
         connected: posDeviceStatus.connected,
