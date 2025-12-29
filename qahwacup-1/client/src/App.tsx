@@ -99,6 +99,9 @@ const ExecutiveDashboard = lazy(() => import("@/pages/executive-dashboard"));
 const UnifiedInventoryRecipes = lazy(() => import("@/pages/unified-inventory-recipes"));
 const ZATCAInvoices = lazy(() => import("@/pages/zatca-invoices"));
 const UserGuide = lazy(() => import("@/pages/user-guide"));
+const AdvancedAnalytics = lazy(() => import("@/pages/advanced-analytics"));
+const SupplierManagement = lazy(() => import("@/pages/supplier-management"));
+const LoyaltyProgram = lazy(() => import("@/pages/loyalty-program"));
 const PageLoader = () => <div className="w-full h-screen flex items-center justify-center bg-background" />;
 
 function Router() {
@@ -217,6 +220,9 @@ function Router() {
  <Route path="/manager/zatca">{() => <AuthGuard userType="manager"><ZATCAInvoices /></AuthGuard>}</Route>
  <Route path="/manager/guide">{() => <AuthGuard userType="manager"><UserGuide /></AuthGuard>}</Route>
  <Route path="/guide">{() => <UserGuide />}</Route>
+ <Route path="/manager/analytics">{() => <AuthGuard userType="manager"><AdvancedAnalytics /></AuthGuard>}</Route>
+ <Route path="/manager/suppliers">{() => <AuthGuard userType="manager"><SupplierManagement /></AuthGuard>}</Route>
+ <Route path="/manager/loyalty">{() => <AuthGuard userType="manager"><LoyaltyProgram /></AuthGuard>}</Route>
  <Route path="/manager/os-recipes">{() => <AuthGuard userType="manager"><OSRecipeManagement /></AuthGuard>}</Route>
  <Route path="/manager/os-accounting">{() => <AuthGuard userType="manager"><OSAccountingDashboard /></AuthGuard>}</Route>
  <Route path="/manager/os-stock">{() => <AuthGuard userType="manager"><OSStockManagement /></AuthGuard>}</Route>
