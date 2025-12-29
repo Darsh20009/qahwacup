@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "@types/compression": "^1.8.1",
-    "compression": "^1.8.1"
+    "compression": "^1.8.1",
+    "tsx": "^4.21.0"
   }
 }
