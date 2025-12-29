@@ -37,3 +37,8 @@ externalPort = 80
 [[ports]]
 localPort = 24678
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+MONGODB_URI = "mongodb+srv://Vercel-Admin-qahwa:TOTY20009a@qahwa.ink6nxz.mongodb.net/?appName=qahwa"
