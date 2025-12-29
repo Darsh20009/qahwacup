@@ -3950,6 +3950,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { insertBranchSchema } = await import("@shared/schema");
       const { managerAssignment, ...branchData } = req.body;
+      
+      // Ensure cafeId is present
+      if (!branchData.cafeId) {
+        branchData.cafeId = req.employee?.tenantId || 'demo-tenant';
+      }
+      
       const validatedData = insertBranchSchema.parse(branchData);
       const branch = await storage.createBranch(validatedData);
       
