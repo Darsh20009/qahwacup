@@ -507,27 +507,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(alerts);
   });
 
-  // Branches API
-  app.get("/api/branches", async (req, res) => {
-    try {
-      const tenantId = getTenantIdFromRequest(req as AuthRequest) || 'demo-tenant';
-      const cafe = await CafeModel.findOne({ id: tenantId });
-      const branches = await storage.getBranches(cafe?.id || tenantId);
-      res.json(branches);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch branches" });
-    }
-  });
-
-  app.get("/api/branches/:id", async (req, res) => {
-    try {
-      const branch = await storage.getBranch(req.params.id);
-      if (!branch) return res.status(404).json({ error: "Branch not found" });
-      res.json(branch);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch branch" });
-    }
-  });
 
   app.get("/api/pos/status", (req, res) => {
     try {
@@ -4044,37 +4023,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // BRANCH MANAGEMENT ROUTES
-  app.get("/api/branches", requireAuth, async (req: AuthRequest, res) => {
+  app.get("/api/branches", async (req, res) => {
     try {
       const { BranchModel } = await import("@shared/schema");
-      const tenantId = req.employee?.tenantId || 'demo-tenant';
-      const userRole = req.employee?.role;
-      const userBranchId = req.employee?.branchId;
+      const tenantId = (req as any).employee?.tenantId || 'demo-tenant';
+      const userRole = (req as any).employee?.role;
+      const userBranchId = (req as any).employee?.branchId;
 
-      let query: any = { 
-        $or: [
-          { cafeId: tenantId },
-          { tenantId: tenantId }
-        ]
-      };
-
-      // If manager (not admin/owner), restrict to their own branch
+      let query: any = {};
+      
+      // For admin/owner, show all; for managers, show only their branch
       if (userRole === "manager" && userBranchId) {
-        query = { id: userBranchId };
+        query = { $or: [{ id: userBranchId }, { _id: userBranchId }] };
+      } else {
+        // Show all branches (admin can see all)
+        query = { isActive: { $in: [1, true] } };
       }
 
       const branches = await BranchModel.find(query).lean();
       
       const serialized = branches.map((b: any) => ({
         ...b,
-        id: b.id || b._id.toString(),
-        _id: b._id.toString()
+        id: b.id || b._id?.toString(),
+        _id: b._id?.toString()
       }));
       
       res.json(serialized);
     } catch (error) {
       console.error("Error fetching branches:", error);
       res.status(500).json({ error: "Failed to fetch branches" });
+    }
+  });
+
+  app.get("/api/branches/:id", async (req, res) => {
+    try {
+      const { BranchModel } = await import("@shared/schema");
+      const branch = await BranchModel.findOne({ 
+        $or: [{ id: req.params.id }, { _id: req.params.id }] 
+      }).lean();
+      if (!branch) return res.status(404).json({ error: "Branch not found" });
+      res.json({
+        ...branch,
+        id: branch.id || branch._id?.toString(),
+        _id: branch._id?.toString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch branch" });
     }
   });
 
