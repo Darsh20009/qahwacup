@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { db } from "@/lib/db/dexie-db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -122,7 +123,68 @@ export default function POSSystem() {
   const [customerPoints, setCustomerPoints] = useState(0);
   const [loyaltyCard, setLoyaltyCard] = useState<LoyaltyCard | null>(null);
   const [tableNumber, setTableNumber] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Background sync logic
+  useEffect(() => {
+    if (isOnline) {
+      const syncQueue = async () => {
+        const pendingItems = await db.syncQueue.where('status').equals('pending').toArray();
+        for (const item of pendingItems) {
+          try {
+            await db.syncQueue.update(item.id!, { status: 'processing' });
+            if (item.type === 'CREATE_ORDER') {
+              await apiRequest("POST", "/api/orders", item.payload);
+            }
+            await db.syncQueue.update(item.id!, { status: 'synced' });
+          } catch (err) {
+            await db.syncQueue.update(item.id!, { 
+              status: 'pending', 
+              retryCount: (item.retryCount || 0) + 1 
+            });
+          }
+        }
+      };
+      const interval = setInterval(syncQueue, 30000);
+      syncQueue();
+      return () => clearInterval(interval);
+    }
+  }, [isOnline]);
+  
+  // Local caching logic for offline products
+  useEffect(() => {
+    const syncWithLocal = async () => {
+      if (coffeeItems && coffeeItems.length > 0) {
+        try {
+          const localProducts = coffeeItems.map((p: any) => ({
+            id: p.id,
+            nameAr: p.nameAr,
+            price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+            category: p.category,
+            imageUrl: p.imageUrl,
+            isAvailable: p.isAvailable,
+            tenantId: p.tenantId || 'demo-tenant',
+            updatedAt: Date.now()
+          }));
+          await db.products.bulkPut(localProducts);
+        } catch (err) {
+          console.error("Failed to sync products to IndexedDB:", err);
+        }
+      }
+    };
+    syncWithLocal();
+  }, [coffeeItems]);
   const [orderType, setOrderType] = useState<OrderType>("dine_in");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
