@@ -212,7 +212,61 @@ export default function POSSystem() {
   const [posConnected, setPosConnected] = useState(false);
   const [cashDrawerOpen, setCashDrawerOpen] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [offlineOrders, setOfflineOrders] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<number>(() => {
+    const saved = localStorage.getItem('lastSyncTime');
+    return saved ? parseInt(saved) : Date.now();
+  });
+
+  // Background Sync Logic (Outbox Pattern)
+  useEffect(() => {
+    let isMounted = true;
+    const syncInterval = setInterval(async () => {
+      if (isOnline && !syncing) {
+        const pendingItems = await db.syncQueue.where('status').equals('pending').toArray();
+        if (pendingItems.length > 0) {
+          if (isMounted) setSyncing(true);
+          
+          for (const item of pendingItems) {
+            try {
+              if (item.type === 'CREATE_ORDER') {
+                const response = await fetch("/api/orders", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(item.payload),
+                });
+                
+                if (response.ok) {
+                  await db.syncQueue.update(item.id!, { status: 'synced' });
+                  // Also update invoice status
+                  const offlineId = (item.payload as any).offlineId;
+                  if (offlineId) {
+                    await db.invoices.where('tempId').equals(offlineId).modify({ status: 'synced' });
+                  }
+                } else {
+                  await db.syncQueue.update(item.id!, { retryCount: (item.retryCount || 0) + 1 });
+                }
+              }
+            } catch (error) {
+              console.error("Sync error for item", item.id, error);
+            }
+          }
+          
+          if (isMounted) {
+            setSyncing(false);
+            setLastSyncTime(Date.now());
+            localStorage.setItem('lastSyncTime', Date.now().toString());
+            queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+          }
+        }
+      }
+    }, 15000); // Check every 15 seconds
+
+    return () => {
+      isMounted = false;
+      clearInterval(syncInterval);
+    };
+  }, [isOnline, syncing, queryClient]);
   const [syncingOffline, setSyncingOffline] = useState(false);
   
   const [lastOrder, setLastOrder] = useState<any>(null);
@@ -312,9 +366,31 @@ export default function POSSystem() {
     localStorage.setItem("parkedOrders", JSON.stringify(parkedOrders));
   }, [parkedOrders]);
 
-  const { data: coffeeItems = [], isLoading } = useQuery<CoffeeItem[]>({
+  const { data: productsData, isLoading } = useQuery<CoffeeItem[]>({
     queryKey: ["/api/coffee-items"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/coffee-items");
+      const data = await res.json();
+      if (data && Array.isArray(data)) {
+        await db.products.clear();
+        await db.products.bulkAdd(data.map((item: any) => ({
+          ...item,
+          price: Number(item.price)
+        })));
+      }
+      return data;
+    }
   });
+
+  const { data: offlineProducts } = useQuery<CoffeeItem[]>({
+    queryKey: ["offline-products"],
+    queryFn: () => db.products.toArray(),
+    enabled: isOffline
+  });
+
+  const coffeeItems = useMemo(() => {
+    return isOffline ? (offlineProducts || []) : (productsData || []);
+  }, [productsData, offlineProducts, isOffline]);
 
   const syncOfflineOrders = async () => {
     if (offlineOrders.length === 0 || syncingOffline) return;
@@ -458,14 +534,21 @@ export default function POSSystem() {
     }
   }, [toast]);
 
-  const filteredItems = coffeeItems.filter(item => {
-    const matchesSearch = item.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (item.nameEn?.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === "all" || 
-                            item.id.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-                            (item.category?.toLowerCase() === selectedCategory.toLowerCase());
-    return matchesSearch && matchesCategory;
-  });
+  const CATEGORIES = useMemo(() => {
+    const cats = Array.from(new Set(coffeeItems.map((item: any) => item.categoryAr || item.category || "أخرى")));
+    return ["all", ...cats];
+  }, [coffeeItems]);
+
+  const filteredItems = useMemo(() => {
+    return coffeeItems.filter(item => {
+      const matchesSearch = item.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (item.nameEn?.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCategory = selectedCategory === "all" || 
+                              (item.categoryAr === selectedCategory) ||
+                              (item.category === selectedCategory);
+      return matchesSearch && matchesCategory;
+    });
+  }, [coffeeItems, searchQuery, selectedCategory]);
 
   const addToOrder = (coffeeItem: CoffeeItem) => {
     setCustomizingItem(coffeeItem);
@@ -1017,6 +1100,7 @@ export default function POSSystem() {
                     <>
                       <Wifi className="w-4 h-4 text-green-500" />
                       <span className="text-xs font-medium">متصل</span>
+                      {syncing && <Loader2 className="w-3 h-3 animate-spin text-primary ml-1" />}
                     </>
                   ) : (
                     <>
