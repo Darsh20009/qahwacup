@@ -10,9 +10,9 @@ export default function EmployeeSplash() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Play creative system start sound
-    const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3");
-    audio.volume = 0.5;
+    // Play creative system start sound - more welcoming and higher quality
+    const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3");
+    audio.volume = 0.4;
     
     const playSound = async () => {
       try {
@@ -76,13 +76,36 @@ export default function EmployeeSplash() {
               </motion.div>
             </div>
             
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-4"
+            >
+              <h2 className="text-xl font-medium text-amber-500/80 tracking-widest text-center">
+                {"QahwaCup Systems".split("").map((char, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      duration: 0.1,
+                      delay: 0.5 + i * 0.05,
+                      ease: "easeIn"
+                    }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </h2>
+            </motion.div>
+            
             <motion.h1 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 1.5 }}
               className="text-4xl font-bold text-amber-500 tracking-widest uppercase text-center"
             >
-              QahwaCup OS
+              OS
             </motion.h1>
             
             <div className="mt-8 w-48 h-1 bg-gray-800 rounded-full overflow-hidden">
