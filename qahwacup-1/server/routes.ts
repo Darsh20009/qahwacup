@@ -1944,27 +1944,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const publishedBranches = item.publishedBranches || [];
         const branchAvailability = (item.branchAvailability || []) as Array<{branchId: string, isAvailable: number}>;
         
-        // Build availability map - only for published branches
-        const availabilityByBranch: {[key: string]: {isAvailable: number, status: string}} = {};
-        const branchesToCheck = publishedBranches.length > 0 ? publishedBranches : [];
-        
-        for (const branchId of branchesToCheck) {
-          const branchInfo = branchAvailability.find((b: any) => b.branchId === branchId);
-          // Fix: item is available if it's in published branches AND either has no specific availability record OR explicitly marked as available
-          const isBranchAvailable = (!branchInfo || branchInfo.isAvailable === 1 || (branchInfo.isAvailable as any) === true) ? 1 : 0;
-          const status = !recipeAvailable ? 'out_of_stock' : (isBranchAvailable ? 'available' : 'out_of_stock');
-          availabilityByBranch[branchId] = { isAvailable: isBranchAvailable, status };
-        }
-        
-        if (!isEmployee && requestedBranchId) {
-          item.availabilityByBranch = availabilityByBranch;
-          item.isAvailable = availabilityByBranch[requestedBranchId]?.isAvailable || 0;
-          item.availabilityStatus = availabilityByBranch[requestedBranchId]?.status || 'out_of_stock';
-        } else {
-          item.availabilityByBranch = availabilityByBranch;
-          item.isAvailable = publishedBranches.length > 0 && recipeAvailable ? 1 : 0;
-          item.availabilityStatus = publishedBranches.length > 0 && recipeAvailable ? 'available' : 'out_of_stock';
-        }
+          // Build availability map - only for published branches
+          const availabilityByBranch: {[key: string]: {isAvailable: number, status: string}} = {};
+          const branchesToCheck = publishedBranches.length > 0 ? publishedBranches : (isEmployee && req.employee?.branchId ? [req.employee.branchId] : []);
+          
+          for (const branchId of branchesToCheck) {
+            const branchInfo = branchAvailability.find((b: any) => b.branchId === branchId);
+            // item is available if it's in published branches AND either has no specific availability record OR explicitly marked as available
+            const isBranchAvailable = (!branchInfo || branchInfo.isAvailable === 1 || (branchInfo.isAvailable as any) === true) ? 1 : 0;
+            const status = isBranchAvailable ? 'available' : 'out_of_stock';
+            availabilityByBranch[branchId] = { isAvailable: isBranchAvailable, status };
+          }
+          
+          if (!isEmployee && requestedBranchId) {
+            item.availabilityByBranch = availabilityByBranch;
+            item.isAvailable = availabilityByBranch[requestedBranchId]?.isAvailable || 0;
+            item.availabilityStatus = availabilityByBranch[requestedBranchId]?.status || 'out_of_stock';
+          } else if (isEmployee && req.employee?.branchId) {
+            item.availabilityByBranch = availabilityByBranch;
+            const myBranchStatus = availabilityByBranch[req.employee.branchId];
+            item.isAvailable = myBranchStatus ? myBranchStatus.isAvailable : (publishedBranches.length === 0 ? 1 : 0);
+            item.availabilityStatus = myBranchStatus ? myBranchStatus.status : (publishedBranches.length === 0 ? 'available' : 'out_of_stock');
+          } else {
+            item.availabilityByBranch = availabilityByBranch;
+            item.isAvailable = 1;
+            item.availabilityStatus = 'available';
+          }
         
         return item;
       });
@@ -2045,15 +2050,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData.id = `${adoptFromItemId}-${req.employee.branchId}`;
       }
 
-      // Determine publishedBranches based on employee role
-      if (req.employee.role === "admin" || req.employee.role === "owner") {
+      // For non-admin managers, enforce their branch ID in publishedBranches
+      if (req.employee.role === "manager") {
+        validatedData.publishedBranches = [req.employee.branchId];
+      } else if (req.employee.role === "admin" || req.employee.role === "owner") {
         // Admin/Owner can choose which branches to publish to
         if (!validatedData.publishedBranches || validatedData.publishedBranches.length === 0) {
-          return res.status(400).json({ error: "Please select at least one branch to publish to" });
+          // If no branches specified by admin, default to current branch or all? 
+          // Better to keep it as provided but ensure it's an array
+          validatedData.publishedBranches = validatedData.publishedBranches || [req.employee.branchId];
         }
-      } else if (req.employee.role === "manager") {
-        // Branch manager can only publish to their own branch
-        validatedData.publishedBranches = [req.employee.branchId];
+      }
+
+      // Also set the global isAvailable if not specified
+      if (validatedData.isAvailable === undefined) {
+        validatedData.isAvailable = 1;
+      }
+      if (!validatedData.availabilityStatus) {
+        validatedData.availabilityStatus = 'available';
       }
 
       // Set creator information and tenantId
@@ -2062,6 +2076,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       (validatedData as any).tenantId = req.employee.tenantId;
 
       const item = await storage.createCoffeeItem(validatedData);
+
       res.status(201).json(item);
     } catch (error) {
       if (error instanceof Error && 'issues' in error) {
