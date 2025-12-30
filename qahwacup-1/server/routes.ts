@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema, RecipeItemModel, BranchStockModel, RawItemModel, StockMovementModel, OrderModel, BranchModel, CoffeeItemModel, ProductReviewModel, ReferralModel, NotificationModel, CustomerModel, TableModel, CafeModel, AccountingSnapshotModel, insertAccountingSnapshotSchema, ProductAddonModel } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema, RecipeItemModel, BranchStockModel, RawItemModel, StockMovementModel, OrderModel, BranchModel, CoffeeItemModel, ProductReviewModel, ReferralModel, NotificationModel, CustomerModel, TableModel, CafeModel, AccountingSnapshotModel, insertAccountingSnapshotSchema, ProductAddonModel, WarehouseModel, WarehouseStockModel, WarehouseTransferModel } from "@shared/schema";
 import { RecipeEngine } from "./recipe-engine";
 import { UnitsEngine } from "./units-engine";
 import { InventoryEngine } from "./inventory-engine";
@@ -541,6 +541,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle POS connection (for cashiers and managers only) - requires authentication
+  app.post("/api/pos/toggle", requireAuth, (req: AuthRequest, res) => {
+    // Existing logic...
+  });
+
+  // --- WAREHOUSE MANAGEMENT API ---
+  app.get("/api/warehouses", requireAuth, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const warehouses = await WarehouseModel.find({ tenantId }).lean();
+    res.json(warehouses);
+  });
+
+  app.post("/api/warehouses", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const warehouse = await WarehouseModel.create({ ...req.body, tenantId });
+    res.json(warehouse);
+  });
+
+  app.get("/api/warehouses/:id/stock", requireAuth, async (req: AuthRequest, res) => {
+    const stock = await WarehouseStockModel.find({ warehouseId: req.params.id }).lean();
+    res.json(stock);
+  });
+
+  app.post("/api/warehouses/transfer", requireAuth, requireManager, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const transfer = await WarehouseTransferModel.create({
+      ...req.body,
+      tenantId,
+      status: 'pending',
+      createdBy: req.employee!.id
+    });
+    res.json(transfer);
+  });
+
+  // --- DELIVERY INTEGRATION MOCK API ---
+  app.get("/api/integrations/delivery/mock-status", requireAuth, async (req: AuthRequest, res) => {
+    res.json({
+      hungerstation: { status: 'connected', latency: '120ms', ordersToday: 45 },
+      jahez: { status: 'connected', latency: '95ms', ordersToday: 32 },
+      toyou: { status: 'disconnected', lastActive: '2025-12-29' }
+    });
+  });
+
   app.post("/api/pos/toggle", requireAuth, (req: AuthRequest, res) => {
     try {
       // Only allow cashiers, managers, and admins to toggle POS

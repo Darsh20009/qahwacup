@@ -125,6 +125,41 @@ const ProductAddonSchema = new Schema<IProductAddon>({
 
 export const ProductAddonModel = mongoose.model<IProductAddon>("ProductAddon", ProductAddonSchema);
 
+// Warehouse Transfer Model
+export interface IWarehouseTransfer extends Document {
+  tenantId: string;
+  fromWarehouseId: string;
+  toWarehouseId: string;
+  items: Array<{
+    ingredientId: string;
+    quantity: number;
+    unit: string;
+  }>;
+  status: 'pending' | 'shipped' | 'received' | 'cancelled';
+  notes?: string;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const WarehouseTransferSchema = new Schema<IWarehouseTransfer>({
+  tenantId: { type: String, required: true },
+  fromWarehouseId: { type: String, required: true },
+  toWarehouseId: { type: String, required: true },
+  items: [{
+    ingredientId: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    unit: { type: String, required: true }
+  }],
+  status: { type: String, enum: ['pending', 'shipped', 'received', 'cancelled'], default: 'pending' },
+  notes: { type: String },
+  createdBy: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const WarehouseTransferModel = mongoose.model<IWarehouseTransfer>("WarehouseTransfer", WarehouseTransferSchema);
+
 // ربط التخصيصات بالمشروبات - Link Addons to Coffee Items
 export interface ICoffeeItemAddon extends Document {
   coffeeItemId: string;
