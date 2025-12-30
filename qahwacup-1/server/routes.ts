@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema, RecipeItemModel, BranchStockModel, RawItemModel, StockMovementModel, OrderModel, BranchModel, CoffeeItemModel, ProductReviewModel, ReferralModel, NotificationModel, CustomerModel, TableModel, CafeModel, AccountingSnapshotModel, insertAccountingSnapshotSchema, ProductAddonModel, InventoryMovementModel } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema, RecipeItemModel, BranchStockModel, RawItemModel, StockMovementModel, OrderModel, BranchModel, CoffeeItemModel, ProductReviewModel, ReferralModel, NotificationModel, CustomerModel, TableModel, CafeModel, AccountingSnapshotModel, insertAccountingSnapshotSchema, ProductAddonModel } from "@shared/schema";
 import { RecipeEngine } from "./recipe-engine";
 import { UnitsEngine } from "./units-engine";
 import { InventoryEngine } from "./inventory-engine";
@@ -479,14 +479,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const ingredient = await storage.updateIngredientItem(ingredientId, ingredientUpdates);
 
-    const movement = await InventoryMovementModel.create({
-      tenantId,
-      branchId,
-      ingredientId,
-      type,
+    const movement = await StockMovementModel.create({
+      branchId: branchId || 'default',
+      rawItemId: ingredientId,
+      movementType: type === 'in' ? 'purchase' : 'adjustment',
       quantity,
-      previousStock: 0, // Simplified for now
-      newStock: ingredient?.currentStock || 0,
+      previousQuantity: currentStock,
+      newQuantity: ingredient?.currentStock || 0,
+      referenceType: 'manual',
       notes,
       createdBy: req.employee!.id
     });
@@ -494,8 +494,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/inventory/movements", requireAuth, async (req: AuthRequest, res) => {
-    const tenantId = getTenantIdFromRequest(req);
-    const movements = await InventoryMovementModel.find({ tenantId }).sort({ createdAt: -1 }).limit(50);
+    const branchId = (req.query.branchId as string) || 'default';
+    const movements = await StockMovementModel.find({ branchId }).sort({ createdAt: -1 }).limit(50);
     res.json(movements);
   });
 
