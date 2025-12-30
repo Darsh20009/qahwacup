@@ -83,6 +83,7 @@ const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminEmployees = lazy(() => import("@/pages/admin-employees"));
 const AdminReports = lazy(() => import("@/pages/admin-reports"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
+const AdminBranches = lazy(() => import("@/pages/admin-branches"));
 const TenantSignup = lazy(() => import("@/pages/tenant-signup"));
 const RecipesManagement = lazy(() => import("@/pages/recipes-management"));
 const InventorySmartDashboard = lazy(() => import("@/pages/inventory-smart-dashboard"));
@@ -239,8 +240,9 @@ function Router() {
  {/* Admin protected routes */}
  <Route path="/admin/dashboard">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminDashboard /></AuthGuard>}</Route>
  <Route path="/admin/employees">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminEmployees /></AuthGuard>}</Route>
- <Route path="/admin/reports">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminReports /></AuthGuard>}</Route>
- <Route path="/admin/settings">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminSettings /></AuthGuard>}</Route>
+    <Route path="/admin/reports">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminReports /></AuthGuard>}</Route>
+    <Route path="/admin/settings">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminSettings /></AuthGuard>}</Route>
+    <Route path="/admin/branches">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><AdminBranches /></AuthGuard>}</Route>
 
  {/* Phase 5 - New Dashboard Pages */}
  <Route path="/recipes/management">{() => <AuthGuard userType="manager" allowedRoles={["owner", "admin", "manager"]}><RecipesManagement /></AuthGuard>}</Route>

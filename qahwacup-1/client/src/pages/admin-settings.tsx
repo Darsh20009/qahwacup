@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Shield, Bell, Palette, Database } from 'lucide-react';
+import { Save, Shield, Bell, Palette, Database, Plus } from 'lucide-react';
+import { useLocation } from 'wouter';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
 
 export default function AdminSettings() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [settings, setSettings] = useState({
     companyName: 'قهوة كوب',
     businessEmail: 'info@qahwakup.com',
@@ -210,6 +212,29 @@ export default function AdminSettings() {
             </Button>
             <Button variant="outline" data-testid="button-restore-backup">
               استعادة نسخة
+            </Button>
+          </div>
+        </div>
+      </SettingSection>
+
+      {/* Branch Management Section - Fixed white screen issue */}
+      <SettingSection
+        icon={Plus}
+        title="إدارة الفروع"
+        description="إضافة وتعديل فروع المقهى"
+      >
+        <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold text-orange-800 dark:text-orange-300">إضافة فرع جديد</p>
+              <p className="text-sm text-orange-600 dark:text-orange-400">يمكنك إضافة فرع جديد وتعيين مدير له من هنا</p>
+            </div>
+            <Button 
+              className="bg-orange-600 hover:bg-orange-700"
+              onClick={() => navigate('/admin/branches')}
+            >
+              <Plus className="w-4 h-4 ml-2" />
+              إدارة الفروع
             </Button>
           </div>
         </div>
