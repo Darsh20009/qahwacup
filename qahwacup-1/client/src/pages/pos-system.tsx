@@ -835,12 +835,37 @@ export default function POSSystem() {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      if (isOffline) {
-        const offlineOrder = { ...orderData, offlineId: `offline-${Date.now()}`, createdAt: new Date() };
-        const newOfflineOrders = [...offlineOrders, offlineOrder];
-        setOfflineOrders(newOfflineOrders);
-        localStorage.setItem("offlineOrders", JSON.stringify(newOfflineOrders));
-        return { orderNumber: offlineOrder.offlineId, totalAmount: orderData.totalAmount, offline: true };
+      if (!isOnline) {
+        const offlineId = `offline-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const offlineOrder = { 
+          ...orderData, 
+          offlineId, 
+          createdAt: new Date().toISOString(),
+          status: 'pending'
+        };
+        
+        // Save to IndexedDB
+        await db.invoices.add({
+          tempId: offlineId,
+          items: orderData.items,
+          totalAmount: Number(orderData.totalAmount),
+          paymentMethod: orderData.paymentMethod,
+          createdAt: Date.now(),
+          status: 'pending',
+          tenantId: employee?.tenantId || 'demo-tenant',
+          branchId: employee?.branchId || ''
+        });
+
+        // Add to sync queue
+        await db.syncQueue.add({
+          type: 'CREATE_ORDER',
+          payload: orderData,
+          status: 'pending',
+          retryCount: 0,
+          createdAt: Date.now()
+        });
+
+        return { orderNumber: offlineId, totalAmount: orderData.totalAmount, offline: true };
       }
       
       const response = await fetch("/api/orders", {
@@ -888,7 +913,7 @@ export default function POSSystem() {
       
       toast({
         title: order.offline ? "تم حفظ الطلب محلياً" : "تم إنشاء الطلب بنجاح",
-        description: `رقم الطلب: ${order.orderNumber}`,
+        description: order.offline ? "سيتم المزامنة عند عودة الإنترنت" : `رقم الطلب: ${order.orderNumber}`,
         className: "bg-green-600 text-white",
       });
       
@@ -987,15 +1012,27 @@ export default function POSSystem() {
               </div>
               
               <div className="flex items-center gap-2 flex-wrap justify-end">
-                {isOffline && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-background/50 rounded-full border border-border">
+                  {isOnline ? (
+                    <>
+                      <Wifi className="w-4 h-4 text-green-500" />
+                      <span className="text-xs font-medium">متصل</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-4 h-4 text-destructive" />
+                      <span className="text-xs font-medium">وضع الأوفلاين</span>
+                    </>
+                  )}
+                </div>
+                
+                {offlineOrders.length > 0 && (
                   <Badge variant="destructive" className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 animate-pulse text-xs sm:text-sm">
-                    <WifiOff className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">وضع عدم الاتصال</span>
-                    {offlineOrders.length > 0 && (
-                      <span className="bg-red-700 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold">
-                        {offlineOrders.length}
-                      </span>
-                    )}
+                    <Archive className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">فواتير معلقة</span>
+                    <span className="bg-red-700 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold">
+                      {offlineOrders.length}
+                    </span>
                   </Badge>
                 )}
                 
