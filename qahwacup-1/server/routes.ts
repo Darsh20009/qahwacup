@@ -2075,6 +2075,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       (validatedData as any).createdByBranchId = req.employee.branchId;
       (validatedData as any).tenantId = req.employee.tenantId;
 
+      // Ensure id is present if not provided (though storage might handle it)
+      if (!validatedData.id) {
+        validatedData.id = nanoid();
+      }
+
       const item = await storage.createCoffeeItem(validatedData);
 
       res.status(201).json(item);
@@ -4063,7 +4068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...branchData,
         id,
         cafeId,
-        isActive: true,
+        isActive: 1, // Ensure numeric 1 for isActive consistency
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -4131,44 +4136,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           managerInfo = { error: 'تم إنشاء الفرع ولكن حدث خطأ في تعيين المدير' };
         }
       } else {
-        // No manager assignment provided - auto-create manager (backward compatibility)
-        const branchNameSlug = validatedData.nameAr.replace(/\s+/g, '_').toLowerCase();
-        const managerUsername = `manager_${branchNameSlug}`;
-        const temporaryPassword = `manager${Math.random().toString(36).slice(-8)}`;
+      // No manager assignment provided - auto-create manager (backward compatibility)
+      const branchNameAr = branchData.nameAr || "فرع جديد";
+      const branchNameSlug = branchNameAr.replace(/\s+/g, '_').toLowerCase();
+      const managerUsername = `manager_${branchNameSlug}_${nanoid(4)}`;
+      const temporaryPassword = `manager${Math.random().toString(36).slice(-8)}`;
+      
+      try {
+        const manager = await storage.createEmployee({
+          username: managerUsername,
+          password: temporaryPassword,
+          fullName: `مدير ${branchNameAr}`,
+          role: 'manager',
+          phone: branchData.phone || `05${Math.floor(Math.random() * 100000000)}`,
+          jobTitle: 'مدير الفرع',
+          isActivated: 1,
+          branchId: branchId,
+          tenantId: tenantId
+        });
         
-        try {
-          const existingManager = await storage.getEmployeeByUsername(managerUsername);
-          let finalUsername = managerUsername;
-          
-          if (existingManager) {
-            finalUsername = `${managerUsername}_${Math.random().toString(36).slice(-4)}`;
-          }
-          
-          const manager = await storage.createEmployee({
-            username: finalUsername,
-            password: temporaryPassword,
-            fullName: `مدير ${validatedData.nameAr}`,
-            role: 'manager',
-            phone: validatedData.phone,
-            jobTitle: 'مدير الفرع',
-            isActivated: 1,
-            branchId: branchId,
-          });
-          
-          await storage.updateBranch(branchId, {
-            managerName: `مدير ${validatedData.nameAr}`,
-          });
-          
-          managerInfo = {
-            id: (manager as any)._id.toString(),
-            username: finalUsername,
-            temporaryPassword: temporaryPassword,
-            fullName: `مدير ${validatedData.nameAr}`,
-            message: 'تم إنشاء حساب المدير تلقائياً. يرجى حفظ اسم المستخدم وكلمة المرور المؤقتة.',
-          };
-        } catch (autoCreateError) {
-          managerInfo = { error: 'تم إنشاء الفرع ولكن فشل إنشاء حساب المدير التلقائي' };
-        }
+        await storage.updateBranch(branchId, {
+          managerName: `مدير ${branchNameAr}`,
+        });
+        
+        managerInfo = {
+          id: (manager as any).id || (manager as any)._id?.toString(),
+          username: managerUsername,
+          temporaryPassword: temporaryPassword,
+          fullName: `مدير ${branchNameAr}`,
+          message: 'تم إنشاء حساب المدير تلقائياً. يرجى حفظ اسم المستخدم وكلمة المرور المؤقتة.',
+        };
+      } catch (autoCreateError) {
+        console.error("Auto-create manager error:", autoCreateError);
+        managerInfo = { error: 'تم إنشاء الفرع ولكن فشل إنشاء حساب المدير التلقائي' };
+      }
       }
       
       res.status(201).json({
