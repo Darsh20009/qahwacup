@@ -775,6 +775,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Directly create using Model for robustness
       const newEmployee = await EmployeeModel.create({
         ...bodyData,
+        permissions: bodyData.permissions || [],
+        allowedPages: bodyData.allowedPages || [],
         tenantId,
         id: nanoid(),
         isActivated: bodyData.password ? 1 : 0,

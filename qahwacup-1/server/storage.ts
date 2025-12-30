@@ -532,15 +532,25 @@ export class DBStorage implements IStorage {
     }
   }
 
-  async updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | undefined> {
+  async updateEmployee(id: string, updates: any): Promise<any> {
+    const { EmployeeModel } = await import("@shared/schema");
     if (updates.password) {
+      const bcrypt = await import("bcryptjs");
       updates.password = await bcrypt.hash(updates.password, 10);
     }
     updates.updatedAt = new Date();
-    const employee = await EmployeeModel.findByIdAndUpdate(id, updates, { new: true }).lean();
+    
+    // First try by the custom "id" field
+    let employee = await EmployeeModel.findOneAndUpdate({ id }, updates, { new: true }).lean();
+    
+    // Fallback to _id if not found (though id should be unique)
+    if (!employee && mongoose.Types.ObjectId.isValid(id)) {
+      employee = await EmployeeModel.findByIdAndUpdate(id, updates, { new: true }).lean();
+    }
+    
     if (!employee) return undefined;
     
-    // Convert _id to id
+    // Convert _id to id for consistency
     const result: any = {
       ...employee,
       id: employee._id.toString(),
