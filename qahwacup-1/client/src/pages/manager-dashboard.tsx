@@ -1004,9 +1004,9 @@ export default function ManagerDashboard() {
  <Label>موقع الفرع على الخريطة</Label>
  <div className="h-[250px] rounded-lg overflow-hidden border border-border">
  <BranchLocationPicker
- lat={branchForm.latitude}
- lng={branchForm.longitude}
- onChange={(lat, lng) => setBranchForm({ ...branchForm, latitude: lat, longitude: lng })}
+ initialLat={branchForm.latitude}
+ initialLng={branchForm.longitude}
+ onLocationSelect={(lat: number, lng: number) => setBranchForm({ ...branchForm, latitude: lat, longitude: lng })}
  />
  </div>
  <div className="flex gap-4 text-xs text-muted-foreground">
