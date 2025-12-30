@@ -77,8 +77,6 @@ const CoffeeItemSchema = new Schema<ICoffeeItem>({
   createdByEmployeeId: { type: String },
   createdByBranchId: { type: String },
   publishedBranches: [{ type: String }],
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -282,8 +280,6 @@ const CafeSchema = new Schema<ICafe>({
     primaryColor: { type: String },
     secondaryColor: { type: String },
   },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -317,8 +313,6 @@ const BusinessConfigSchema = new Schema<IBusinessConfig>({
   vatPercentage: { type: Number, default: 15 },
   currency: { type: String, default: 'SAR' },
   timezone: { type: String, default: 'Asia/Riyadh' },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -370,8 +364,6 @@ const IngredientItemSchema = new Schema<IIngredientItem>({
     cost: { type: Number }
   }],
   isActive: { type: Boolean, default: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -430,8 +422,6 @@ const RecipeDefinitionSchema = new Schema<IRecipeDefinition>({
   version: { type: Number, default: 1 },
   isActive: { type: Boolean, default: true },
   description: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -457,36 +447,85 @@ RecipeHistorySchema.index({ tenantId: 1, productId: 1, version: 1 });
 export const RecipeDefinitionModel = mongoose.model<IRecipeDefinition>("RecipeDefinition", RecipeDefinitionSchema);
 export const RecipeHistoryModel = mongoose.model<IRecipeHistory>("RecipeHistory", RecipeHistorySchema);
 
-// 4. Inventory Movement (Auditing)
-export interface IInventoryMovement extends Document {
+// 5. Centralized Warehouse Model
+export interface IWarehouse extends Document {
+  id: string;
   tenantId: string;
-  branchId: string;
+  nameAr: string;
+  nameEn?: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
+  managerId?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const WarehouseSchema = new Schema<IWarehouse>({
+  id: { type: String, required: true, unique: true },
+  tenantId: { type: String, required: true },
+  nameAr: { type: String, required: true },
+  nameEn: { type: String },
+  location: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
+  managerId: { type: String },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const WarehouseModel = mongoose.model<IWarehouse>("Warehouse", WarehouseSchema);
+
+// 6. Warehouse Stock
+export interface IWarehouseStock extends Document {
+  tenantId: string;
+  warehouseId: string;
   ingredientId: string;
-  type: 'in' | 'out' | 'waste' | 'adjustment' | 'order_deduction';
   quantity: number;
-  previousStock: number;
-  newStock: number;
-  referenceId?: string; // Order ID or Purchase ID
-  notes?: string;
-  createdBy: string;
+  minStockLevel: number;
+  maxStockLevel?: number;
+  updatedAt: Date;
+}
+
+const WarehouseStockSchema = new Schema<IWarehouseStock>({
+  tenantId: { type: String, required: true },
+  warehouseId: { type: String, required: true },
+  ingredientId: { type: String, required: true },
+  quantity: { type: Number, default: 0 },
+  minStockLevel: { type: Number, default: 0 },
+  maxStockLevel: { type: Number },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+WarehouseStockSchema.index({ tenantId: 1, warehouseId: 1, ingredientId: 1 }, { unique: true });
+export const WarehouseStockModel = mongoose.model<IWarehouseStock>("WarehouseStock", WarehouseStockSchema);
+
+// 7. Delivery App Integration Model
+export interface IDeliveryIntegration extends Document {
+  tenantId: string;
+  provider: 'hungerstation' | 'jahez' | 'toyou' | 'other';
+  apiKey: string;
+  webhookSecret?: string;
+  isActive: boolean;
+  settings: Schema.Types.Mixed;
   createdAt: Date;
 }
 
-const InventoryMovementSchema = new Schema<IInventoryMovement>({
+const DeliveryIntegrationSchema = new Schema<IDeliveryIntegration>({
   tenantId: { type: String, required: true },
-  branchId: { type: String, required: true },
-  ingredientId: { type: String, required: true },
-  type: { type: String, enum: ['in', 'out', 'waste', 'adjustment', 'order_deduction'], required: true },
-  quantity: { type: Number, required: true },
-  previousStock: { type: Number, required: true },
-  newStock: { type: Number, required: true },
-  referenceId: { type: String },
-  notes: { type: String },
-  createdBy: { type: String, required: true },
+  provider: { type: String, enum: ['hungerstation', 'jahez', 'toyou', 'other'], required: true },
+  apiKey: { type: String, required: true },
+  webhookSecret: { type: String },
+  isActive: { type: Boolean, default: false },
+  settings: { type: Schema.Types.Mixed, default: {} },
   createdAt: { type: Date, default: Date.now },
 });
 
-export const InventoryMovementModel = mongoose.model<IInventoryMovement>("InventoryMovement", InventoryMovementSchema);
+export const DeliveryIntegrationModel = mongoose.model<IDeliveryIntegration>("DeliveryIntegration", DeliveryIntegrationSchema);
 
 export interface IBranch extends Document {
   id: string;
@@ -530,8 +569,6 @@ const BranchSchema = new Schema<IBranch>({
     lng: { type: Number }
   },
   isActive: { type: Schema.Types.Mixed, default: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
 }, { timestamps: false });
 
@@ -669,8 +706,6 @@ const OrderSchema = new Schema<IOrder>({
     unitCost: { type: Number },
     totalCost: { type: Number }
   }],
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -803,8 +838,6 @@ const LoyaltyCardSchema = new Schema<ILoyaltyCard>({
   status: { type: String, default: "active", required: true },
   isActive: { type: Boolean, default: true, required: true },
   lastUsedAt: { type: Date },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -908,8 +941,6 @@ const IngredientSchema = new Schema<IIngredient>({
   nameEn: { type: String },
   isAvailable: { type: Number, default: 1, required: true },
   icon: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -964,8 +995,6 @@ const CategorySchema = new Schema<ICategory>({
   icon: { type: String },
   sortOrder: { type: Number, default: 0 },
   isActive: { type: Number, default: 1, required: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1003,8 +1032,6 @@ const DeliveryZoneSchema = new Schema<IDeliveryZone>({
   }],
   deliveryFee: { type: Number, required: true, default: 10 },
   isActive: { type: Number, default: 1, required: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1066,8 +1093,6 @@ const TableSchema = new Schema<ITable>({
     lastExtendedAt: { type: Date }, // آخر تمديد
     emailNotificationSent: { type: Boolean, default: false }, // تم إرسال الإشعار
   },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1211,8 +1236,6 @@ const TaxInvoiceSchema = new Schema<ITaxInvoice>({
 
   createdBy: { type: String },
 
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1304,8 +1327,6 @@ const ExpenseSchema = new Schema<IExpense>({
   createdBy: { type: String, required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'paid'], default: 'pending' },
   notes: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1379,8 +1400,6 @@ const CashRegisterSchema = new Schema<ICashRegister>({
   status: { type: String, enum: ['open', 'closed'], default: 'open' },
   notes: { type: String },
 
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1466,8 +1485,6 @@ const DailySummarySchema = new Schema<IDailySummary>({
   isGenerated: { type: Number, default: 0 },
   generatedAt: { type: Date },
 
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1527,8 +1544,6 @@ const KitchenOrderSchema = new Schema<IKitchenOrder>({
   completedAt: { type: Date },
   estimatedTime: { type: Number },
   notes: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1591,8 +1606,6 @@ const AttendanceSchema = new Schema<IAttendance>({
   distanceFromBranch: { type: Number, default: 0 },
   checkOutIsAtBranch: { type: Number },
   checkOutDistanceFromBranch: { type: Number },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -1716,8 +1729,6 @@ const EmployeeSchema = new Schema<IEmployee>({
     lng: { type: Number },
     updatedAt: { type: Date }
   },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2095,8 +2106,6 @@ const RawItemSchema = new Schema<IRawItem>({
   maxStockLevel: { type: Number },
   supplierId: { type: String },
   isActive: { type: Number, default: 1, required: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2134,8 +2143,6 @@ const SupplierSchema = new Schema<ISupplier>({
   paymentTerms: { type: String },
   notes: { type: String },
   isActive: { type: Number, default: 1, required: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2204,8 +2211,6 @@ const StockTransferSchema = new Schema<IStockTransfer>({
   approvalDate: { type: Date },
   completionDate: { type: Date },
   notes: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2269,8 +2274,6 @@ const PurchaseInvoiceSchema = new Schema<IPurchaseInvoice>({
   approvedBy: { type: String },
   notes: { type: String },
   attachmentUrl: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2294,8 +2297,6 @@ const RecipeItemSchema = new Schema<IRecipeItem>({
   quantity: { type: Number, required: true },
   unit: { type: String, required: true },
   notes: { type: String },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2340,8 +2341,6 @@ const RecipeSchema = new Schema<IRecipe>({
     unitCost: { type: Number, required: true },
     totalCost: { type: Number, required: true }
   }],
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2737,8 +2736,6 @@ const ProductReviewSchema = new Schema<IProductReview>({
   adminReplyDate: { type: Date },
   isVerifiedPurchase: { type: Number, default: 0 },
   helpful: { type: Number, default: 0 },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -2936,8 +2933,6 @@ const AccountingSnapshotSchema = new Schema<IAccountingSnapshot>({
   approvedBy: { type: String },
   approvalDate: { type: Date },
   isApproved: { type: Number, default: 0, required: true },
-  permissions: { type: [String], default: [] },
-  allowedPages: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

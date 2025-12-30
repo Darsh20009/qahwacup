@@ -1,225 +1,121 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { 
-  ArrowLeft,
-  Link2,
-  Settings,
-  RefreshCw,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  ExternalLink,
-  Package,
-  Truck,
-  Clock,
-  DollarSign,
-  TrendingUp,
-  Activity,
-  Bell,
-  History,
-  Zap,
-  Shield,
-  Key,
-  Loader2
-} from "lucide-react";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Package, Truck, Globe, Settings2, Link2, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 
-interface Integration {
-  id: string;
-  name: string;
-  nameAr: string;
-  logo: string;
-  status: "connected" | "disconnected" | "pending";
-  lastSync?: Date;
-  ordersToday: number;
-  revenueToday: number;
-  commission: number;
-  apiKey?: string;
-  webhookUrl?: string;
-  settings: {
-    autoAccept: boolean;
-    autoAssign: boolean;
-    syncInventory: boolean;
-    syncMenu: boolean;
-  };
+export default function ExternalIntegrationsPage() {
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const [apiKey, setApiKey] = useState("");
+
+  const { data: integrations = [] } = useQuery({
+    queryKey: ["/api/integrations/delivery"],
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (newIntegration: any) => {
+      const res = await apiRequest("POST", "/api/integrations/delivery", newIntegration);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations/delivery"] });
+      toast({ title: "تم التفعيل بنجاح", className: "bg-green-600 text-white" });
+    },
+  });
+
+  const providers = [
+    { id: 'hungerstation', nameAr: 'هنقرستيشن', nameEn: 'HungerStation' },
+    { id: 'jahez', nameAr: 'جاهز', nameEn: 'Jahez' },
+    { id: 'toyou', nameAr: 'تويو', nameEn: 'ToYou' }
+  ];
+
+  return (
+    <div className="p-6 space-y-6 bg-background min-h-screen" dir="rtl">
+      <div className="flex items-center gap-4 mb-6">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => setLocation("/manager")}
+          className="hover:bg-primary/10"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-primary">الربط مع تطبيقات التوصيل</h1>
+          <p className="text-muted-foreground">قم بربط متجرك مع تطبيقات التوصيل العالمية لزيادة مبيعاتك</p>
+        </div>
+        <Globe className="h-10 w-10 text-primary mr-auto" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {providers.map((provider) => {
+          const isEnabled = integrations.find((i: any) => i.provider === provider.id && i.isActive);
+          return (
+            <Card key={provider.id} className="border-2 hover:border-primary transition-colors">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold">{provider.nameAr}</CardTitle>
+                <Truck className="h-6 w-6 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="mb-4">
+                  ربط الطلبات آلياً مع {provider.nameAr} وتحديث حالة المخزون.
+                </CardDescription>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor={`${provider.id}-active`}>حالة الربط</Label>
+                    <Switch id={`${provider.id}-active`} checked={!!isEnabled} />
+                  </div>
+                  {!isEnabled && (
+                    <div className="space-y-2">
+                      <Label>مفتاح API الخاص بـ {provider.nameAr}</Label>
+                      <Input 
+                        type="password" 
+                        placeholder="أدخل المفتاح هنا..." 
+                        onChange={(e) => setApiKey(e.target.value)}
+                      />
+                      <Button 
+                        className="w-full" 
+                        onClick={() => mutation.mutate({ provider: provider.id, apiKey, isActive: true })}
+                      >
+                        تفعيل الربط <Link2 className="mr-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  {isEnabled && (
+                    <Button variant="outline" className="w-full">
+                      إعدادات متقدمة <Settings2 className="mr-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="mt-10">
+        <Card className="bg-muted/50 border-dashed">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Package className="ml-2 h-6 w-6 text-primary" /> مستودعات الإمداد
+            </CardTitle>
+            <CardDescription>هذه الميزة تمكنك من إدارة المخزون المركزي وتوزيعه على الفروع</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">جاري العمل على واجهة المستودعات المركزية لتمكين التحويل بين المخازن...</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
-
-interface IntegrationOrder {
-  id: string;
-  platformId: string;
-  platform: string;
-  customerName: string;
-  items: number;
-  total: number;
-  status: "new" | "accepted" | "preparing" | "ready" | "picked" | "delivered" | "cancelled";
-  createdAt: Date;
-  deliveryTime?: Date;
-  driverName?: string;
-}
-
-const mockIntegrations: Integration[] = [
-  {
-    id: "hungerstation",
-    name: "HungerStation",
-    nameAr: "هنقرستيشن",
-    logo: "🍔",
-    status: "connected",
-    lastSync: new Date(Date.now() - 5 * 60000),
-    ordersToday: 45,
-    revenueToday: 3850,
-    commission: 15,
-    apiKey: "hs_****_7x8k",
-    webhookUrl: "https://api.qahwacup.com/webhooks/hungerstation",
-    settings: {
-      autoAccept: true,
-      autoAssign: true,
-      syncInventory: true,
-      syncMenu: true,
-    }
-  },
-  {
-    id: "marsool",
-    name: "Marsool",
-    nameAr: "مرسول",
-    logo: "🛵",
-    status: "connected",
-    lastSync: new Date(Date.now() - 3 * 60000),
-    ordersToday: 32,
-    revenueToday: 2680,
-    commission: 12,
-    apiKey: "ms_****_9y2p",
-    webhookUrl: "https://api.qahwacup.com/webhooks/marsool",
-    settings: {
-      autoAccept: true,
-      autoAssign: false,
-      syncInventory: true,
-      syncMenu: false,
-    }
-  },
-  {
-    id: "jahez",
-    name: "Jahez",
-    nameAr: "جاهز",
-    logo: "🚀",
-    status: "disconnected",
-    ordersToday: 0,
-    revenueToday: 0,
-    commission: 14,
-    settings: {
-      autoAccept: false,
-      autoAssign: false,
-      syncInventory: false,
-      syncMenu: false,
-    }
-  },
-  {
-    id: "toyou",
-    name: "ToYou",
-    nameAr: "تويو",
-    logo: "📦",
-    status: "pending",
-    ordersToday: 0,
-    revenueToday: 0,
-    commission: 13,
-    settings: {
-      autoAccept: false,
-      autoAssign: false,
-      syncInventory: false,
-      syncMenu: false,
-    }
-  },
-];
-
-const mockOrders: IntegrationOrder[] = [
-  {
-    id: "ord-001",
-    platformId: "HS-78234",
-    platform: "hungerstation",
-    customerName: "أحمد محمد",
-    items: 3,
-    total: 85,
-    status: "preparing",
-    createdAt: new Date(Date.now() - 15 * 60000),
-    driverName: "خالد",
-  },
-  {
-    id: "ord-002",
-    platformId: "MS-45621",
-    platform: "marsool",
-    customerName: "سارة علي",
-    items: 2,
-    total: 52,
-    status: "ready",
-    createdAt: new Date(Date.now() - 25 * 60000),
-    driverName: "محمد",
-  },
-  {
-    id: "ord-003",
-    platformId: "HS-78235",
-    platform: "hungerstation",
-    customerName: "فهد العتيبي",
-    items: 4,
-    total: 120,
-    status: "new",
-    createdAt: new Date(Date.now() - 2 * 60000),
-  },
-  {
-    id: "ord-004",
-    platformId: "MS-45622",
-    platform: "marsool",
-    customerName: "نورة الشمري",
-    items: 1,
-    total: 28,
-    status: "delivered",
-    createdAt: new Date(Date.now() - 45 * 60000),
-    deliveryTime: new Date(Date.now() - 15 * 60000),
-    driverName: "عبدالله",
-  },
-  {
-    id: "ord-005",
-    platformId: "HS-78236",
-    platform: "hungerstation",
-    customerName: "ريم القحطاني",
-    items: 5,
-    total: 145,
-    status: "picked",
-    createdAt: new Date(Date.now() - 35 * 60000),
-    driverName: "ياسر",
-  },
-];
-
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  new: { label: "جديد", color: "bg-blue-500", icon: Bell },
-  accepted: { label: "مقبول", color: "bg-indigo-500", icon: CheckCircle },
-  preparing: { label: "قيد التحضير", color: "bg-amber-500", icon: Clock },
-  ready: { label: "جاهز", color: "bg-green-500", icon: Package },
-  picked: { label: "تم الاستلام", color: "bg-purple-500", icon: Truck },
-  delivered: { label: "تم التوصيل", color: "bg-emerald-500", icon: CheckCircle },
-  cancelled: { label: "ملغي", color: "bg-red-500", icon: XCircle },
-};
 
 export default function ExternalIntegrationsPage() {
   const [, setLocation] = useLocation();

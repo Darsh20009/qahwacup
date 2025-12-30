@@ -366,6 +366,45 @@ let posDeviceStatus = { connected: false, lastCheck: Date.now() };
 export async function registerRoutes(app: Express): Promise<Server> {
   // --- OPERATING SYSTEM CORE API ROUTES ---
 
+  // Warehouse Management
+  app.get("/api/warehouses", requireAuth, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const warehouses = await WarehouseModel.find({ tenantId });
+    res.json(warehouses.map(serializeDoc));
+  });
+
+  app.post("/api/warehouses", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const warehouse = await WarehouseModel.create({ ...req.body, tenantId, id: nanoid() });
+    res.json(serializeDoc(warehouse));
+  });
+
+  app.get("/api/warehouses/:id/stock", requireAuth, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const stock = await WarehouseStockModel.find({ tenantId, warehouseId: req.params.id });
+    res.json(stock.map(serializeDoc));
+  });
+
+  // Delivery Integrations
+  app.get("/api/integrations/delivery", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const integrations = await DeliveryIntegrationModel.find({ tenantId });
+    res.json(integrations.map(serializeDoc));
+  });
+
+  app.post("/api/integrations/delivery", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+    const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
+    const integration = await DeliveryIntegrationModel.create({ ...req.body, tenantId });
+    res.json(serializeDoc(integration));
+  });
+
+  // Webhook Placeholder for Delivery Apps
+  app.post("/api/webhooks/delivery/:provider", async (req, res) => {
+    const { provider } = req.params;
+    // Log incoming delivery order (Placeholder logic)
+    res.status(200).json({ received: true, provider });
+  });
+
   // Business Config
   app.get("/api/config", requireAuth, async (req: AuthRequest, res) => {
     const tenantId = getTenantIdFromRequest(req) || 'demo-tenant';
