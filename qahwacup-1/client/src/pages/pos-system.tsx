@@ -152,29 +152,32 @@ export default function POSSystem() {
     }
   }, [isOnline]);
   
-  // Local caching logic for offline products
+  // Local caching logic for offline products - Simplified to avoid redundant updates
   useEffect(() => {
     const syncWithLocal = async () => {
-      if (coffeeItems && coffeeItems.length > 0) {
+      if (coffeeItems && coffeeItems.length > 0 && !isOffline) {
         try {
-          const localProducts = coffeeItems.map((p: any) => ({
-            id: p.id,
-            nameAr: p.nameAr,
-            price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
-            category: p.category,
-            imageUrl: p.imageUrl,
-            isAvailable: p.isAvailable,
-            tenantId: p.tenantId || 'demo-tenant',
-            updatedAt: Date.now()
-          }));
-          await db.products.bulkPut(localProducts);
+          const currentCount = await db.products.count();
+          if (currentCount !== coffeeItems.length) {
+            const localProducts = coffeeItems.map((p: any) => ({
+              id: p.id,
+              nameAr: p.nameAr,
+              price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+              category: p.category,
+              imageUrl: p.imageUrl,
+              isAvailable: p.isAvailable,
+              tenantId: p.tenantId || 'demo-tenant',
+              updatedAt: Date.now()
+            }));
+            await db.products.bulkPut(localProducts);
+          }
         } catch (err) {
           console.error("Failed to sync products to IndexedDB:", err);
         }
       }
     };
     syncWithLocal();
-  }, [coffeeItems]);
+  }, [coffeeItems, isOffline]);
   const [orderType, setOrderType] = useState<OrderType>("dine_in");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -358,6 +361,8 @@ export default function POSSystem() {
 
   const { data: productsData, isLoading } = useQuery<CoffeeItem[]>({
     queryKey: ["/api/coffee-items"],
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    cacheTime: 1000 * 60 * 60 * 24, // 24 hours
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/coffee-items");
       const data = await res.json();
