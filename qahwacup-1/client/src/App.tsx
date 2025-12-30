@@ -104,6 +104,7 @@ const AdvancedAnalytics = lazy(() => import("@/pages/advanced-analytics"));
 const SupplierManagement = lazy(() => import("@/pages/supplier-management"));
 const LoyaltyProgram = lazy(() => import("@/pages/loyalty-program"));
 const ExternalIntegrations = lazy(() => import("@/pages/external-integrations"));
+const WarehouseManagement = lazy(() => import("@/pages/warehouse-management"));
 const SupportSystem = lazy(() => import("@/pages/support-system"));
 const PageLoader = () => <div className="w-full h-screen flex items-center justify-center bg-background" />;
 
@@ -227,6 +228,7 @@ function Router() {
  <Route path="/manager/suppliers">{() => <AuthGuard userType="manager"><SupplierManagement /></AuthGuard>}</Route>
  <Route path="/manager/loyalty">{() => <AuthGuard userType="manager"><LoyaltyProgram /></AuthGuard>}</Route>
  <Route path="/manager/integrations">{() => <AuthGuard userType="manager"><ExternalIntegrations /></AuthGuard>}</Route>
+ <Route path="/manager/warehouse">{() => <AuthGuard userType="manager"><WarehouseManagement /></AuthGuard>}</Route>
  <Route path="/manager/support">{() => <AuthGuard userType="manager"><SupportSystem /></AuthGuard>}</Route>
  <Route path="/manager/os-recipes">{() => <AuthGuard userType="manager"><OSRecipeManagement /></AuthGuard>}</Route>
  <Route path="/manager/os-accounting">{() => <AuthGuard userType="manager"><OSAccountingDashboard /></AuthGuard>}</Route>

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema, RecipeItemModel, BranchStockModel, RawItemModel, StockMovementModel, OrderModel, BranchModel, CoffeeItemModel, ProductReviewModel, ReferralModel, NotificationModel, CustomerModel, TableModel, CafeModel, AccountingSnapshotModel, insertAccountingSnapshotSchema, ProductAddonModel, WarehouseModel, WarehouseStockModel, WarehouseTransferModel } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertEmployeeSchema, type PaymentMethod, insertTaxInvoiceSchema, RecipeItemModel, BranchStockModel, RawItemModel, StockMovementModel, OrderModel, BranchModel, CoffeeItemModel, ProductReviewModel, ReferralModel, NotificationModel, CustomerModel, TableModel, CafeModel, AccountingSnapshotModel, insertAccountingSnapshotSchema, ProductAddonModel, WarehouseModel, WarehouseStockModel, WarehouseTransferModel, DeliveryIntegrationModel } from "@shared/schema";
 import { RecipeEngine } from "./recipe-engine";
 import { UnitsEngine } from "./units-engine";
 import { InventoryEngine } from "./inventory-engine";

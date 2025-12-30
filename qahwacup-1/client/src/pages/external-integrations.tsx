@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Package, Truck, Globe, Settings2, Link2, ArrowLeft } from "lucide-react";
+import { Package, Truck, Globe, Settings2, Link2, ArrowLeft, Activity, RefreshCw, Warehouse } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function ExternalIntegrationsPage() {
@@ -17,6 +17,11 @@ export default function ExternalIntegrationsPage() {
 
   const { data: integrations = [] } = useQuery({
     queryKey: ["/api/integrations/delivery"],
+  });
+
+  const { data: mockStatus } = useQuery({
+    queryKey: ["/api/integrations/delivery/mock-status"],
+    refetchInterval: 5000,
   });
 
   const mutation = useMutation({
@@ -57,16 +62,40 @@ export default function ExternalIntegrationsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {providers.map((provider) => {
           const isEnabled = integrations.find((i: any) => i.provider === provider.id && i.isActive);
+          const status = mockStatus?.[provider.id];
+
           return (
-            <Card key={provider.id} className="border-2 hover:border-primary transition-colors">
+            <Card key={provider.id} className={`border-2 transition-all ${isEnabled ? 'border-green-500/50 shadow-lg shadow-green-500/10' : 'hover:border-primary'}`}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">{provider.nameAr}</CardTitle>
-                <Truck className="h-6 w-6 text-primary" />
+                <div className="flex items-center gap-2">
+                  {isEnabled && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-xs">
+                      <Activity className="w-3 h-3 animate-pulse" />
+                      متصل
+                    </div>
+                  )}
+                  <Truck className="h-6 w-6 text-primary" />
+                </div>
               </CardHeader>
               <CardContent>
                 <CardDescription className="mb-4">
                   ربط الطلبات آلياً مع {provider.nameAr} وتحديث حالة المخزون.
                 </CardDescription>
+                
+                {isEnabled && status && (
+                  <div className="mb-4 grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 rounded bg-muted">
+                      <span className="text-muted-foreground block">طلبات اليوم</span>
+                      <span className="font-bold">{status.ordersToday || 0}</span>
+                    </div>
+                    <div className="p-2 rounded bg-muted">
+                      <span className="text-muted-foreground block">وقت الاستجابة</span>
+                      <span className="font-bold">{status.latency || '...'}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label htmlFor={`${provider.id}-active`}>حالة الربط</Label>
@@ -89,9 +118,14 @@ export default function ExternalIntegrationsPage() {
                     </div>
                   )}
                   {isEnabled && (
-                    <Button variant="outline" className="w-full">
-                      إعدادات متقدمة <Settings2 className="mr-2 h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1">
+                        إعدادات <Settings2 className="mr-2 h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -108,8 +142,11 @@ export default function ExternalIntegrationsPage() {
             </CardTitle>
             <CardDescription>هذه الميزة تمكنك من إدارة المخزون المركزي وتوزيعه على الفروع</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">جاري العمل على واجهة المستودعات المركزية لتمكين التحويل بين المخازن...</p>
+          <CardContent className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground">تم تفعيل واجهة المستودعات المركزية لتمكين التحويل بين المخازن.</p>
+            <Button onClick={() => setLocation("/manager/warehouse")}>
+              إدارة المستودعات <Warehouse className="mr-2 h-4 w-4" />
+            </Button>
           </CardContent>
         </Card>
       </div>

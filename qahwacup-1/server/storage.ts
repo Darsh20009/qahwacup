@@ -92,6 +92,11 @@ import {
   ProductReviewModel,
   ReferralModel,
   NotificationModel,
+  WarehouseModel,
+  WarehouseStockModel,
+  WarehouseTransferModel,
+  DeliveryIntegrationModel,
+  ProductAddonModel,
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
