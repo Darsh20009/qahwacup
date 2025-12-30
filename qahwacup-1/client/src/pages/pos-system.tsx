@@ -82,16 +82,6 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
   { id: "qahwa-card", name: "بطاقة قهوة", nameEn: "Qahwa Card", icon: Coffee, color: "text-primary", bgColor: "bg-primary", enabled: true },
 ];
 
-const CATEGORIES = [
-  { id: "all", name: "الكل", nameEn: "All", icon: Grid3X3, color: "bg-muted" },
-  { id: "espresso", name: "إسبريسو", nameEn: "Espresso", icon: Coffee, color: "bg-primary" },
-  { id: "latte", name: "لاتيه", nameEn: "Latte", icon: Coffee, color: "bg-primary" },
-  { id: "cappuccino", name: "كابتشينو", nameEn: "Cappuccino", icon: Coffee, color: "bg-primary" },
-  { id: "cold", name: "مشروبات باردة", nameEn: "Cold Drinks", icon: Coffee, color: "bg-accent" },
-  { id: "tea", name: "شاي", nameEn: "Tea", icon: Coffee, color: "bg-accent" },
-  { id: "matcha", name: "ماتشا", nameEn: "Matcha", icon: Coffee, color: "bg-accent" },
-  { id: "specialty", name: "مميز", nameEn: "Specialty", icon: Coffee, color: "bg-accent" },
-];
 
 type OrderType = 'dine_in' | 'takeaway' | 'delivery';
 
