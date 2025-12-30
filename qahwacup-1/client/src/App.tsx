@@ -106,6 +106,8 @@ const LoyaltyProgram = lazy(() => import("@/pages/loyalty-program"));
 const ExternalIntegrations = lazy(() => import("@/pages/external-integrations"));
 const WarehouseManagement = lazy(() => import("@/pages/warehouse-management"));
 const SupportSystem = lazy(() => import("@/pages/support-system"));
+const StockOrganizationDashboard = lazy(() => import("@/pages/stock-organization-dashboard"));
+const DeliveryServiceStatus = lazy(() => import("@/pages/delivery-service-status"));
 const PageLoader = () => <div className="w-full h-screen flex items-center justify-center bg-background" />;
 
 function Router() {
@@ -230,6 +232,8 @@ function Router() {
  <Route path="/manager/integrations">{() => <AuthGuard userType="manager"><ExternalIntegrations /></AuthGuard>}</Route>
  <Route path="/manager/warehouse">{() => <AuthGuard userType="manager"><WarehouseManagement /></AuthGuard>}</Route>
  <Route path="/manager/support">{() => <AuthGuard userType="manager"><SupportSystem /></AuthGuard>}</Route>
+ <Route path="/manager/inventory/stock-organization">{() => <AuthGuard userType="manager"><StockOrganizationDashboard /></AuthGuard>}</Route>
+ <Route path="/manager/delivery-services">{() => <AuthGuard userType="manager"><DeliveryServiceStatus /></AuthGuard>}</Route>
  <Route path="/manager/os-recipes">{() => <AuthGuard userType="manager"><OSRecipeManagement /></AuthGuard>}</Route>
  <Route path="/manager/os-accounting">{() => <AuthGuard userType="manager"><OSAccountingDashboard /></AuthGuard>}</Route>
  <Route path="/manager/os-stock">{() => <AuthGuard userType="manager"><OSStockManagement /></AuthGuard>}</Route>
