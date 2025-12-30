@@ -846,13 +846,16 @@ export default function ManagerDashboard() {
  </CardDescription>
  </div>
  {isAdmin && (
- <Dialog open={isAddBranchOpen} onOpenChange={setIsAddBranchOpen}>
- <DialogTrigger asChild>
- <Button data-testid="button-add-branch">
+ <>
+ <Button 
+ data-testid="button-add-branch"
+ onClick={() => setIsAddBranchOpen(true)}
+ className="bg-orange-600 hover:bg-orange-700"
+ >
  <Plus className="w-4 h-4 ml-2" />
  إضافة فرع
  </Button>
- </DialogTrigger>
+ <Dialog open={isAddBranchOpen} onOpenChange={setIsAddBranchOpen}>
  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
  <DialogHeader>
  <DialogTitle className="text-primary text-xl">إضافة فرع جديد</DialogTitle>
@@ -1023,6 +1026,7 @@ export default function ManagerDashboard() {
  </div>
  </DialogContent>
  </Dialog>
+ </>
  )}
  </div>
  </CardHeader>
