@@ -534,8 +534,10 @@ export class DBStorage implements IStorage {
 
   async updateEmployee(id: string, updates: any): Promise<any> {
     const { EmployeeModel } = await import("@shared/schema");
+    const mongoose = await import("mongoose");
+    const bcrypt = await import("bcryptjs");
+    
     if (updates.password) {
-      const bcrypt = await import("bcryptjs");
       updates.password = await bcrypt.hash(updates.password, 10);
     }
     updates.updatedAt = new Date();
@@ -544,7 +546,7 @@ export class DBStorage implements IStorage {
     let employee = await EmployeeModel.findOneAndUpdate({ id }, updates, { new: true }).lean();
     
     // Fallback to _id if not found (though id should be unique)
-    if (!employee && mongoose.Types.ObjectId.isValid(id)) {
+    if (!employee && mongoose.default.Types.ObjectId.isValid(id)) {
       employee = await EmployeeModel.findByIdAndUpdate(id, updates, { new: true }).lean();
     }
     
@@ -553,7 +555,7 @@ export class DBStorage implements IStorage {
     // Convert _id to id for consistency
     const result: any = {
       ...employee,
-      id: employee._id.toString(),
+      id: (employee as any)._id.toString(),
     };
     delete result._id;
     delete result.__v;

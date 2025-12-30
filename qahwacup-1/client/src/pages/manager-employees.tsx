@@ -64,9 +64,6 @@ export default function ManagerEmployees() {
     { id: '/employee/accounting', label: 'المحاسبة' },
     { id: '/manager/dashboard', label: 'لوحة التحكم' },
   ];
-    { id: '/employee/accounting', label: 'المحاسبة' },
-    { id: '/manager/dashboard', label: 'لوحة التحكم' },
-  ];
 
 
  // Get current manager info and verify session
